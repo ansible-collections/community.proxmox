@@ -12,13 +12,9 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_tasks_info
 short_description: Retrieve information about one or more Proxmox VE tasks
-version_added: 3.8.0
 description:
   - Retrieve information about one or more Proxmox VE tasks.
 author: 'Andreas Botzner (@paginabianca) <andreas at botzner dot com>'
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   node:
     description:

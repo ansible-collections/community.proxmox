@@ -11,7 +11,6 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_snap
 short_description: Snapshot management of instances in Proxmox VE cluster
-version_added: 2.0.0
 description:
   - Allows you to create/delete/restore snapshots from instances in Proxmox VE cluster.
   - Supports both KVM and LXC, OpenVZ has not been tested, as it is no longer supported on Proxmox VE.
@@ -20,8 +19,6 @@ attributes:
     support: full
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   hostname:
     description:
@@ -35,7 +32,6 @@ options:
   state:
     description:
       - Indicate desired state of the instance snapshot.
-      - The V(rollback) value was added in community.proxmox 4.8.0.
     choices: ['present', 'absent', 'rollback']
     default: present
     type: str
@@ -55,7 +51,6 @@ options:
       - See U(https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/lxc/{vmid}/config) (PUT tab) for more details.
     default: false
     type: bool
-    version_added: 5.7.0
   vmstate:
     description:
       - Snapshot includes RAM.
@@ -84,7 +79,6 @@ options:
         snapshots will be kept.
     default: 0
     type: int
-    version_added: 7.1.0
 
 notes:
   - Requires proxmoxer and requests modules on host. These modules can be installed with pip.

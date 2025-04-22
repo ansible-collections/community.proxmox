@@ -9,7 +9,6 @@ from __future__ import annotations
 DOCUMENTATION = '''
     name: proxmox
     short_description: Proxmox inventory source
-    version_added: "1.2.0"
     author:
         - Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
     requirements:
@@ -32,32 +31,29 @@ DOCUMENTATION = '''
         description:
           - URL to Proxmox cluster.
           - If the value is not specified in the inventory configuration, the value of environment variable E(PROXMOX_URL) will be used instead.
-          - Since community.proxmox 4.7.0 you can also use templating to specify the value of the O(url).
+          - You can use templating to specify the value of the O(url).
         default: 'http://localhost:8006'
         type: str
         env:
           - name: PROXMOX_URL
-            version_added: 2.0.0
       user:
         description:
           - Proxmox authentication user.
           - If the value is not specified in the inventory configuration, the value of environment variable E(PROXMOX_USER) will be used instead.
-          - Since community.proxmox 4.7.0 you can also use templating to specify the value of the O(user).
+          - You can use templating to specify the value of the O(user).
         required: true
         type: str
         env:
           - name: PROXMOX_USER
-            version_added: 2.0.0
       password:
         description:
           - Proxmox authentication password.
           - If the value is not specified in the inventory configuration, the value of environment variable E(PROXMOX_PASSWORD) will be used instead.
-          - Since community.proxmox 4.7.0 you can also use templating to specify the value of the O(password).
+          - You can use templating to specify the value of the O(password).
           - If you do not specify a password, you must set O(token_id) and O(token_secret) instead.
         type: str
         env:
           - name: PROXMOX_PASSWORD
-            version_added: 2.0.0
       token_id:
         description:
           - Proxmox authentication token ID.
@@ -65,7 +61,6 @@ DOCUMENTATION = '''
           - To use token authentication, you must also specify O(token_secret). If you do not specify O(token_id) and O(token_secret),
             you must set a password instead.
           - Make sure to grant explicit pve permissions to the token or disable 'privilege separation' to use the users' privileges instead.
-        version_added: 4.8.0
         type: str
         env:
           - name: PROXMOX_TOKEN_ID
@@ -75,7 +70,6 @@ DOCUMENTATION = '''
           - If the value is not specified in the inventory configuration, the value of environment variable E(PROXMOX_TOKEN_SECRET) will be used instead.
           - To use token authentication, you must also specify O(token_id). If you do not specify O(token_id) and O(token_secret),
             you must set a password instead.
-        version_added: 4.8.0
         type: str
         env:
           - name: PROXMOX_TOKEN_SECRET
@@ -106,34 +100,21 @@ DOCUMENTATION = '''
           - This introduces multiple groups [prefixed with O(group_prefix)] C(prelaunch) and C(paused).
         default: false
         type: bool
-        version_added: 5.1.0
       want_proxmox_nodes_ansible_host:
-        version_added: 3.0.0
         description:
           - Whether to set C(ansible_host) for proxmox nodes.
           - When set to V(true) (default), will use the first available interface. This can be different from what you expect.
-          - The default of this option changed from V(true) to V(false) in community.proxmox 6.0.0.
         type: bool
         default: false
       exclude_nodes:
         description: Exclude proxmox nodes and the nodes-group from the inventory output.
         type: bool
         default: false
-        version_added: 8.1.0
       filters:
-        version_added: 4.6.0
         description: A list of Jinja templates that allow filtering hosts.
         type: list
         elements: str
         default: []
-      strict:
-        version_added: 2.5.0
-      compose:
-        version_added: 2.5.0
-      groups:
-        version_added: 2.5.0
-      keyed_groups:
-        version_added: 2.5.0
 '''
 
 EXAMPLES = '''

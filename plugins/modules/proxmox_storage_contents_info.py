@@ -13,12 +13,8 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_storage_contents_info
 short_description: List content from a Proxmox VE storage
-version_added: 8.2.0
 description:
   - Retrieves information about stored objects on a specific storage attached to a node.
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   storage:
     description:

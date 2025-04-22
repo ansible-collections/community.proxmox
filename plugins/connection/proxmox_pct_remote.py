@@ -16,7 +16,6 @@ requirements:
 description:
   - Run commands or put/fetch files to an existing Proxmox LXC container using pct CLI via SSH.
   - Uses the Python SSH implementation (Paramiko) to connect to the Proxmox host.
-version_added: "10.3.0"
 options:
   remote_addr:
     description:

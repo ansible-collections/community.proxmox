@@ -13,21 +13,17 @@ module: proxmox_kvm
 short_description: Management of Qemu(KVM) Virtual Machines in Proxmox VE cluster
 description:
   - Allows you to create/delete/stop Qemu(KVM) Virtual Machines in Proxmox VE cluster.
-  - Since community.proxmox 4.0.0 on, there are no more default values.
 author: "Abdoul Bah (@helldorado) <bahabdoul at gmail.com>"
 attributes:
   check_mode:
     support: none
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   archive:
     description:
       - Specify a path to an archive to restore (instead of creating or cloning a VM).
     type: str
-    version_added: 6.5.0
   acpi:
     description:
       - Specify if ACPI should be enabled/disabled.
@@ -35,8 +31,6 @@ options:
   agent:
     description:
       - Specify if the QEMU Guest Agent should be enabled/disabled.
-      - Since community.proxmox 5.5.0, this can also be a string instead of a boolean. This allows to specify values such
-        as V(enabled=1,fstrim_cloned_disks=1).
     type: str
   args:
     description:
@@ -51,7 +45,6 @@ options:
       - C(device) is either V(ich9-intel-hda) or V(intel-hda) or V(AC97).
       - Option C(driver) is V(none) or V(spice).
     type: dict
-    version_added: 10.5.0
   autostart:
     description:
       - Specify if the VM should be automatically restarted after crash (currently ignored in PVE API).
@@ -80,12 +73,10 @@ options:
     description:
       - 'Cloud-init: Specify custom files to replace the automatically generated ones at start.'
     type: str
-    version_added: 1.3.0
   cipassword:
     description:
       - 'Cloud-init: password of default user to create.'
     type: str
-    version_added: 1.3.0
   citype:
     description:
       - 'Cloud-init: Specifies the cloud-init configuration format.'
@@ -93,17 +84,14 @@ options:
       - We use the V(nocloud) format for Linux, and V(configdrive2) for Windows.
     type: str
     choices: ['nocloud', 'configdrive2']
-    version_added: 1.3.0
   ciupgrade:
     description:
       - 'Cloud-init: do an automatic package upgrade after the first boot.'
     type: bool
-    version_added: 10.0.0
   ciuser:
     description:
       - 'Cloud-init: username of default user to create.'
     type: str
-    version_added: 1.3.0
   clone:
     description:
       - Name of VM to be cloned. If O(vmid) is set, O(clone) can take an arbitrary value but is required for initiating the
@@ -173,7 +161,6 @@ options:
             creation or not (0).
           - If set to V(1), Secure Boot will also be enabled by default when the VM is created.
         type: bool
-    version_added: 4.5.0
   force:
     description:
       - Allow to force stop VM.
@@ -205,7 +192,6 @@ options:
     description:
       - Script that will be executed during various steps in the containers lifetime.
     type: str
-    version_added: 8.1.0
   hostpci:
     description:
       - Specify a hash/dictionary of map host pci devices into guest. O(hostpci='{"key":"value", "key":"value"}').
@@ -252,7 +238,6 @@ options:
       - For IPv6 the special string V(auto) can be used to use stateless autoconfiguration.
       - If cloud-init is enabled and neither an IPv4 nor an IPv6 address is specified, it defaults to using dhcp on IPv4.
     type: dict
-    version_added: 1.3.0
   keyboard:
     description:
       - Sets the keyboard layout for VNC server.
@@ -285,7 +270,6 @@ options:
       - Migrate the VM to O(node) if it is on another node.
     type: bool
     default: false
-    version_added: 7.0.0
   migrate_downtime:
     description:
       - Sets maximum tolerated downtime (in seconds) for migrations.
@@ -307,7 +291,6 @@ options:
       - If unset, PVE host settings are used.
     type: list
     elements: str
-    version_added: 1.3.0
   net:
     description:
       - A hash/dictionary of network interfaces for the VM. O(net='{"key":"value", "key":"value"}').
@@ -402,7 +385,6 @@ options:
       - If unset, PVE host settings are used.
     type: list
     elements: str
-    version_added: 1.3.0
   serial:
     description:
       - A hash/dictionary of serial device to create inside the VM. V('{"key":"value", "key":"value"}').
@@ -447,7 +429,6 @@ options:
     description:
       - 'Cloud-init: SSH key to assign to the default user. NOT TESTED with multiple keys but a multi-line value should work.'
     type: str
-    version_added: 1.3.0
   startdate:
     description:
       - Sets the initial date of the real time clock.
@@ -463,8 +444,6 @@ options:
     description:
       - Indicates desired state of the instance.
       - If V(current), the current state of the VM will be fetched. You can access it with C(results.status).
-      - V(template) was added in community.proxmox 8.1.0.
-      - V(paused) and V(hibernated) were added in community.proxmox 10.4.0.
     type: str
     choices: ['present', 'started', 'absent', 'stopped', 'restarted', 'current', 'template', 'paused', 'hibernated']
     default: present
@@ -483,7 +462,6 @@ options:
       - Tags are only available in Proxmox 6+.
     type: list
     elements: str
-    version_added: 2.3.0
   target:
     description:
       - Target node. Only allowed if the original VM is on shared storage.
@@ -521,7 +499,6 @@ options:
         choices: ['1.2', '2.0']
         default: '2.0'
     type: dict
-    version_added: 7.1.0
   usb:
     description:
       - A hash/dictionary of USB devices for the VM. O(usb='{"key":"value", "key":"value"}').
@@ -531,7 +508,6 @@ options:
       - Option C(mapping) is the mapped USB device name.
       - Option C(usb3) enables USB 3 support.
     type: dict
-    version_added: 9.0.0
   update:
     description:
       - If V(true), the VM will be updated with new value.
@@ -548,7 +524,6 @@ options:
         (for example disk recreated).
     type: bool
     default: false
-    version_added: 8.4.0
   vcpus:
     description:
       - Sets number of hotplugged vcpus.

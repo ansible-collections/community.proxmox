@@ -15,14 +15,11 @@ short_description: Management of instances in Proxmox VE cluster
 description:
   - Allows you to create/delete/stop instances in Proxmox VE cluster.
   - The module automatically detects containerization type (lxc for PVE 4, openvz for older).
-  - Since community.proxmox 4.0.0 on, there are no more default values.
 attributes:
   check_mode:
     support: none
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   password:
     description:
@@ -58,7 +55,6 @@ options:
       - See U(https://pve.proxmox.com/wiki/Linux_Container#pct_mount_points) for a full description.
       - This option is mutually exclusive with O(storage) and O(disk).
     type: dict
-    version_added: 9.2.0
     suboptions:
       storage:
         description:
@@ -114,7 +110,6 @@ options:
       - Some features require the use of a privileged container.
     type: list
     elements: str
-    version_added: 2.0.0
   startup:
     description:
       - Specifies the startup order of the container.
@@ -124,7 +119,6 @@ options:
       - Use C(down=#) where C(#) is in seconds, to specify a delay to wait before the next VM is stopped.
     type: list
     elements: str
-    version_added: 8.5.0
   mounts:
     description:
       - Specifies additional mounts (separate disks) for the container. As a hash/dictionary defining mount points as strings.
@@ -137,7 +131,6 @@ options:
       - This Option is mutually exclusive with O(mounts).
     type: list
     elements: dict
-    version_added: 9.2.0
     suboptions:
       id:
         description:
@@ -199,7 +192,6 @@ options:
       'unmanaged']
     type: str
     default: 'auto'
-    version_added: 8.1.0
   cpuunits:
     description:
       - CPU weight for a VM.
@@ -219,7 +211,6 @@ options:
       - Tags are only available in Proxmox 7+.
     type: list
     elements: str
-    version_added: 6.2.0
   timeout:
     description:
       - Timeout for operations.
@@ -231,7 +222,6 @@ options:
       - The current default value of V(false) is deprecated and should will change to V(true) in community.proxmox 11.0.0.
         Please set O(update) explicitly to V(false) or V(true) to avoid surprises and get rid of the deprecation warning.
     type: bool
-    version_added: 8.1.0
   force:
     description:
       - Forcing operations.
@@ -248,11 +238,9 @@ options:
       - Used with O(state=absent).
     type: bool
     default: false
-    version_added: 2.3.0
   state:
     description:
       - Indicate desired state of the instance.
-      - V(template) was added in community.proxmox 8.1.0.
     type: str
     choices: ['present', 'started', 'absent', 'stopped', 'restarted', 'template']
     default: present
@@ -263,7 +251,6 @@ options:
   unprivileged:
     description:
       - Indicate if the container should be unprivileged.
-      - The default change to V(true) in community.proxmox 7.0.0. It used to be V(false) before.
     type: bool
     default: true
   description:
@@ -271,18 +258,15 @@ options:
       - Specify the description for the container. Only used on the configuration web interface.
       - This is saved as a comment inside the configuration file.
     type: str
-    version_added: '0.2.0'
   hookscript:
     description:
       - Script that will be executed during various steps in the containers lifetime.
     type: str
-    version_added: '0.2.0'
   timezone:
     description:
       - Timezone used by the container, accepts values like V(Europe/Paris).
       - The special value V(host) configures the same timezone used by Proxmox host.
     type: str
-    version_added: '7.1.0'
   clone:
     description:
       - ID of the container to be cloned.
@@ -290,7 +274,6 @@ options:
       - The type of clone created is defined by the O(clone_type) parameter.
       - This operator is only supported for Proxmox clusters that use LXC containerization (PVE version >= 4).
     type: int
-    version_added: 4.3.0
   clone_type:
     description:
       - Type of the clone created.
@@ -301,7 +284,6 @@ options:
     type: str
     choices: ['full', 'linked', 'opportunistic']
     default: opportunistic
-    version_added: 4.3.0
 author: Sergei Antipov (@UnderGreen)
 seealso:
   - module: community.proxmox.proxmox_vm_info

@@ -12,13 +12,9 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_node_info
 short_description: Retrieve information about one or more Proxmox VE nodes
-version_added: 8.2.0
 description:
   - Retrieve information about one or more Proxmox VE nodes.
 author: John Berninger (@jwbernin)
-attributes:
-  action_group:
-    version_added: 9.0.0
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation

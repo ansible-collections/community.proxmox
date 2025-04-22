@@ -12,15 +12,12 @@ module: proxmox_pool_member
 short_description: Add or delete members from Proxmox VE cluster pools
 description:
   - Create or delete a pool member in Proxmox VE clusters.
-version_added: 7.1.0
 author: "Sergei Antipov (@UnderGreen) <greendayonfire@gmail.com>"
 attributes:
   check_mode:
     support: full
   diff_mode:
     support: full
-  action_group:
-    version_added: 9.0.0
 options:
   poolid:
     description:

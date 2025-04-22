@@ -11,7 +11,6 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_nic
 short_description: Management of a NIC of a Qemu(KVM) VM in a Proxmox VE cluster
-version_added: 3.1.0
 description:
   - Allows you to create/update/delete a NIC on Qemu(KVM) Virtual Machines in a Proxmox VE cluster.
 author: "Lammert Hellinga (@Kogelvis) <lammert@hellinga.it>"
@@ -20,8 +19,6 @@ attributes:
     support: full
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   bridge:
     description:

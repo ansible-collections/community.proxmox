@@ -11,7 +11,6 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_disk
 short_description: Management of a disk of a Qemu(KVM) VM in a Proxmox VE cluster
-version_added: 5.7.0
 description:
   - Allows you to perform some supported operations on a disk in Qemu(KVM) Virtual Machines in a Proxmox VE cluster.
 author: "Castor Sky (@castorsky) <csky57@gmail.com>"
@@ -20,8 +19,6 @@ attributes:
     support: none
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   name:
     description:
@@ -254,7 +251,6 @@ options:
       - Use V(cdrom) to access the physical CD/DVD drive.
       - Use V(none) to unmount image from existent CD-ROM or create empty CD-ROM drive.
     type: str
-    version_added: 8.1.0
   queues:
     description:
       - Number of queues (SCSI only).

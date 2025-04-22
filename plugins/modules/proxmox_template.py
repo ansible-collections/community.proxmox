@@ -19,8 +19,6 @@ attributes:
     support: none
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   node:
     description:
@@ -36,7 +34,6 @@ options:
       - URL to file to download.
       - Exactly one of O(src) or O(url) is required for O(state=present).
     type: str
-    version_added: 10.1.0
   template:
     description:
       - The template name.
@@ -77,7 +74,6 @@ options:
       - If specified, O(checksum) must also be specified.
     type: str
     choices: ['md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512']
-    version_added: 10.3.0
   checksum:
     description:
       - The checksum to validate against.
@@ -85,7 +81,6 @@ options:
       - Checksums can usually be found on the distributors download page in the form of a file or string.
       - If specified, O(checksum_algorithm) must also be specified.
     type: str
-    version_added: 10.3.0
 notes:
   - Requires C(proxmoxer) and C(requests) modules on host. Those modules can be installed with M(ansible.builtin.pip).
   - C(proxmoxer) >= 1.2.0 requires C(requests_toolbelt) to upload files larger than 256 MB.

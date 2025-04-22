@@ -12,12 +12,8 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_domain_info
 short_description: Retrieve information about one or more Proxmox VE domains
-version_added: 1.3.0
 description:
   - Retrieve information about one or more Proxmox VE domains.
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   domain:
     description:

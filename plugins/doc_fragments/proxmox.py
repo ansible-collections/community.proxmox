@@ -22,7 +22,6 @@ options:
       - Uses the E(PROXMOX_PORT) environment variable if not specified.
     type: int
     required: false
-    version_added: 9.1.0
   api_user:
     description:
       - Specify the user to authenticate with.
@@ -38,13 +37,11 @@ options:
       - Specify the token ID.
       - Requires C(proxmoxer>=1.1.0) to work.
     type: str
-    version_added: 1.3.0
   api_token_secret:
     description:
       - Specify the token secret.
       - Requires C(proxmoxer>=1.1.0) to work.
     type: str
-    version_added: 1.3.0
   validate_certs:
     description:
       - If V(false), SSL certificates will not be validated.

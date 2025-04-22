@@ -12,13 +12,9 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_vm_info
 short_description: Retrieve information about one or more Proxmox VE virtual machines
-version_added: 7.2.0
 description:
   - Retrieve information about one or more Proxmox VE virtual machines.
 author: 'Sergei Antipov (@UnderGreen) <greendayonfire at gmail dot com>'
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   node:
     description:
@@ -55,14 +51,12 @@ options:
       - current
       - pending
     default: none
-    version_added: 8.1.0
   network:
     description:
       - Whether to retrieve the current network status.
       - Requires enabled/running qemu-guest-agent on qemu VMs.
     type: bool
     default: false
-    version_added: 9.1.0
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation

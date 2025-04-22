@@ -12,12 +12,8 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_group_info
 short_description: Retrieve information about one or more Proxmox VE groups
-version_added: 1.3.0
 description:
   - Retrieve information about one or more Proxmox VE groups.
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   group:
     description:

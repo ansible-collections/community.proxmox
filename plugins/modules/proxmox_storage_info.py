@@ -12,12 +12,8 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_storage_info
 short_description: Retrieve information about one or more Proxmox VE storages
-version_added: 2.2.0
 description:
   - Retrieve information about one or more Proxmox VE storages.
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   storage:
     description:
