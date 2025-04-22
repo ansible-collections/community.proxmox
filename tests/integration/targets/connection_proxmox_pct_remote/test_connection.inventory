@@ -10,5 +10,5 @@ proxmox_pct_remote-no-pipelining ansible_ssh_pipelining=false
 ansible_host=localhost
 ansible_user=root
 ansible_python_interpreter="{{ ansible_playbook_python }}"
-ansible_connection=community.general.proxmox_pct_remote
+ansible_connection=community.proxmox.proxmox_pct_remote
 proxmox_vmid=123

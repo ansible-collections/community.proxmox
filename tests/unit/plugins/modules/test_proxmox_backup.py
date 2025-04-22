@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import (absolute_import, division, print_function)
 import \
-    ansible_collections.community.general.plugins.module_utils.proxmox as proxmox_utils
-from ansible_collections.community.general.plugins.modules import proxmox_backup
+    ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_backup
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson, AnsibleFailJson, set_module_args, ModuleTestCase)
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
@@ -218,7 +218,7 @@ class TestProxmoxBackup(ModuleTestCase):
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_backup
         self.connect_mock = patch(
-            "ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
+            "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
         self.mock_get_permissions = patch.object(
             proxmox_backup.ProxmoxBackupAnsible, "_get_permissions").start()

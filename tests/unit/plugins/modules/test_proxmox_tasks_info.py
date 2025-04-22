@@ -21,8 +21,8 @@ mandatory_py_version = pytest.mark.skipif(
     reason='The proxmoxer dependency requires python2.7 or higher'
 )
 
-from ansible_collections.community.general.plugins.modules import proxmox_tasks_info
-import ansible_collections.community.general.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_tasks_info
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import set_module_args
 
@@ -125,7 +125,7 @@ EXPECTED_SINGLE_TASK = [
 ]
 
 
-@patch('ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
 def test_without_required_parameters(connect_mock, capfd, mocker):
     with set_module_args({}):
         with pytest.raises(SystemExit):
@@ -143,7 +143,7 @@ def mock_api_tasks_response(mocker):
     return m
 
 
-@patch('ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
 def test_get_tasks(connect_mock, capfd, mocker):
     with set_module_args({
         'api_host': 'proxmoxhost',
@@ -162,7 +162,7 @@ def test_get_tasks(connect_mock, capfd, mocker):
     assert not json.loads(out)['changed']
 
 
-@patch('ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
 def test_get_single_task(connect_mock, capfd, mocker):
     with set_module_args({
         'api_host': 'proxmoxhost',
@@ -183,7 +183,7 @@ def test_get_single_task(connect_mock, capfd, mocker):
     assert not json.loads(out)['changed']
 
 
-@patch('ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
 def test_get_non_existent_task(connect_mock, capfd, mocker):
     with set_module_args({
         'api_host': 'proxmoxhost',

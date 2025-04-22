@@ -11,7 +11,7 @@ __metaclass__ = type
 import pytest
 
 from ansible.inventory.data import InventoryData
-from ansible_collections.community.general.plugins.inventory.proxmox import InventoryModule
+from ansible_collections.community.proxmox.plugins.inventory.proxmox import InventoryModule
 
 
 @pytest.fixture(scope="module")

@@ -91,15 +91,15 @@ notes:
   - C(proxmoxer) >= 1.2.0 requires C(requests_toolbelt) to upload files larger than 256 MB.
 author: Sergei Antipov (@UnderGreen)
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 ---
 - name: Upload new openvz template with minimal options
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -107,7 +107,7 @@ EXAMPLES = r"""
     src: ~/ubuntu-14.04-x86_64.tar.gz
 
 - name: Pull new openvz template with minimal options
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -117,14 +117,14 @@ EXAMPLES = r"""
 - name: >
     Upload new openvz template with minimal options use environment
     PROXMOX_PASSWORD variable(you should export it before)
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_host: node1
     src: ~/ubuntu-14.04-x86_64.tar.gz
 
 - name: Upload new openvz template with all options and force overwrite
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -135,7 +135,7 @@ EXAMPLES = r"""
     force: true
 
 - name: Pull new openvz template with all options and force overwrite
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -146,7 +146,7 @@ EXAMPLES = r"""
     force: true
 
 - name: Delete template with minimal options
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -155,7 +155,7 @@ EXAMPLES = r"""
     state: absent
 
 - name: Download proxmox appliance container template
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -165,7 +165,7 @@ EXAMPLES = r"""
     template: ubuntu-20.04-standard_20.04-1_amd64.tar.gz
 
 - name: Download and verify a template's checksum
-  community.general.proxmox_template:
+  community.proxmox.proxmox_template:
     node: uk-mc02
     api_user: root@pam
     api_password: 1q2w3e
@@ -180,8 +180,8 @@ import time
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
-from ansible_collections.community.general.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
-from ansible_collections.community.general.plugins.module_utils.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.parse import urlparse, urlencode
 
 REQUESTS_TOOLBELT_ERR = None

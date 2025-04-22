@@ -49,14 +49,14 @@ options:
     type: str
 
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 - name: Add new VM to Proxmox VE pool
-  community.general.proxmox_pool_member:
+  community.proxmox.proxmox_pool_member:
     api_host: node1
     api_user: root@pam
     api_password: password
@@ -64,7 +64,7 @@ EXAMPLES = r"""
     member: 101
 
 - name: Add new storage to Proxmox VE pool
-  community.general.proxmox_pool_member:
+  community.proxmox.proxmox_pool_member:
     api_host: node1
     api_user: root@pam
     api_password: password
@@ -73,7 +73,7 @@ EXAMPLES = r"""
     type: storage
 
 - name: Remove VM from the Proxmox VE pool using VM name
-  community.general.proxmox_pool_member:
+  community.proxmox.proxmox_pool_member:
     api_host: node1
     api_user: root@pam
     api_password: password
@@ -82,7 +82,7 @@ EXAMPLES = r"""
     state: absent
 
 - name: Remove storage from the Proxmox VE pool
-  community.general.proxmox_pool_member:
+  community.proxmox.proxmox_pool_member:
     api_host: node1
     api_user: root@pam
     api_password: password
@@ -111,7 +111,7 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.general.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
 
 
 class ProxmoxPoolMemberAnsible(ProxmoxAnsible):

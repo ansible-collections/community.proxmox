@@ -314,14 +314,14 @@ options:
       - The drive's worldwide name, encoded as 16 bytes hex string, prefixed by V(0x).
     type: str
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 - name: Create new disk in VM (do not rewrite in case it exists already)
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -335,7 +335,7 @@ EXAMPLES = r"""
     state: present
 
 - name: Create new disk in VM (force rewrite in case it exists already)
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -349,7 +349,7 @@ EXAMPLES = r"""
     state: present
 
 - name: Update existing disk
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -362,7 +362,7 @@ EXAMPLES = r"""
     state: present
 
 - name: Grow existing disk
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -373,7 +373,7 @@ EXAMPLES = r"""
     state: resized
 
 - name: Detach disk (leave it unused)
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -383,7 +383,7 @@ EXAMPLES = r"""
     state: detached
 
 - name: Move disk to another storage
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_password: secret
@@ -394,7 +394,7 @@ EXAMPLES = r"""
     state: moved
 
 - name: Move disk from one VM to another
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -405,7 +405,7 @@ EXAMPLES = r"""
     state: moved
 
 - name: Remove disk permanently
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_password: secret
@@ -414,7 +414,7 @@ EXAMPLES = r"""
     state: absent
 
 - name: Mount ISO image on CD-ROM (create drive if missing)
-  community.general.proxmox_disk:
+  community.proxmox.proxmox_disk:
     api_host: node1
     api_user: root@pam
     api_token_id: token1
@@ -441,8 +441,8 @@ msg:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ansible_collections.community.general.plugins.module_utils.version import LooseVersion
-from ansible_collections.community.general.plugins.module_utils.proxmox import (proxmox_auth_argument_spec,
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec,
                                                                                 ProxmoxAnsible)
 from re import compile, match, sub
 

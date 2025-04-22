@@ -18,7 +18,7 @@ mandatory_py_version = pytest.mark.skipif(
     reason="The proxmoxer dependency requires python2.7 or higher",
 )
 
-from ansible_collections.community.general.plugins.modules import proxmox_kvm
+from ansible_collections.community.proxmox.plugins.modules import proxmox_kvm
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import (
     patch,
     DEFAULT,
@@ -29,7 +29,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     ModuleTestCase,
     set_module_args,
 )
-import ansible_collections.community.general.plugins.module_utils.proxmox as proxmox_utils
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 
 
 class TestProxmoxKvmModule(ModuleTestCase):
@@ -38,7 +38,7 @@ class TestProxmoxKvmModule(ModuleTestCase):
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_kvm
         self.connect_mock = patch(
-            "ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect"
+            "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect"
         ).start()
         self.get_node_mock = patch.object(
             proxmox_utils.ProxmoxAnsible, "get_node"

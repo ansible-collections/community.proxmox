@@ -64,15 +64,15 @@ options:
     default: false
     version_added: 9.1.0
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
-  - community.general.attributes.info_module
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
 """
 
 EXAMPLES = r"""
 - name: List all existing virtual machines on node
-  community.general.proxmox_vm_info:
+  community.proxmox.proxmox_vm_info:
     api_host: proxmoxhost
     api_user: root@pam
     api_token_id: '{{ token_id | default(omit) }}'
@@ -80,7 +80,7 @@ EXAMPLES = r"""
     node: node01
 
 - name: List all QEMU virtual machines on node
-  community.general.proxmox_vm_info:
+  community.proxmox.proxmox_vm_info:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: '{{ password | default(omit) }}'
@@ -88,7 +88,7 @@ EXAMPLES = r"""
     type: qemu
 
 - name: Retrieve information about specific VM by ID
-  community.general.proxmox_vm_info:
+  community.proxmox.proxmox_vm_info:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: '{{ password | default(omit) }}'
@@ -97,7 +97,7 @@ EXAMPLES = r"""
     vmid: 101
 
 - name: Retrieve information about specific VM by name and get current configuration
-  community.general.proxmox_vm_info:
+  community.proxmox.proxmox_vm_info:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: '{{ password | default(omit) }}'
@@ -162,7 +162,7 @@ proxmox_vms:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.general.plugins.module_utils.proxmox import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
     ProxmoxAnsible,
     proxmox_to_ansible_bool,

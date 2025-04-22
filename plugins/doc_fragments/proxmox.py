@@ -77,8 +77,8 @@ options:
 options: {}
 attributes:
   action_group:
-    description: Use C(group/community.general.proxmox) in C(module_defaults) to set defaults for this module.
+    description: Use C(group/community.proxmox.proxmox) in C(module_defaults) to set defaults for this module.
     support: full
     membership:
-      - community.general.proxmox
+      - community.proxmox.proxmox
 """
