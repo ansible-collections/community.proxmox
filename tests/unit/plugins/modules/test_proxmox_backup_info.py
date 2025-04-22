@@ -13,7 +13,7 @@ import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.general.plugins.modules import proxmox_backup_info
+from ansible_collections.community.proxmox.plugins.modules import proxmox_backup_info
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
@@ -21,7 +21,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     ModuleTestCase,
     set_module_args,
 )
-import ansible_collections.community.general.plugins.module_utils.proxmox as proxmox_utils
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 
 RESOURCE_LIST = [
     {
@@ -192,7 +192,7 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_backup_info
         self.connect_mock = patch(
-            "ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
+            "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
         self.connect_mock.return_value.cluster.resources.get.return_value = (
             RESOURCE_LIST

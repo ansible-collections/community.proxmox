@@ -21,7 +21,7 @@ except ImportError:
 
 
 from ansible.module_utils.basic import env_fallback, missing_required_lib
-from ansible_collections.community.general.plugins.module_utils.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
 
 def proxmox_auth_argument_spec():

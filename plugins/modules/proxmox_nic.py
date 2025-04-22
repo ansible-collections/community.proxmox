@@ -11,7 +11,6 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_nic
 short_description: Management of a NIC of a Qemu(KVM) VM in a Proxmox VE cluster
-version_added: 3.1.0
 description:
   - Allows you to create/update/delete a NIC on Qemu(KVM) Virtual Machines in a Proxmox VE cluster.
 author: "Lammert Hellinga (@Kogelvis) <lammert@hellinga.it>"
@@ -20,8 +19,6 @@ attributes:
     support: full
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   bridge:
     description:
@@ -95,14 +92,14 @@ options:
       - Specifies the instance ID.
     type: int
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 - name: Create NIC net0 targeting the vm by name
-  community.general.proxmox_nic:
+  community.proxmox.proxmox_nic:
     api_user: root@pam
     api_password: secret
     api_host: proxmoxhost
@@ -112,7 +109,7 @@ EXAMPLES = r"""
     tag: 3
 
 - name: Create NIC net0 targeting the vm by id
-  community.general.proxmox_nic:
+  community.proxmox.proxmox_nic:
     api_user: root@pam
     api_password: secret
     api_host: proxmoxhost
@@ -123,7 +120,7 @@ EXAMPLES = r"""
     firewall: true
 
 - name: Delete NIC net0 targeting the vm by name
-  community.general.proxmox_nic:
+  community.proxmox.proxmox_nic:
     api_user: root@pam
     api_password: secret
     api_host: proxmoxhost
@@ -146,7 +143,7 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.general.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
 
 
 class ProxmoxNicAnsible(ProxmoxAnsible):

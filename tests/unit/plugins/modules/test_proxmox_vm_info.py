@@ -18,7 +18,7 @@ mandatory_py_version = pytest.mark.skipif(
     reason="The proxmoxer dependency requires python2.7 or higher",
 )
 
-from ansible_collections.community.general.plugins.modules import proxmox_vm_info
+from ansible_collections.community.proxmox.plugins.modules import proxmox_vm_info
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
@@ -26,7 +26,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     ModuleTestCase,
     set_module_args,
 )
-import ansible_collections.community.general.plugins.module_utils.proxmox as proxmox_utils
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 
 NODE1 = "pve"
 NODE2 = "pve2"
@@ -433,7 +433,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_vm_info
         self.connect_mock = patch(
-            "ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
+            "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
         self.connect_mock.return_value.nodes.return_value.lxc.return_value.get.return_value = (
             RAW_LXC_OUTPUT
@@ -673,7 +673,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
     def test_call_to_get_vmid_is_not_used_when_vmid_provided(self):
         with patch(
-            "ansible_collections.community.general.plugins.module_utils.proxmox.ProxmoxAnsible.get_vmid"
+            "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible.get_vmid"
         ) as get_vmid_mock:
             with pytest.raises(AnsibleExitJson):
                 vmid = 100

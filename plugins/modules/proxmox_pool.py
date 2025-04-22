@@ -12,16 +12,13 @@ module: proxmox_pool
 short_description: Pool management for Proxmox VE cluster
 description:
   - Create or delete a pool for Proxmox VE clusters.
-  - For pool members management please consult M(community.general.proxmox_pool_member) module.
-version_added: 7.1.0
+  - For pool members management please consult M(community.proxmox.proxmox_pool_member) module.
 author: "Sergei Antipov (@UnderGreen) <greendayonfire@gmail.com>"
 attributes:
   check_mode:
     support: full
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   poolid:
     description:
@@ -43,14 +40,14 @@ options:
     type: str
 
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 - name: Create new Proxmox VE pool
-  community.general.proxmox_pool:
+  community.proxmox.proxmox_pool:
     api_host: node1
     api_user: root@pam
     api_password: password
@@ -58,7 +55,7 @@ EXAMPLES = r"""
     comment: 'New pool'
 
 - name: Delete the Proxmox VE pool
-  community.general.proxmox_pool:
+  community.proxmox.proxmox_pool:
     api_host: node1
     api_user: root@pam
     api_password: password
@@ -80,7 +77,7 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.general.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
 
 
 class ProxmoxPoolAnsible(ProxmoxAnsible):

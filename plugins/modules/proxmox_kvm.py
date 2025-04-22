@@ -13,21 +13,17 @@ module: proxmox_kvm
 short_description: Management of Qemu(KVM) Virtual Machines in Proxmox VE cluster
 description:
   - Allows you to create/delete/stop Qemu(KVM) Virtual Machines in Proxmox VE cluster.
-  - Since community.general 4.0.0 on, there are no more default values.
 author: "Abdoul Bah (@helldorado) <bahabdoul at gmail.com>"
 attributes:
   check_mode:
     support: none
   diff_mode:
     support: none
-  action_group:
-    version_added: 9.0.0
 options:
   archive:
     description:
       - Specify a path to an archive to restore (instead of creating or cloning a VM).
     type: str
-    version_added: 6.5.0
   acpi:
     description:
       - Specify if ACPI should be enabled/disabled.
@@ -35,8 +31,6 @@ options:
   agent:
     description:
       - Specify if the QEMU Guest Agent should be enabled/disabled.
-      - Since community.general 5.5.0, this can also be a string instead of a boolean. This allows to specify values such
-        as V(enabled=1,fstrim_cloned_disks=1).
     type: str
   args:
     description:
@@ -51,7 +45,6 @@ options:
       - C(device) is either V(ich9-intel-hda) or V(intel-hda) or V(AC97).
       - Option C(driver) is V(none) or V(spice).
     type: dict
-    version_added: 10.5.0
   autostart:
     description:
       - Specify if the VM should be automatically restarted after crash (currently ignored in PVE API).
@@ -80,12 +73,10 @@ options:
     description:
       - 'Cloud-init: Specify custom files to replace the automatically generated ones at start.'
     type: str
-    version_added: 1.3.0
   cipassword:
     description:
       - 'Cloud-init: password of default user to create.'
     type: str
-    version_added: 1.3.0
   citype:
     description:
       - 'Cloud-init: Specifies the cloud-init configuration format.'
@@ -93,17 +84,14 @@ options:
       - We use the V(nocloud) format for Linux, and V(configdrive2) for Windows.
     type: str
     choices: ['nocloud', 'configdrive2']
-    version_added: 1.3.0
   ciupgrade:
     description:
       - 'Cloud-init: do an automatic package upgrade after the first boot.'
     type: bool
-    version_added: 10.0.0
   ciuser:
     description:
       - 'Cloud-init: username of default user to create.'
     type: str
-    version_added: 1.3.0
   clone:
     description:
       - Name of VM to be cloned. If O(vmid) is set, O(clone) can take an arbitrary value but is required for initiating the
@@ -173,7 +161,6 @@ options:
             creation or not (0).
           - If set to V(1), Secure Boot will also be enabled by default when the VM is created.
         type: bool
-    version_added: 4.5.0
   force:
     description:
       - Allow to force stop VM.
@@ -205,7 +192,6 @@ options:
     description:
       - Script that will be executed during various steps in the containers lifetime.
     type: str
-    version_added: 8.1.0
   hostpci:
     description:
       - Specify a hash/dictionary of map host pci devices into guest. O(hostpci='{"key":"value", "key":"value"}').
@@ -252,7 +238,6 @@ options:
       - For IPv6 the special string V(auto) can be used to use stateless autoconfiguration.
       - If cloud-init is enabled and neither an IPv4 nor an IPv6 address is specified, it defaults to using dhcp on IPv4.
     type: dict
-    version_added: 1.3.0
   keyboard:
     description:
       - Sets the keyboard layout for VNC server.
@@ -285,7 +270,6 @@ options:
       - Migrate the VM to O(node) if it is on another node.
     type: bool
     default: false
-    version_added: 7.0.0
   migrate_downtime:
     description:
       - Sets maximum tolerated downtime (in seconds) for migrations.
@@ -307,7 +291,6 @@ options:
       - If unset, PVE host settings are used.
     type: list
     elements: str
-    version_added: 1.3.0
   net:
     description:
       - A hash/dictionary of network interfaces for the VM. O(net='{"key":"value", "key":"value"}').
@@ -402,7 +385,6 @@ options:
       - If unset, PVE host settings are used.
     type: list
     elements: str
-    version_added: 1.3.0
   serial:
     description:
       - A hash/dictionary of serial device to create inside the VM. V('{"key":"value", "key":"value"}').
@@ -447,7 +429,6 @@ options:
     description:
       - 'Cloud-init: SSH key to assign to the default user. NOT TESTED with multiple keys but a multi-line value should work.'
     type: str
-    version_added: 1.3.0
   startdate:
     description:
       - Sets the initial date of the real time clock.
@@ -463,8 +444,6 @@ options:
     description:
       - Indicates desired state of the instance.
       - If V(current), the current state of the VM will be fetched. You can access it with C(results.status).
-      - V(template) was added in community.general 8.1.0.
-      - V(paused) and V(hibernated) were added in community.general 10.4.0.
     type: str
     choices: ['present', 'started', 'absent', 'stopped', 'restarted', 'current', 'template', 'paused', 'hibernated']
     default: present
@@ -483,7 +462,6 @@ options:
       - Tags are only available in Proxmox 6+.
     type: list
     elements: str
-    version_added: 2.3.0
   target:
     description:
       - Target node. Only allowed if the original VM is on shared storage.
@@ -521,7 +499,6 @@ options:
         choices: ['1.2', '2.0']
         default: '2.0'
     type: dict
-    version_added: 7.1.0
   usb:
     description:
       - A hash/dictionary of USB devices for the VM. O(usb='{"key":"value", "key":"value"}').
@@ -531,7 +508,6 @@ options:
       - Option C(mapping) is the mapped USB device name.
       - Option C(usb3) enables USB 3 support.
     type: dict
-    version_added: 9.0.0
   update:
     description:
       - If V(true), the VM will be updated with new value.
@@ -548,7 +524,6 @@ options:
         (for example disk recreated).
     type: bool
     default: false
-    version_added: 8.4.0
   vcpus:
     description:
       - Sets number of hotplugged vcpus.
@@ -574,17 +549,17 @@ options:
       - Creates a virtual hardware watchdog device.
     type: str
 seealso:
-  - module: community.general.proxmox_vm_info
+  - module: community.proxmox.proxmox_vm_info
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.proxmox.selection
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.proxmox.selection
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 - name: Create new VM with minimal options
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -592,7 +567,7 @@ EXAMPLES = r"""
     node: sabrewulf
 
 - name: Create a VM from archive (backup)
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -600,7 +575,7 @@ EXAMPLES = r"""
     name: spynal
 
 - name: Create new VM with minimal options and given vmid
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -609,7 +584,7 @@ EXAMPLES = r"""
     vmid: 100
 
 - name: Create new VM with two network interface options
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -620,7 +595,7 @@ EXAMPLES = r"""
       net1: 'e1000,bridge=vmbr2'
 
 - name: Create new VM with one network interface, three virto hard disk, 4 cores, and 2 vcpus
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -636,7 +611,7 @@ EXAMPLES = r"""
     vcpus: 2
 
 - name: Create VM with 1 10GB SATA disk and an EFI disk, with Secure Boot disabled by default
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -652,7 +627,7 @@ EXAMPLES = r"""
       pre_enrolled_keys: false
 
 - name: Create VM with 1 10GB SATA disk and an EFI disk, with Secure Boot enabled by default
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -671,7 +646,7 @@ EXAMPLES = r"""
     Clone VM with only source VM name.
     The VM source is spynal.
     The target VM name is zavala
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -686,7 +661,7 @@ EXAMPLES = r"""
     Create linked clone VM with only source VM name.
     The VM source is spynal.
     The target VM name is zavala
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -699,7 +674,7 @@ EXAMPLES = r"""
     timeout: 500
 
 - name: Clone VM with source vmid and target newid and raw format
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -713,7 +688,7 @@ EXAMPLES = r"""
     timeout: 300
 
 - name: Create new VM and lock it for snapshot
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -722,7 +697,7 @@ EXAMPLES = r"""
     lock: snapshot
 
 - name: Create new VM and set protection to disable the remove VM and remove disk operations
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -731,7 +706,7 @@ EXAMPLES = r"""
     protection: true
 
 - name: Create new VM using cloud-init with a username and password
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     node: sabrewulf
     api_user: root@pam
     api_password: secret
@@ -749,7 +724,7 @@ EXAMPLES = r"""
       ipconfig0: 'ip=192.168.1.1/24,gw=192.168.1.1'
 
 - name: Create new VM using Cloud-Init with an ssh key
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     node: sabrewulf
     api_user: root@pam
     api_password: secret
@@ -768,7 +743,7 @@ EXAMPLES = r"""
       ipconfig0: 'ip=192.168.1.1/24'
 
 - name: Start VM
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -777,7 +752,7 @@ EXAMPLES = r"""
     state: started
 
 - name: Stop VM
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -786,7 +761,7 @@ EXAMPLES = r"""
     state: stopped
 
 - name: Stop VM with force
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -796,7 +771,7 @@ EXAMPLES = r"""
     force: true
 
 - name: Restart VM
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -805,7 +780,7 @@ EXAMPLES = r"""
     state: restarted
 
 - name: Convert VM to template
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -814,7 +789,7 @@ EXAMPLES = r"""
     state: template
 
 - name: Convert VM to template (stop VM if running)
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -824,7 +799,7 @@ EXAMPLES = r"""
     force: true
 
 - name: Remove VM
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -833,7 +808,7 @@ EXAMPLES = r"""
     state: absent
 
 - name: Get VM current state
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -842,7 +817,7 @@ EXAMPLES = r"""
     state: current
 
 - name: Update VM configuration
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -853,7 +828,7 @@ EXAMPLES = r"""
     update: true
 
 - name: Update VM configuration (incl. unsafe options)
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -867,7 +842,7 @@ EXAMPLES = r"""
     update_unsafe: true
 
 - name: Delete QEMU parameters
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -876,7 +851,7 @@ EXAMPLES = r"""
     delete: 'args,template,cpulimit'
 
 - name: Revert a pending change
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -885,7 +860,7 @@ EXAMPLES = r"""
     revert: 'template,cpulimit'
 
 - name: Migrate VM on second node
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -894,7 +869,7 @@ EXAMPLES = r"""
     migrate: true
 
 - name: Add hookscript to existing VM
-  community.general.proxmox_kvm:
+  community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
     api_host: helldorado
@@ -926,8 +901,8 @@ import re
 import time
 from ansible.module_utils.six.moves.urllib.parse import quote
 
-from ansible_collections.community.general.plugins.module_utils.version import LooseVersion
-from ansible_collections.community.general.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.parsing.convert_bool import boolean

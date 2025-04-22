@@ -10,8 +10,8 @@ __metaclass__ = type
 import os
 import pytest
 
-from ansible_collections.community.general.plugins.connection.proxmox_pct_remote import authenticity_msg, MyAddPolicy
-from ansible_collections.community.general.plugins.module_utils._filelock import FileLock, LockTimeout
+from ansible_collections.community.proxmox.plugins.connection.proxmox_pct_remote import authenticity_msg, MyAddPolicy
+from ansible_collections.community.proxmox.plugins.module_utils._filelock import FileLock, LockTimeout
 from ansible.errors import AnsibleError, AnsibleAuthenticationFailure, AnsibleConnectionFailure
 from ansible.module_utils.common.text.converters import to_bytes
 from ansible.module_utils.compat.paramiko import paramiko
@@ -26,7 +26,7 @@ from unittest.mock import patch, MagicMock, mock_open
 def connection():
     play_context = PlayContext()
     in_stream = StringIO()
-    conn = connection_loader.get('community.general.proxmox_pct_remote', play_context, in_stream)
+    conn = connection_loader.get('community.proxmox.proxmox_pct_remote', play_context, in_stream)
     conn.set_option('remote_addr', '192.168.1.100')
     conn.set_option('remote_user', 'root')
     conn.set_option('password', 'password')
@@ -471,7 +471,7 @@ def test_close_lock_file_time_out_error_handling(mock_exists, mock_unlink, conne
             connection.close()
 
 
-@patch('ansible_collections.community.general.plugins.module_utils._filelock.FileLock.lock_file')
+@patch('ansible_collections.community.proxmox.plugins.module_utils._filelock.FileLock.lock_file')
 @patch('tempfile.NamedTemporaryFile')
 @patch('os.chmod')
 @patch('os.chown')
@@ -515,7 +515,7 @@ def test_tempfile_creation_and_move(mock_exists, mock_rename, mock_chown, mock_c
 
 @patch('pathlib.Path.unlink')
 @patch('tempfile.NamedTemporaryFile')
-@patch('ansible_collections.community.general.plugins.module_utils._filelock.FileLock.lock_file')
+@patch('ansible_collections.community.proxmox.plugins.module_utils._filelock.FileLock.lock_file')
 @patch('os.path.exists')
 def test_close_tempfile_error_handling(mock_exists, mock_lock_file, mock_tempfile, mock_unlink, connection):
     """ Test tempfile creation error """
@@ -544,7 +544,7 @@ def test_close_tempfile_error_handling(mock_exists, mock_lock_file, mock_tempfil
     mock_unlink.assert_called_with(missing_ok=True)
 
 
-@patch('ansible_collections.community.general.plugins.module_utils._filelock.FileLock.lock_file')
+@patch('ansible_collections.community.proxmox.plugins.module_utils._filelock.FileLock.lock_file')
 @patch('os.path.exists')
 def test_close_with_invalid_host_key(mock_exists, mock_lock_file, connection):
     """ Test load_system_host_keys on close with InvalidHostKey error """

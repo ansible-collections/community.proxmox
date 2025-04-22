@@ -16,7 +16,6 @@ requirements:
 description:
   - Run commands or put/fetch files to an existing Proxmox LXC container using pct CLI via SSH.
   - Uses the Python SSH implementation (Paramiko) to connect to the Proxmox host.
-version_added: "10.3.0"
 options:
   remote_addr:
     description:
@@ -340,12 +339,12 @@ EXAMPLES = r"""
 #         container-1:
 #           ansible_host: 10.0.0.10
 #           proxmox_vmid: 100
-#           ansible_connection: community.general.proxmox_pct_remote
+#           ansible_connection: community.proxmox.proxmox_pct_remote
 #           ansible_user: ansible
 #         container-2:
 #           ansible_host: 10.0.0.10
 #           proxmox_vmid: 200
-#           ansible_connection: community.general.proxmox_pct_remote
+#           ansible_connection: community.proxmox.proxmox_pct_remote
 #           ansible_user: ansible
 #     proxmox:
 #       hosts:
@@ -356,7 +355,7 @@ EXAMPLES = r"""
 # ---------------------------------------------
 # Dynamic inventory file: inventory.proxmox.yml
 # ---------------------------------------------
-# plugin: community.general.proxmox
+# plugin: community.proxmox.proxmox
 # url: https://10.0.0.10:8006
 # validate_certs: false
 # user: ansible@pam
@@ -372,7 +371,7 @@ EXAMPLES = r"""
 # want_proxmox_nodes_ansible_host: false
 # compose:
 #   ansible_host: "'10.0.0.10'"
-#   ansible_connection: "'community.general.proxmox_pct_remote'"
+#   ansible_connection: "'community.proxmox.proxmox_pct_remote'"
 #   ansible_user: "'ansible'"
 #
 #
@@ -405,7 +404,7 @@ from ansible.errors import (
     AnsibleConnectionFailure,
     AnsibleError,
 )
-from ansible_collections.community.general.plugins.module_utils._filelock import FileLock, LockTimeout
+from ansible_collections.community.proxmox.plugins.module_utils._filelock import FileLock, LockTimeout
 from ansible.module_utils.common.text.converters import to_bytes, to_native, to_text
 from ansible.module_utils.compat.paramiko import PARAMIKO_IMPORT_ERR, paramiko
 from ansible.module_utils.compat.version import LooseVersion
@@ -478,7 +477,7 @@ class MyAddPolicy(MissingHostKeyPolicy):
 class Connection(ConnectionBase):
     """ SSH based connections (paramiko) to Proxmox pct """
 
-    transport = 'community.general.proxmox_pct_remote'
+    transport = 'community.proxmox.proxmox_pct_remote'
     _log_channel: str | None = None
 
     def __init__(self, play_context, new_stdin, *args, **kwargs):

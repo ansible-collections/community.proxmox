@@ -15,8 +15,6 @@ module: proxmox_backup_info
 
 short_description: Retrieve information on Proxmox scheduled backups
 
-version_added: 10.3.0
-
 description:
   - Retrieve information such as backup times, VM name, VM ID, mode, backup type, and backup schedule using the Proxmox Server API.
 
@@ -46,35 +44,35 @@ options:
     type: bool
 
 extends_documentation_fragment:
-  - community.general.proxmox.documentation
-  - community.general.attributes
-  - community.general.attributes.info_module
-  - community.general.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
+  - community.proxmox.proxmox.actiongroup_proxmox
 """
 
 EXAMPLES = """
 - name: Print all backup information by VM ID and VM name
-  community.general.proxmox_backup_info:
+  community.proxmox.proxmox_backup_info:
     api_user: 'myUser@pam'
     api_password: '*******'
     api_host: '192.168.20.20'
 
 - name: Print Proxmox backup information for a specific VM based on its name
-  community.general.proxmox_backup_info:
+  community.proxmox.proxmox_backup_info:
     api_user: 'myUser@pam'
     api_password: '*******'
     api_host: '192.168.20.20'
     vm_name: 'mailsrv'
 
 - name: Print Proxmox backup information for a specific VM based on its VM ID
-  community.general.proxmox_backup_info:
+  community.proxmox.proxmox_backup_info:
     api_user: 'myUser@pam'
     api_password: '*******'
     api_host: '192.168.20.20'
     vm_id: '150'
 
 - name: Print Proxmox all backup job information
-  community.general.proxmox_backup_info:
+  community.proxmox.proxmox_backup_info:
     api_user: 'myUser@pam'
     api_password: '*******'
     api_host: '192.168.20.20'
@@ -138,7 +136,7 @@ backup_info:
 
 from datetime import datetime
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
-from ansible_collections.community.general.plugins.module_utils.proxmox import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible, HAS_PROXMOXER, PROXMOXER_IMP_ERR)
 
 

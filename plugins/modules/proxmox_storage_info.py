@@ -12,12 +12,8 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_storage_info
 short_description: Retrieve information about one or more Proxmox VE storages
-version_added: 2.2.0
 description:
   - Retrieve information about one or more Proxmox VE storages.
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   storage:
     description:
@@ -30,10 +26,10 @@ options:
     type: str
 author: Tristan Le Guern (@tleguern)
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
-  - community.general.attributes.info_module
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
 notes:
   - Storage specific options can be returned by this module, please look at the documentation at U(https://pve.proxmox.com/wiki/Storage).
 """
@@ -41,7 +37,7 @@ notes:
 
 EXAMPLES = r"""
 - name: List existing storages
-  community.general.proxmox_storage_info:
+  community.proxmox.proxmox_storage_info:
     api_host: helldorado
     api_user: root@pam
     api_password: "{{ password | default(omit) }}"
@@ -50,7 +46,7 @@ EXAMPLES = r"""
   register: proxmox_storages
 
 - name: List NFS storages only
-  community.general.proxmox_storage_info:
+  community.proxmox.proxmox_storage_info:
     api_host: helldorado
     api_user: root@pam
     api_password: "{{ password | default(omit) }}"
@@ -60,7 +56,7 @@ EXAMPLES = r"""
   register: proxmox_storages_nfs
 
 - name: Retrieve information about the lvm2 storage
-  community.general.proxmox_storage_info:
+  community.proxmox.proxmox_storage_info:
     api_host: helldorado
     api_user: root@pam
     api_password: "{{ password | default(omit) }}"
@@ -117,7 +113,7 @@ proxmox_storages:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.general.plugins.module_utils.proxmox import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible, proxmox_to_ansible_bool)
 
 

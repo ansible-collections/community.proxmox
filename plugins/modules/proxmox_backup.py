@@ -14,7 +14,6 @@ DOCUMENTATION = r"""
 module: proxmox_backup
 author: "Raphael Grieger (@IamLunchbox) <r.grieger@hotmail.com>"
 short_description: Start a VM backup in Proxmox VE cluster
-version_added: 10.1.0
 description:
   - Allows you to create backups of KVM and LXC guests in Proxmox VE cluster.
   - Offers the GUI functionality of creating a single backup as well as using the run-now functionality from the cluster backup
@@ -141,14 +140,14 @@ options:
     default: 10
 requirements: ["proxmoxer", "requests"]
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
 - name: Backup all vms in the Proxmox cluster to storage mypbs
-  community.general.proxmox_backup:
+  community.proxmox.proxmox_backup:
     api_user: root@pam
     api_password: secret
     api_host: node1
@@ -156,7 +155,7 @@ EXAMPLES = r"""
     mode: all
 
 - name: Backup VMID 100 by stopping it and set an individual retention
-  community.general.proxmox_backup:
+  community.proxmox.proxmox_backup:
     api_user: root@pam
     api_password: secret
     api_host: node1
@@ -167,7 +166,7 @@ EXAMPLES = r"""
     vmid: [100]
 
 - name: Backup all vms on node node2 to storage mypbs and wait for the task to finish
-  community.general.proxmox_backup:
+  community.proxmox.proxmox_backup:
     api_user: test@pve
     api_password: 1q2w3e
     api_host: node2
@@ -178,7 +177,7 @@ EXAMPLES = r"""
     wait_timeout: 30
 
 - name: Use all the options
-  community.general.proxmox_backup:
+  community.proxmox.proxmox_backup:
     api_user: root@pam
     api_password: secret
     api_host: node1
@@ -225,7 +224,7 @@ import time
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
-from ansible_collections.community.general.plugins.module_utils.proxmox import ProxmoxAnsible, proxmox_auth_argument_spec
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible, proxmox_auth_argument_spec
 
 
 def has_permission(permission_tree, permission, search_scopes, default=0, expected=1):

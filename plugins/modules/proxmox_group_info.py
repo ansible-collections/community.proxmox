@@ -12,12 +12,8 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_group_info
 short_description: Retrieve information about one or more Proxmox VE groups
-version_added: 1.3.0
 description:
   - Retrieve information about one or more Proxmox VE groups.
-attributes:
-  action_group:
-    version_added: 9.0.0
 options:
   group:
     description:
@@ -26,16 +22,16 @@ options:
     type: str
 author: Tristan Le Guern (@tleguern)
 extends_documentation_fragment:
-  - community.general.proxmox.actiongroup_proxmox
-  - community.general.proxmox.documentation
-  - community.general.attributes
-  - community.general.attributes.info_module
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
 """
 
 
 EXAMPLES = r"""
 - name: List existing groups
-  community.general.proxmox_group_info:
+  community.proxmox.proxmox_group_info:
     api_host: helldorado
     api_user: root@pam
     api_password: "{{ password | default(omit) }}"
@@ -44,7 +40,7 @@ EXAMPLES = r"""
   register: proxmox_groups
 
 - name: Retrieve information about the admin group
-  community.general.proxmox_group_info:
+  community.proxmox.proxmox_group_info:
     api_host: helldorado
     api_user: root@pam
     api_password: "{{ password | default(omit) }}"
@@ -79,7 +75,7 @@ proxmox_groups:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.general.plugins.module_utils.proxmox import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible)
 
 
