@@ -23,7 +23,7 @@ run_action_groups = true
 
 [[sessions.extra_checks.action_groups_config]]
 name = "proxmox"
-pattern = "^proxmox(_.*)?$"
+pattern = "^.*$"
 exclusions = []
 doc_fragment = "community.general.proxmox.actiongroup_proxmox"
 
