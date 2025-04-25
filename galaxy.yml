@@ -10,7 +10,7 @@ name: proxmox
 version: 0.0.1
 readme: README.md
 authors:
-  - YOUR NAME (github.com/YOURGITHUB)
+  - Ansible community (https://github.com/ansible-community)
 description: Community modules and plugins for Proxmox.
 license_file: COPYING
 tags:
