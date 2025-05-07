@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 -->
 ## Our mission
 
-The Ansible Proxmox community team’s mission is to make automating Proxmox with Ansible nicer, better and more automated then ever!
+The Ansible Proxmox community team's mission is to make automating Proxmox with Ansible nicer, better and more automated then ever!
 
 We welcome members from all skill levels to participate actively in our open, inclusive, and vibrant community.
 Whether you are an expert or just beginning your journey with Ansible and Proxmox,

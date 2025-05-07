@@ -1,1 +1,0 @@
-plugins/inventory/proxmox.py yamllint:unparsable-with-libyaml
