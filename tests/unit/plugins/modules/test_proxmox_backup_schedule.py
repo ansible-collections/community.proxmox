@@ -230,5 +230,6 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
         result = exc_info.value.args[0]
         assert result['changed'] is True
 
+
 if __name__ == '__main__':
     pytest.main([__file__])
