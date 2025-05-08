@@ -243,7 +243,7 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
         assert result['changed'] is True
 
     def test_fail_when_there_is_one_vmid_for_delete_in_backup_job(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
+        with pytest.raises(AnsibleFailJson) as exc_info:
             with set_module_args({
                 'api_host': 'proxmoxhost',
                 'api_user': 'root@pam',
