@@ -155,6 +155,18 @@ BACKUP_JOBS = [
         "vmid": "101,102,103",
         "storage": "local",
         "id": "backup-002",
+    },
+    {
+        "schedule": "sun 16:00",
+        "notes-template": "{{guestname}}",
+        "mode": "snapshot",
+        "mailnotification": "always",
+        "next-run": 1735385400,
+        "type": "vzdump",
+        "enabled": 1,
+        "vmid": "101",
+        "storage": "local",
+        "id": "backup-003",
     }
 ]
 
@@ -230,6 +242,17 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
         result = exc_info.value.args[0]
         assert result['changed'] is True
 
+    def test_fail_when_there_is_one_vmid_for_delete_in_backup_job(self):
+        with pytest.raises(AnsibleExitJson) as exc_info:
+            with set_module_args({
+                'api_host': 'proxmoxhost',
+                'api_user': 'root@pam',
+                'api_password': 'supersecret',
+                'vm_id': 101,
+                'backup_id': 'backup-003',
+                'state': 'absent'
+            }):
+                self.module.main()
 
-if __name__ == '__main__':
-    pytest.main([__file__])
+        result = exc_info.value.args[0]
+        assert result["msg"] == "No more than one vmid is assigned to backup-003. You just can remove job."
