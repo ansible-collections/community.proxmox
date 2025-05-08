@@ -136,7 +136,7 @@ BACKUP_JOBS = [
         "type": "vzdump",
         "id": "backup-001",
         "storage": "local",
-        "vmid": "100,101",
+        "vmid": "100,101,102",
         "enabled": 1,
         "next-run": 1735138800,
         "mailnotification": "always",
@@ -219,13 +219,27 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
                 'api_host': 'proxmoxhost',
                 'api_user': 'root@pam',
                 'api_password': 'supersecret',
-                'vm_id': 101,
+                'vm_id': 102,
                 'state': 'absent'
             }):
                 self.module.main()
 
         result = exc_info.value.args[0]
         assert result['changed'] is True
+
+    def test_ensure_vmid_is_absent_from_backup(self):
+        with pytest.raises(AnsibleExitJson) as exc_info:
+            with set_module_args({
+                'api_host': 'proxmoxhost',
+                'api_user': 'root@pam',
+                'api_password': 'supersecret',
+                'vm_id': 105,
+                'state': 'absent'
+            }):
+                self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result['changed'] is False
 
     def test_delete_vmid_from_specfic_backup_id(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
