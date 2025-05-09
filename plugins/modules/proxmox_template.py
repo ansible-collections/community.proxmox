@@ -83,7 +83,7 @@ options:
     type: str
 notes:
   - Requires C(proxmoxer) and C(requests) modules on host. Those modules can be installed with M(ansible.builtin.pip).
-  - C(proxmoxer) >= 1.2.0 requires C(requests_toolbelt) to upload files larger than 256 MB.
+  - Requires C(requests_toolbelt) to upload files larger than 256 MB.
 author: Sergei Antipov (@UnderGreen)
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -175,8 +175,7 @@ import time
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
-from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import proxmox_auth_argument_spec, ProxmoxAnsible
 from ansible.module_utils.six.moves.urllib.parse import urlparse, urlencode
 
 REQUESTS_TOOLBELT_ERR = None
@@ -216,10 +215,9 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
 
     def upload_template(self, node, storage, content_type, realpath, timeout):
         stats = os.stat(realpath)
-        if (LooseVersion(self.proxmoxer_version) >= LooseVersion('1.2.0') and
-                stats.st_size > 268435456 and not HAS_REQUESTS_TOOLBELT):
-            self.module.fail_json(msg="'requests_toolbelt' module is required to upload files larger than 256MB",
-                                  exception=missing_required_lib('requests_toolbelt'))
+        if stats.st_size > 268435456 and not HAS_REQUESTS_TOOLBELT:
+            self.module.fail_json(msg=missing_required_lib('requests_toolbelt', reason='to upload files larger than 256MB'),
+                                  exception=REQUESTS_TOOLBELT_ERR)
 
         try:
             taskid = self.proxmox_api.nodes(node).storage(storage).upload.post(content=content_type, filename=open(realpath, 'rb'))

@@ -138,7 +138,6 @@ options:
       - Will only be evaluated, if O(wait=true).
     type: int
     default: 10
-requirements: ["proxmoxer", "requests"]
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
