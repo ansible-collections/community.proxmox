@@ -9,3 +9,5 @@
 # See https://ansible.readthedocs.io/projects/builder/en/latest/collection_metadata/#how-to-verify-collection-level-metadata
 # to learn how to test your configuration.
 # Do not delete this file even if the collection has no dependencies!
+
+proxmoxer>=2.0
