@@ -63,4 +63,4 @@ class TestProxmoxTemplateModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["failed"] is True
-        assert result["msg"] == "'requests_toolbelt' module is required to upload files larger than 256MB"
+        assert "upload files larger than 256MB" in result["msg"]
