@@ -219,7 +219,7 @@ options:
   update:
     description:
       - If V(true), the container will be updated with new values.
-      - The current default value of V(false) is deprecated and should will change to V(true) in community.proxmox 11.0.0.
+      - The current default value of V(false) is deprecated and should will change to V(true) in community.proxmox 1.0.0.
         Please set O(update) explicitly to V(false) or V(true) to avoid surprises and get rid of the deprecation warning.
     type: bool
   force:
@@ -827,10 +827,10 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         # check if the container exists already
         if lxc is not None:
             if update is None:
-                # TODO: Remove deprecation warning in version 11.0.0
+                # TODO: Remove deprecation warning in version 1.0.0
                 self.module.deprecate(
-                    msg="The default value of false for 'update' has been deprecated and will be changed to true in version 11.0.0.",
-                    version="11.0.0",
+                    msg="The default value of false for 'update' has been deprecated and will be changed to true in version 1.0.0.",
+                    version="1.0.0",
                     collection_name="community.proxmox",
                 )
                 update = False
