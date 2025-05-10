@@ -8,12 +8,12 @@ __metaclass__ = type
 
 import json
 import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 proxmoxer = pytest.importorskip('proxmoxer')
 
-from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import MagicMock, patch
 from ansible_collections.community.proxmox.plugins.modules import proxmox_snap
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import set_module_args

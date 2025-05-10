@@ -8,12 +8,13 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from unittest.mock import patch
+
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_storage_contents_info
-from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,

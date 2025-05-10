@@ -9,16 +9,13 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+from unittest.mock import patch, DEFAULT
 
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_kvm
-from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import (
-    patch,
-    DEFAULT,
-)
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,

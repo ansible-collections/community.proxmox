@@ -10,13 +10,13 @@ __metaclass__ = type
 
 import os
 import sys
+from unittest.mock import patch, Mock
 
 import pytest
 
 proxmoxer = pytest.importorskip('proxmoxer')
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_template
-from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch, Mock
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleFailJson,
     ModuleTestCase,
