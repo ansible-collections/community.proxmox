@@ -4,12 +4,13 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import (absolute_import, division, print_function)
-import \
-    ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+
+from unittest.mock import patch
+
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.proxmox.plugins.modules import proxmox_backup
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson, AnsibleFailJson, set_module_args, ModuleTestCase)
-from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 
 __metaclass__ = type
 
