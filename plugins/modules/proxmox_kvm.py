@@ -64,7 +64,7 @@ options:
       - Specify the boot order -> boot on floppy V(a), hard disk V(c), CD-ROM V(d), or network V(n).
       - For newer versions of Proxmox VE, use a boot order like V(order=scsi0;net0;hostpci0).
       - You can combine to set order.
-      - Network boot requires setting rng0 since PVE 8.3.5
+      - Network boot requires setting V(rng0) since PVE 8.3.5.
     type: str
   bootdisk:
     description:
