@@ -64,6 +64,7 @@ options:
       - Specify the boot order -> boot on floppy V(a), hard disk V(c), CD-ROM V(d), or network V(n).
       - For newer versions of Proxmox VE, use a boot order like V(order=scsi0;net0;hostpci0).
       - You can combine to set order.
+      - Network boot requires setting rng0 since PVE 8.3.5
     type: str
   bootdisk:
     description:
@@ -351,6 +352,9 @@ options:
   revert:
     description:
       - Revert a pending change.
+    type: str
+  rng0:
+    description: Randomness source for RNG device, for example /dev/urandom
     type: str
   sata:
     description:
@@ -1270,6 +1274,7 @@ def main():
         protection=dict(type='bool'),
         reboot=dict(type='bool'),
         revert=dict(type='str'),
+        rng0=dict(type='str'),
         sata=dict(type='dict'),
         scsi=dict(type='dict'),
         scsihw=dict(choices=['lsi', 'lsi53c810', 'virtio-scsi-pci', 'virtio-scsi-single', 'megasas', 'pvscsi']),
@@ -1460,6 +1465,7 @@ def main():
                               pool=module.params['pool'],
                               protection=module.params['protection'],
                               reboot=module.params['reboot'],
+                              rng0=module.params['rng0'],
                               sata=module.params['sata'],
                               scsi=module.params['scsi'],
                               scsihw=module.params['scsihw'],
