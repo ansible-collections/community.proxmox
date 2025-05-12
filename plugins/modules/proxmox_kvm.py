@@ -354,7 +354,7 @@ options:
       - Revert a pending change.
     type: str
   rng0:
-    description: Randomness source for RNG device, for example /dev/urandom
+    description: Randomness source for RNG device, for example V(/dev/urandom).
     type: str
   sata:
     description:
