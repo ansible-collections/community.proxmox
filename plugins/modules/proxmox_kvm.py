@@ -356,6 +356,7 @@ options:
   rng0:
     description: Randomness source for RNG device, for example V(/dev/urandom).
     type: str
+    version_added: 1.0.0
   sata:
     description:
       - A hash/dictionary of volume used as sata hard disk or CD-ROM. O(sata='{"key":"value", "key":"value"}').
