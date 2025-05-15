@@ -219,9 +219,10 @@ options:
   update:
     description:
       - If V(true), the container will be updated with new values.
-      - The current default value of V(false) is deprecated and should will change to V(true) in community.proxmox 1.0.0.
-        Please set O(update) explicitly to V(false) or V(true) to avoid surprises and get rid of the deprecation warning.
+      - If V(false), it will not be updated.
+      - The default changed from V(false) to V(true) in community.proxmox 1.0.0.
     type: bool
+    default: true
   force:
     description:
       - Forcing operations.
@@ -682,7 +683,7 @@ def get_proxmox_args():
         nameserver=dict(),
         searchdomain=dict(),
         timeout=dict(type="int", default=30),
-        update=dict(type="bool"),
+        update=dict(type="bool", default=True),
         force=dict(type="bool", default=False),
         purge=dict(type="bool", default=False),
         state=dict(
@@ -826,15 +827,6 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         # check if the container exists already
         if lxc is not None:
-            if update is None:
-                # TODO: Remove deprecation warning in version 1.0.0
-                self.module.deprecate(
-                    msg="The default value of false for 'update' has been deprecated and will be changed to true in version 1.0.0.",
-                    version="1.0.0",
-                    collection_name="community.proxmox",
-                )
-                update = False
-
             if update:
                 # Update it if we should
                 identifier = self.format_vm_identifier(vmid, hostname)
