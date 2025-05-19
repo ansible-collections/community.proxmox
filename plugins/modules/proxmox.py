@@ -219,6 +219,7 @@ options:
   update:
     description:
       - If V(true), the container will be updated with new values.
+        This only happens if O(state=present), O(force=false), and O(clone) is not specified.
       - If V(false), it will not be updated.
       - The default changed from V(false) to V(true) in community.proxmox 1.0.0.
     type: bool
@@ -731,6 +732,8 @@ def get_ansible_module():
         mutually_exclusive=[
             # Creating a new container is done either by cloning an existing one, or based on a template.
             ("clone", "ostemplate"),
+            ("clone", "update"),
+            ("force", "update"),
             ("disk", "disk_volume"),
             ("storage", "disk_volume"),
             ("mounts", "mount_volumes"),
@@ -812,6 +815,9 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             )
 
     def lxc_present(self, vmid, hostname, node, update, force):
+        if self.params.get("clone") is not None:
+            update = False
+
         try:
             lxc = self.get_lxc_resource(vmid, hostname)
             vmid = vmid or lxc["id"].split("/")[-1]
@@ -827,7 +833,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         # check if the container exists already
         if lxc is not None:
-            if update:
+            if update and not force:
                 # Update it if we should
                 identifier = self.format_vm_identifier(vmid, hostname)
                 self.update_lxc_instance(
