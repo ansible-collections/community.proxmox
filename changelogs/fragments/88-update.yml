@@ -1,0 +1,2 @@
+breaking_changes:
+  - "proxmox - the default of ``update`` changed from ``false`` to ``true`` (https://github.com/ansible-collections/community.proxmox/pull/88)."
