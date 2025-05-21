@@ -1,4 +1,5 @@
 breaking_changes:
   - "proxmox - the default of ``update`` changed from ``false`` to ``true`` (https://github.com/ansible-collections/community.proxmox/pull/92)."
+  - "proxmox - ``update`` and ``force`` are now mutually exclusive (https://github.com/ansible-collections/community.proxmox/pull/92)."
 minor_changes:
   - proxmox - add support for creating and updating containers in the same task (https://github.com/ansible-collections/community.proxmox/pull/92).

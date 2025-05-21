@@ -230,6 +230,7 @@ options:
       - Can be used only with states V(present), V(stopped), V(restarted).
       - With O(state=present) force option allow to overwrite existing container.
       - With states V(stopped), V(restarted) allow to force stop instance.
+      - When specifying O(force), O(update) must not be specified.
     type: bool
     default: false
   purge:
