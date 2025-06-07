@@ -31,3 +31,5 @@ breaking_changes:
 removed_features:
   - Description of removed feature, module etc (https://github.com/ansible-collections/community.proxmox/issues/XXX, https://github.com/ansible-collections/community.proxmox/pull/XXX).
 ```
+
+* Changelog entries for new modules and plugins are automatically generated (based on `version_added`), so do not add changelog fragments for them.
