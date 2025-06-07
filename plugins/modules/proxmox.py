@@ -219,15 +219,18 @@ options:
   update:
     description:
       - If V(true), the container will be updated with new values.
-      - The current default value of V(false) is deprecated and should will change to V(true) in community.proxmox 11.0.0.
-        Please set O(update) explicitly to V(false) or V(true) to avoid surprises and get rid of the deprecation warning.
+        This only happens if O(state=present), O(force=false), and O(clone) is not specified.
+      - If V(false), it will not be updated.
+      - The default changed from V(false) to V(true) in community.proxmox 1.0.0.
     type: bool
+    default: true
   force:
     description:
       - Forcing operations.
       - Can be used only with states V(present), V(stopped), V(restarted).
       - With O(state=present) force option allow to overwrite existing container.
       - With states V(stopped), V(restarted) allow to force stop instance.
+      - When specifying O(force), O(update) must not be specified.
     type: bool
     default: false
   purge:
@@ -682,7 +685,7 @@ def get_proxmox_args():
         nameserver=dict(),
         searchdomain=dict(),
         timeout=dict(type="int", default=30),
-        update=dict(type="bool"),
+        update=dict(type="bool", default=True),
         force=dict(type="bool", default=False),
         purge=dict(type="bool", default=False),
         state=dict(
@@ -729,7 +732,9 @@ def get_ansible_module():
         ],
         mutually_exclusive=[
             # Creating a new container is done either by cloning an existing one, or based on a template.
-            ("clone", "ostemplate", "update"),
+            ("clone", "ostemplate"),
+            ("clone", "update"),
+            ("force", "update"),
             ("disk", "disk_volume"),
             ("storage", "disk_volume"),
             ("mounts", "mount_volumes"),
@@ -811,6 +816,9 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             )
 
     def lxc_present(self, vmid, hostname, node, update, force):
+        if self.params.get("clone") is not None:
+            update = False
+
         try:
             lxc = self.get_lxc_resource(vmid, hostname)
             vmid = vmid or lxc["id"].split("/")[-1]
@@ -826,16 +834,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         # check if the container exists already
         if lxc is not None:
-            if update is None:
-                # TODO: Remove deprecation warning in version 11.0.0
-                self.module.deprecate(
-                    msg="The default value of false for 'update' has been deprecated and will be changed to true in version 11.0.0.",
-                    version="11.0.0",
-                    collection_name="community.proxmox",
-                )
-                update = False
-
-            if update:
+            if update and not force:
                 # Update it if we should
                 identifier = self.format_vm_identifier(vmid, hostname)
                 self.update_lxc_instance(
@@ -872,6 +871,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 self.module.exit_json(
                     changed=False, vmid=vmid, msg="VM %s already exists." % identifier
                 )
+            identifier = self.format_vm_identifier(vmid, lxc["name"])
             self.module.debug(
                 "VM %s already exists, but we don't update and instead forcefully recreate it."
                 % identifier

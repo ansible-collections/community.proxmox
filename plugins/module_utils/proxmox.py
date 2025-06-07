@@ -76,6 +76,8 @@ class ProxmoxAnsible(object):
     def __init__(self, module):
         if not HAS_PROXMOXER:
             module.fail_json(msg=missing_required_lib('proxmoxer'), exception=PROXMOXER_IMP_ERR)
+        if proxmoxer_version < LooseVersion('2.0'):
+            self.module.fail_json(f'Requires proxmoxer 2.0 or newer; found version {proxmoxer_version}')
 
         self.module = module
         self.proxmoxer_version = proxmoxer_version
@@ -103,8 +105,6 @@ class ProxmoxAnsible(object):
         if api_password:
             auth_args['password'] = api_password
         else:
-            if self.proxmoxer_version < LooseVersion('1.1.0'):
-                self.module.fail_json('Using "token_name" and "token_value" require proxmoxer>=1.1.0')
             auth_args['token_name'] = api_token_id
             auth_args['token_value'] = api_token_secret
 
@@ -166,7 +166,8 @@ class ProxmoxAnsible(object):
     def api_task_ok(self, node, taskid):
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
-            return status['status'] == 'stopped' and status['exitstatus'] == 'OK'
+            valid_exitstatus = status['exitstatus'] == 'OK' or status['exitstatus'].startswith('WARN')
+            return status['status'] == 'stopped' and valid_exitstatus
         except Exception as e:
             self.module.fail_json(msg='Unable to retrieve API task ID from node %s: %s' % (node, e))
 

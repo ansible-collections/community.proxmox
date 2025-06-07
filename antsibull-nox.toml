@@ -25,7 +25,7 @@ run_action_groups = true
 name = "proxmox"
 pattern = "^.*$"
 exclusions = []
-doc_fragment = "community.general.proxmox.actiongroup_proxmox"
+doc_fragment = "community.proxmox.proxmox.actiongroup_proxmox"
 
 [sessions.build_import_check]
 run_galaxy_importer = true
