@@ -20,7 +20,7 @@ description: The module modifies backup jobs such as set or delete C(vmid).
 author:
   - "Marzieh Raoufnezhad (@raoufnezhad) <raoufnezhad@gmail.com>"
   - "Maryam Mayabi (@mmayabi) <mayabi.ahm@gmail.com>"
-
+version_added: 1.0.0
 options:
   vm_name:
     description:
