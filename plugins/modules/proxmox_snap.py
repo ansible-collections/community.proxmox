@@ -183,7 +183,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
     def start_instance(self, vm, vmid, timeout):
         taskid = self.vmstatus(vm, vmid).start.post()
-        while timeout:
+        while timeout >= 0:
             if self.api_task_ok(vm['node'], taskid):
                 return True
             timeout -= 1
@@ -195,7 +195,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
     def shutdown_instance(self, vm, vmid, timeout):
         taskid = self.vmstatus(vm, vmid).shutdown.post()
-        while timeout:
+        while timeout >= 0:
             if self.api_task_ok(vm['node'], taskid):
                 return True
             timeout -= 1
@@ -238,7 +238,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
         else:
             taskid = self.snapshot(vm, vmid).post(snapname=snapname, description=description, vmstate=int(vmstate))
 
-        while timeout:
+        while timeout >= 0:
             if self.api_task_ok(vm['node'], taskid):
                 break
             if timeout == 0:
@@ -258,7 +258,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             return True
 
         taskid = self.snapshot(vm, vmid).delete(snapname, force=int(force))
-        while timeout:
+        while timeout >= 0:
             if self.api_task_ok(vm['node'], taskid):
                 return True
             if timeout == 0:
@@ -274,7 +274,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             return True
 
         taskid = self.snapshot(vm, vmid)(snapname).post("rollback")
-        while timeout:
+        while timeout >= 0:
             if self.api_task_ok(vm['node'], taskid):
                 return True
             if timeout == 0:
