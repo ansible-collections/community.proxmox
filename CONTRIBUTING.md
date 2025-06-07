@@ -22,7 +22,7 @@ minor_changes:
 ```
 ---
 breaking_changes:
-  - module name - will start eating your dog without 'dont_eat_dog: true' (https://github.com/ansible-collections/community.proxmox/issues/XXX, https://github.com/ansible-collections/community.proxmox/pull/XXX).
+  - module name - will start eating your dog without ``dont_eat_dog: true`` (https://github.com/ansible-collections/community.proxmox/issues/XXX, https://github.com/ansible-collections/community.proxmox/pull/XXX).
 ```
 
 * Removed features:
