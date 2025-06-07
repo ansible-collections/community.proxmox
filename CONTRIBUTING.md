@@ -18,7 +18,7 @@ minor_changes:
   - module name - short description of the change, PR title could be fine (https://github.com/ansible-collections/community.proxmox/issues/XXX, https://github.com/ansible-collections/community.proxmox/pull/XXX).
 ```
 
-* Breaking changes, anything that requires end-users to change something on their end as well
+* Breaking changes, anything that requires end-users to change something on their end as well:
 ```
 ---
 breaking_changes:
