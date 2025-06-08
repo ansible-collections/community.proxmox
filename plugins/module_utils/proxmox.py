@@ -21,6 +21,7 @@ except ImportError:
 
 
 from ansible.module_utils.basic import env_fallback, missing_required_lib
+from ansible.module_utils.common.text.converters import to_native
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
 
@@ -166,7 +167,8 @@ class ProxmoxAnsible(object):
     def api_task_ok(self, node, taskid):
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
-            return status['status'] == 'stopped' and (status['exitstatus'] == 'OK' or status['exitstatus'].startswith('WARN'))
+            exitstatus = to_native(status.get('exitstatus') or '')
+            return status['status'] == 'stopped' and (exitstatus == 'OK' or exitstatus.startswith('WARN'))
         except Exception as e:
             self.module.fail_json(msg='Unable to retrieve API task ID from node %s: %s' % (node, e))
 
