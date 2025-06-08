@@ -166,8 +166,7 @@ class ProxmoxAnsible(object):
     def api_task_ok(self, node, taskid):
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
-            valid_exitstatus = status['exitstatus'] == 'OK' or status['exitstatus'].startswith('WARN')
-            return status['status'] == 'stopped' and valid_exitstatus
+            return status['status'] == 'stopped' and (status['exitstatus'] == 'OK' or status['exitstatus'].startswith('WARN'))
         except Exception as e:
             self.module.fail_json(msg='Unable to retrieve API task ID from node %s: %s' % (node, e))
 
