@@ -15,3 +15,45 @@ releases:
     fragments:
       - 0.1.0.yml
     release_date: '2025-05-12'
+  1.0.0:
+    changes:
+      breaking_changes:
+        - proxmox - ``update`` and ``force`` are now mutually exclusive (https://github.com/ansible-collections/community.proxmox/pull/92).
+        - proxmox - the default of ``update`` changed from ``false`` to ``true`` (https://github.com/ansible-collections/community.proxmox/pull/92).
+      bugfixes:
+        - proxmox - fix crash in module when the used on an existing LXC container
+          with ``state=present`` and ``force=true`` (https://github.com/ansible-collections/community.proxmox/pull/91).
+      minor_changes:
+        - proxmox - add support for creating and updating containers in the same task
+          (https://github.com/ansible-collections/community.proxmox/pull/92).
+        - proxmox module util - do not hang on tasks that throw warnings (https://github.com/ansible-collections/community.proxmox/issues/96,
+          https://github.com/ansible-collections/community.proxmox/pull/100).
+        - proxmox_kvm - add ``rng0`` option to specify an RNG device (https://github.com/ansible-collections/community.proxmox/pull/18).
+        - proxmox_kvm - remove redundant check for duplicate names as this is allowed
+          by PVE API (https://github.com/ansible-collections/community.proxmox/issues/97,
+          https://github.com/ansible-collections/community.proxmox/pull/99).
+        - proxmox_snap - correctly handle proxmox_snap timeout parameter (https://github.com/ansible-collections/community.proxmox/issues/73,
+          https://github.com/ansible-collections/community.proxmox/issues/95, https://github.com/ansible-collections/community.proxmox/pull/101).
+      release_summary: 'This is the first stable release of the ``community.proxmox``
+        collection since moving from ``community.general``, released on 2025-06-08.
+
+        '
+    fragments:
+      - 1.0.0.yml
+      - 100-proxmox-utils-fix-warnings.yml
+      - 101-proxmox-snap.yml
+      - 10114-proxmox-kvm-add-rng.yml
+      - 91-proxmox-bugfix.yml
+      - 92-proxmox-update.yml
+      - 99-proxmox-kvm-namecheck.yml
+    modules:
+      - description: Schedule VM backups and removing them.
+        name: proxmox_backup_schedule
+        namespace: ''
+      - description: Create and join Proxmox VE clusters.
+        name: proxmox_cluster
+        namespace: ''
+      - description: Retrieve the join information of the Proxmox VE cluster.
+        name: proxmox_cluster_join_info
+        namespace: ''
+    release_date: '2025-06-08'
