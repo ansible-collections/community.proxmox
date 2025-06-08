@@ -227,8 +227,9 @@ options:
   force:
     description:
       - Forcing operations.
-      - Can be used only with states V(present), V(stopped), V(restarted).
+      - Can be used only with states V(absent), V(present), V(stopped), V(restarted).
       - With O(state=present) force option allow to overwrite existing container.
+      - With O(state=absent) force option will force stop the container before deletion.
       - With states V(stopped), V(restarted) allow to force stop instance.
       - When specifying O(force), O(update) must not be specified.
     type: bool
@@ -782,6 +783,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 node=self.params.get("node"),
                 timeout=self.params.get("timeout"),
                 purge=self.params.get("purge"),
+                force=self.params.get("force"),
             )
         elif state == "started":
             self.lxc_started(
@@ -886,7 +888,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             force=force,
         )
 
-    def lxc_absent(self, vmid, hostname, node, timeout, purge):
+    def lxc_absent(self, vmid, hostname, node, timeout, purge, force):
         try:
             lxc = self.get_lxc_resource(vmid, hostname)
         except LookupError:
@@ -901,7 +903,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         lxc_status = self.get_lxc_status(vmid, node)
         identifier = self.format_vm_identifier(vmid, hostname)
 
-        if lxc_status == "running":
+        if lxc_status == "running" and not force:
             self.module.exit_json(
                 changed=False,
                 vmid=vmid,
@@ -915,7 +917,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 % identifier,
             )
 
-        self.remove_lxc_instance(vmid, node, timeout, purge)
+        self.remove_lxc_instance(vmid, node, timeout, purge, force)
         self.module.exit_json(
             changed=True, vmid=vmid, msg="VM %s removed." % identifier
         )
@@ -1326,10 +1328,13 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             timeout_msg="Reached timeout while waiting for VM to be unmounted.",
         )
 
-    def remove_lxc_instance(self, vmid, node, timeout, purge):
+    def remove_lxc_instance(self, vmid, node, timeout, purge, force):
         delete_params = {}
         if purge:
             delete_params["purge"] = 1
+
+        if force:
+            delete_params["force"] = 1
 
         proxmox_node = self.proxmox_api.nodes(node)
         taskid = getattr(proxmox_node, self.VZ_TYPE).delete(vmid, **delete_params)
