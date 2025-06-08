@@ -227,7 +227,7 @@ options:
   force:
     description:
       - Forcing operations.
-      - Can be used only with states V(absent), V(present), V(stopped), V(restarted).
+      - Can be used only with states V(absent), V(present), V(stopped), and V(restarted).
       - With O(state=present) force option allow to overwrite existing container.
       - With O(state=absent) force option will force stop the container before deletion.
       - With states V(stopped), V(restarted) allow to force stop instance.
