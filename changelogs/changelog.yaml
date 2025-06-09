@@ -57,3 +57,17 @@ releases:
         name: proxmox_cluster_join_info
         namespace: ''
     release_date: '2025-06-08'
+  1.0.1:
+    changes:
+      minor_changes:
+        - proxmox module utils - fix handling warnings in LXC tasks (https://github.com/ansible-collections/community.proxmox/pull/104).
+      release_summary: 'This is a minor bugfix release for the ``community.proxmox``
+        collections.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.'
+    fragments:
+      - 1.0.1.yml
+      - 104-fix-warnings.yml
+    release_date: '2025-06-09'

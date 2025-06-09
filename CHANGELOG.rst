@@ -4,6 +4,21 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.0.1
+======
+
+Release Summary
+---------------
+
+This is a minor bugfix release for the ``community.proxmox`` collections.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Minor Changes
+-------------
+
+- proxmox module utils - fix handling warnings in LXC tasks (https://github.com/ansible-collections/community.proxmox/pull/104).
+
 v1.0.0
 ======
 
