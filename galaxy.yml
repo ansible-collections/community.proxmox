@@ -7,7 +7,7 @@
 
 namespace: community
 name: proxmox
-version: 1.0.0
+version: 1.0.1
 readme: README.md
 authors:
   - Ansible community (https://github.com/ansible-community)

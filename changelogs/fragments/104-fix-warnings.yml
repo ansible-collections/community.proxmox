@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox module utils - fix handling warnings in LXC tasks (https://github.com/ansible-collections/community.proxmox/pull/104).

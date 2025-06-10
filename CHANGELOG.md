@@ -2,24 +2,42 @@
 
 **Topics**
 
-- <a href="#v1-0-0">v1\.0\.0</a>
+- <a href="#v1-0-1">v1\.0\.1</a>
     - <a href="#release-summary">Release Summary</a>
     - <a href="#minor-changes">Minor Changes</a>
+- <a href="#v1-0-0">v1\.0\.0</a>
+    - <a href="#release-summary-1">Release Summary</a>
+    - <a href="#minor-changes-1">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes">Bugfixes</a>
     - <a href="#new-modules">New Modules</a>
 - <a href="#v0-1-0">v0\.1\.0</a>
-    - <a href="#release-summary-1">Release Summary</a>
+    - <a href="#release-summary-2">Release Summary</a>
 
-<a id="v1-0-0"></a>
-## v1\.0\.0
+<a id="v1-0-1"></a>
+## v1\.0\.1
 
 <a id="release-summary"></a>
 ### Release Summary
 
-This is the first stable release of the <code>community\.proxmox</code> collection since moving from <code>community\.general</code>\, released on 2025\-06\-08\.
+This is a minor bugfix release for the <code>community\.proxmox</code> collections\.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release\.
 
 <a id="minor-changes"></a>
+### Minor Changes
+
+* proxmox module utils \- fix handling warnings in LXC tasks \([https\://github\.com/ansible\-collections/community\.proxmox/pull/104](https\://github\.com/ansible\-collections/community\.proxmox/pull/104)\)\.
+
+<a id="v1-0-0"></a>
+## v1\.0\.0
+
+<a id="release-summary-1"></a>
+### Release Summary
+
+This is the first stable release of the <code>community\.proxmox</code> collection since moving from <code>community\.general</code>\, released on 2025\-06\-08\.
+
+<a id="minor-changes-1"></a>
 ### Minor Changes
 
 * proxmox \- add support for creating and updating containers in the same task \([https\://github\.com/ansible\-collections/community\.proxmox/pull/92](https\://github\.com/ansible\-collections/community\.proxmox/pull/92)\)\.
@@ -49,7 +67,7 @@ This is the first stable release of the <code>community\.proxmox</code> collecti
 <a id="v0-1-0"></a>
 ## v0\.1\.0
 
-<a id="release-summary-1"></a>
+<a id="release-summary-2"></a>
 ### Release Summary
 
 This is the first community\.proxmox release\. It contains mainly the state of the Proxmox content in community\.general 10\.6\.0\.
