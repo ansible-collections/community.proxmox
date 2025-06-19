@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - proxmox - allow force deletion of LXC containers (https://github.com/ansible-collections/community.proxmox/pull/105).
