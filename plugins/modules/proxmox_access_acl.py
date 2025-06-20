@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
+# Copyright: (c) 2025, Markus Kötter <koetter@cispa.de>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -101,7 +101,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
         data = {
             "path": path,
             "roles": roleid,
-            "propagate":1 if propagate else 0,
+            "propagate":int(propagate),
             f"{type}s":ugid
         }
 
