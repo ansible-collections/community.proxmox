@@ -12,6 +12,7 @@ action_groups:
     - proxmox_backup_info
     - proxmox_backup_schedule
     - proxmox_cluster
+    - proxmox_cluster_ha_resources
     - proxmox_cluster_join_info
     - proxmox_disk
     - proxmox_domain_info
