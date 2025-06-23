@@ -88,8 +88,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
     def _get(self):
-        acls = self.proxmox_api.cluster.ha.groups.get()
-        return acls
+        groups = self.proxmox_api.cluster.ha.groups.get()
+        return groups
 
     def _post(self, **data):
         return self.proxmox_api.cluster.ha.groups.post(**data)
@@ -124,8 +124,8 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
         self._post(group=name, **data)
 
     def delete(self, groups, name):
-        for ace in groups:
-            if ace["group"] != name:
+        for group in groups:
+            if group["group"] != name:
                 continue
             self._delete(name)
             return True
@@ -168,11 +168,11 @@ def run_module():
         groups = proxmox._get()
 
         if module.params["state"] == "present":
-            r = proxmox.create(groups, name, comment, nodes, nofailback, restricted)
+            changed = proxmox.create(groups, name, comment, nodes, nofailback, restricted)
         else:
-            r = proxmox.delete(groups, name)
+            changed = proxmox.delete(groups, name)
 
-        result['changed'] = r
+        result['changed'] = changed
     except Exception as e:
         module.fail_json(msg=str(e), **result)
 
