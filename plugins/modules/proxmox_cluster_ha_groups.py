@@ -12,7 +12,7 @@ module: proxmox_cluster_ha_groups
 
 short_description: Management of HA groups in roxmox VE Cluster
 
-version_added: "1.0.2"
+version_added: "1.1.0"
 
 description: 
   - Configure HA groups via /cluster/ha/groups
