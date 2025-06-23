@@ -19,7 +19,7 @@ description:
 
 options:
     state:
-        description: create or delete
+        description: Whether the HA groups should be there (created if missing) or not (deleted if they exist).
         required: true
         choices: ['present', 'absent']
         type: str
