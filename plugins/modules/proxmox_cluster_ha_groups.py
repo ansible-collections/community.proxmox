@@ -36,7 +36,7 @@ options:
         required: false
         type: bool
     nofailback:
-        description: The CRM tries to run services on the node with the highest priority. If a node with higher priority comes online, the CRM migrates the service to that node. Enabling nofailback prevents that behavior.
+        description: The CRM tries to run services on the node with the highest priority. If a node with higher priority comes online, the CRM migrates the service to that node. Setting O(nofailback=true) prevents that behavior.
         required: false
         type: bool
     restricted:
