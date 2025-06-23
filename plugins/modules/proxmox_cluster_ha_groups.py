@@ -15,7 +15,7 @@ short_description: Management of HA groups in Proxmox VE Cluster
 version_added: "1.1.0"
 
 description: 
-  - Configure HA groups via /cluster/ha/groups
+  - Configure HA groups via C(/cluster/ha/groups).
 
 options:
     state:
