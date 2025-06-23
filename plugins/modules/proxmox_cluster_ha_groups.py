@@ -112,7 +112,10 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
             if group["group"] != name:
                 continue
 
-            if (group["comment"], group["nodes"], group["nofailback"], group["restricted"]) == (comment, nodes, nofailback, restricted):
+            if (group.get("comment", ""),
+                group.get("nodes", ""),
+                bool(group.get("nofailback", 0)),
+                bool(group.get("restricted", 0))) == (comment, nodes, nofailback, restricted):
                 return False
             else:
                 self._put(name, data)
