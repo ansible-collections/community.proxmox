@@ -10,7 +10,7 @@ DOCUMENTATION = r'''
 ---
 module: proxmox_cluster_ha_groups
 
-short_description: Management of HA groups in roxmox VE Cluster
+short_description: Management of HA groups in Proxmox VE Cluster
 
 version_added: "1.1.0"
 
