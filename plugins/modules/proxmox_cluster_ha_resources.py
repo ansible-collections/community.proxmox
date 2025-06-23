@@ -132,6 +132,7 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
                 return True
 
         self._post(sid=sid, **data)
+        return True
 
     def delete(self, resources, sid):
         for resource in resources:
