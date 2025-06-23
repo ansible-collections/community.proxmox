@@ -72,17 +72,7 @@ EXAMPLES = r'''
     name: ha0
 '''
 
-RETURN = r'''
-# These are examples of possible return values, and in general should use other names for return values.
-old_groups:
-    description: The original name param that was passed in.
-    type: list
-    returned: always
-new_groups:
-    description: The output message that the test module generates.
-    type: list
-    returned: when changed
-'''
+RETURN = r'''#'''
 
 from ansible.module_utils.basic import AnsibleModule
 
