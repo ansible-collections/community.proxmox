@@ -17,6 +17,12 @@ version_added: "1.1.0"
 description: 
   - Configure HA groups via C(/cluster/ha/groups).
 
+attributes:
+  check_mode:
+    support: none
+  diff_mode:
+    support: none
+
 options:
     state:
         description: Whether the HA groups should be there (created if missing) or not (deleted if they exist).
@@ -145,11 +151,8 @@ def run_module():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=False
     )
-
-    if module.check_mode:
-        module.exit_json(**result)
 
     proxmox = ProxmoxClusterHAGroupsAnsible(module)
 
