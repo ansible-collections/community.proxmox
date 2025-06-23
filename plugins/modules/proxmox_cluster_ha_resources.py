@@ -61,22 +61,33 @@ EXAMPLES = r'''
     api_host: "{{ ansible_host }}"
     api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
     api_user: root@pam
-
     name: vm:100
     state: "present"
     group: ha0
     max_relocate: 2
     max_restart: 2
-    
+  delegate_to: localhost
 
 - name: Delete vm from HA group
   community.proxmox.proxmox_cluster_ha_resources:
     api_host: "{{ ansible_host }}"
     api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
     api_user: root@pam
-
     state: "absent"
     name: vm:100
+  delegate_to: localhost
+
+- name: Add VM to HA group based on 'ha_' tag
+  community.proxmox.proxmox_cluster_ha_resources:
+    api_host: "{{ ansible_host }}"
+    api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
+    api_user: root@pam
+    name: "{{ proxmox_type }}:{{ proxmox_vmid }}"
+    state: "present"
+    group: "{{ proxmox_tags | split(';') | select('match', '^ha_') }}"
+    max_relocate: 2
+    max_restart: 2
+  delegate_to: localhost
 '''
 
 RETURN = r'''
