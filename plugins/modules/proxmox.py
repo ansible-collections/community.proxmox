@@ -589,6 +589,28 @@ EXAMPLES = r"""
     api_password: 1q2w3e
     api_host: node1
     state: absent
+
+- name: Create a new container automatically selecting the next available vmid using a non-root token.
+  community.proxmox.proxmox:
+    node: 'uk-mc02'
+    api_token_id: 'svc-tkn'
+    api_token_secret: '81c09a2a-0359-4ba1-8153-8cb3cd02509b'
+    api_user: 'remoteapiuser@pam'
+    api_host: 'node1'
+    password: '123456'
+    hostname: 'example.org'
+    ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
+
+- name: Create a new container automatically selecting the next available vmid and providing a public key for the root account the Ansible host can use to connect to the new container.
+  community.proxmox.proxmox:
+    node: 'uk-mc02'
+    api_user: 'root@pam'
+    api_password: '1q2w3e'
+    api_host: 'node1'
+    password: '123456'
+    hostname: 'example.org'
+    ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
+    pubkey: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIU3tbNDdY6OWuYgJpjXSm3LFD6Y1lrIhZVQVz/FhBWA ansibleuser@ansiblehost'
 """
 
 import re
