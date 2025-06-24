@@ -590,7 +590,7 @@ EXAMPLES = r"""
     api_host: node1
     state: absent
 
-- name: Create a new container automatically selecting the next available vmid using a non-root token.
+- name: Create a new container automatically selecting the next available vmid using a non-root API token.
   community.proxmox.proxmox:
     node: 'uk-mc02'
     api_token_id: 'svc-tkn'
