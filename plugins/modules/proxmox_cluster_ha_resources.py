@@ -24,7 +24,7 @@ options:
         choices: ['present', 'absent']
         type: str
     name:
-        description: HA resource ID. This consists of a resource type followed by a resource specific name, separated with colon (example: vm:100 / ct:100). For virtual machines and containers, you can simply use the VM or CT id as a shortcut (example: 100). aka sid.
+        description: HA resource ID. This consists of a resource type followed by a resource specific name, separated with colon (example: V(vm:100) / V(ct:100) ). For virtual machines and containers, you can simply use the VM or CT id as a shortcut (example: 100). The API documentation refers to this field as "sid".
         required: true
         type: str
     comment:
@@ -46,7 +46,7 @@ options:
         type: int
         default: 1
     hastate:
-        description: Requested resource state. The CRM reads this state and acts accordingly. Please note that `enabled` is just an alias for `started`.
+        description: Requested resource state. The CRM reads this state and acts accordingly. Please note that V(enabled) is just an alias for V(started).
         type: str
         choices: ["started", "stopped", "disabled", "ignored"]
                 
@@ -195,11 +195,11 @@ def run_module():
         resources = proxmox._get()
 
         if module.params["state"] == "present":
-            r = proxmox.create(resources, sid, comment, group, max_relocate, max_restart, state)
+            changed = proxmox.create(resources, sid, comment, group, max_relocate, max_restart, state)
         else:
-            r = proxmox.delete(resources, sid)
+            changed = proxmox.delete(resources, sid)
 
-        result['changed'] = r
+        result['changed'] = changed
     except Exception as e:
         module.fail_json(msg=str(e), **result)
 
