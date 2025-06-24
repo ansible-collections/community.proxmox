@@ -49,7 +49,10 @@ options:
         description: Resources bound to restricted groups may only run on nodes defined by the group. The resource will be placed in the stopped state if no group node member is online. Resources on unrestricted groups may run on any cluster node if all group members are offline, but they will migrate back as soon as a group member comes online. One can implement a 'preferred node' behavior using an unrestricted group with only one member.
         required: False
         type: bool
-
+extends_documentation_fragment:
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 author:
     - Markus Kötter (@commonism)
 '''
