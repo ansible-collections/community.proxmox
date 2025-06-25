@@ -615,7 +615,7 @@ EXAMPLES = r"""
     password: '123456'
     hostname: 'example.org'
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
-    pubkey: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIU3tbNDdY6OWuYgJpjXSm3LFD6Y1lrIhZVQVz/FhBWA ansibleuser@ansiblehost'
+    pubkey: 'ssh-ed25519 AAAAC3NzaC1...hBWA ansibleuser@ansiblehost'
 """
 
 import re
