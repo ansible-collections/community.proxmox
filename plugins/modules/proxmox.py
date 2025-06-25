@@ -603,7 +603,10 @@ EXAMPLES = r"""
     hostname: 'example.org'
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
 
-- name: Create a new container automatically selecting the next available vmid and providing a public key for the root account the Ansible host can use to connect to the new container.
+- name: >-
+    Create a new container automatically selecting the next available vmid
+    and providing a public key for the root account the Ansible host can use
+    to connect to the new container
   community.proxmox.proxmox:
     node: 'uk-mc02'
     api_user: 'root@pam'
