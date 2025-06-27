@@ -49,10 +49,12 @@ options:
         description: Requested resource state. The CRM reads this state and acts accordingly. Please note that V(enabled) is just an alias for V(started).
         type: str
         choices: ["started", "stopped", "disabled", "ignored"]
+
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
+
 author:
     - Markus Kötter (@commonism)
 '''
