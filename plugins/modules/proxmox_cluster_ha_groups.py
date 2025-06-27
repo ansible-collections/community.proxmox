@@ -40,15 +40,17 @@ options:
     nodes:
         description: List of cluster node members, where a priority can be given to each node. A resource bound to a group will run on the available nodes with the highest priority. If there are more nodes in the highest priority class, the services will get distributed to those nodes. The priorities have a relative meaning only. The higher the number, the higher the priority.
         required: false
-        type: bool
+        type: str
     nofailback:
         description: The CRM tries to run services on the node with the highest priority. If a node with higher priority comes online, the CRM migrates the service to that node. Setting O(nofailback=true) prevents that behavior.
         required: false
         type: bool
+        default: false
     restricted:
         description: Resources bound to restricted groups may only run on nodes defined by the group. The resource will be placed in the stopped state if no group node member is online. Resources on unrestricted groups may run on any cluster node if all group members are offline, but they will migrate back as soon as a group member comes online. One can implement a 'preferred node' behavior using an unrestricted group with only one member.
         required: False
         type: bool
+        default: false
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
