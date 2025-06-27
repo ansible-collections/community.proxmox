@@ -14,7 +14,7 @@ short_description: Management of ACLs for objects in Proxmox VE Cluster
 version_added: "1.1.0"
 
 description: 
-  - Setting ACLs via /access/acls to grant permission to interact with objects
+  - Setting ACLs via C(/access/acls) to grant permission to interact with objects.
 
 options:
     state:
