@@ -16,6 +16,12 @@ version_added: "1.1.0"
 description: 
   - Setting ACLs via /access/acls to grant permission to interact with objects
 
+attributes:
+  check_mode:
+    support: none
+  diff_mode:
+    support: none
+
 options:
     state:
         description: create or delete
@@ -29,7 +35,7 @@ options:
     roleid:
         description: name of the role
         required: false
-        type: bool
+        type: str
     type:
         description: type of access control
         choices: ["user", "group", "token"]
@@ -37,8 +43,13 @@ options:
         type: str
     ugid:
         description: id of user or group
-        required: False
+        required: false
         type: str
+    propagate:
+        description: Allow to propagate (inherit) permissions.
+        required: false
+        type: bool
+        default: 1
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -143,7 +154,7 @@ def run_module():
 
     acl_args = dict(
         state=dict(choices=['present', 'absent'], required=True),
-        path=dict(type='str', required=True),
+        path=dict(type='str', required=False),
         roleid=dict(type='str', required=False),
         type=dict(type='str', choices=["user", "group", "token"]),
         ugid=dict(type='str'),
@@ -159,7 +170,7 @@ def run_module():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=False
     )
 
     if module.params["state"] == "present":
@@ -169,9 +180,6 @@ def run_module():
             result["failed"] = True
             result["missing_parameters"] = required - exists
             module.fail_json(msg="The following required parameters are not provided {}".format(sorted(required - exists)), **result)
-
-    if module.check_mode:
-        module.exit_json(**result)
 
     proxmox = ProxmoxAccessACLAnsible(module)
 
