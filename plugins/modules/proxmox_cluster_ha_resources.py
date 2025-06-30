@@ -14,8 +14,14 @@ short_description: Management of HA groups in Proxmox VE Cluster
 
 version_added: "1.1.0"
 
-description: 
+description:
   - Configure HA groups via C(/cluster/ha/groups).
+
+attributes:
+  check_mode:
+    support: none
+  diff_mode:
+    support: none
 
 options:
     state:
@@ -24,31 +30,36 @@ options:
         choices: ['present', 'absent']
         type: str
     name:
-        description: HA resource ID. This consists of a resource type followed by a resource specific name, separated with colon (example: V(vm:100) / V(ct:100) ). For virtual machines and containers, you can simply use the VM or CT id as a shortcut (example: 100). The API documentation refers to this field as "sid".
+        description: |
+            HA resource ID. This consists of a resource type followed by a resource specific name, separated with colon (example: V(vm:100) / V(ct:100) ).
+            For virtual machines and containers, you can simply use the VM or CT id as a shortcut (example: 100).
+            The API documentation refers to this field as \"sid\".
         required: true
         type: str
     comment:
         description: Description
         required: false
+        default: ""
         type: str
     group:
         description: The HA group identifier.
         required: false
-        type: bool
+        type: str
     max_relocate:
         description: Maximal number of service relocate tries when a service failes to start.
-        required: false        
+        required: false
         type: int
         default: 1
     max_restart:
         description: Maximal number of tries to restart the service on a node after its start failed.
-        required: false        
+        required: false
         type: int
         default: 1
     hastate:
         description: Requested resource state. The CRM reads this state and acts accordingly. Please note that V(enabled) is just an alias for V(started).
         type: str
         choices: ["started", "stopped", "disabled", "ignored"]
+        default: started
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -139,7 +150,8 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
             if resource["sid"] != sid:
                 continue
 
-            if ((resource.get("comment", ""), resource.get("group", ""), resource.get("max_relocate", 1), resource.get("max_restart", 1), resource["state"]) ==
+            if ((resource.get("comment", ""), resource.get("group", ""), resource.get("max_relocate", 1),
+                 resource.get("max_restart", 1), resource["state"]) ==
                     (comment, group, max_relocate, max_restart, state)):
                 return False
             else:
@@ -157,7 +169,6 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
             return True
 
         return False
-
 
 
 def run_module():
@@ -181,11 +192,8 @@ def run_module():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=False
     )
-
-    if module.check_mode:
-        module.exit_json(**result)
 
     proxmox = ProxmoxClusterHAResourcesAnsible(module)
 
