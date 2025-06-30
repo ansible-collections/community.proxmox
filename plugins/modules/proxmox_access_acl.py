@@ -54,7 +54,6 @@ extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
-          
 author:
     - Markus Kötter (@commonism)
 '''
