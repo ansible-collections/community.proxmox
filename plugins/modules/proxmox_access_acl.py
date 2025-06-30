@@ -116,7 +116,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
             "path": path,
             "roles": roleid,
             "propagate": int(propagate),
-            f"{type}s":ugid
+            f"{type}s": ugid
         }
 
         self._put(**data)
