@@ -116,7 +116,6 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
         assert self.mock_get.call_count == 2
         assert self.mock_put.call_count == 1
 
-
     def test_module_absent_exists(self):
         with set_module_args(
             {
