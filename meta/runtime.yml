@@ -8,6 +8,7 @@ requires_ansible: '>=2.17.0'
 action_groups:
   proxmox:
     - proxmox
+    - proxmox_access_acl
     - proxmox_backup
     - proxmox_backup_info
     - proxmox_backup_schedule
@@ -28,3 +29,4 @@ action_groups:
     - proxmox_template
     - proxmox_user_info
     - proxmox_vm_info
+
