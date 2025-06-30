@@ -115,7 +115,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
         data = {
             "path": path,
             "roles": roleid,
-            "propagate":int(propagate),
+            "propagate": int(propagate),
             f"{type}s":ugid
         }
 
