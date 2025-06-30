@@ -109,7 +109,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
 
     def create(self, acls, path, roleid, type, ugid, propagate):
         for ace in acls:
-            if (ace["path"],ace["roleid"],ace["type"],ace["ugid"], bool(ace.get("propagate", 1))) == (path, roleid, type, ugid, propagate):
+            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], bool(ace.get("propagate", 1))) == (path, roleid, type, ugid, propagate):
                 return False
 
         data = {
