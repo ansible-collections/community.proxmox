@@ -122,7 +122,6 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
         self._put(**data)
         return True
 
-
     def delete(self, acls, path, roleid, type, ugid, propagate):
         changed = False
         for ace in acls:
