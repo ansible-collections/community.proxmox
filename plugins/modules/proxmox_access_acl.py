@@ -107,7 +107,6 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
     def _put(self, **data):
         return self.proxmox_api.access.acl.put(**data)
 
-
     def create(self, acls, path, roleid, type, ugid, propagate):
         for ace in acls:
             if (ace["path"],ace["roleid"],ace["type"],ace["ugid"], bool(ace.get("propagate", 1))) == (path, roleid, type, ugid, propagate):
