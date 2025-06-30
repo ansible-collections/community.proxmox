@@ -40,7 +40,7 @@ API = {
 
 
 def return_get_api():
-    return [ ACE ]
+    return [ACE]
 
 
 class TestProxmoxAccessACLModule(ModuleTestCase):
