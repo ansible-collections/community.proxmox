@@ -29,4 +29,3 @@ action_groups:
     - proxmox_template
     - proxmox_user_info
     - proxmox_vm_info
-
