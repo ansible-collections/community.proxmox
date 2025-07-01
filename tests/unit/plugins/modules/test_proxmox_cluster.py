@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
+from ansible_collections.community.proxmox.plugins.modules.proxmox_cluster import validate_cluster_name
 
 
 @pytest.fixture
@@ -104,3 +105,9 @@ def test_cluster_create(mock_api, mock_init, module_args_create):
     }
 
     mock_api_instance.cluster.config.post.assert_called_once_with(**expected_payload)
+
+
+def test_validate_cluster_name_valid():
+    module = MagicMock(spec=AnsibleModule)
+    cluster_args = {"cluster_name": "devcluster"}
+    validate_cluster_name(module, cluster_args)
