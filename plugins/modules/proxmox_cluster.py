@@ -64,7 +64,7 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    api_ssl_verify: false
+    validate_certs: false
     link0: 10.10.1.1
     link1: 10.10.2.1
     cluster_name: "devcluster"
@@ -155,6 +155,14 @@ def proxmox_cluster_join_info_argument_spec():
     return dict()
 
 
+def validate_cluster_name(module, cluster_args, min_length=1, max_length=15):
+    if not isinstance(cluster_args['cluster_name'], str):
+        module.fail_json(msg="Cluster name must be a string.")
+
+    if not (min_length <= len(cluster_args['cluster_name']) <= max_length):
+        module.fail_json(msg="Cluster name must be between {} and {} characters long.".format(min_length, max_length))
+
+
 def main():
     module_args = proxmox_auth_argument_spec()
 
@@ -180,6 +188,7 @@ def main():
     )
 
     proxmox = ProxmoxClusterAnsible(module)
+    validate_cluster_name(module, cluster_args)
 
     # The Proxmox VE API currently does not support leaving a cluster
     # or removing a node from a cluster. Therefore, we only support creating
