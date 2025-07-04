@@ -4,6 +4,34 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.1.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Minor Changes
+-------------
+
+- proxmox - allow force deletion of LXC containers (https://github.com/ansible-collections/community.proxmox/pull/105).
+- proxmox - validate the cluster name length (https://github.com/ansible-collections/community.proxmox/pull/119).
+
+Bugfixes
+--------
+
+- proxmox inventory plugin - avoid using deprecated option when templating options (https://github.com/ansible-collections/community.proxmox/pull/108).
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_access_acl - Management of ACLs for objects in Proxmox VE Cluster.
+- community.proxmox.proxmox_cluster_ha_groups - Management of HA groups in Proxmox VE Cluster.
+- community.proxmox.proxmox_cluster_ha_resources - Management of HA groups in Proxmox VE Cluster.
+
 v1.0.1
 ======
 
