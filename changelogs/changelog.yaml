@@ -71,3 +71,32 @@ releases:
       - 1.0.1.yml
       - 104-fix-warnings.yml
     release_date: '2025-06-09'
+  1.1.0:
+    changes:
+      bugfixes:
+        - proxmox inventory plugin - avoid using deprecated option when templating
+          options (https://github.com/ansible-collections/community.proxmox/pull/108).
+      minor_changes:
+        - proxmox - allow force deletion of LXC containers (https://github.com/ansible-collections/community.proxmox/pull/105).
+        - proxmox - validate the cluster name length (https://github.com/ansible-collections/community.proxmox/pull/119).
+      release_summary: 'This is the minor release of the ``community.proxmox`` collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.'
+    fragments:
+      - 1.1.0.yml
+      - 105-allow-lxc-force-delete.yml
+      - 108--disable_lookups.yml
+      - 119-validate-cluster-name-lengths.yml
+    modules:
+      - description: Management of ACLs for objects in Proxmox VE Cluster.
+        name: proxmox_access_acl
+        namespace: ''
+      - description: Management of HA groups in Proxmox VE Cluster.
+        name: proxmox_cluster_ha_groups
+        namespace: ''
+      - description: Management of HA groups in Proxmox VE Cluster.
+        name: proxmox_cluster_ha_resources
+        namespace: ''
+    release_date: '2025-07-04'
