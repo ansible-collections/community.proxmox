@@ -429,10 +429,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def _get_vm_config(self, properties, node, vmid, vmtype, name):
         ret = self._get_json(f"{self.proxmox_url}/api2/json/nodes/{node}/{vmtype}/{vmid}/config")
 
-        properties[self._fact('node')] = node
-        properties[self._fact('vmid')] = vmid
-        properties[self._fact('vmtype')] = vmtype
-
         plaintext_configs = [
             'description',
         ]
@@ -550,6 +546,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         properties = dict()
         name, vmid = item['name'], item['vmid']
+
+        properties[self._fact('node')] = node
+        properties[self._fact('vmid')] = vmid
+        properties[self._fact('vmtype')] = vmtype
 
         # get status, config and snapshots if want_facts == True
         want_facts = self.get_option('want_facts')
