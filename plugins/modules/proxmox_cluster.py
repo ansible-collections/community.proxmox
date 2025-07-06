@@ -99,24 +99,29 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
         cluster_name = self.module.params.get("cluster_name") or self.module.params.get("api_host")
         payload = {"clustername": cluster_name}
 
+        # Get cluster data
+        cluster_data = self.proxmox_api.cluster.config.totem.get()
+        # If we have data, check if we're already member of the desired cluster or a different one
+        if 'cluster_name' in cluster_data and cluster_data['cluster_name'] is not None:
+            if cluster_data['cluster_name'] == cluster_name:
+                self.module.exit_json(changed=False, msg="Cluster '{}' already present.".format(cluster_name), cluster=cluster_name)
+            else:
+                self.module.fail_json(msg='Error while creating cluster: Node is already part of a different cluster - "{}"!'.format(cluster_data['cluster_name']))
+
         if self.module.params.get("link0") is not None:
             payload["link0"] = self.module.params.get("link0")
         if self.module.params.get("link1") is not None:
             payload["link1"] = self.module.params.get("link1")
 
         if self.module.check_mode:
-            cluster_objects = self.proxmox_api.cluster.config.nodes.get()
-            if len(cluster_objects) > 0:
-                self.module.fail_json(msg="Error while creating cluster: Node is already part of a cluster!")
-            else:
-                self.module.exit_json(changed=True, msg="Cluster '{}' would be created (check mode).".format(cluster_name), cluster=cluster_name)
+            self.module.exit_json(changed=True, msg="Cluster '{}' would be created (check mode).".format(cluster_name), cluster=cluster_name)
+        else:
+            try:
+                self.proxmox_api.cluster.config.post(**payload)
+            except Exception as e:
+                self.module.fail_json(msg="Error while creating cluster: {}".format(str(e)))
 
-        try:
-            self.proxmox_api.cluster.config.post(**payload)
-        except Exception as e:
-            self.module.fail_json(msg="Error while creating cluster: {}".format(str(e)))
-
-        self.module.exit_json(changed=True, msg="Cluster '{}' created.".format(cluster_name), cluster=cluster_name)
+            self.module.exit_json(changed=True, msg="Cluster '{}' created.".format(cluster_name), cluster=cluster_name)
 
     def cluster_join(self):
         master_ip = self.module.params.get("master_ip")
