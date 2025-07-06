@@ -107,7 +107,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             if cluster_data['cluster_name'] == cluster_name:
                 self.module.exit_json(changed=False, msg="Cluster '{}' already present.".format(cluster_name), cluster=cluster_name)
             else:
-                self.module.fail_json(msg='Error while creating cluster: Node is already part of a different cluster - "{}"!'.format(cluster_data['cluster_name']))
+                self.module.fail_json(msg='Error creating cluster: Node is already part of a different cluster - "{}"!'.format(cluster_data['cluster_name']))
 
         if self.module.params.get("link0") is not None:
             payload["link0"] = self.module.params.get("link0")
