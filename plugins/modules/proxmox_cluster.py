@@ -89,6 +89,7 @@ cluster:
 """
 
 
+import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible)
@@ -160,12 +161,14 @@ def proxmox_cluster_join_info_argument_spec():
     return dict()
 
 
-def validate_cluster_name(module, cluster_args, min_length=1, max_length=15):
-    if not isinstance(cluster_args['cluster_name'], str):
-        module.fail_json(msg="Cluster name must be a string.")
+def validate_cluster_name(module, min_length=1, max_length=15):
+    cluster_name = module.params.get("cluster_name")
 
-    if not (min_length <= len(cluster_args['cluster_name']) <= max_length):
+    if not (min_length <= len(cluster_name) <= max_length):
         module.fail_json(msg="Cluster name must be between {} and {} characters long.".format(min_length, max_length))
+
+    if not re.match(r"^[a-zA-Z0-9\-]+$", cluster_name):
+        module.fail_json(msg="Cluster name must contain only letters, digits, or hyphens.")
 
 
 def main():
@@ -193,7 +196,7 @@ def main():
     )
 
     proxmox = ProxmoxClusterAnsible(module)
-    validate_cluster_name(module, cluster_args)
+    validate_cluster_name(module)
 
     # The Proxmox VE API currently does not support leaving a cluster
     # or removing a node from a cluster. Therefore, we only support creating
