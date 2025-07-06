@@ -111,7 +111,4 @@ def test_validate_cluster_name_valid(module_args_create):
     module = MagicMock(spec=AnsibleModule)
     module.params = module_args_create
 
-    proxmox = proxmox_cluster.ProxmoxClusterAnsible(module)
-    proxmox.module = module
-
     validate_cluster_name(module)
