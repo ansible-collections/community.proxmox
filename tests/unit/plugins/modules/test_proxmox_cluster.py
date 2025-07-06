@@ -107,7 +107,11 @@ def test_cluster_create(mock_api, mock_init, module_args_create):
     mock_api_instance.cluster.config.post.assert_called_once_with(**expected_payload)
 
 
-def test_validate_cluster_name_valid():
+def test_validate_cluster_name_valid(mock_init, module_args_create):
     module = MagicMock(spec=AnsibleModule)
     module.params = module_args_create
+
+    proxmox = proxmox_cluster.ProxmoxClusterAnsible(module)
+    proxmox.module = module
+
     validate_cluster_name(module)
