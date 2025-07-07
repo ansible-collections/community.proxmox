@@ -143,7 +143,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg="Unable to retrieve users: {0}".format(e))
 
-    def create_update_user(self, userid, comment=None, email=None, enable=True, expire=0, firstname=None, groups=[], password=None, keys=None, lastname=None):
+    def create_update_user(self, userid, comment=None, email=None, enable=True, expire=0, firstname=None, groups=None, password=None, keys=None, lastname=None):
         """Create or update Proxmox VE user
 
         :param userid: str - name of the user
