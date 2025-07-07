@@ -207,9 +207,9 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                                               password=password,
                                               keys=keys,
                                               lastname=lastname)
-           self.module.exit_json(changed=True, userid=userid, msg="Created user {0}".format(userid))
+            self.module.exit_json(changed=True, userid=userid, msg="Created user {0}".format(userid))
         except Exception as e:
-           self.module.fail_json(msg="Failed to create user with ID {0}: {1}".format(userid, e))
+            self.module.fail_json(msg="Failed to create user with ID {0}: {1}".format(userid, e))
 
     def delete_user(self, userid):
         """Delete Proxmox VE user
