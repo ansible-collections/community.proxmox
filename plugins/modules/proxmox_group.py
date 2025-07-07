@@ -14,6 +14,7 @@ short_description: Group management for Proxmox VE cluster
 description:
   - Create or delete a user group for Proxmox VE clusters.
 author: "Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>"
+version_added: "1.2.0"
 attributes:
   check_mode:
     support: full
