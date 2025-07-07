@@ -169,7 +169,14 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
             # Update the user details
             try:
-                self.proxmox_api.access.users(userid).put(comment=comment, email=email, enable=enable, expire=expire, firstname=firstname, groups=groups, keys=keys, lastname=lastname)
+                self.proxmox_api.access.users(userid).put(comment=comment,
+                                                          email=email,
+                                                          enable=enable,
+                                                          expire=expire,
+                                                          firstname=firstname,
+                                                          groups=groups,
+                                                          keys=keys,
+                                                          lastname=lastname)
 
                 self.module.exit_json(changed=True, userid=userid, msg="User {0} updated".format(userid))
 
@@ -183,14 +190,23 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     self.proxmox_api.access.password.put(userid=userid, password=password)
                     self.module.exit_json(changed=True, userid=userid, msg="User {0} updated".format(userid))
                 except Exception as e:
-                    self.module.fail_json(changed=False, userid=userid, msg="Failed to update user password for user ID {0}: {1}".format(userid, e))
+                    self.module.fail_json(changed=False, userid=userid,msg="Failed to update user password for user ID {0}: {1}".format(userid, e))
 
         if self.module.check_mode:
-            self.module.exit_json(changed=True, userid=userid, msg="Would update user {0} (check mode)".format(userid))
+           self.module.exit_json(changed=True, userid=userid, msg="Would update user {0} (check mode)".format(userid))
 
         # if the user is new, post it to the API
         try:
-             self.proxmox_api.access.users.post(userid=userid, comment=comment, email=email, enable=enable, expire=expire, firstname=firstname, groups=groups, password=password, keys=keys, lastname=lastname)
+             self.proxmox_api.access.users.post(userid=userid,
+                                                comment=comment,
+                                                email=email,
+                                                enable=enable,
+                                                expire=expire,
+                                                firstname=firstname,
+                                                groups=groups,
+                                                password=password,
+                                                keys=keys,
+                                                lastname=lastname)
              self.module.exit_json(changed=True, userid=userid, msg="Created user {0}".format(userid))
         except Exception as e:
             self.module.fail_json(msg="Failed to create user with ID {0}: {1}".format(userid, e))
