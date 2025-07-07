@@ -198,15 +198,15 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         # if the user is new, post it to the API
         try:
             self.proxmox_api.access.users.post(userid=userid,
-                                              comment=comment,
-                                              email=email,
-                                              enable=enable,
-                                              expire=expire,
-                                              firstname=firstname,
-                                              groups=groups,
-                                              password=password,
-                                              keys=keys,
-                                              lastname=lastname)
+                                               comment=comment,
+                                               email=email,
+                                               enable=enable,
+                                               expire=expire,
+                                               firstname=firstname,
+                                               groups=groups,
+                                               password=password,
+                                               keys=keys,
+                                               lastname=lastname)
             self.module.exit_json(changed=True, userid=userid, msg="Created user {0}".format(userid))
         except Exception as e:
             self.module.fail_json(msg="Failed to create user with ID {0}: {1}".format(userid, e))
