@@ -13,7 +13,7 @@ module: proxmox_group
 short_description: Group management for Proxmox VE cluster
 description:
   - Create or delete a user group for Proxmox VE clusters.
-author: "Jeffrey van Pelt"
+author: "Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>"
 attributes:
   check_mode:
     support: full
@@ -130,6 +130,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
             self.proxmox_api.access.groups(groupid).delete()
         except Exception as e:
             self.module.fail_json(msg="Failed to delete group with ID {0}: {1}".format(groupid, e))
+
 
 def main():
     module_args = proxmox_auth_argument_spec()
