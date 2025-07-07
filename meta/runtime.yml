@@ -29,5 +29,6 @@ action_groups:
     - proxmox_storage_info
     - proxmox_tasks_info
     - proxmox_template
+    - proxmox_user
     - proxmox_user_info
     - proxmox_vm_info
