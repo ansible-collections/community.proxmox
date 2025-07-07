@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2025, Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>
+# Copyright (c) 2025, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -13,7 +13,7 @@ module: proxmox_group
 short_description: Group management for Proxmox VE cluster
 description:
   - Create or delete a user group for Proxmox VE clusters.
-author: "Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>"
+author: "Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>"
 version_added: "1.2.0"
 attributes:
   check_mode:
