@@ -103,7 +103,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
         # Get cluster data
         cluster_data = self.proxmox_api.cluster.config.totem.get()
         # If we have data, check if we're already member of the desired cluster or a different one
-        if 'cluster_name' in cluster_data and cluster_data['cluster_name'] is not None:
+        if cluster_data and 'cluster_name' in cluster_data and cluster_data['cluster_name'] is not None:
             if cluster_data['cluster_name'] == cluster_name:
                 self.module.exit_json(changed=False, msg="Cluster '{}' already present.".format(cluster_name), cluster=cluster_name)
             else:
