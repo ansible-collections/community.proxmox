@@ -89,6 +89,7 @@ cluster:
 """
 
 
+import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible)
@@ -99,24 +100,29 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
         cluster_name = self.module.params.get("cluster_name") or self.module.params.get("api_host")
         payload = {"clustername": cluster_name}
 
+        # Get cluster data
+        cluster_data = self.proxmox_api.cluster.config.totem.get()
+        # If we have data, check if we're already member of the desired cluster or a different one
+        if cluster_data and 'cluster_name' in cluster_data and cluster_data['cluster_name'] is not None:
+            if cluster_data['cluster_name'] == cluster_name:
+                self.module.exit_json(changed=False, msg="Cluster '{}' already present.".format(cluster_name), cluster=cluster_name)
+            else:
+                self.module.fail_json(msg='Error creating cluster: Node is already part of a different cluster - "{}"!'.format(cluster_data['cluster_name']))
+
         if self.module.params.get("link0") is not None:
             payload["link0"] = self.module.params.get("link0")
         if self.module.params.get("link1") is not None:
             payload["link1"] = self.module.params.get("link1")
 
         if self.module.check_mode:
-            cluster_objects = self.proxmox_api.cluster.config.nodes.get()
-            if len(cluster_objects) > 0:
-                self.module.fail_json(msg="Error while creating cluster: Node is already part of a cluster!")
-            else:
-                self.module.exit_json(changed=True, msg="Cluster '{}' would be created (check mode).".format(cluster_name), cluster=cluster_name)
+            self.module.exit_json(changed=True, msg="Cluster '{}' would be created (check mode).".format(cluster_name), cluster=cluster_name)
+        else:
+            try:
+                self.proxmox_api.cluster.config.post(**payload)
+            except Exception as e:
+                self.module.fail_json(msg="Error while creating cluster: {}".format(str(e)))
 
-        try:
-            self.proxmox_api.cluster.config.post(**payload)
-        except Exception as e:
-            self.module.fail_json(msg="Error while creating cluster: {}".format(str(e)))
-
-        self.module.exit_json(changed=True, msg="Cluster '{}' created.".format(cluster_name), cluster=cluster_name)
+            self.module.exit_json(changed=True, msg="Cluster '{}' created.".format(cluster_name), cluster=cluster_name)
 
     def cluster_join(self):
         master_ip = self.module.params.get("master_ip")
@@ -155,12 +161,14 @@ def proxmox_cluster_join_info_argument_spec():
     return dict()
 
 
-def validate_cluster_name(module, cluster_args, min_length=1, max_length=15):
-    if not isinstance(cluster_args['cluster_name'], str):
-        module.fail_json(msg="Cluster name must be a string.")
+def validate_cluster_name(module, min_length=1, max_length=15):
+    cluster_name = module.params.get("cluster_name")
 
-    if not (min_length <= len(cluster_args['cluster_name']) <= max_length):
+    if not (min_length <= len(cluster_name) <= max_length):
         module.fail_json(msg="Cluster name must be between {} and {} characters long.".format(min_length, max_length))
+
+    if not re.match(r"^[a-zA-Z0-9\-]+$", cluster_name):
+        module.fail_json(msg="Cluster name must contain only letters, digits, or hyphens.")
 
 
 def main():
@@ -188,7 +196,7 @@ def main():
     )
 
     proxmox = ProxmoxClusterAnsible(module)
-    validate_cluster_name(module, cluster_args)
+    validate_cluster_name(module)
 
     # The Proxmox VE API currently does not support leaving a cluster
     # or removing a node from a cluster. Therefore, we only support creating

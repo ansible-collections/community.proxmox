@@ -107,7 +107,8 @@ def test_cluster_create(mock_api, mock_init, module_args_create):
     mock_api_instance.cluster.config.post.assert_called_once_with(**expected_payload)
 
 
-def test_validate_cluster_name_valid():
+def test_validate_cluster_name_valid(module_args_create):
     module = MagicMock(spec=AnsibleModule)
-    cluster_args = {"cluster_name": "devcluster"}
-    validate_cluster_name(module, cluster_args)
+    module.params = module_args_create
+
+    validate_cluster_name(module)
