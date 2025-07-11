@@ -21,6 +21,7 @@ action_groups:
     - proxmox_group_info
     - proxmox_kvm
     - proxmox_nic
+    - proxmox_node
     - proxmox_node_info
     - proxmox_pool
     - proxmox_pool_member
