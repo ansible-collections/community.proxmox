@@ -159,6 +159,15 @@ options:
     ini:
       - section: defaults
         key: use_persistent_connections
+  forward_agent:
+    description: "Enable SSH agent forwarding."
+    type: boolean
+    default: False
+    env:
+      - name: ANSIBLE_PARAMIKO_FORWARD_AGENT
+    ini:
+      - section: paramiko_connection
+        key: forward_agent
   banner_timeout:
     type: float
     default: 30
@@ -675,6 +684,9 @@ class Connection(ConnectionBase):
             chan.get_pty(term=os.getenv('TERM', 'vt100'), width=int(os.getenv('COLUMNS', 0)), height=int(os.getenv('LINES', 0)))
 
         display.vvv(f'EXEC {cmd}', host=self.get_option('remote_addr'))
+
+        if self.get_option('forward_agent'):
+            paramiko.agent.AgentRequestHandler(chan)
 
         cmd = to_bytes(cmd, errors='surrogate_or_strict')
 
