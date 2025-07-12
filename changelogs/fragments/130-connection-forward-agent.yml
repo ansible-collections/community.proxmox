@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - proxmox_pct_remote - allow forward agent with paramiko (https://github.com/ansible-collections/community.proxmox/pull/130).
