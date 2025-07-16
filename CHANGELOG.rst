@@ -4,6 +4,29 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.2.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection that have been made after the previous release.
+
+Minor Changes
+-------------
+
+- proxmox inventory plugin - always provide basic information regardless of want_facts (https://github.com/ansible-collections/community.proxmox/pull/124).
+- proxmox_cluster - cluster creation has been made idempotent (https://github.com/ansible-collections/community.proxmox/pull/125).
+- proxmox_pct_remote - allow forward agent with paramiko (https://github.com/ansible-collections/community.proxmox/pull/130).
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_group - Group management for Proxmox VE cluster.
+- community.proxmox.proxmox_node - Manage Proxmox VE nodes.
+- community.proxmox.proxmox_user - User management for Proxmox VE cluster.
+
 v1.1.0
 ======
 

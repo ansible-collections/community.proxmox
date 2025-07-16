@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_cluster - cluster creation has been made idempotent (https://github.com/ansible-collections/community.proxmox/pull/125).
