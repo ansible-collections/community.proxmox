@@ -100,3 +100,30 @@ releases:
         name: proxmox_cluster_ha_resources
         namespace: ''
     release_date: '2025-07-04'
+  1.2.0:
+    changes:
+      minor_changes:
+        - proxmox inventory plugin - always provide basic information regardless of
+          want_facts (https://github.com/ansible-collections/community.proxmox/pull/124).
+        - proxmox_cluster - cluster creation has been made idempotent (https://github.com/ansible-collections/community.proxmox/pull/125).
+        - proxmox_pct_remote - allow forward agent with paramiko (https://github.com/ansible-collections/community.proxmox/pull/130).
+      release_summary: 'This is the minor release of the ``community.proxmox`` collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+        that have been made after the previous release.'
+    fragments:
+      - 1.2.0.yml
+      - 124-inventory-expose-basic-info.yml
+      - 125-cluster-idempotent.yml
+      - 130-connection-forward-agent.yml
+    modules:
+      - description: Group management for Proxmox VE cluster.
+        name: proxmox_group
+        namespace: ''
+      - description: Manage Proxmox VE nodes.
+        name: proxmox_node
+        namespace: ''
+      - description: User management for Proxmox VE cluster.
+        name: proxmox_user
+        namespace: ''
+    release_date: '2025-07-16'

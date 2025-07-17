@@ -304,6 +304,25 @@ def test_exec_command_with_privilege_escalation(mock_ssh, connection):
     mock_channel.sendall.assert_called_once_with(b'sudo_password\n')
 
 
+@patch('paramiko.SSHClient')
+def test_exec_command_with_forward_agent(mock_ssh, connection):
+    """ Test exec_command with forward agent """
+    mock_client = MagicMock()
+    mock_channel = MagicMock()
+    mock_transport = MagicMock()
+
+    mock_client.get_transport.return_value = mock_transport
+    mock_transport.open_session.return_value = mock_channel
+    connection._connected = True
+    connection.ssh = mock_client
+
+    connection.set_option('forward_agent', True)
+
+    with patch('paramiko.agent.AgentRequestHandler') as mock_agent_handler:
+        connection.exec_command('test command')
+        mock_agent_handler.assert_called_once_with(mock_channel)
+
+
 def test_put_file(connection):
     """ Test putting a file to the remote system """
     connection.exec_command = MagicMock()
