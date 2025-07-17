@@ -148,8 +148,12 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
             "state": state,
         }
 
+        # Normalize input SIDs to version without : in them
+        if ':' in sid:
+            sid = sid.split(':')[1]
+
         for resource in resources:
-            if resource["sid"] != sid:
+            if resource["sid"].split(':')[1] != sid:
                 continue
 
             if ((resource.get("comment", ""), resource.get("group", ""), resource.get("max_relocate", 1),
