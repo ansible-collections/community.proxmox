@@ -43,13 +43,16 @@ def proxmox_auth_argument_spec():
                           fallback=(env_fallback, ['PROXMOX_PASSWORD'])
                           ),
         api_token_id=dict(type='str',
-                          no_log=False
+                          no_log=False,
+                          fallback=(env_fallback, ['PROXMOX_TOKEN_ID'])
                           ),
         api_token_secret=dict(type='str',
-                              no_log=True
+                              no_log=True,
+                              fallback=(env_fallback, ['PROXMOX_TOKEN_SECRET'])
                               ),
         validate_certs=dict(type='bool',
-                            default=False
+                            default=False,
+                            fallback=(env_fallback, ['PROXMOX_VALIDATE_CERTS'])
                             ),
     )
 

@@ -14,6 +14,7 @@ options:
   api_host:
     description:
       - Specify the target host of the Proxmox VE cluster.
+      - Uses the E(PROXMOX_HOST) environment variable if not specified.
     type: str
     required: true
   api_port:
@@ -25,25 +26,29 @@ options:
   api_user:
     description:
       - Specify the user to authenticate with.
+      - Uses the E(PROXMOX_USER) environment variable if not specified.
     type: str
     required: true
   api_password:
     description:
       - Specify the password to authenticate with.
-      - You can use E(PROXMOX_PASSWORD) environment variable.
+      - Uses the E(PROXMOX_PASSWORD) environment variable if not specified.
     type: str
   api_token_id:
     description:
       - Specify the token ID.
+      - Uses the E(PROXMOX_TOKEN_ID) environment variable if not specified.
     type: str
   api_token_secret:
     description:
       - Specify the token secret.
+      - Uses the E(PROXMOX_TOKEN_SECRET) environment variable if not specified.
     type: str
   validate_certs:
     description:
       - If V(false), SSL certificates will not be validated.
       - This should only be used on personally controlled sites using self-signed certificates.
+      - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
     type: bool
     default: false
 requirements: ["proxmoxer >= 2.0", "requests"]
