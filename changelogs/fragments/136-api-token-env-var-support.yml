@@ -1,3 +1,3 @@
 ---
 minor_changes:
-  - proxmox argument spec - Added fallback env-vars for api_token, api_secret, and validate_certs via fallback parameter 
+  - proxmox* modules - added fallback environment variables for ``api_token``, ``api_secret``, and ``validate_certs`` (https://github.com/ansible-collections/community.proxmox/issues/63, https://github.com/ansible-collections/community.proxmox/pull/136).
