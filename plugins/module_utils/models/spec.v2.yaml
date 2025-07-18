@@ -55,19 +55,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterReplicationRequest'
   '/cluster/replication/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
     delete:
       operationId: deleteClusterReplicationSingle
       summary: deleteClusterReplicationSingle
       description: Mark replication job for removal.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterReplicationSingleResponse'
@@ -77,13 +77,6 @@ paths:
       description: Read replication job configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterReplicationSingleResponse'
@@ -93,13 +86,6 @@ paths:
       description: Update replication job configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterReplicationSingleResponse'
@@ -131,19 +117,19 @@ paths:
         '200':
           $ref: '#/components/responses/GetClusterMetricsServerResponse'
   '/cluster/metrics/server/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
     delete:
       operationId: deleteClusterMetricsServerSingle
       summary: deleteClusterMetricsServerSingle
       description: Remove Metric server.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterMetricsServerSingleResponse'
@@ -153,13 +139,6 @@ paths:
       description: Read metric server configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterMetricsServerSingleResponse'
@@ -169,13 +148,6 @@ paths:
       description: Create a new external metric server config
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterMetricsServerSingleResponse'
@@ -190,13 +162,6 @@ paths:
       description: Update metric server configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterMetricsServerSingleResponse'
@@ -256,19 +221,14 @@ paths:
         '200':
           $ref: '#/components/responses/GetClusterConfigNodesResponse'
   '/cluster/config/nodes/{node}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteClusterConfigNodesSingle
       summary: deleteClusterConfigNodesSingle
       description: Removes a node from the cluster configuration.
       tags:
         - cluster
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterConfigNodesSingleResponse'
@@ -278,13 +238,6 @@ paths:
       description: Adds a node to the cluster configuration. This call is for internal use.
       tags:
         - cluster
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterConfigNodesSingleResponse'
@@ -382,19 +335,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterFirewallGroupRequest'
   '/cluster/firewall/groups/{group}':
+    parameters:
+      - name: group
+        in: path
+        required: true
+        description: group
+        schema:
+          type: string
     delete:
       operationId: deleteClusterFirewallGroup
       summary: deleteClusterFirewallGroup
       description: Delete security group.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterFirewallGroupResponse'
@@ -404,13 +357,6 @@ paths:
       description: List rules.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallGroupRulesResponse'
@@ -420,13 +366,6 @@ paths:
       description: Create new rule.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/AddClusterFirewallGroupRuleResponse'
@@ -436,25 +375,25 @@ paths:
             schema:
               $ref: '#/components/schemas/AddClusterFirewallGroupRuleRequest'
   '/cluster/firewall/groups/{group}/{pos}':
+    parameters:
+      - name: group
+        in: path
+        required: true
+        description: group
+        schema:
+          type: string
+      - name: pos
+        in: path
+        required: true
+        description: pos
+        schema:
+          type: integer
     delete:
       operationId: removeClusterFirewallGroupRule
       summary: removeClusterFirewallGroupRule
       description: Delete rule.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/RemoveClusterFirewallGroupRuleResponse'
@@ -464,19 +403,6 @@ paths:
       description: Get single rule data.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallGroupRuleResponse'
@@ -486,19 +412,6 @@ paths:
       description: Modify rule data.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterFirewallGroupRuleResponse'
@@ -534,19 +447,19 @@ paths:
             schema:
               $ref: '#/components/schemas/AddClusterFirewallRuleRequest'
   '/cluster/firewall/rules/{pos}':
+    parameters:
+      - name: pos
+        in: path
+        required: true
+        description: pos
+        schema:
+          type: integer
     delete:
       operationId: removeClusterFirewallRule
       summary: removeClusterFirewallRule
       description: Delete rule.
       tags:
         - cluster
-      parameters:
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/RemoveClusterFirewallRuleResponse'
@@ -556,13 +469,6 @@ paths:
       description: Get single rule data.
       tags:
         - cluster
-      parameters:
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallRuleResponse'
@@ -572,13 +478,6 @@ paths:
       description: Modify rule data.
       tags:
         - cluster
-      parameters:
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterFirewallRuleResponse'
@@ -614,19 +513,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterFirewallIPSetRequest'
   '/cluster/firewall/ipset/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
     delete:
       operationId: deleteClusterFirewallIPSet
       summary: deleteClusterFirewallIPSet
       description: Delete IPSet
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterFirewallIPSetResponse'
@@ -636,13 +535,6 @@ paths:
       description: List IPSet content
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallIPSetResponse'
@@ -652,13 +544,6 @@ paths:
       description: Add IP or Network to IPSet.
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/AddClusterFirewallIPSetIPResponse'
@@ -668,25 +553,25 @@ paths:
             schema:
               $ref: '#/components/schemas/AddClusterFirewallIPSetIPRequest'
   '/cluster/firewall/ipset/{name}/{cidr}':
+    parameters:
+      - name: cidr
+        in: path
+        required: true
+        description: cidr
+        schema:
+          type: string
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
     delete:
       operationId: removeClusterFirewallIPSetIP
       summary: removeClusterFirewallIPSetIP
       description: Remove IP or Network from IPSet.
       tags:
         - cluster
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/RemoveClusterFirewallIPSetIPResponse'
@@ -696,19 +581,6 @@ paths:
       description: Read IP or Network settings from IPSet.
       tags:
         - cluster
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallIPSetIPResponse'
@@ -718,19 +590,6 @@ paths:
       description: Update IP or Network settings
       tags:
         - cluster
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterFirewallIPSetIPResponse'
@@ -766,19 +625,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterFirewallAliasesRequest'
   '/cluster/firewall/aliases/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
     delete:
       operationId: deleteClusterFirewallAliasesSingle
       summary: deleteClusterFirewallAliasesSingle
       description: Remove IP or Network alias.
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterFirewallAliasesSingleResponse'
@@ -788,13 +647,6 @@ paths:
       description: Read alias.
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallAliasesSingleResponse'
@@ -896,19 +748,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterBackupRequest'
   '/cluster/backup/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
+
     delete:
       operationId: deleteClusterBackupSingle
       summary: deleteClusterBackupSingle
       description: Delete vzdump backup job definition.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterBackupSingleResponse'
@@ -918,13 +771,6 @@ paths:
       description: Read vzdump backup job definition.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterBackupSingleResponse'
@@ -934,13 +780,6 @@ paths:
       description: Update vzdump backup job definition.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterBackupSingleResponse'
@@ -950,6 +789,13 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateClusterBackupSingleRequest'
   '/cluster/backup/{id}/included_volumes':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
     get:
       operationId: getClusterBackupSingleIncludedvolumes
       summary: getClusterBackupSingleIncludedvolumes
@@ -958,13 +804,6 @@ paths:
         to be used in ExtJS tree views.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterBackupSingleIncludedvolumesResponse'
@@ -1028,19 +867,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterHaResourcesRequest'
   '/cluster/ha/resources/{sid}':
+    parameters:
+      - name: sid
+        in: path
+        required: true
+        description: sid
+        schema:
+          type: string
     delete:
       operationId: deleteClusterHaResourcesSingle
       summary: deleteClusterHaResourcesSingle
       description: Delete resource configuration.
       tags:
         - cluster
-      parameters:
-        - name: sid
-          in: path
-          required: true
-          description: sid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterHaResourcesSingleResponse'
@@ -1050,13 +889,6 @@ paths:
       description: Read resource configuration.
       tags:
         - cluster
-      parameters:
-        - name: sid
-          in: path
-          required: true
-          description: sid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaResourcesSingleResponse'
@@ -1066,13 +898,6 @@ paths:
       description: Update resource configuration.
       tags:
         - cluster
-      parameters:
-        - name: sid
-          in: path
-          required: true
-          description: sid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterHaResourcesSingleResponse'
@@ -1082,19 +907,19 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateClusterHaResourcesSingleRequest'
   '/cluster/ha/resources/{sid}/migrate':
+    parameters:
+      - name: sid
+        in: path
+        required: true
+        description: sid
+        schema:
+          type: string
     post:
       operationId: createClusterHaResourcesSingleMigrate
       summary: createClusterHaResourcesSingleMigrate
       description: Request resource migration (online) to another node.
       tags:
         - cluster
-      parameters:
-        - name: sid
-          in: path
-          required: true
-          description: sid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterHaResourcesSingleMigrateResponse'
@@ -1105,6 +930,13 @@ paths:
               $ref: >-
                 #/components/schemas/CreateClusterHaResourcesSingleMigrateRequest
   '/cluster/ha/resources/{sid}/relocate':
+    parameters:
+      - name: sid
+        in: path
+        required: true
+        description: sid
+        schema:
+          type: string
     post:
       operationId: createClusterHaResourcesSingleRelocate
       summary: createClusterHaResourcesSingleRelocate
@@ -1113,13 +945,6 @@ paths:
         the old node, and restarts it on the target node.
       tags:
         - cluster
-      parameters:
-        - name: sid
-          in: path
-          required: true
-          description: sid
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -1157,19 +982,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterHaGroupsRequest'
   '/cluster/ha/groups/{group}':
+    parameters:
+      - name: group
+        in: path
+        required: true
+        description: group
+        schema:
+          type: string
     delete:
       operationId: deleteClusterHaGroupsSingle
       summary: deleteClusterHaGroupsSingle
       description: Delete ha group configuration.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterHaGroupsSingleResponse'
@@ -1179,13 +1004,6 @@ paths:
       description: Read ha group configuration.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaGroupsSingleResponse'
@@ -1195,13 +1013,6 @@ paths:
       description: Update ha group configuration.
       tags:
         - cluster
-      parameters:
-        - name: group
-          in: path
-          required: true
-          description: group
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterHaGroupsSingleResponse'
@@ -1281,19 +1092,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterAcmePluginsRequest'
   '/cluster/acme/plugins/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
     delete:
       operationId: deleteClusterAcmePluginsSingle
       summary: deleteClusterAcmePluginsSingle
       description: Delete ACME plugin configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterAcmePluginsSingleResponse'
@@ -1303,13 +1114,6 @@ paths:
       description: Get ACME plugin configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmePluginsSingleResponse'
@@ -1319,13 +1123,6 @@ paths:
       description: Update ACME plugin configuration.
       tags:
         - cluster
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterAcmePluginsSingleResponse'
@@ -1361,19 +1158,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterAcmeAccountRequest'
   '/cluster/acme/account/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
     delete:
       operationId: deleteClusterAcmeAccountSingle
       summary: deleteClusterAcmeAccountSingle
       description: Deactivate existing ACME account at CA.
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterAcmeAccountSingleResponse'
@@ -1383,13 +1180,6 @@ paths:
       description: Return existing ACME account information.
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmeAccountSingleResponse'
@@ -1401,13 +1191,6 @@ paths:
         any new account information triggers a refresh.
       tags:
         - cluster
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterAcmeAccountSingleResponse'
@@ -1509,19 +1292,19 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateClusterCephFlagsRequest'
   '/cluster/ceph/flags/{flag}':
+    parameters:
+      - name: flag
+        in: path
+        required: true
+        description: flag
+        schema:
+          type: string
     get:
       operationId: getClusterCephFlagsSingle
       summary: getClusterCephFlagsSingle
       description: Get the status of a specific ceph flag.
       tags:
         - cluster
-      parameters:
-        - name: flag
-          in: path
-          required: true
-          description: flag
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterCephFlagsSingleResponse'
@@ -1531,13 +1314,6 @@ paths:
       description: Set or clear (unset) a specific ceph flag
       tags:
         - cluster
-      parameters:
-        - name: flag
-          in: path
-          required: true
-          description: flag
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterCephFlagsSingleResponse'
@@ -1599,19 +1375,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterSDNVnetRequest'
   '/cluster/sdn/vnets/{vnet}':
+    parameters:
+      - name: vnet
+        in: path
+        required: true
+        description: vnet
+        schema:
+          type: string
     delete:
       operationId: deleteClusterSDNVnet
       summary: deleteClusterSDNVnet
       description: Delete sdn vnet object configuration.
       tags:
         - cluster
-      parameters:
-        - name: vnet
-          in: path
-          required: true
-          description: vnet
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterSDNVnetResponse'
@@ -1621,13 +1397,6 @@ paths:
       description: Read sdn vnet configuration.
       tags:
         - cluster
-      parameters:
-        - name: vnet
-          in: path
-          required: true
-          description: vnet
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNVnetResponse'
@@ -1637,13 +1406,6 @@ paths:
       description: Update sdn vnet object configuration.
       tags:
         - cluster
-      parameters:
-        - name: vnet
-          in: path
-          required: true
-          description: vnet
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterSDNVnetResponse'
@@ -1679,19 +1441,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterSDNZoneRequest'
   '/cluster/sdn/zones/{zone}':
+    parameters:
+      - name: zone
+        in: path
+        required: true
+        description: zone
+        schema:
+          type: string
     delete:
       operationId: deleteClusterSDNZone
       summary: deleteClusterSDNZone
       description: Delete sdn zone object configuration.
       tags:
         - cluster
-      parameters:
-        - name: zone
-          in: path
-          required: true
-          description: zone
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterSDNZoneResponse'
@@ -1701,13 +1463,6 @@ paths:
       description: Read sdn zone configuration.
       tags:
         - cluster
-      parameters:
-        - name: zone
-          in: path
-          required: true
-          description: zone
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNZoneResponse'
@@ -1717,13 +1472,6 @@ paths:
       description: Update sdn zone object configuration.
       tags:
         - cluster
-      parameters:
-        - name: zone
-          in: path
-          required: true
-          description: zone
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterSDNZoneResponse'
@@ -1759,19 +1507,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateClusterSDNControllerRequest'
   '/cluster/sdn/controllers/{controller}':
+    parameters:
+      - name: controller
+        in: path
+        required: true
+        description: controller
+        schema:
+          type: string
     delete:
       operationId: deleteClusterSDNController
       summary: deleteClusterSDNController
       description: Delete sdn controller object configuration.
       tags:
         - cluster
-      parameters:
-        - name: controller
-          in: path
-          required: true
-          description: controller
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteClusterSDNControllerResponse'
@@ -1781,13 +1529,6 @@ paths:
       description: Read sdn controller configuration.
       tags:
         - cluster
-      parameters:
-        - name: controller
-          in: path
-          required: true
-          description: controller
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNControllerResponse'
@@ -1797,13 +1538,6 @@ paths:
       description: Update sdn controller object configuration.
       tags:
         - cluster
-      parameters:
-        - name: controller
-          in: path
-          required: true
-          description: controller
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterSDNControllerResponse'
@@ -1907,36 +1641,26 @@ paths:
         '200':
           $ref: '#/components/responses/GetNodesResponse'
   '/nodes/{node}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNode
       summary: getNode
       description: Node index.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodeResponse'
   '/nodes/{node}/qemu':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getVMs
       summary: getVMs
       description: Virtual machine index (per node).
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetVMsResponse'
@@ -1946,13 +1670,6 @@ paths:
       description: Create or restore a virtual machine.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateVMResponse'
@@ -1962,25 +1679,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateVMRequest'
   '/nodes/{node}/qemu/{vmid}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteVM
       summary: deleteVM
       description: Destroy the vm (also delete all used/owned volumes).
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/DeleteVMResponse'
@@ -1990,65 +1697,32 @@ paths:
       description: Directory index
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMResponse'
   '/nodes/{node}/qemu/{vmid}/firewall':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMFirewall
       summary: getVMFirewall
       description: Directory index.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallResponse'
   '/nodes/{node}/qemu/{vmid}/firewall/rules':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMFirewallRules
       summary: getVMFirewallRules
       description: List rules.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallRulesResponse'
@@ -2058,19 +1732,6 @@ paths:
       description: Create new rule.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/CreateVMFirewallRuleResponse'
@@ -2080,31 +1741,21 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateVMFirewallRuleRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/rules/{pos}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: pos
+        in: path
+        required: true
+        description: pos
+        schema:
+          type: integer
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteVMFirewallRule
       summary: deleteVMFirewallRule
       description: Delete rule.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/DeleteVMFirewallRuleResponse'
@@ -2114,25 +1765,6 @@ paths:
       description: Get single rule data.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallRuleResponse'
@@ -2142,25 +1774,6 @@ paths:
       description: Modify rule data.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMFirewallRuleResponse'
@@ -2170,25 +1783,15 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateVMFirewallRuleRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/aliases':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleFirewallAliases
       summary: getNodesSingleQemuSingleFirewallAliases
       description: List aliases
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2199,19 +1802,6 @@ paths:
       description: Create IP or Network Alias.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2223,31 +1813,21 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleFirewallAliasesRequest
   '/nodes/{node}/qemu/{vmid}/firewall/aliases/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleQemuSingleFirewallAliasesSingle
       summary: deleteNodesSingleQemuSingleFirewallAliasesSingle
       description: Remove IP or Network alias.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2258,25 +1838,6 @@ paths:
       description: Read alias.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2287,25 +1848,6 @@ paths:
       description: Update IP or Network alias.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2317,25 +1859,15 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleQemuSingleFirewallAliasesSingleRequest
   '/nodes/{node}/qemu/{vmid}/firewall/ipset':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMFirewallIPSets
       summary: getVMFirewallIPSets
       description: List IPSets
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallIPSetsResponse'
@@ -2345,19 +1877,6 @@ paths:
       description: Create new IPSet
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/CreateVMFirewallIPSetResponse'
@@ -2367,31 +1886,21 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateVMFirewallIPSetRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/ipset/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteVMFirewallIPSet
       summary: deleteVMFirewallIPSet
       description: Delete IPSet
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/DeleteVMFirewallIPSetResponse'
@@ -2401,25 +1910,6 @@ paths:
       description: List IPSet content
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallIPSetResponse'
@@ -2429,25 +1919,6 @@ paths:
       description: Add IP or Network to IPSet.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/AddVMFirewallIPSetIPResponse'
@@ -2457,37 +1928,27 @@ paths:
             schema:
               $ref: '#/components/schemas/AddVMFirewallIPSetIPRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/ipset/{name}/{cidr}':
+    parameters:
+      - name: cidr
+        in: path
+        required: true
+        description: cidr
+        schema:
+          type: string
+      - name: name
+        in: path
+        required: true
+        description: name
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: removeVMFirewallIPSetIP
       summary: removeVMFirewallIPSetIP
       description: Remove IP or Network from IPSet.
       tags:
         - nodes
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/RemoveVMFirewallIPSetIPResponse'
@@ -2497,31 +1958,6 @@ paths:
       description: Read IP or Network settings from IPSet.
       tags:
         - nodes
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallIPSetIPResponse'
@@ -2531,31 +1967,6 @@ paths:
       description: Update IP or Network settings
       tags:
         - nodes
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMFirewallIPSetIPResponse'
@@ -2565,25 +1976,15 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateVMFirewallIPSetIPRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/options':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMFirewallOptions
       summary: getVMFirewallOptions
       description: Get VM firewall options.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetVMFirewallOptionsResponse'
@@ -2593,19 +1994,6 @@ paths:
       description: Set Firewall options.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMFirewallOptionsResponse'
@@ -2615,29 +2003,22 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateVMFirewallOptionsRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/log':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleFirewallLog
       summary: getNodesSingleQemuSingleFirewallLog
       description: Read firewall log
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleFirewallLogResponse'
   '/nodes/{node}/qemu/{vmid}/firewall/refs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleFirewallRefs
       summary: getNodesSingleQemuSingleFirewallRefs
@@ -2646,42 +2027,19 @@ paths:
         properties.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleFirewallRefsResponse'
   '/nodes/{node}/qemu/{vmid}/agent':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgent
       summary: getNodesSingleQemuSingleAgent
       description: Qemu Agent command index.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentResponse'
@@ -2691,19 +2049,6 @@ paths:
       description: Execute Qemu Guest Agent commands.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleAgentResponse'
@@ -2713,25 +2058,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleAgentRequest'
   '/nodes/{node}/qemu/{vmid}/agent/fsfreeze-freeze':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentFsfreezefreeze
       summary: createNodesSingleQemuSingleAgentFsfreezefreeze
       description: Execute fsfreeze-freeze.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2743,25 +2078,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentFsfreezefreezeRequest
   '/nodes/{node}/qemu/{vmid}/agent/fsfreeze-status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentFsfreezestatus
       summary: createNodesSingleQemuSingleAgentFsfreezestatus
       description: Execute fsfreeze-status.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2773,25 +2098,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentFsfreezestatusRequest
   '/nodes/{node}/qemu/{vmid}/agent/fsfreeze-thaw':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentFsfreezethaw
       summary: createNodesSingleQemuSingleAgentFsfreezethaw
       description: Execute fsfreeze-thaw.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2803,25 +2118,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentFsfreezethawRequest
   '/nodes/{node}/qemu/{vmid}/agent/fstrim':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentFstrim
       summary: createNodesSingleQemuSingleAgentFstrim
       description: Execute fstrim.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2833,121 +2138,72 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentFstrimRequest
   '/nodes/{node}/qemu/{vmid}/agent/get-fsinfo':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGetfsinfo
       summary: getNodesSingleQemuSingleAgentGetfsinfo
       description: Execute get-fsinfo.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentGetfsinfoResponse
   '/nodes/{node}/qemu/{vmid}/agent/get-host-name':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGethostname
       summary: getNodesSingleQemuSingleAgentGethostname
       description: Execute get-host-name.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentGethostnameResponse
   '/nodes/{node}/qemu/{vmid}/agent/get-memory-block-info':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGetmemoryblockinfo
       summary: getNodesSingleQemuSingleAgentGetmemoryblockinfo
       description: Execute get-memory-block-info.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentGetmemoryblockinfoResponse
   '/nodes/{node}/qemu/{vmid}/agent/get-memory-blocks':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGetmemoryblocks
       summary: getNodesSingleQemuSingleAgentGetmemoryblocks
       description: Execute get-memory-blocks.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentGetmemoryblocksResponse
   '/nodes/{node}/qemu/{vmid}/agent/get-osinfo':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
+##########
     get:
       operationId: getNodesSingleQemuSingleAgentGetosinfo
       summary: getNodesSingleQemuSingleAgentGetosinfo
       description: Execute get-osinfo.
       tags:
         - nodes
-      parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: >-
@@ -2960,18 +2216,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentGettimeResponse'
@@ -2983,18 +2229,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3007,18 +2243,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentGetusersResponse'
@@ -3030,18 +2256,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentGetvcpusResponse'
@@ -3053,18 +2269,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentInfoResponse'
@@ -3076,18 +2282,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3100,18 +2296,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleAgentPingResponse'
@@ -3128,18 +2314,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3158,18 +2334,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3188,18 +2354,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3218,18 +2374,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3248,18 +2394,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3280,18 +2416,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleAgentExecResponse'
@@ -3308,18 +2434,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3332,18 +2448,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentFilereadResponse'
@@ -3355,18 +2461,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3385,18 +2481,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMRRDResponse'
@@ -3408,18 +2494,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMRRDDataResponse'
@@ -3434,18 +2510,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMConfigResponse'
@@ -3456,18 +2522,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMConfigResponse'
@@ -3486,18 +2542,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMConfigSyncResponse'
@@ -3516,18 +2562,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMConfigPendingResponse'
@@ -3539,18 +2575,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UnlinkVMDiskImagesResponse'
@@ -3567,18 +2593,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleVncproxyResponse'
@@ -3595,18 +2611,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleTermproxyResponse'
@@ -3623,18 +2629,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleVncwebsocketResponse'
@@ -3646,18 +2642,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleSpiceproxyResponse'
@@ -3675,18 +2661,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMStatusResponse'
@@ -3698,18 +2674,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetCurrentVMStatusResponse'
@@ -3721,18 +2687,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/StartVMResponse'
@@ -3752,18 +2708,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/StopVMResponse'
@@ -3780,18 +2726,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ResetVMResponse'
@@ -3811,18 +2747,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ShutdownVMResponse'
@@ -3841,18 +2767,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/RebootVMResponse'
@@ -3869,18 +2785,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/SuspendVMResponse'
@@ -3897,18 +2803,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ResumeVMResponse'
@@ -3925,18 +2821,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleQemuSingleSendkeyResponse'
@@ -3953,18 +2839,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleFeatureResponse'
@@ -3976,18 +2852,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CloneVMResponse'
@@ -4004,18 +2870,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleMovediskResponse'
@@ -4032,18 +2888,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/MigrateVMResponse'
@@ -4054,18 +2900,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleMigrateResponse'
@@ -4082,18 +2918,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleMonitorResponse'
@@ -4110,18 +2936,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ResizeVMDiskResponse'
@@ -4138,18 +2954,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMSnapshotsResponse'
@@ -4160,18 +2966,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateVMSnapshotResponse'
@@ -4188,24 +2984,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/DeleteVMSnapshotResponse'
@@ -4216,24 +3002,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMSnapshotResponse'
@@ -4245,24 +3021,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMSnapshotConfigResponse'
@@ -4273,24 +3039,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMSnapshotConfigResponse'
@@ -4307,24 +3063,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/RollbackVMSnapshotResponse'
@@ -4341,18 +3087,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleTemplateResponse'
@@ -4369,18 +3105,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleCloudinitDumpResponse'
@@ -4392,12 +3118,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCpuResponse'
@@ -4409,12 +3130,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcResponse'
@@ -4425,12 +3141,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcResponse'
@@ -4447,18 +3158,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleLxcSingleResponse'
@@ -4469,18 +3170,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleResponse'
@@ -4492,18 +3183,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleConfigResponse'
@@ -4514,18 +3195,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleLxcSingleConfigResponse'
@@ -4542,18 +3213,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleStatusResponse'
@@ -4565,18 +3226,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleStatusCurrentResponse'
@@ -4588,18 +3239,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleStatusStartResponse'
@@ -4619,18 +3260,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleStatusStopResponse'
@@ -4649,18 +3280,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4679,18 +3300,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4709,18 +3320,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4741,18 +3342,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4771,18 +3362,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleSnapshotResponse'
@@ -4793,18 +3374,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleSnapshotResponse'
@@ -4821,24 +3392,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4850,24 +3411,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleSnapshotSingleResponse'
@@ -4879,24 +3430,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4915,24 +3456,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4944,24 +3475,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: snapname
           in: path
           required: true
           description: snapname
           schema:
             type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -4980,18 +3501,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallResponse'
@@ -5003,18 +3514,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallRulesResponse'
@@ -5025,18 +3526,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5055,24 +3546,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pos
           in: path
           required: true
           description: pos
           schema:
             type: integer
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5084,24 +3565,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pos
           in: path
           required: true
           description: pos
           schema:
             type: integer
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5113,24 +3584,14 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pos
           in: path
           required: true
           description: pos
           schema:
             type: integer
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5149,18 +3610,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5172,18 +3623,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5208,18 +3649,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5237,18 +3668,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5266,18 +3687,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5296,18 +3707,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallIpsetResponse'
@@ -5318,18 +3719,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5354,18 +3745,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5383,18 +3764,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5412,18 +3783,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5454,18 +3815,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5489,18 +3840,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5524,18 +3865,8 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5554,18 +3885,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5577,18 +3898,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -5607,18 +3918,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallLogResponse'
@@ -5632,18 +3933,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallRefsResponse'
@@ -5655,18 +3946,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleRrdResponse'
@@ -5678,18 +3959,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleRrddataResponse'
@@ -5701,18 +3972,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleVncproxyResponse'
@@ -5729,18 +3990,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleTermproxyResponse'
@@ -5757,18 +4008,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleVncwebsocketResponse'
@@ -5780,18 +4021,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleSpiceproxyResponse'
@@ -5808,18 +4039,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleMigrateResponse'
@@ -5836,18 +4057,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFeatureResponse'
@@ -5859,18 +4070,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleTemplateResponse'
@@ -5887,18 +4088,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleCloneResponse'
@@ -5915,18 +4106,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleLxcSingleResizeResponse'
@@ -5943,18 +4124,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleMovevolumeResponse'
@@ -5971,18 +4142,8 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
-        - name: vmid
-          in: path
-          required: true
-          description: vmid
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/Node"
+        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSinglePendingResponse'
@@ -5994,12 +4155,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephResponse'
@@ -6011,12 +4167,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephOsdResponse'
@@ -6027,12 +4178,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephOsdResponse'
@@ -6049,12 +4195,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: osdid
           in: path
           required: true
@@ -6072,12 +4213,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: osdid
           in: path
           required: true
@@ -6100,12 +4236,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: osdid
           in: path
           required: true
@@ -6128,12 +4259,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: osdid
           in: path
           required: true
@@ -6156,12 +4282,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephMdsResponse'
@@ -6179,12 +4300,7 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephMdsSingleResponse'
@@ -6201,12 +4317,7 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephMdsSingleResponse'
@@ -6223,12 +4334,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephMgrResponse'
@@ -6246,12 +4352,7 @@ paths:
           description: id
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephMgrSingleResponse'
@@ -6268,12 +4369,7 @@ paths:
           description: id
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephMgrSingleResponse'
@@ -6290,12 +4386,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephMonResponse'
@@ -6313,12 +4404,7 @@ paths:
           description: monid
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephMonSingleResponse'
@@ -6335,12 +4421,7 @@ paths:
           description: monid
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephMonSingleResponse'
@@ -6357,12 +4438,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephFsResponse'
@@ -6380,12 +4456,7 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephFsSingleResponse'
@@ -6402,12 +4473,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephDisksResponse'
@@ -6419,12 +4485,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephConfigResponse'
@@ -6436,12 +4497,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephConfigdbResponse'
@@ -6453,12 +4509,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephInitResponse'
@@ -6475,12 +4526,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephStopResponse'
@@ -6497,12 +4543,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephStartResponse'
@@ -6519,12 +4560,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephRestartResponse'
@@ -6541,12 +4577,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephStatusResponse'
@@ -6558,12 +4589,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephPoolsResponse'
@@ -6574,12 +4600,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephPoolsResponse'
@@ -6602,12 +4623,7 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephPoolsSingleResponse'
@@ -6624,12 +4640,7 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleCephPoolsSingleResponse'
@@ -6646,12 +4657,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephFlagsResponse'
@@ -6669,12 +4675,7 @@ paths:
           description: flag
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephFlagsSingleResponse'
@@ -6691,12 +4692,7 @@ paths:
           description: flag
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephFlagsSingleResponse'
@@ -6713,12 +4709,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephCrushResponse'
@@ -6730,12 +4721,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephLogResponse'
@@ -6747,12 +4733,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephRulesResponse'
@@ -6764,12 +4745,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleVzdumpResponse'
@@ -6786,12 +4762,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleVzdumpExtractconfigResponse'
@@ -6803,12 +4774,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleServicesResponse'
@@ -6820,12 +4786,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: service
           in: path
           required: true
@@ -6843,12 +4804,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: service
           in: path
           required: true
@@ -6866,12 +4822,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: service
           in: path
           required: true
@@ -6894,12 +4845,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: service
           in: path
           required: true
@@ -6922,12 +4868,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: service
           in: path
           required: true
@@ -6952,12 +4893,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: service
           in: path
           required: true
@@ -6981,12 +4917,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleSubscriptionResponse'
@@ -6997,12 +4928,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleSubscriptionResponse'
@@ -7013,12 +4939,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleSubscriptionResponse'
@@ -7034,12 +4955,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleSubscriptionResponse'
@@ -7056,12 +4972,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleNetworkResponse'
@@ -7072,12 +4983,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleNetworkResponse'
@@ -7088,12 +4994,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleNetworkResponse'
@@ -7109,12 +5010,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleNetworkResponse'
@@ -7137,12 +5033,7 @@ paths:
           description: iface
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleNetworkSingleResponse'
@@ -7159,12 +5050,7 @@ paths:
           description: iface
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleNetworkSingleResponse'
@@ -7181,12 +5067,7 @@ paths:
           description: iface
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleNetworkSingleResponse'
@@ -7203,12 +5084,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeTasksResponse'
@@ -7220,12 +5096,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: upid
           in: path
           required: true
@@ -7242,12 +5113,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: upid
           in: path
           required: true
@@ -7265,12 +5131,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: upid
           in: path
           required: true
@@ -7288,12 +5149,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: upid
           in: path
           required: true
@@ -7311,12 +5167,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanResponse'
@@ -7328,12 +5179,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanZfsResponse'
@@ -7345,12 +5191,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanNfsResponse'
@@ -7362,12 +5203,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanCifsResponse'
@@ -7379,12 +5215,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanGlusterfsResponse'
@@ -7396,12 +5227,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanIscsiResponse'
@@ -7413,12 +5239,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanLvmResponse'
@@ -7430,12 +5251,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanLvmthinResponse'
@@ -7447,12 +5263,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanUsbResponse'
@@ -7464,12 +5275,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHardwareResponse'
@@ -7481,12 +5287,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHardwarePciResponse'
@@ -7498,12 +5299,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pciid
           in: path
           required: true
@@ -7521,12 +5317,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pciid
           in: path
           required: true
@@ -7544,12 +5335,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageResponse'
@@ -7561,12 +5347,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7586,12 +5367,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7612,12 +5388,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7636,12 +5407,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7658,12 +5424,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7687,12 +5448,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7716,12 +5472,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7745,12 +5496,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7780,12 +5526,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7816,12 +5557,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7839,12 +5575,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7862,12 +5593,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7885,12 +5611,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: storage
           in: path
           required: true
@@ -7913,12 +5634,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksResponse'
@@ -7930,12 +5646,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksLvmResponse'
@@ -7946,12 +5657,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksLvmResponse'
@@ -7968,12 +5674,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksLvmthinResponse'
@@ -7984,12 +5685,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksLvmthinResponse'
@@ -8006,12 +5702,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksDirectoryResponse'
@@ -8024,12 +5715,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksDirectoryResponse'
@@ -8046,12 +5732,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksZfsResponse'
@@ -8062,12 +5743,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksZfsResponse'
@@ -8090,12 +5766,7 @@ paths:
           description: name
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksZfsSingleResponse'
@@ -8107,12 +5778,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksListResponse'
@@ -8124,12 +5790,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksSmartResponse'
@@ -8141,12 +5802,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksInitgptResponse'
@@ -8163,12 +5819,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptResponse'
@@ -8180,12 +5831,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptUpdateResponse'
@@ -8198,12 +5844,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleAptUpdateResponse'
@@ -8220,12 +5861,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptChangelogResponse'
@@ -8237,12 +5873,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptVersionsResponse'
@@ -8254,12 +5885,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallResponse'
@@ -8271,12 +5897,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallRulesResponse'
@@ -8287,12 +5908,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodeFirewallRuleResponse'
@@ -8309,12 +5925,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pos
           in: path
           required: true
@@ -8331,12 +5942,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pos
           in: path
           required: true
@@ -8353,12 +5959,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: pos
           in: path
           required: true
@@ -8381,12 +5982,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallOptionsResponse'
@@ -8397,12 +5993,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodeFirewallOptionsResponse'
@@ -8419,12 +6010,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleFirewallLogResponse'
@@ -8436,12 +6022,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationResponse'
@@ -8459,12 +6040,7 @@ paths:
           description: id
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationSingleResponse'
@@ -8482,12 +6058,7 @@ paths:
           description: id
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationSingleStatusResponse'
@@ -8505,12 +6076,7 @@ paths:
           description: id
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationSingleLogResponse'
@@ -8528,12 +6094,7 @@ paths:
           description: id
           schema:
             type: string
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -8552,12 +6113,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCertificatesResponse'
@@ -8569,12 +6125,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCertificatesAcmeResponse'
@@ -8586,12 +6137,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -8603,12 +6149,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -8626,12 +6167,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -8650,12 +6186,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCertificatesInfoResponse'
@@ -8667,12 +6198,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCertificatesCustomResponse'
@@ -8683,12 +6209,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCertificatesCustomResponse'
@@ -8705,12 +6226,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleConfigResponse'
@@ -8721,12 +6237,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleConfigResponse'
@@ -8743,12 +6254,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeSDNResponse'
@@ -8760,12 +6266,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeSDNZonesResponse'
@@ -8777,12 +6278,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: zone
           in: path
           required: true
@@ -8800,12 +6296,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
         - name: zone
           in: path
           required: true
@@ -8823,12 +6314,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleVersionResponse'
@@ -8840,12 +6326,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStatusResponse'
@@ -8856,12 +6337,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStatusResponse'
@@ -8878,12 +6354,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleNetstatResponse'
@@ -8895,12 +6366,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleExecuteResponse'
@@ -8917,12 +6383,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleWakeonlanResponse'
@@ -8939,12 +6400,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeRRDResponse'
@@ -8956,12 +6412,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeRRDDataResponse'
@@ -8973,12 +6424,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleSyslogResponse'
@@ -8990,12 +6436,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleJournalResponse'
@@ -9007,12 +6448,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleVncshellResponse'
@@ -9029,12 +6465,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleTermproxyResponse'
@@ -9051,12 +6482,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleVncwebsocketResponse'
@@ -9068,12 +6494,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleSpiceshellResponse'
@@ -9090,12 +6511,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDnsResponse'
@@ -9106,12 +6522,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleDnsResponse'
@@ -9128,12 +6539,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleTimeResponse'
@@ -9144,12 +6550,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleTimeResponse'
@@ -9166,12 +6567,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAplinfoResponse'
@@ -9182,12 +6578,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleAplinfoResponse'
@@ -9204,12 +6595,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReportResponse'
@@ -9223,12 +6609,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStartallResponse'
@@ -9245,12 +6626,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStopallResponse'
@@ -9267,12 +6643,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleMigrateallResponse'
@@ -9289,12 +6660,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHostsResponse'
@@ -9305,12 +6671,7 @@ paths:
       tags:
         - nodes
       parameters:
-        - name: node
-          in: path
-          required: true
-          description: node
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleHostsResponse'
@@ -9838,19 +7199,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateAccessDomainsRequest'
   '/access/domains/{realm}':
+    parameters:
+      - name: realm
+        in: path
+        required: true
+        description: realm
+        schema:
+          type: string
+
     delete:
       operationId: deleteAccessDomainsSingle
       summary: deleteAccessDomainsSingle
       description: Delete an authentication server.
       tags:
         - access
-      parameters:
-        - name: realm
-          in: path
-          required: true
-          description: realm
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteAccessDomainsSingleResponse'
@@ -9860,13 +7222,6 @@ paths:
       description: Get auth server configuration.
       tags:
         - access
-      parameters:
-        - name: realm
-          in: path
-          required: true
-          description: realm
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessDomainsSingleResponse'
@@ -9876,13 +7231,6 @@ paths:
       description: Update authentication server settings.
       tags:
         - access
-      parameters:
-        - name: realm
-          in: path
-          required: true
-          description: realm
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessDomainsSingleResponse'
@@ -9892,6 +7240,13 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateAccessDomainsSingleRequest'
   '/access/domains/{realm}/sync':
+    parameters:
+      - name: realm
+        in: path
+        required: true
+        description: realm
+        schema:
+          type: string
     post:
       operationId: createAccessDomainsSingleSync
       summary: createAccessDomainsSingleSync
@@ -9901,13 +7256,6 @@ paths:
         groups do not exist to prevent overwriting.
       tags:
         - access
-      parameters:
-        - name: realm
-          in: path
-          required: true
-          description: realm
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessDomainsSingleSyncResponse'
@@ -16383,6 +13731,21 @@ components:
           type: string
         vms:
           type: string
+  parameters:
+    VMId:
+      name: vmid
+      in: path
+      required: true
+      description: vmid
+      schema:
+        type: integer
+    Node:
+      name: node
+      in: path
+      required: true
+      description: node
+      schema:
+        type: string
   responses:
     GetClusterResponse:
       description: GetClusterResponse
@@ -28213,27 +25576,25 @@ components:
             type: array
             description: ''
             items:
-              $ref: "#/components/responses/AccessAcl"
-
-    AccessAcl:
-      type: object
-      description: ''
-      properties:
-        path:
-          type: string
-          description: Access control path
-        propagate:
-          type: integer
-          description: Allow to propagate (inherit) permissions.
-        roleid:
-          type: string
-          description: ''
-        type:
-          type: string
-          description: ''
-        ugid:
-          type: string
-          description: ''
+              type: object
+              title: AccessAcl
+              description: ''
+              properties:
+                path:
+                  type: string
+                  description: Access control path
+                propagate:
+                  type: integer
+                  description: Allow to propagate (inherit) permissions.
+                roleid:
+                  type: string
+                  description: ''
+                type:
+                  type: string
+                  description: ''
+                ugid:
+                  type: string
+                  description: ''
 
 
     UpdateAccessAclResponse:
