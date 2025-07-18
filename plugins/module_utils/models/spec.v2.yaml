@@ -24,7 +24,6 @@ paths:
       description: Cluster index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterResponse'
@@ -35,7 +34,6 @@ paths:
       description: List replication jobs.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterReplicationResponse'
@@ -45,7 +43,6 @@ paths:
       description: Create a new replication job
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterReplicationResponse'
@@ -101,7 +98,6 @@ paths:
       description: Metrics index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterMetricsResponse'
@@ -112,7 +108,6 @@ paths:
       description: List configured metric servers.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterMetricsServerResponse'
@@ -177,7 +172,6 @@ paths:
       description: Directory index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterConfigResponse'
@@ -189,7 +183,6 @@ paths:
         IP address as link0.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterConfigResponse'
@@ -205,7 +198,6 @@ paths:
       description: Return the version of the cluster join API available on this node.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterConfigApiversionResponse'
@@ -216,7 +208,6 @@ paths:
       description: Corosync node list.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterConfigNodesResponse'
@@ -253,7 +244,6 @@ paths:
       description: Get information needed to join this cluster over the connected node.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterConfigJoinResponse'
@@ -266,7 +256,6 @@ paths:
         clusters with multiple links).
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterConfigJoinResponse'
@@ -282,7 +271,6 @@ paths:
       description: Get corosync totem protocol settings.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterConfigTotemResponse'
@@ -293,7 +281,6 @@ paths:
       description: Get QDevice status
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterConfigQdeviceResponse'
@@ -304,7 +291,6 @@ paths:
       description: Directory index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallResponse'
@@ -315,7 +301,6 @@ paths:
       description: List security groups.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallGroupsResponse'
@@ -325,7 +310,6 @@ paths:
       description: Create new security group.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterFirewallGroupResponse'
@@ -427,7 +411,6 @@ paths:
       description: List rules.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallRulesResponse'
@@ -437,7 +420,6 @@ paths:
       description: Create new rule.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/AddClusterFirewallRuleResponse'
@@ -493,7 +475,6 @@ paths:
       description: List IPSets
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallIPSetsResponse'
@@ -503,7 +484,6 @@ paths:
       description: Create new IPSet
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterFirewallIPSetResponse'
@@ -514,12 +494,7 @@ paths:
               $ref: '#/components/schemas/CreateClusterFirewallIPSetRequest'
   '/cluster/firewall/ipset/{name}':
     parameters:
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Name"
     delete:
       operationId: deleteClusterFirewallIPSet
       summary: deleteClusterFirewallIPSet
@@ -554,18 +529,8 @@ paths:
               $ref: '#/components/schemas/AddClusterFirewallIPSetIPRequest'
   '/cluster/firewall/ipset/{name}/{cidr}':
     parameters:
-      - name: cidr
-        in: path
-        required: true
-        description: cidr
-        schema:
-          type: string
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/CIDR"
+      - $ref: "#/components/parameters/Name"
     delete:
       operationId: removeClusterFirewallIPSetIP
       summary: removeClusterFirewallIPSetIP
@@ -605,7 +570,6 @@ paths:
       description: List aliases
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallAliasesResponse'
@@ -615,7 +579,6 @@ paths:
       description: Create IP or Network Alias.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterFirewallAliasesResponse'
@@ -626,12 +589,7 @@ paths:
               $ref: '#/components/schemas/CreateClusterFirewallAliasesRequest'
   '/cluster/firewall/aliases/{name}':
     parameters:
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Name"
     delete:
       operationId: deleteClusterFirewallAliasesSingle
       summary: deleteClusterFirewallAliasesSingle
@@ -657,12 +615,7 @@ paths:
       tags:
         - cluster
       parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Name"
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterFirewallAliasesSingleResponse'
@@ -678,7 +631,6 @@ paths:
       description: Get Firewall options.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallOptionsResponse'
@@ -688,7 +640,6 @@ paths:
       description: Set Firewall options.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterFirewallOptionsResponse'
@@ -704,7 +655,6 @@ paths:
       description: List available macros
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallMacrosResponse'
@@ -717,7 +667,6 @@ paths:
         properties.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterFirewallRefsResponse'
@@ -728,7 +677,6 @@ paths:
       description: List vzdump backup schedule.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterBackupResponse'
@@ -738,7 +686,6 @@ paths:
       description: Create new vzdump backup job.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterBackupResponse'
@@ -814,7 +761,6 @@ paths:
       description: 'Stub, waits for future use.'
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterBackupinfoResponse'
@@ -825,7 +771,6 @@ paths:
       description: Shows all guests which are not covered by any backup job.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterBackupinfoNotbackedupResponse'
@@ -836,7 +781,6 @@ paths:
       description: Directory index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaResponse'
@@ -847,7 +791,6 @@ paths:
       description: List HA resources.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaResourcesResponse'
@@ -857,7 +800,6 @@ paths:
       description: Create a new HA resource.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterHaResourcesResponse'
@@ -962,7 +904,6 @@ paths:
       description: Get HA groups.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaGroupsResponse'
@@ -972,7 +913,6 @@ paths:
       description: Create a new HA group.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterHaGroupsResponse'
@@ -1028,7 +968,6 @@ paths:
       description: Directory index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaStatusResponse'
@@ -1039,7 +978,6 @@ paths:
       description: Get HA manger status.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaStatusCurrentResponse'
@@ -1050,7 +988,6 @@ paths:
       description: 'Get full HA manger status, including LRM status.'
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterHaStatusManagerstatusResponse'
@@ -1061,7 +998,6 @@ paths:
       description: ACMEAccount index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmeResponse'
@@ -1072,7 +1008,6 @@ paths:
       description: ACME plugin index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmePluginsResponse'
@@ -1082,7 +1017,6 @@ paths:
       description: Add ACME plugin configuration.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterAcmePluginsResponse'
@@ -1138,7 +1072,6 @@ paths:
       description: ACMEAccount index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmeAccountResponse'
@@ -1148,7 +1081,6 @@ paths:
       description: Register a new ACME account with CA.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterAcmeAccountResponse'
@@ -1159,12 +1091,7 @@ paths:
               $ref: '#/components/schemas/CreateClusterAcmeAccountRequest'
   '/cluster/acme/account/{name}':
     parameters:
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Name"
     delete:
       operationId: deleteClusterAcmeAccountSingle
       summary: deleteClusterAcmeAccountSingle
@@ -1206,7 +1133,6 @@ paths:
       description: Retrieve ACME TermsOfService URL from CA.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmeTosResponse'
@@ -1217,7 +1143,6 @@ paths:
       description: Get named known ACME directory endpoints.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmeDirectoriesResponse'
@@ -1228,7 +1153,6 @@ paths:
       description: Get schema of ACME challenge types.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterAcmeChallengeschemaResponse'
@@ -1239,7 +1163,6 @@ paths:
       description: Cluster ceph index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterCephResponse'
@@ -1250,7 +1173,6 @@ paths:
       description: Get ceph metadata.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterCephMetadataResponse'
@@ -1261,7 +1183,6 @@ paths:
       description: Get ceph status.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterCephStatusResponse'
@@ -1272,7 +1193,6 @@ paths:
       description: get the status of all ceph flags
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterCephFlagsResponse'
@@ -1282,7 +1202,6 @@ paths:
       description: Set/Unset multiple ceph flags at once.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterCephFlagsResponse'
@@ -1329,7 +1248,6 @@ paths:
       description: Directory index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNResponse'
@@ -1339,7 +1257,6 @@ paths:
       description: Apply sdn controller changes && reload.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterSDNResponse'
@@ -1355,7 +1272,6 @@ paths:
       description: SDN vnets index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNVnetsResponse'
@@ -1365,7 +1281,6 @@ paths:
       description: Create a new sdn vnet object.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterSDNVnetResponse'
@@ -1421,7 +1336,6 @@ paths:
       description: SDN zones index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNZonesResponse'
@@ -1431,7 +1345,6 @@ paths:
       description: Create a new sdn zone object.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterSDNZoneResponse'
@@ -1487,7 +1400,6 @@ paths:
       description: SDN controllers index.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterSDNControllersResponse'
@@ -1497,7 +1409,6 @@ paths:
       description: Create a new sdn controller object.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateClusterSDNControllerResponse'
@@ -1553,7 +1464,6 @@ paths:
       description: Read cluster log
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterLogResponse'
@@ -1564,7 +1474,6 @@ paths:
       description: Resources index (cluster wide).
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterResourcesResponse'
@@ -1575,7 +1484,6 @@ paths:
       description: List recent tasks (cluster wide).
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterTasksResponse'
@@ -1586,7 +1494,6 @@ paths:
       description: Get datacenter options.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterOptionsResponse'
@@ -1596,7 +1503,6 @@ paths:
       description: Set datacenter options.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateClusterOptionsResponse'
@@ -1612,7 +1518,6 @@ paths:
       description: Get cluster status information.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterStatusResponse'
@@ -1625,7 +1530,6 @@ paths:
         is already used.
       tags:
         - cluster
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetClusterNextidResponse'
@@ -1636,7 +1540,6 @@ paths:
       description: Cluster node index.
       tags:
         - nodes
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetNodesResponse'
@@ -1814,12 +1717,7 @@ paths:
                 #/components/schemas/CreateNodesSingleQemuSingleFirewallAliasesRequest
   '/nodes/{node}/qemu/{vmid}/firewall/aliases/{name}':
     parameters:
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Name"
       - $ref: "#/components/parameters/Node"
       - $ref: "#/components/parameters/VMId"
     delete:
@@ -1887,12 +1785,7 @@ paths:
               $ref: '#/components/schemas/CreateVMFirewallIPSetRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/ipset/{name}':
     parameters:
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Name"
       - $ref: "#/components/parameters/Node"
       - $ref: "#/components/parameters/VMId"
     delete:
@@ -1929,18 +1822,8 @@ paths:
               $ref: '#/components/schemas/AddVMFirewallIPSetIPRequest'
   '/nodes/{node}/qemu/{vmid}/firewall/ipset/{name}/{cidr}':
     parameters:
-      - name: cidr
-        in: path
-        required: true
-        description: cidr
-        schema:
-          type: string
-      - name: name
-        in: path
-        required: true
-        description: name
-        schema:
-          type: string
+      - $ref: "#/components/parameters/CIDR"
+      - $ref: "#/components/parameters/Name"
       - $ref: "#/components/parameters/Node"
       - $ref: "#/components/parameters/VMId"
     delete:
@@ -2197,7 +2080,6 @@ paths:
     parameters:
       - $ref: "#/components/parameters/Node"
       - $ref: "#/components/parameters/VMId"
-##########
     get:
       operationId: getNodesSingleQemuSingleAgentGetosinfo
       summary: getNodesSingleQemuSingleAgentGetosinfo
@@ -2209,95 +2091,95 @@ paths:
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentGetosinfoResponse
   '/nodes/{node}/qemu/{vmid}/agent/get-time':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGettime
       summary: getNodesSingleQemuSingleAgentGettime
       description: Execute get-time.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentGettimeResponse'
   '/nodes/{node}/qemu/{vmid}/agent/get-timezone':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGettimezone
       summary: getNodesSingleQemuSingleAgentGettimezone
       description: Execute get-timezone.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentGettimezoneResponse
   '/nodes/{node}/qemu/{vmid}/agent/get-users':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGetusers
       summary: getNodesSingleQemuSingleAgentGetusers
       description: Execute get-users.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentGetusersResponse'
   '/nodes/{node}/qemu/{vmid}/agent/get-vcpus':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentGetvcpus
       summary: getNodesSingleQemuSingleAgentGetvcpus
       description: Execute get-vcpus.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentGetvcpusResponse'
   '/nodes/{node}/qemu/{vmid}/agent/info':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentInfo
       summary: getNodesSingleQemuSingleAgentInfo
       description: Execute info.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentInfoResponse'
   '/nodes/{node}/qemu/{vmid}/agent/network-get-interfaces':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentNetworkgetinterfaces
       summary: getNodesSingleQemuSingleAgentNetworkgetinterfaces
       description: Execute network-get-interfaces.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentNetworkgetinterfacesResponse
   '/nodes/{node}/qemu/{vmid}/agent/ping':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentPing
       summary: createNodesSingleQemuSingleAgentPing
       description: Execute ping.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleAgentPingResponse'
@@ -2307,15 +2189,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleAgentPingRequest'
   '/nodes/{node}/qemu/{vmid}/agent/shutdown':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentShutdown
       summary: createNodesSingleQemuSingleAgentShutdown
       description: Execute shutdown.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -2327,15 +2209,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentShutdownRequest
   '/nodes/{node}/qemu/{vmid}/agent/suspend-disk':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentSuspenddisk
       summary: createNodesSingleQemuSingleAgentSuspenddisk
       description: Execute suspend-disk.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -2347,15 +2229,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentSuspenddiskRequest
   '/nodes/{node}/qemu/{vmid}/agent/suspend-hybrid':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentSuspendhybrid
       summary: createNodesSingleQemuSingleAgentSuspendhybrid
       description: Execute suspend-hybrid.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -2367,15 +2249,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentSuspendhybridRequest
   '/nodes/{node}/qemu/{vmid}/agent/suspend-ram':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentSuspendram
       summary: createNodesSingleQemuSingleAgentSuspendram
       description: Execute suspend-ram.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -2387,15 +2269,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentSuspendramRequest
   '/nodes/{node}/qemu/{vmid}/agent/set-user-password':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentSetuserpassword
       summary: createNodesSingleQemuSingleAgentSetuserpassword
       description: Sets the password for the given user to the given password
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -2407,6 +2289,9 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentSetuserpasswordRequest
   '/nodes/{node}/qemu/{vmid}/agent/exec':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentExec
       summary: createNodesSingleQemuSingleAgentExec
@@ -2415,9 +2300,6 @@ paths:
         object with the pid.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleAgentExecResponse'
@@ -2427,42 +2309,42 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleAgentExecRequest'
   '/nodes/{node}/qemu/{vmid}/agent/exec-status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentExecstatus
       summary: getNodesSingleQemuSingleAgentExecstatus
       description: Gets the status of the given pid started by the guest-agent
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleQemuSingleAgentExecstatusResponse
   '/nodes/{node}/qemu/{vmid}/agent/file-read':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleAgentFileread
       summary: getNodesSingleQemuSingleAgentFileread
       description: Reads the given file via guest agent. Is limited to 16777216 bytes.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleAgentFilereadResponse'
   '/nodes/{node}/qemu/{vmid}/agent/file-write':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleAgentFilewrite
       summary: createNodesSingleQemuSingleAgentFilewrite
       description: Writes the given file via guest agent.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -2474,32 +2356,35 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleAgentFilewriteRequest
   '/nodes/{node}/qemu/{vmid}/rrd':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMRRD
       summary: getVMRRD
       description: Read VM RRD statistics (returns PNG)
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMRRDResponse'
   '/nodes/{node}/qemu/{vmid}/rrddata':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMRRDData
       summary: getVMRRDData
       description: Read VM RRD statistics
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMRRDDataResponse'
   '/nodes/{node}/qemu/{vmid}/config':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMConfig
       summary: getVMConfig
@@ -2509,9 +2394,6 @@ paths:
         instead.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMConfigResponse'
@@ -2521,9 +2403,6 @@ paths:
       description: Set virtual machine options (asynchrounous API).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMConfigResponse'
@@ -2541,9 +2420,6 @@ paths:
         storage allocation.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMConfigSyncResponse'
@@ -2553,6 +2429,9 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateVMConfigSyncRequest'
   '/nodes/{node}/qemu/{vmid}/pending':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMConfigPending
       summary: getVMConfigPending
@@ -2561,22 +2440,19 @@ paths:
         values.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMConfigPendingResponse'
   '/nodes/{node}/qemu/{vmid}/unlink':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     put:
       operationId: unlinkVMDiskImages
       summary: unlinkVMDiskImages
       description: Unlink/delete disk images.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UnlinkVMDiskImagesResponse'
@@ -2586,15 +2462,15 @@ paths:
             schema:
               $ref: '#/components/schemas/UnlinkVMDiskImagesRequest'
   '/nodes/{node}/qemu/{vmid}/vncproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleVncproxy
       summary: createNodesSingleQemuSingleVncproxy
       description: Creates a TCP VNC proxy connections.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleVncproxyResponse'
@@ -2604,15 +2480,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleVncproxyRequest'
   '/nodes/{node}/qemu/{vmid}/termproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleTermproxy
       summary: createNodesSingleQemuSingleTermproxy
       description: Creates a TCP proxy connections.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleTermproxyResponse'
@@ -2622,28 +2498,28 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleTermproxyRequest'
   '/nodes/{node}/qemu/{vmid}/vncwebsocket':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleVncwebsocket
       summary: getNodesSingleQemuSingleVncwebsocket
       description: Opens a weksocket for VNC traffic.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleVncwebsocketResponse'
   '/nodes/{node}/qemu/{vmid}/spiceproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleSpiceproxy
       summary: createNodesSingleQemuSingleSpiceproxy
       description: Returns a SPICE configuration to connect to the VM.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleSpiceproxyResponse'
@@ -2654,41 +2530,41 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleQemuSingleSpiceproxyRequest
   '/nodes/{node}/qemu/{vmid}/status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMStatus
       summary: getVMStatus
       description: Directory index
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMStatusResponse'
   '/nodes/{node}/qemu/{vmid}/status/current':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getCurrentVMStatus
       summary: getCurrentVMStatus
       description: Get virtual machine status.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetCurrentVMStatusResponse'
   '/nodes/{node}/qemu/{vmid}/status/start':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: startVM
       summary: startVM
       description: Start virtual machine.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/StartVMResponse'
@@ -2698,6 +2574,9 @@ paths:
             schema:
               $ref: '#/components/schemas/StartVMRequest'
   '/nodes/{node}/qemu/{vmid}/status/stop':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: stopVM
       summary: stopVM
@@ -2707,9 +2586,6 @@ paths:
         VM data
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/StopVMResponse'
@@ -2719,15 +2595,15 @@ paths:
             schema:
               $ref: '#/components/schemas/StopVMRequest'
   '/nodes/{node}/qemu/{vmid}/status/reset':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: resetVM
       summary: resetVM
       description: Reset virtual machine.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ResetVMResponse'
@@ -2737,6 +2613,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ResetVMRequest'
   '/nodes/{node}/qemu/{vmid}/status/shutdown':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: shutdownVM
       summary: shutdownVM
@@ -2746,9 +2625,6 @@ paths:
         which should then proceed to a clean shutdown.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ShutdownVMResponse'
@@ -2758,6 +2634,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ShutdownVMRequest'
   '/nodes/{node}/qemu/{vmid}/status/reboot':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: rebootVM
       summary: rebootVM
@@ -2766,9 +2645,6 @@ paths:
         pending changes.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/RebootVMResponse'
@@ -2778,15 +2654,15 @@ paths:
             schema:
               $ref: '#/components/schemas/RebootVMRequest'
   '/nodes/{node}/qemu/{vmid}/status/suspend':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: suspendVM
       summary: suspendVM
       description: Suspend virtual machine.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/SuspendVMResponse'
@@ -2796,15 +2672,15 @@ paths:
             schema:
               $ref: '#/components/schemas/SuspendVMRequest'
   '/nodes/{node}/qemu/{vmid}/status/resume':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: resumeVM
       summary: resumeVM
       description: Resume virtual machine.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ResumeVMResponse'
@@ -2814,15 +2690,15 @@ paths:
             schema:
               $ref: '#/components/schemas/ResumeVMRequest'
   '/nodes/{node}/qemu/{vmid}/sendkey':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     put:
       operationId: updateNodesSingleQemuSingleSendkey
       summary: updateNodesSingleQemuSingleSendkey
       description: Send key event to virtual machine.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleQemuSingleSendkeyResponse'
@@ -2832,28 +2708,28 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleQemuSingleSendkeyRequest'
   '/nodes/{node}/qemu/{vmid}/feature':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleFeature
       summary: getNodesSingleQemuSingleFeature
       description: Check if feature for virtual machine is available.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleFeatureResponse'
   '/nodes/{node}/qemu/{vmid}/clone':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: cloneVM
       summary: cloneVM
       description: Create a copy of virtual machine/template.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CloneVMResponse'
@@ -2863,15 +2739,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CloneVMRequest'
   '/nodes/{node}/qemu/{vmid}/move_disk':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleMovedisk
       summary: createNodesSingleQemuSingleMovedisk
       description: Move volume to different storage.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleMovediskResponse'
@@ -2881,15 +2757,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleMovediskRequest'
   '/nodes/{node}/qemu/{vmid}/migrate':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: migrateVM
       summary: migrateVM
       description: Get preconditions for migration.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/MigrateVMResponse'
@@ -2899,9 +2775,6 @@ paths:
       description: Migrate virtual machine. Creates a new migration task.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleMigrateResponse'
@@ -2911,15 +2784,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleMigrateRequest'
   '/nodes/{node}/qemu/{vmid}/monitor':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleMonitor
       summary: createNodesSingleQemuSingleMonitor
       description: Execute Qemu monitor commands.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleMonitorResponse'
@@ -2929,15 +2802,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleMonitorRequest'
   '/nodes/{node}/qemu/{vmid}/resize':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     put:
       operationId: resizeVMDisk
       summary: resizeVMDisk
       description: Extend volume size.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/ResizeVMDiskResponse'
@@ -2947,15 +2820,15 @@ paths:
             schema:
               $ref: '#/components/schemas/ResizeVMDiskRequest'
   '/nodes/{node}/qemu/{vmid}/snapshot':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMSnapshots
       summary: getVMSnapshots
       description: List all snapshots.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMSnapshotsResponse'
@@ -2965,9 +2838,6 @@ paths:
       description: Snapshot a VM.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateVMSnapshotResponse'
@@ -2977,21 +2847,21 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateVMSnapshotRequest'
   '/nodes/{node}/qemu/{vmid}/snapshot/{snapname}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: snapname
+        in: path
+        required: true
+        description: snapname
+        schema:
+          type: string
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteVMSnapshot
       summary: deleteVMSnapshot
       description: Delete a VM snapshot.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/DeleteVMSnapshotResponse'
@@ -3001,34 +2871,25 @@ paths:
       description: getVMSnapshot
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMSnapshotResponse'
   '/nodes/{node}/qemu/{vmid}/snapshot/{snapname}/config':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: snapname
+        in: path
+        required: true
+        description: snapname
+        schema:
+          type: string
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getVMSnapshotConfig
       summary: getVMSnapshotConfig
       description: Get snapshot configuration
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetVMSnapshotConfigResponse'
@@ -3038,15 +2899,6 @@ paths:
       description: Update snapshot metadata.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateVMSnapshotConfigResponse'
@@ -3056,21 +2908,21 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateVMSnapshotConfigRequest'
   '/nodes/{node}/qemu/{vmid}/snapshot/{snapname}/rollback':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: snapname
+        in: path
+        required: true
+        description: snapname
+        schema:
+          type: string
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: rollbackVMSnapshot
       summary: rollbackVMSnapshot
       description: Rollback VM state to specified snapshot.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/RollbackVMSnapshotResponse'
@@ -3080,15 +2932,15 @@ paths:
             schema:
               $ref: '#/components/schemas/RollbackVMSnapshotRequest'
   '/nodes/{node}/qemu/{vmid}/template':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleQemuSingleTemplate
       summary: createNodesSingleQemuSingleTemplate
       description: Create a Template.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleQemuSingleTemplateResponse'
@@ -3098,39 +2950,39 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleQemuSingleTemplateRequest'
   '/nodes/{node}/qemu/{vmid}/cloudinit/dump':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleQemuSingleCloudinitDump
       summary: getNodesSingleQemuSingleCloudinitDump
       description: Get automatically generated cloudinit config.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleQemuSingleCloudinitDumpResponse'
   '/nodes/{node}/cpu':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCpu
       summary: getNodesSingleCpu
       description: List all custom and default CPU models.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCpuResponse'
   '/nodes/{node}/lxc':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleLxc
       summary: getNodesSingleLxc
       description: LXC container index (per node).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcResponse'
@@ -3140,8 +2992,6 @@ paths:
       description: Create or restore a container.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcResponse'
@@ -3151,15 +3001,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcRequest'
   '/nodes/{node}/lxc/{vmid}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleLxcSingle
       summary: deleteNodesSingleLxcSingle
       description: Destroy the container (also delete all uses files).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleLxcSingleResponse'
@@ -3169,22 +3019,19 @@ paths:
       description: Directory index
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleResponse'
   '/nodes/{node}/lxc/{vmid}/config':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleConfig
       summary: getNodesSingleLxcSingleConfig
       description: Get container configuration.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleConfigResponse'
@@ -3194,9 +3041,6 @@ paths:
       description: Set container options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleLxcSingleConfigResponse'
@@ -3206,41 +3050,41 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleLxcSingleConfigRequest'
   '/nodes/{node}/lxc/{vmid}/status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleStatus
       summary: getNodesSingleLxcSingleStatus
       description: Directory index
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleStatusResponse'
   '/nodes/{node}/lxc/{vmid}/status/current':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleStatusCurrent
       summary: getNodesSingleLxcSingleStatusCurrent
       description: Get virtual machine status.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleStatusCurrentResponse'
   '/nodes/{node}/lxc/{vmid}/status/start':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleStatusStart
       summary: createNodesSingleLxcSingleStatusStart
       description: Start the container.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleStatusStartResponse'
@@ -3251,6 +3095,9 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleStatusStartRequest
   '/nodes/{node}/lxc/{vmid}/status/stop':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleStatusStop
       summary: createNodesSingleLxcSingleStatusStop
@@ -3259,9 +3106,6 @@ paths:
         container.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleStatusStopResponse'
@@ -3271,6 +3115,9 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleStatusStopRequest'
   '/nodes/{node}/lxc/{vmid}/status/shutdown':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleStatusShutdown
       summary: createNodesSingleLxcSingleStatusShutdown
@@ -3279,9 +3126,6 @@ paths:
         container, see lxc-stop(1) for details.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3293,15 +3137,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleStatusShutdownRequest
   '/nodes/{node}/lxc/{vmid}/status/suspend':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleStatusSuspend
       summary: createNodesSingleLxcSingleStatusSuspend
       description: Suspend the container.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3313,15 +3157,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleStatusSuspendRequest
   '/nodes/{node}/lxc/{vmid}/status/resume':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleStatusResume
       summary: createNodesSingleLxcSingleStatusResume
       description: Resume the container.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3333,6 +3177,9 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleStatusResumeRequest
   '/nodes/{node}/lxc/{vmid}/status/reboot':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleStatusReboot
       summary: createNodesSingleLxcSingleStatusReboot
@@ -3341,9 +3188,6 @@ paths:
         pending changes.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3355,15 +3199,15 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleStatusRebootRequest
   '/nodes/{node}/lxc/{vmid}/snapshot':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleSnapshot
       summary: getNodesSingleLxcSingleSnapshot
       description: List all snapshots.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleSnapshotResponse'
@@ -3373,9 +3217,6 @@ paths:
       description: Snapshot a container.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleSnapshotResponse'
@@ -3385,21 +3226,21 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleSnapshotRequest'
   '/nodes/{node}/lxc/{vmid}/snapshot/{snapname}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: snapname
+        in: path
+        required: true
+        description: snapname
+        schema:
+          type: string
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleLxcSingleSnapshotSingle
       summary: deleteNodesSingleLxcSingleSnapshotSingle
       description: Delete a LXC snapshot.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3410,34 +3251,25 @@ paths:
       description: getNodesSingleLxcSingleSnapshotSingle
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleSnapshotSingleResponse'
   '/nodes/{node}/lxc/{vmid}/snapshot/{snapname}/rollback':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: snapname
+        in: path
+        required: true
+        description: snapname
+        schema:
+          type: string
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleSnapshotSingleRollback
       summary: createNodesSingleLxcSingleSnapshotSingleRollback
       description: Rollback LXC state to specified snapshot.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3449,21 +3281,21 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleSnapshotSingleRollbackRequest
   '/nodes/{node}/lxc/{vmid}/snapshot/{snapname}/config':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: snapname
+        in: path
+        required: true
+        description: snapname
+        schema:
+          type: string
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleSnapshotSingleConfig
       summary: getNodesSingleLxcSingleSnapshotSingleConfig
       description: Get snapshot configuration
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3474,15 +3306,6 @@ paths:
       description: Update snapshot metadata.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: snapname
-          in: path
-          required: true
-          description: snapname
-          schema:
-            type: string
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3494,28 +3317,28 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleLxcSingleSnapshotSingleConfigRequest
   '/nodes/{node}/lxc/{vmid}/firewall':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewall
       summary: getNodesSingleLxcSingleFirewall
       description: Directory index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallResponse'
   '/nodes/{node}/lxc/{vmid}/firewall/rules':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewallRules
       summary: getNodesSingleLxcSingleFirewallRules
       description: List rules.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallRulesResponse'
@@ -3525,9 +3348,6 @@ paths:
       description: Create new rule.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3539,21 +3359,21 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleFirewallRulesRequest
   '/nodes/{node}/lxc/{vmid}/firewall/rules/{pos}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: pos
+        in: path
+        required: true
+        description: pos
+        schema:
+          type: integer
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleLxcSingleFirewallRulesSingle
       summary: deleteNodesSingleLxcSingleFirewallRulesSingle
       description: Delete rule.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3564,15 +3384,6 @@ paths:
       description: Get single rule data.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3583,15 +3394,6 @@ paths:
       description: Modify rule data.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3603,15 +3405,15 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleLxcSingleFirewallRulesSingleRequest
   '/nodes/{node}/lxc/{vmid}/firewall/aliases':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewallAliases
       summary: getNodesSingleLxcSingleFirewallAliases
       description: List aliases
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3622,9 +3424,6 @@ paths:
       description: Create IP or Network Alias.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3636,21 +3435,16 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleFirewallAliasesRequest
   '/nodes/{node}/lxc/{vmid}/firewall/aliases/{name}':
+    parameters:
+      - $ref: "#/components/parameters/Name"
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleLxcSingleFirewallAliasesSingle
       summary: deleteNodesSingleLxcSingleFirewallAliasesSingle
       description: Remove IP or Network alias.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3661,15 +3455,6 @@ paths:
       description: Read alias.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3680,15 +3465,6 @@ paths:
       description: Update IP or Network alias.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3700,15 +3476,15 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleLxcSingleFirewallAliasesSingleRequest
   '/nodes/{node}/lxc/{vmid}/firewall/ipset':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewallIpset
       summary: getNodesSingleLxcSingleFirewallIpset
       description: List IPSets
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallIpsetResponse'
@@ -3718,9 +3494,6 @@ paths:
       description: Create new IPSet
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3732,21 +3505,16 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleFirewallIpsetRequest
   '/nodes/{node}/lxc/{vmid}/firewall/ipset/{name}':
+    parameters:
+      - $ref: "#/components/parameters/Name"
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleLxcSingleFirewallIpsetSingle
       summary: deleteNodesSingleLxcSingleFirewallIpsetSingle
       description: Delete IPSet
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3757,15 +3525,6 @@ paths:
       description: List IPSet content
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3776,15 +3535,6 @@ paths:
       description: Add IP or Network to IPSet.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3796,27 +3546,17 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleLxcSingleFirewallIpsetSingleRequest
   '/nodes/{node}/lxc/{vmid}/firewall/ipset/{name}/{cidr}':
+    parameters:
+      - $ref: "#/components/parameters/CIDR"
+      - $ref: "#/components/parameters/Name"
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     delete:
       operationId: deleteNodesSingleLxcSingleFirewallIpsetSingleSingle
       summary: deleteNodesSingleLxcSingleFirewallIpsetSingleSingle
       description: Remove IP or Network from IPSet.
       tags:
         - nodes
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3827,21 +3567,6 @@ paths:
       description: Read IP or Network settings from IPSet.
       tags:
         - nodes
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3852,21 +3577,6 @@ paths:
       description: Update IP or Network settings
       tags:
         - nodes
-      parameters:
-        - name: cidr
-          in: path
-          required: true
-          description: cidr
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3878,15 +3588,15 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleLxcSingleFirewallIpsetSingleSingleRequest
   '/nodes/{node}/lxc/{vmid}/firewall/options':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewallOptions
       summary: getNodesSingleLxcSingleFirewallOptions
       description: Get VM firewall options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3897,9 +3607,6 @@ paths:
       description: Set Firewall options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: >-
@@ -3911,19 +3618,22 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleLxcSingleFirewallOptionsRequest
   '/nodes/{node}/lxc/{vmid}/firewall/log':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewallLog
       summary: getNodesSingleLxcSingleFirewallLog
       description: Read firewall log
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallLogResponse'
   '/nodes/{node}/lxc/{vmid}/firewall/refs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFirewallRefs
       summary: getNodesSingleLxcSingleFirewallRefs
@@ -3932,48 +3642,45 @@ paths:
         properties.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFirewallRefsResponse'
   '/nodes/{node}/lxc/{vmid}/rrd':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleRrd
       summary: getNodesSingleLxcSingleRrd
       description: Read VM RRD statistics (returns PNG)
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleRrdResponse'
   '/nodes/{node}/lxc/{vmid}/rrddata':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleRrddata
       summary: getNodesSingleLxcSingleRrddata
       description: Read VM RRD statistics
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleRrddataResponse'
   '/nodes/{node}/lxc/{vmid}/vncproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleVncproxy
       summary: createNodesSingleLxcSingleVncproxy
       description: Creates a TCP VNC proxy connections.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleVncproxyResponse'
@@ -3983,15 +3690,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleVncproxyRequest'
   '/nodes/{node}/lxc/{vmid}/termproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleTermproxy
       summary: createNodesSingleLxcSingleTermproxy
       description: Creates a TCP proxy connection.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleTermproxyResponse'
@@ -4001,28 +3708,28 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleTermproxyRequest'
   '/nodes/{node}/lxc/{vmid}/vncwebsocket':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleVncwebsocket
       summary: getNodesSingleLxcSingleVncwebsocket
       description: Opens a weksocket for VNC traffic.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleVncwebsocketResponse'
   '/nodes/{node}/lxc/{vmid}/spiceproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleSpiceproxy
       summary: createNodesSingleLxcSingleSpiceproxy
       description: Returns a SPICE configuration to connect to the CT.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleSpiceproxyResponse'
@@ -4032,15 +3739,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleSpiceproxyRequest'
   '/nodes/{node}/lxc/{vmid}/migrate':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleMigrate
       summary: createNodesSingleLxcSingleMigrate
       description: Migrate the container to another node. Creates a new migration task.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleMigrateResponse'
@@ -4050,28 +3757,28 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleMigrateRequest'
   '/nodes/{node}/lxc/{vmid}/feature':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSingleFeature
       summary: getNodesSingleLxcSingleFeature
       description: Check if feature for virtual machine is available.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSingleFeatureResponse'
   '/nodes/{node}/lxc/{vmid}/template':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleTemplate
       summary: createNodesSingleLxcSingleTemplate
       description: Create a Template.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleTemplateResponse'
@@ -4081,15 +3788,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleTemplateRequest'
   '/nodes/{node}/lxc/{vmid}/clone':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleClone
       summary: createNodesSingleLxcSingleClone
       description: Create a container clone/copy
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleCloneResponse'
@@ -4099,15 +3806,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleCloneRequest'
   '/nodes/{node}/lxc/{vmid}/resize':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     put:
       operationId: updateNodesSingleLxcSingleResize
       summary: updateNodesSingleLxcSingleResize
       description: Resize a container mount point.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleLxcSingleResizeResponse'
@@ -4117,15 +3824,15 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleLxcSingleResizeRequest'
   '/nodes/{node}/lxc/{vmid}/move_volume':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     post:
       operationId: createNodesSingleLxcSingleMovevolume
       summary: createNodesSingleLxcSingleMovevolume
       description: Move a rootfs-/mp-volume to a different storage
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleLxcSingleMovevolumeResponse'
@@ -4135,39 +3842,39 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleLxcSingleMovevolumeRequest'
   '/nodes/{node}/lxc/{vmid}/pending':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/VMId"
     get:
       operationId: getNodesSingleLxcSinglePending
       summary: getNodesSingleLxcSinglePending
       description: 'Get container configuration, including pending changes.'
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - $ref: "#/components/parameters/VMId"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleLxcSinglePendingResponse'
   '/nodes/{node}/ceph':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCeph
       summary: getNodesSingleCeph
       description: Directory index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephResponse'
   '/nodes/{node}/ceph/osd':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephOsd
       summary: getNodesSingleCephOsd
       description: Get Ceph osd list/tree.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephOsdResponse'
@@ -4177,8 +3884,6 @@ paths:
       description: Create OSD
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephOsdResponse'
@@ -4188,38 +3893,28 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephOsdRequest'
   '/nodes/{node}/ceph/osd/{osdid}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/OSDId"
     delete:
       operationId: deleteNodesSingleCephOsdSingle
       summary: deleteNodesSingleCephOsdSingle
       description: Destroy OSD
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: osdid
-          in: path
-          required: true
-          description: osdid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephOsdSingleResponse'
   '/nodes/{node}/ceph/osd/{osdid}/in':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/OSDId"
     post:
       operationId: createNodesSingleCephOsdSingleIn
       summary: createNodesSingleCephOsdSingleIn
       description: ceph osd in
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: osdid
-          in: path
-          required: true
-          description: osdid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephOsdSingleInResponse'
@@ -4229,20 +3924,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephOsdSingleInRequest'
   '/nodes/{node}/ceph/osd/{osdid}/out':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/OSDId"
     post:
       operationId: createNodesSingleCephOsdSingleOut
       summary: createNodesSingleCephOsdSingleOut
       description: ceph osd out
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: osdid
-          in: path
-          required: true
-          description: osdid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephOsdSingleOutResponse'
@@ -4252,20 +3942,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephOsdSingleOutRequest'
   '/nodes/{node}/ceph/osd/{osdid}/scrub':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/OSDId"
     post:
       operationId: createNodesSingleCephOsdSingleScrub
       summary: createNodesSingleCephOsdSingleScrub
       description: Instruct the OSD to scrub.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: osdid
-          in: path
-          required: true
-          description: osdid
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephOsdSingleScrubResponse'
@@ -4275,32 +3960,28 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephOsdSingleScrubRequest'
   '/nodes/{node}/ceph/mds':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephMds
       summary: getNodesSingleCephMds
       description: MDS directory index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephMdsResponse'
   '/nodes/{node}/ceph/mds/{name}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Name"
+
     delete:
       operationId: deleteNodesSingleCephMdsSingle
       summary: deleteNodesSingleCephMdsSingle
       description: Destroy Ceph Metadata Server
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephMdsSingleResponse'
@@ -4310,14 +3991,6 @@ paths:
       description: Create Ceph Metadata Server (MDS)
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephMdsSingleResponse'
@@ -4327,32 +4000,32 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephMdsSingleRequest'
   '/nodes/{node}/ceph/mgr':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephMgr
       summary: getNodesSingleCephMgr
       description: MGR directory index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephMgrResponse'
   '/nodes/{node}/ceph/mgr/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleCephMgrSingle
       summary: deleteNodesSingleCephMgrSingle
       description: Destroy Ceph Manager.
       tags:
         - nodes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephMgrSingleResponse'
@@ -4362,14 +4035,6 @@ paths:
       description: Create Ceph Manager
       tags:
         - nodes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephMgrSingleResponse'
@@ -4379,32 +4044,32 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephMgrSingleRequest'
   '/nodes/{node}/ceph/mon':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephMon
       summary: getNodesSingleCephMon
       description: Get Ceph monitor list.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephMonResponse'
   '/nodes/{node}/ceph/mon/{monid}':
+    parameters:
+      - name: monid
+        in: path
+        required: true
+        description: monid
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleCephMonSingle
       summary: deleteNodesSingleCephMonSingle
       description: Destroy Ceph Monitor and Manager.
       tags:
         - nodes
-      parameters:
-        - name: monid
-          in: path
-          required: true
-          description: monid
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephMonSingleResponse'
@@ -4414,14 +4079,6 @@ paths:
       description: Create Ceph Monitor and Manager
       tags:
         - nodes
-      parameters:
-        - name: monid
-          in: path
-          required: true
-          description: monid
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephMonSingleResponse'
@@ -4431,32 +4088,27 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephMonSingleRequest'
   '/nodes/{node}/ceph/fs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephFs
       summary: getNodesSingleCephFs
       description: Directory index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephFsResponse'
   '/nodes/{node}/ceph/fs/{name}':
+    parameters:
+      - $ref: "#/components/parameters/Name"
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleCephFsSingle
       summary: createNodesSingleCephFsSingle
       description: Create a Ceph filesystem
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephFsSingleResponse'
@@ -4466,50 +4118,50 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephFsSingleRequest'
   '/nodes/{node}/ceph/disks':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephDisks
       summary: getNodesSingleCephDisks
       description: List local disks.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephDisksResponse'
   '/nodes/{node}/ceph/config':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephConfig
       summary: getNodesSingleCephConfig
       description: Get Ceph configuration.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephConfigResponse'
   '/nodes/{node}/ceph/configdb':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephConfigdb
       summary: getNodesSingleCephConfigdb
       description: Get Ceph configuration database.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephConfigdbResponse'
   '/nodes/{node}/ceph/init':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleCephInit
       summary: createNodesSingleCephInit
       description: Create initial ceph default configuration and setup symlinks.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephInitResponse'
@@ -4519,14 +4171,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephInitRequest'
   '/nodes/{node}/ceph/stop':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleCephStop
       summary: createNodesSingleCephStop
       description: Stop ceph services.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephStopResponse'
@@ -4536,14 +4188,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephStopRequest'
   '/nodes/{node}/ceph/start':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleCephStart
       summary: createNodesSingleCephStart
       description: Start ceph services.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephStartResponse'
@@ -4553,14 +4205,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephStartRequest'
   '/nodes/{node}/ceph/restart':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleCephRestart
       summary: createNodesSingleCephRestart
       description: Restart ceph services.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephRestartResponse'
@@ -4570,26 +4222,26 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephRestartRequest'
   '/nodes/{node}/ceph/status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephStatus
       summary: getNodesSingleCephStatus
       description: Get ceph status.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephStatusResponse'
   '/nodes/{node}/ceph/pools':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephPools
       summary: getNodesSingleCephPools
       description: List all pools.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephPoolsResponse'
@@ -4599,8 +4251,6 @@ paths:
       description: Create POOL
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephPoolsResponse'
@@ -4610,20 +4260,15 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephPoolsRequest'
   '/nodes/{node}/ceph/pools/{name}':
+    parameters:
+      - $ref: "#/components/parameters/Name"
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleCephPoolsSingle
       summary: deleteNodesSingleCephPoolsSingle
       description: Destroy pool
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephPoolsSingleResponse'
@@ -4633,14 +4278,6 @@ paths:
       description: Change POOL settings
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleCephPoolsSingleResponse'
@@ -4650,32 +4287,32 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleCephPoolsSingleRequest'
   '/nodes/{node}/ceph/flags':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephFlags
       summary: getNodesSingleCephFlags
       description: get all set ceph flags
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephFlagsResponse'
   '/nodes/{node}/ceph/flags/{flag}':
+    parameters:
+      - name: flag
+        in: path
+        required: true
+        description: flag
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleCephFlagsSingle
       summary: deleteNodesSingleCephFlagsSingle
       description: Unset a ceph flag
       tags:
         - nodes
-      parameters:
-        - name: flag
-          in: path
-          required: true
-          description: flag
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCephFlagsSingleResponse'
@@ -4685,14 +4322,6 @@ paths:
       description: Set a specific ceph flag
       tags:
         - nodes
-      parameters:
-        - name: flag
-          in: path
-          required: true
-          description: flag
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCephFlagsSingleResponse'
@@ -4702,50 +4331,50 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCephFlagsSingleRequest'
   '/nodes/{node}/ceph/crush':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephCrush
       summary: getNodesSingleCephCrush
       description: Get OSD crush map
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephCrushResponse'
   '/nodes/{node}/ceph/log':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephLog
       summary: getNodesSingleCephLog
       description: Read ceph log
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephLogResponse'
   '/nodes/{node}/ceph/rules':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCephRules
       summary: getNodesSingleCephRules
       description: List ceph rules.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCephRulesResponse'
   '/nodes/{node}/vzdump':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleVzdump
       summary: createNodesSingleVzdump
       description: Create backup.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleVzdumpResponse'
@@ -4755,80 +4384,80 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleVzdumpRequest'
   '/nodes/{node}/vzdump/extractconfig':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleVzdumpExtractconfig
       summary: getNodesSingleVzdumpExtractconfig
       description: Extract configuration from vzdump backup archive.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleVzdumpExtractconfigResponse'
   '/nodes/{node}/services':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleServices
       summary: getNodesSingleServices
       description: Service list.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleServicesResponse'
   '/nodes/{node}/services/{service}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: service
+        in: path
+        required: true
+        description: service
+        schema:
+          type: string
     get:
       operationId: getNodesSingleServicesSingle
       summary: getNodesSingleServicesSingle
       description: Directory index
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: service
-          in: path
-          required: true
-          description: service
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleServicesSingleResponse'
   '/nodes/{node}/services/{service}/state':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: service
+        in: path
+        required: true
+        description: service
+        schema:
+          type: string
     get:
       operationId: getNodesSingleServicesSingleState
       summary: getNodesSingleServicesSingleState
       description: Read service properties
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: service
-          in: path
-          required: true
-          description: service
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleServicesSingleStateResponse'
   '/nodes/{node}/services/{service}/start':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: service
+        in: path
+        required: true
+        description: service
+        schema:
+          type: string
     post:
       operationId: createNodesSingleServicesSingleStart
       summary: createNodesSingleServicesSingleStart
       description: Start service.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: service
-          in: path
-          required: true
-          description: service
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleServicesSingleStartResponse'
@@ -4838,20 +4467,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleServicesSingleStartRequest'
   '/nodes/{node}/services/{service}/stop':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: service
+        in: path
+        required: true
+        description: service
+        schema:
+          type: string
     post:
       operationId: createNodesSingleServicesSingleStop
       summary: createNodesSingleServicesSingleStop
       description: Stop service.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: service
-          in: path
-          required: true
-          description: service
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleServicesSingleStopResponse'
@@ -4861,20 +4490,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleServicesSingleStopRequest'
   '/nodes/{node}/services/{service}/restart':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: service
+        in: path
+        required: true
+        description: service
+        schema:
+          type: string
     post:
       operationId: createNodesSingleServicesSingleRestart
       summary: createNodesSingleServicesSingleRestart
       description: Hard restart service. Use reload if you want to reduce interruptions.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: service
-          in: path
-          required: true
-          description: service
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -4886,20 +4515,20 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleServicesSingleRestartRequest
   '/nodes/{node}/services/{service}/reload':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: service
+        in: path
+        required: true
+        description: service
+        schema:
+          type: string
     post:
       operationId: createNodesSingleServicesSingleReload
       summary: createNodesSingleServicesSingleReload
       description: Reload service. Falls back to restart if service cannot be reloaded.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: service
-          in: path
-          required: true
-          description: service
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleServicesSingleReloadResponse'
@@ -4910,14 +4539,14 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleServicesSingleReloadRequest
   '/nodes/{node}/subscription':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleSubscription
       summary: deleteNodesSingleSubscription
       description: Delete subscription key of this node.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleSubscriptionResponse'
@@ -4927,8 +4556,6 @@ paths:
       description: Read subscription info.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleSubscriptionResponse'
@@ -4938,8 +4565,6 @@ paths:
       description: Update subscription info.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleSubscriptionResponse'
@@ -4954,8 +4579,6 @@ paths:
       description: Set subscription key.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleSubscriptionResponse'
@@ -4965,14 +4588,14 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleSubscriptionRequest'
   '/nodes/{node}/network':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleNetwork
       summary: deleteNodesSingleNetwork
       description: Revert network configuration changes.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleNetworkResponse'
@@ -4982,8 +4605,6 @@ paths:
       description: List available networks
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleNetworkResponse'
@@ -4993,8 +4614,6 @@ paths:
       description: Create network device configuration
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleNetworkResponse'
@@ -5009,8 +4628,6 @@ paths:
       description: Reload network configuration
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleNetworkResponse'
@@ -5020,20 +4637,20 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleNetworkRequest'
   '/nodes/{node}/network/{iface}':
+    parameters:
+      - name: iface
+        in: path
+        required: true
+        description: iface
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleNetworkSingle
       summary: deleteNodesSingleNetworkSingle
       description: Delete network device configuration
       tags:
         - nodes
-      parameters:
-        - name: iface
-          in: path
-          required: true
-          description: iface
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleNetworkSingleResponse'
@@ -5043,14 +4660,6 @@ paths:
       description: Read network device configuration
       tags:
         - nodes
-      parameters:
-        - name: iface
-          in: path
-          required: true
-          description: iface
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleNetworkSingleResponse'
@@ -5060,14 +4669,6 @@ paths:
       description: Update network device configuration
       tags:
         - nodes
-      parameters:
-        - name: iface
-          in: path
-          required: true
-          description: iface
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleNetworkSingleResponse'
@@ -5077,32 +4678,32 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleNetworkSingleRequest'
   '/nodes/{node}/tasks':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeTasks
       summary: getNodeTasks
       description: Read task list for one node (finished tasks).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeTasksResponse'
   '/nodes/{node}/tasks/{upid}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: upid
+        in: path
+        required: true
+        description: upid
+        schema:
+          type: string
     delete:
       operationId: stopNodeTask
       summary: stopNodeTask
       description: Stop a task.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: upid
-          in: path
-          required: true
-          description: upid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/StopNodeTaskResponse'
@@ -5112,252 +4713,242 @@ paths:
       description: getNodeTask
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: upid
-          in: path
-          required: true
-          description: upid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodeTaskResponse'
   '/nodes/{node}/tasks/{upid}/log':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: upid
+        in: path
+        required: true
+        description: upid
+        schema:
+          type: string
     get:
       operationId: getNodeTaskLog
       summary: getNodeTaskLog
       description: Read task log.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: upid
-          in: path
-          required: true
-          description: upid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodeTaskLogResponse'
   '/nodes/{node}/tasks/{upid}/status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: upid
+        in: path
+        required: true
+        description: upid
+        schema:
+          type: string
     get:
       operationId: getNodeTaskStatus
       summary: getNodeTaskStatus
       description: Read task status.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: upid
-          in: path
-          required: true
-          description: upid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodeTaskStatusResponse'
   '/nodes/{node}/scan':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScan
       summary: getNodesSingleScan
       description: Index of available scan methods
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanResponse'
   '/nodes/{node}/scan/zfs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanZfs
       summary: getNodesSingleScanZfs
       description: Scan zfs pool list on local node.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanZfsResponse'
   '/nodes/{node}/scan/nfs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanNfs
       summary: getNodesSingleScanNfs
       description: Scan remote NFS server.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanNfsResponse'
   '/nodes/{node}/scan/cifs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanCifs
       summary: getNodesSingleScanCifs
       description: Scan remote CIFS server.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanCifsResponse'
   '/nodes/{node}/scan/glusterfs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanGlusterfs
       summary: getNodesSingleScanGlusterfs
       description: Scan remote GlusterFS server.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanGlusterfsResponse'
   '/nodes/{node}/scan/iscsi':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanIscsi
       summary: getNodesSingleScanIscsi
       description: Scan remote iSCSI server.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanIscsiResponse'
   '/nodes/{node}/scan/lvm':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanLvm
       summary: getNodesSingleScanLvm
       description: List local LVM volume groups.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanLvmResponse'
   '/nodes/{node}/scan/lvmthin':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanLvmthin
       summary: getNodesSingleScanLvmthin
       description: List local LVM Thin Pools.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanLvmthinResponse'
   '/nodes/{node}/scan/usb':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleScanUsb
       summary: getNodesSingleScanUsb
       description: List local USB devices.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleScanUsbResponse'
   '/nodes/{node}/hardware':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleHardware
       summary: getNodesSingleHardware
       description: Index of hardware types
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHardwareResponse'
   '/nodes/{node}/hardware/pci':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleHardwarePci
       summary: getNodesSingleHardwarePci
       description: List local PCI devices.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHardwarePciResponse'
   '/nodes/{node}/hardware/pci/{pciid}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: pciid
+        in: path
+        required: true
+        description: pciid
+        schema:
+          type: string
     get:
       operationId: getNodesSingleHardwarePciSingle
       summary: getNodesSingleHardwarePciSingle
       description: Index of available pci methods
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pciid
-          in: path
-          required: true
-          description: pciid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHardwarePciSingleResponse'
   '/nodes/{node}/hardware/pci/{pciid}/mdev':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: pciid
+        in: path
+        required: true
+        description: pciid
+        schema:
+          type: string
     get:
       operationId: getNodesSingleHardwarePciSingleMdev
       summary: getNodesSingleHardwarePciSingleMdev
       description: List mediated device types for given PCI device.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pciid
-          in: path
-          required: true
-          description: pciid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHardwarePciSingleMdevResponse'
   '/nodes/{node}/storage':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleStorage
       summary: getNodesSingleStorage
       description: Get status for all datastores.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageResponse'
   '/nodes/{node}/storage/{storage}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     get:
       operationId: getNodesSingleStorageSingle
       summary: getNodesSingleStorageSingle
       description: getNodesSingleStorageSingle
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageSingleResponse'
   '/nodes/{node}/storage/{storage}/prunebackups':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     delete:
       operationId: deleteNodesSingleStorageSinglePrunebackups
       summary: deleteNodesSingleStorageSinglePrunebackups
@@ -5366,14 +4957,6 @@ paths:
         considered.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -5387,33 +4970,20 @@ paths:
         removed/added in the meantime.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
             #/components/responses/GetNodesSingleStorageSinglePrunebackupsResponse
   '/nodes/{node}/storage/{storage}/content':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     get:
       operationId: getNodesSingleStorageSingleContent
       summary: getNodesSingleStorageSingleContent
       description: List storage content.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageSingleContentResponse'
@@ -5423,14 +4993,6 @@ paths:
       description: Allocate disk images.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStorageSingleContentResponse'
@@ -5441,26 +5003,21 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleStorageSingleContentRequest
   '/nodes/{node}/storage/{storage}/content/{volume}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
+      - name: volume
+        in: path
+        required: true
+        description: volume
+        schema:
+          type: string
     delete:
       operationId: deleteNodesSingleStorageSingleContentSingle
       summary: deleteNodesSingleStorageSingleContentSingle
       description: Delete volume
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
-        - name: volume
-          in: path
-          required: true
-          description: volume
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -5471,20 +5028,6 @@ paths:
       description: Get volume attributes
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
-        - name: volume
-          in: path
-          required: true
-          description: volume
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -5495,20 +5038,6 @@ paths:
       description: Copy a volume. This is experimental code - do not use.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
-        - name: volume
-          in: path
-          required: true
-          description: volume
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -5525,20 +5054,6 @@ paths:
       description: Update volume attributes
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
-        - name: volume
-          in: path
-          required: true
-          description: volume
-          schema:
-            type: string
       responses:
         '200':
           $ref: >-
@@ -5550,24 +5065,22 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleStorageSingleContentSingleRequest
   '/nodes/{node}/storage/{storage}/status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     get:
       operationId: getNodesSingleStorageSingleStatus
       summary: getNodesSingleStorageSingleStatus
       description: Read storage status.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageSingleStatusResponse'
   '/nodes/{node}/storage/{storage}/rrd':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     get:
       operationId: getNodesSingleStorageSingleRrd
       summary: getNodesSingleStorageSingleRrd
@@ -5576,48 +5089,33 @@ paths:
         - nodes
       parameters:
         - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
+        - $ref: "#/components/parameters/Storage"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageSingleRrdResponse'
   '/nodes/{node}/storage/{storage}/rrddata':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     get:
       operationId: getNodesSingleStorageSingleRrddata
       summary: getNodesSingleStorageSingleRrddata
       description: Read storage RRD statistics.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStorageSingleRrddataResponse'
   '/nodes/{node}/storage/{storage}/upload':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - $ref: "#/components/parameters/Storage"
     post:
       operationId: createNodesSingleStorageSingleUpload
       summary: createNodesSingleStorageSingleUpload
       description: Upload templates and ISO images.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStorageSingleUploadResponse'
@@ -5627,26 +5125,26 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleStorageSingleUploadRequest'
   '/nodes/{node}/disks':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisks
       summary: getNodesSingleDisks
       description: Node index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksResponse'
   '/nodes/{node}/disks/lvm':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksLvm
       summary: getNodesSingleDisksLvm
       description: List LVM Volume Groups
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksLvmResponse'
@@ -5656,8 +5154,6 @@ paths:
       description: Create an LVM Volume Group
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksLvmResponse'
@@ -5667,14 +5163,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleDisksLvmRequest'
   '/nodes/{node}/disks/lvmthin':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksLvmthin
       summary: getNodesSingleDisksLvmthin
       description: List LVM thinpools
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksLvmthinResponse'
@@ -5684,8 +5180,6 @@ paths:
       description: Create an LVM thinpool
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksLvmthinResponse'
@@ -5695,14 +5189,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleDisksLvmthinRequest'
   '/nodes/{node}/disks/directory':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksDirectory
       summary: getNodesSingleDisksDirectory
       description: PVE Managed Directory storages.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksDirectoryResponse'
@@ -5714,8 +5208,6 @@ paths:
         '/mnt/pve/NAME'.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksDirectoryResponse'
@@ -5725,14 +5217,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleDisksDirectoryRequest'
   '/nodes/{node}/disks/zfs':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksZfs
       summary: getNodesSingleDisksZfs
       description: List Zpools.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksZfsResponse'
@@ -5742,8 +5234,6 @@ paths:
       description: Create a ZFS pool.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksZfsResponse'
@@ -5753,56 +5243,51 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleDisksZfsRequest'
   '/nodes/{node}/disks/zfs/{name}':
+    parameters:
+      - $ref: "#/components/parameters/Name"
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksZfsSingle
       summary: getNodesSingleDisksZfsSingle
       description: Get details about a zpool.
       tags:
         - nodes
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: name
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksZfsSingleResponse'
   '/nodes/{node}/disks/list':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksList
       summary: getNodesSingleDisksList
       description: List local disks.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksListResponse'
   '/nodes/{node}/disks/smart':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDisksSmart
       summary: getNodesSingleDisksSmart
       description: Get SMART Health of a disk.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDisksSmartResponse'
   '/nodes/{node}/disks/initgpt':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleDisksInitgpt
       summary: createNodesSingleDisksInitgpt
       description: Initialize Disk with GPT
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleDisksInitgptResponse'
@@ -5812,26 +5297,26 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleDisksInitgptRequest'
   '/nodes/{node}/apt':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleApt
       summary: getNodesSingleApt
       description: Directory index for apt (Advanced Package Tool).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptResponse'
   '/nodes/{node}/apt/update':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleAptUpdate
       summary: getNodesSingleAptUpdate
       description: List available updates.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptUpdateResponse'
@@ -5843,8 +5328,6 @@ paths:
         (apt-get update).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleAptUpdateResponse'
@@ -5854,50 +5337,50 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleAptUpdateRequest'
   '/nodes/{node}/apt/changelog':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleAptChangelog
       summary: getNodesSingleAptChangelog
       description: Get package changelogs.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptChangelogResponse'
   '/nodes/{node}/apt/versions':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleAptVersions
       summary: getNodesSingleAptVersions
       description: Get package information for important Proxmox packages.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAptVersionsResponse'
   '/nodes/{node}/firewall':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeFirewall
       summary: getNodeFirewall
       description: Directory index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallResponse'
   '/nodes/{node}/firewall/rules':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeFirewallRules
       summary: getNodeFirewallRules
       description: List rules.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallRulesResponse'
@@ -5907,8 +5390,6 @@ paths:
       description: Create new rule.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodeFirewallRuleResponse'
@@ -5918,20 +5399,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodeFirewallRuleRequest'
   '/nodes/{node}/firewall/rules/{pos}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: pos
+        in: path
+        required: true
+        description: pos
+        schema:
+          type: integer
     delete:
       operationId: deleteNodeFirewallRule
       summary: deleteNodeFirewallRule
       description: Delete rule.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodeFirewallRuleResponse'
@@ -5941,14 +5422,6 @@ paths:
       description: Get single rule data.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallRuleResponse'
@@ -5958,14 +5431,6 @@ paths:
       description: Modify rule data.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: pos
-          in: path
-          required: true
-          description: pos
-          schema:
-            type: integer
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodeFirewallRuleResponse'
@@ -5975,14 +5440,14 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodeFirewallRuleRequest'
   '/nodes/{node}/firewall/options':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeFirewallOptions
       summary: getNodeFirewallOptions
       description: Get host firewall options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeFirewallOptionsResponse'
@@ -5992,8 +5457,6 @@ paths:
       description: Set Firewall options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodeFirewallOptionsResponse'
@@ -6003,98 +5466,98 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodeFirewallOptionsRequest'
   '/nodes/{node}/firewall/log':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleFirewallLog
       summary: getNodesSingleFirewallLog
       description: Read firewall log
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleFirewallLogResponse'
   '/nodes/{node}/replication':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleReplication
       summary: getNodesSingleReplication
       description: List status of all replication jobs on this node.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationResponse'
   '/nodes/{node}/replication/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleReplicationSingle
       summary: getNodesSingleReplicationSingle
       description: Directory index.
       tags:
         - nodes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationSingleResponse'
   '/nodes/{node}/replication/{id}/status':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleReplicationSingleStatus
       summary: getNodesSingleReplicationSingleStatus
       description: Get replication job status.
       tags:
         - nodes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationSingleStatusResponse'
   '/nodes/{node}/replication/{id}/log':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleReplicationSingleLog
       summary: getNodesSingleReplicationSingleLog
       description: Read replication job log.
       tags:
         - nodes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReplicationSingleLogResponse'
   '/nodes/{node}/replication/{id}/schedule_now':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: id
+        schema:
+          type: string
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleReplicationSingleSchedulenow
       summary: createNodesSingleReplicationSingleSchedulenow
       description: Schedule replication job to start as soon as possible.
       tags:
         - nodes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id
-          schema:
-            type: string
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -6106,18 +5569,20 @@ paths:
               $ref: >-
                 #/components/schemas/CreateNodesSingleReplicationSingleSchedulenowRequest
   '/nodes/{node}/certificates':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCertificates
       summary: getNodesSingleCertificates
       description: Node index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCertificatesResponse'
   '/nodes/{node}/certificates/acme':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCertificatesAcme
       summary: getNodesSingleCertificatesAcme
@@ -6130,14 +5595,14 @@ paths:
         '200':
           $ref: '#/components/responses/GetNodesSingleCertificatesAcmeResponse'
   '/nodes/{node}/certificates/acme/certificate':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleCertificatesAcmeCertificate
       summary: deleteNodesSingleCertificatesAcmeCertificate
       description: Revoke existing certificate from CA.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -6148,8 +5613,6 @@ paths:
       description: Order a new certificate from ACME-compatible CA.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -6166,8 +5629,6 @@ paths:
       description: Renew existing certificate from CA.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: >-
@@ -6179,26 +5640,26 @@ paths:
               $ref: >-
                 #/components/schemas/UpdateNodesSingleCertificatesAcmeCertificateRequest
   '/nodes/{node}/certificates/info':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleCertificatesInfo
       summary: getNodesSingleCertificatesInfo
       description: Get information about node's certificates.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleCertificatesInfoResponse'
   '/nodes/{node}/certificates/custom':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     delete:
       operationId: deleteNodesSingleCertificatesCustom
       summary: deleteNodesSingleCertificatesCustom
       description: DELETE custom certificate chain and key.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/DeleteNodesSingleCertificatesCustomResponse'
@@ -6208,8 +5669,6 @@ paths:
       description: Upload or update custom certificate chain and key.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleCertificatesCustomResponse'
@@ -6219,14 +5678,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleCertificatesCustomRequest'
   '/nodes/{node}/config':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleConfig
       summary: getNodesSingleConfig
       description: Get node configuration options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleConfigResponse'
@@ -6236,8 +5695,6 @@ paths:
       description: Set node configuration options.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleConfigResponse'
@@ -6247,86 +5704,86 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleConfigRequest'
   '/nodes/{node}/sdn':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeSDN
       summary: getNodeSDN
       description: SDN index.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeSDNResponse'
   '/nodes/{node}/sdn/zones':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeSDNZones
       summary: getNodeSDNZones
       description: Get status for all zones.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeSDNZonesResponse'
   '/nodes/{node}/sdn/zones/{zone}':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: zone
+        in: path
+        required: true
+        description: zone
+        schema:
+          type: string
     get:
       operationId: getNodeSDNZone
       summary: getNodeSDNZone
       description: getNodeSDNZone
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: zone
-          in: path
-          required: true
-          description: zone
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodeSDNZoneResponse'
   '/nodes/{node}/sdn/zones/{zone}/content':
+    parameters:
+      - $ref: "#/components/parameters/Node"
+      - name: zone
+        in: path
+        required: true
+        description: zone
+        schema:
+          type: string
     get:
       operationId: getNodeSDNZoneContent
       summary: getNodeSDNZoneContent
       description: List zone content.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
-        - name: zone
-          in: path
-          required: true
-          description: zone
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetNodeSDNZoneContentResponse'
   '/nodes/{node}/version':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleVersion
       summary: getNodesSingleVersion
       description: API version details
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleVersionResponse'
   '/nodes/{node}/status':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleStatus
       summary: getNodesSingleStatus
       description: Read node status
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleStatusResponse'
@@ -6336,8 +5793,6 @@ paths:
       description: Reboot or shutdown a node.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStatusResponse'
@@ -6347,26 +5802,26 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleStatusRequest'
   '/nodes/{node}/netstat':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleNetstat
       summary: getNodesSingleNetstat
       description: Read tap/vm network device interface counters
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleNetstatResponse'
   '/nodes/{node}/execute':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleExecute
       summary: createNodesSingleExecute
       description: Execute multiple commands in order.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleExecuteResponse'
@@ -6376,14 +5831,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleExecuteRequest'
   '/nodes/{node}/wakeonlan':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleWakeonlan
       summary: createNodesSingleWakeonlan
       description: Try to wake a node via 'wake on LAN' network packet.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleWakeonlanResponse'
@@ -6393,62 +5848,62 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleWakeonlanRequest'
   '/nodes/{node}/rrd':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeRRD
       summary: getNodeRRD
       description: Read node RRD statistics (returns PNG)
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeRRDResponse'
   '/nodes/{node}/rrddata':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodeRRDData
       summary: getNodeRRDData
       description: Read node RRD statistics
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodeRRDDataResponse'
   '/nodes/{node}/syslog':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleSyslog
       summary: getNodesSingleSyslog
       description: Read system log
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleSyslogResponse'
   '/nodes/{node}/journal':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleJournal
       summary: getNodesSingleJournal
       description: Read Journal
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleJournalResponse'
   '/nodes/{node}/vncshell':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleVncshell
       summary: createNodesSingleVncshell
       description: Creates a VNC Shell proxy.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleVncshellResponse'
@@ -6458,14 +5913,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleVncshellRequest'
   '/nodes/{node}/termproxy':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleTermproxy
       summary: createNodesSingleTermproxy
       description: Creates a VNC Shell proxy.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleTermproxyResponse'
@@ -6475,26 +5930,26 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleTermproxyRequest'
   '/nodes/{node}/vncwebsocket':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleVncwebsocket
       summary: getNodesSingleVncwebsocket
       description: Opens a weksocket for VNC traffic.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleVncwebsocketResponse'
   '/nodes/{node}/spiceshell':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleSpiceshell
       summary: createNodesSingleSpiceshell
       description: Creates a SPICE shell.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleSpiceshellResponse'
@@ -6504,14 +5959,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleSpiceshellRequest'
   '/nodes/{node}/dns':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleDns
       summary: getNodesSingleDns
       description: Read DNS settings.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleDnsResponse'
@@ -6521,8 +5976,6 @@ paths:
       description: Write DNS settings.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleDnsResponse'
@@ -6532,14 +5985,14 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleDnsRequest'
   '/nodes/{node}/time':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleTime
       summary: getNodesSingleTime
       description: Read server time and time zone settings.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleTimeResponse'
@@ -6549,8 +6002,6 @@ paths:
       description: Set time zone.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/UpdateNodesSingleTimeResponse'
@@ -6560,14 +6011,14 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateNodesSingleTimeRequest'
   '/nodes/{node}/aplinfo':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleAplinfo
       summary: getNodesSingleAplinfo
       description: Get list of appliances.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleAplinfoResponse'
@@ -6577,8 +6028,6 @@ paths:
       description: Download appliance templates.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleAplinfoResponse'
@@ -6588,18 +6037,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleAplinfoRequest'
   '/nodes/{node}/report':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleReport
       summary: getNodesSingleReport
       description: Gather various systems information about a node
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleReportResponse'
   '/nodes/{node}/startall':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleStartall
       summary: createNodesSingleStartall
@@ -6608,8 +6059,6 @@ paths:
         with onboot=1).
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStartallResponse'
@@ -6619,14 +6068,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleStartallRequest'
   '/nodes/{node}/stopall':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleStopall
       summary: createNodesSingleStopall
       description: Stop all VMs and Containers.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleStopallResponse'
@@ -6636,14 +6085,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleStopallRequest'
   '/nodes/{node}/migrateall':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     post:
       operationId: createNodesSingleMigrateall
       summary: createNodesSingleMigrateall
       description: Migrate all VMs and Containers.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleMigrateallResponse'
@@ -6653,14 +6102,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateNodesSingleMigrateallRequest'
   '/nodes/{node}/hosts':
+    parameters:
+      - $ref: "#/components/parameters/Node"
     get:
       operationId: getNodesSingleHosts
       summary: getNodesSingleHosts
       description: Get the content of /etc/hosts.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/GetNodesSingleHostsResponse'
@@ -6670,8 +6119,6 @@ paths:
       description: Write /etc/hosts.
       tags:
         - nodes
-      parameters:
-        - $ref: "#/components/parameters/Node"
       responses:
         '200':
           $ref: '#/components/responses/CreateNodesSingleHostsResponse'
@@ -6687,7 +6134,6 @@ paths:
       description: Storage index.
       tags:
         - storage
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetStorageResponse'
@@ -6697,7 +6143,6 @@ paths:
       description: Create a new storage.
       tags:
         - storage
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateStorageResponse'
@@ -6707,19 +6152,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateStorageRequest'
   '/storage/{storage}':
+    parameters:
+      - $ref: "#/components/parameters/Storage"
     delete:
       operationId: deleteStorageSingle
       summary: deleteStorageSingle
       description: Delete storage configuration.
       tags:
         - storage
-      parameters:
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteStorageSingleResponse'
@@ -6729,13 +6169,6 @@ paths:
       description: Read storage configuration.
       tags:
         - storage
-      parameters:
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetStorageSingleResponse'
@@ -6745,13 +6178,6 @@ paths:
       description: Update storage configuration.
       tags:
         - storage
-      parameters:
-        - name: storage
-          in: path
-          required: true
-          description: storage
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateStorageSingleResponse'
@@ -6767,7 +6193,6 @@ paths:
       description: Directory index.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessResponse'
@@ -6778,7 +6203,6 @@ paths:
       description: User index.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessUsersResponse'
@@ -6788,7 +6212,6 @@ paths:
       description: Create new user.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessUsersResponse'
@@ -6798,19 +6221,14 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateAccessUsersRequest'
   '/access/users/{userid}':
+    parameters:
+      - $ref: "#/components/parameters/User"
     delete:
       operationId: deleteAccessUsersSingle
       summary: deleteAccessUsersSingle
       description: Delete user.
       tags:
         - access
-      parameters:
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteAccessUsersSingleResponse'
@@ -6820,13 +6238,6 @@ paths:
       description: Get user configuration.
       tags:
         - access
-      parameters:
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessUsersSingleResponse'
@@ -6836,13 +6247,6 @@ paths:
       description: Update user configuration.
       tags:
         - access
-      parameters:
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessUsersSingleResponse'
@@ -6852,59 +6256,44 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateAccessUsersSingleRequest'
   '/access/users/{userid}/tfa':
+    parameters:
+      - $ref: "#/components/parameters/User"
     get:
       operationId: getAccessUsersSingleTfa
       summary: getAccessUsersSingleTfa
       description: Get user TFA types (Personal and Realm).
       tags:
         - access
-      parameters:
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessUsersSingleTfaResponse'
   '/access/users/{userid}/token':
+    parameters:
+      - $ref: "#/components/parameters/User"
     get:
       operationId: getAccessUsersSingleToken
       summary: getAccessUsersSingleToken
       description: Get user API tokens.
       tags:
         - access
-      parameters:
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessUsersSingleTokenResponse'
   '/access/users/{userid}/token/{tokenid}':
+    parameters:
+      - name: tokenid
+        in: path
+        required: true
+        description: tokenid
+        schema:
+          type: string
+      - $ref: "#/components/parameters/User"
     delete:
       operationId: deleteAccessUsersSingleTokenSingle
       summary: deleteAccessUsersSingleTokenSingle
       description: Remove API token for a specific user.
       tags:
         - access
-      parameters:
-        - name: tokenid
-          in: path
-          required: true
-          description: tokenid
-          schema:
-            type: string
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteAccessUsersSingleTokenSingleResponse'
@@ -6914,19 +6303,6 @@ paths:
       description: Get specific API token information.
       tags:
         - access
-      parameters:
-        - name: tokenid
-          in: path
-          required: true
-          description: tokenid
-          schema:
-            type: string
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessUsersSingleTokenSingleResponse'
@@ -6938,19 +6314,6 @@ paths:
         value, which needs to be stored as it cannot be retrieved afterwards!
       tags:
         - access
-      parameters:
-        - name: tokenid
-          in: path
-          required: true
-          description: tokenid
-          schema:
-            type: string
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessUsersSingleTokenSingleResponse'
@@ -6965,19 +6328,6 @@ paths:
       description: Update API token for a specific user.
       tags:
         - access
-      parameters:
-        - name: tokenid
-          in: path
-          required: true
-          description: tokenid
-          schema:
-            type: string
-        - name: userid
-          in: path
-          required: true
-          description: userid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessUsersSingleTokenSingleResponse'
@@ -6993,7 +6343,6 @@ paths:
       description: Group index.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessGroupsResponse'
@@ -7003,7 +6352,6 @@ paths:
       description: Create new group.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessGroupsResponse'
@@ -7013,19 +6361,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateAccessGroupsRequest'
   '/access/groups/{groupid}':
+    parameters:
+      - name: groupid
+        in: path
+        required: true
+        description: groupid
+        schema:
+          type: string
     delete:
       operationId: deleteAccessGroupsSingle
       summary: deleteAccessGroupsSingle
       description: Delete group.
       tags:
         - access
-      parameters:
-        - name: groupid
-          in: path
-          required: true
-          description: groupid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteAccessGroupsSingleResponse'
@@ -7035,13 +6383,6 @@ paths:
       description: Get group configuration.
       tags:
         - access
-      parameters:
-        - name: groupid
-          in: path
-          required: true
-          description: groupid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessGroupsSingleResponse'
@@ -7051,13 +6392,6 @@ paths:
       description: Update group data.
       tags:
         - access
-      parameters:
-        - name: groupid
-          in: path
-          required: true
-          description: groupid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessGroupsSingleResponse'
@@ -7073,7 +6407,6 @@ paths:
       description: Role index.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessRolesResponse'
@@ -7083,7 +6416,6 @@ paths:
       description: Create new role.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessRolesResponse'
@@ -7093,19 +6425,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateAccessRolesRequest'
   '/access/roles/{roleid}':
+    parameters:
+      - name: roleid
+        in: path
+        required: true
+        description: roleid
+        schema:
+          type: string
     delete:
       operationId: deleteAccessRolesSingle
       summary: deleteAccessRolesSingle
       description: Delete role.
       tags:
         - access
-      parameters:
-        - name: roleid
-          in: path
-          required: true
-          description: roleid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeleteAccessRolesSingleResponse'
@@ -7115,13 +6447,6 @@ paths:
       description: Get role configuration.
       tags:
         - access
-      parameters:
-        - name: roleid
-          in: path
-          required: true
-          description: roleid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetAccessRolesSingleResponse'
@@ -7131,13 +6456,6 @@ paths:
       description: Update an existing role.
       tags:
         - access
-      parameters:
-        - name: roleid
-          in: path
-          required: true
-          description: roleid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessRolesSingleResponse'
@@ -7153,7 +6471,6 @@ paths:
       description: Get Access Control List (ACLs).
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessAclResponse'
@@ -7163,7 +6480,6 @@ paths:
       description: Update Access Control List (add or remove permissions).
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessAclResponse'
@@ -7179,7 +6495,6 @@ paths:
       description: Authentication domain index.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessDomainsResponse'
@@ -7189,7 +6504,6 @@ paths:
       description: Add an authentication server.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessDomainsResponse'
@@ -7200,12 +6514,7 @@ paths:
               $ref: '#/components/schemas/CreateAccessDomainsRequest'
   '/access/domains/{realm}':
     parameters:
-      - name: realm
-        in: path
-        required: true
-        description: realm
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Realm"
 
     delete:
       operationId: deleteAccessDomainsSingle
@@ -7241,12 +6550,7 @@ paths:
               $ref: '#/components/schemas/UpdateAccessDomainsSingleRequest'
   '/access/domains/{realm}/sync':
     parameters:
-      - name: realm
-        in: path
-        required: true
-        description: realm
-        schema:
-          type: string
+      - $ref: "#/components/parameters/Realm"
     post:
       operationId: createAccessDomainsSingleSync
       summary: createAccessDomainsSingleSync
@@ -7271,7 +6575,6 @@ paths:
       description: Dummy. Useful for formatters which want to provide a login page.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessTicketResponse'
@@ -7281,7 +6584,6 @@ paths:
       description: Create or verify authentication ticket.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessTicketResponse'
@@ -7297,7 +6599,6 @@ paths:
       description: Change user password.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessPasswordResponse'
@@ -7313,7 +6614,6 @@ paths:
       description: Finish a u2f challenge.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreateAccessTfaResponse'
@@ -7328,7 +6628,6 @@ paths:
       description: Change user u2f authentication.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/UpdateAccessTfaResponse'
@@ -7344,7 +6643,6 @@ paths:
       description: Retrieve effective permissions of given user/token.
       tags:
         - access
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetAccessPermissionsResponse'
@@ -7355,7 +6653,6 @@ paths:
       description: Pool index.
       tags:
         - pools
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetPoolsResponse'
@@ -7365,7 +6662,6 @@ paths:
       description: Create new pool.
       tags:
         - pools
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/CreatePoolResponse'
@@ -7375,19 +6671,19 @@ paths:
             schema:
               $ref: '#/components/schemas/CreatePoolRequest'
   '/pools/{poolid}':
+    parameters:
+      - name: poolid
+        in: path
+        required: true
+        description: poolid
+        schema:
+          type: string
     delete:
       operationId: deletePool
       summary: deletePool
       description: Delete pool.
       tags:
         - pools
-      parameters:
-        - name: poolid
-          in: path
-          required: true
-          description: poolid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/DeletePoolResponse'
@@ -7397,13 +6693,6 @@ paths:
       description: Get pool configuration.
       tags:
         - pools
-      parameters:
-        - name: poolid
-          in: path
-          required: true
-          description: poolid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/GetPoolResponse'
@@ -7413,13 +6702,6 @@ paths:
       description: Update pool data.
       tags:
         - pools
-      parameters:
-        - name: poolid
-          in: path
-          required: true
-          description: poolid
-          schema:
-            type: string
       responses:
         '200':
           $ref: '#/components/responses/UpdatePoolResponse'
@@ -7437,7 +6719,6 @@ paths:
         confguration.
       tags:
         - version
-      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/GetVersionResponse'
@@ -13732,6 +13013,27 @@ components:
         vms:
           type: string
   parameters:
+    CIDR:
+      name: cidr
+      in: path
+      required: true
+      description: cidr
+      schema:
+        type: string
+    Name:
+      name: name
+      in: path
+      required: true
+      description: name
+      schema:
+        type: string
+    Node:
+      name: node
+      in: path
+      required: true
+      description: node
+      schema:
+        type: string
     VMId:
       name: vmid
       in: path
@@ -13739,11 +13041,32 @@ components:
       description: vmid
       schema:
         type: integer
-    Node:
-      name: node
+    OSDId:
+      name: osdid
       in: path
       required: true
-      description: node
+      description: osdid
+      schema:
+        type: integer
+    Realm:
+      name: realm
+      in: path
+      required: true
+      description: realm
+      schema:
+        type: string
+    Storage:
+      name: storage
+      in: path
+      required: true
+      description: storage
+      schema:
+        type: string
+    User:
+      name: userid
+      in: path
+      required: true
+      description: userid
       schema:
         type: string
   responses:
