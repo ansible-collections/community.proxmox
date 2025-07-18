@@ -150,10 +150,10 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
 
         # Normalize input SIDs to version without : in them
         if ':' in sid:
-            sid = sid.split(':')[1]
+            sid = sid.partition(':')[2]
 
         for resource in resources:
-            if resource["sid"].split(':')[1] != sid:
+            if resource["sid"].partition(':')[2] != sid:
                 continue
 
             # Compare all keys in the desired state against current state
