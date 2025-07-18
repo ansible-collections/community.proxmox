@@ -27935,28 +27935,21 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              errors:
-                type: array
-                items:
+            type: array
+            description: ''
+            items:
+              type: object
+              description: ''
+              properties:
+                comment:
                   type: string
-              data:
-                type: array
-                description: ''
-                items:
-                  type: object
                   description: ''
-                  properties:
-                    comment:
-                      type: string
-                      description: ''
-                    groupid:
-                      type: string
-                      description: ''
-                    users:
-                      type: string
-                      description: list of users which form this group
+                groupid:
+                  type: string
+                  description: ''
+                users:
+                  type: string
+                  description: list of users which form this group
     CreateAccessGroupsResponse:
       description: CreateAccessGroupsResponse
       content:
@@ -28217,34 +28210,32 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              errors:
-                type: array
-                items:
-                  type: string
-              data:
-                type: array
-                description: ''
-                items:
-                  type: object
-                  description: ''
-                  properties:
-                    path:
-                      type: string
-                      description: Access control path
-                    propagate:
-                      type: integer
-                      description: Allow to propagate (inherit) permissions.
-                    roleid:
-                      type: string
-                      description: ''
-                    type:
-                      type: string
-                      description: ''
-                    ugid:
-                      type: string
-                      description: ''
+            type: array
+            description: ''
+            items:
+              $ref: "#/components/responses/AccessAcl"
+
+    AccessAcl:
+      type: object
+      description: ''
+      properties:
+        path:
+          type: string
+          description: Access control path
+        propagate:
+          type: integer
+          description: Allow to propagate (inherit) permissions.
+        roleid:
+          type: string
+          description: ''
+        type:
+          type: string
+          description: ''
+        ugid:
+          type: string
+          description: ''
+
+
     UpdateAccessAclResponse:
       description: UpdateAccessAclResponse
       content:
@@ -28467,22 +28458,15 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              errors:
-                type: array
-                items:
+            type: array
+            description: ''
+            items:
+              type: object
+              description: ''
+              properties:
+                poolid:
                   type: string
-              data:
-                type: array
-                description: ''
-                items:
-                  type: object
                   description: ''
-                  properties:
-                    poolid:
-                      type: string
-                      description: ''
     CreatePoolResponse:
       description: CreatePoolResponse
       content:
