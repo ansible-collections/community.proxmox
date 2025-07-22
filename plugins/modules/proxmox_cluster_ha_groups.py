@@ -43,7 +43,8 @@ options:
         description: |
             List of cluster node members, where a priority can be given to each node. A resource bound to a group will run on the available nodes with the
             highest priority. If there are more nodes in the highest priority class, the services will get distributed to those nodes. The priorities have a
-            relative meaning only. The higher the number, the higher the priority. It can either be a string O(node_name:priority,node_name:priority) or an actual list of strings.
+            relative meaning only. The higher the number, the higher the priority.
+            It can either be a string C(node_name:priority,node_name:priority) or an actual list of strings.
         required: false
         type: list
         elements: str
@@ -129,7 +130,7 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
                 continue
 
             group["nodes"] = sorted(
-                    group.get("nodes", "").split(",")
+                group.get("nodes", "").split(",")
             )
 
             if (
