@@ -148,13 +148,16 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
             "state": state,
         }
 
+        # Normalize input SIDs to version without : in them
+        if ':' in sid:
+            sid = sid.partition(':')[2]
+
         for resource in resources:
-            if resource["sid"] != sid:
+            if resource["sid"].partition(':')[2] != sid:
                 continue
 
-            if ((resource.get("comment", ""), resource.get("group", ""), resource.get("max_relocate", 1),
-                 resource.get("max_restart", 1), resource["state"]) ==
-                    (comment, group, max_relocate, max_restart, state)):
+            # Compare all keys in the desired state against current state
+            if all(resource.get(k) == v for k, v in data.items()):
                 return False
             else:
                 self._put(sid, data)
