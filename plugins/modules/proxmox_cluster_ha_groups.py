@@ -144,6 +144,7 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
                 return True
 
         self._post(group=name, **data)
+        return True
 
     def delete(self, groups, name):
         for group in groups:
