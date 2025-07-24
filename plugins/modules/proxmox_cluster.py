@@ -36,6 +36,12 @@ options:
       - The IP address of the cluster master when joining the cluster.
     type: str
     required: false
+  master_api_password:
+    description:
+      - Specify the password to authenticate with the master node.
+      - Uses the api_password parameter if not specified.
+    type: str
+    required: false
   fingerprint:
     description:
       - The fingerprint of the cluster master when joining the cluster.
@@ -127,7 +133,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
     def cluster_join(self):
         master_ip = self.module.params.get("master_ip")
         fingerprint = self.module.params.get("fingerprint")
-        api_password = self.module.params.get("api_password")
+        api_password = self.module.params.get("master_api_password") or self.module.params.get("api_password")
         cluster_name = self.module.params.get("cluster_name")
         is_in_cluster = True
 
@@ -180,6 +186,7 @@ def main():
         link0=dict(type='str'),
         link1=dict(type='str'),
         master_ip=dict(type='str'),
+        master_api_password=dict(type='str', no_log=True),
         fingerprint=dict(type='str'),
     )
     module_args.update(cluster_args)
