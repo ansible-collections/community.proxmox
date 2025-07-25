@@ -84,6 +84,16 @@ EXAMPLES = r"""
     master_ip: "{{ primary_node }}"
     fingerprint: "{{ cluster_fingerprint }}"
     cluster_name: "devcluster"
+
+- name: Join a Proxmox VE Cluster with different API password
+    community.proxmox.proxmox_cluster:
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: {{ joining_node_api_password }}
+    master_api_password: {{ master_node_api_password }}
+    master_ip: "{{ primary_node }}"
+    fingerprint: "{{ cluster_fingerprint }}"
+    cluster_name: "devcluster"
 """
 
 RETURN = r"""
