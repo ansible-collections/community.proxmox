@@ -336,7 +336,7 @@ def main():
                 module.exit_json(changed=True, msg='template with volid=%s:%s/%s uploaded' % (storage, content_type, template))
         elif not src:
             if not template:
-              template = os.path.basename(urlparse(url).path)
+                template = os.path.basename(urlparse(url).path)
 
             if proxmox.has_template(node, storage, content_type, template):
                 if not module.params['force']:
