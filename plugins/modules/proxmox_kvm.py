@@ -345,6 +345,12 @@ options:
     description:
       - Enable/disable the protection flag of the VM. This will enable/disable the remove VM and remove disk operations.
     type: bool
+  purge:
+    description:
+      - Remove VMID from configurations, like backup & replication jobs and HA.
+      - Used with state C(absent).
+    type: bool
+    default: false
   reboot:
     description:
       - Allow reboot. If set to V(true), the VM exit on reboot.
@@ -1273,6 +1279,7 @@ def main():
         parallel=dict(type='dict'),
         pool=dict(type='str'),
         protection=dict(type='bool'),
+        purge=dict(type='bool', default=False),
         reboot=dict(type='bool'),
         revert=dict(type='str'),
         rng0=dict(type='str'),
@@ -1589,7 +1596,11 @@ def main():
                     proxmox.stop_vm(vm, True, timeout=module.params['timeout'])
                 else:
                     module.exit_json(changed=False, vmid=vmid, msg="VM %s is running. Stop it before deletion or use force=true." % vmid)
-            taskid = proxmox_node.qemu.delete(vmid)
+
+            delete_params = {}
+            if module.params['purge']:
+                delete_params['purge'] = 1
+            taskid = proxmox_node.qemu.delete(vmid, **delete_params)
             if not proxmox.wait_for_task(vm['node'], taskid):
                 module.fail_json(msg='Reached timeout while waiting for removing VM. Last line in task before timeout: %s' %
                                  proxmox_node.tasks(taskid).log.get()[:1])
