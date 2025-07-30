@@ -44,8 +44,10 @@ options:
             List of cluster node members, where a priority can be given to each node. A resource bound to a group will run on the available nodes with the
             highest priority. If there are more nodes in the highest priority class, the services will get distributed to those nodes. The priorities have a
             relative meaning only. The higher the number, the higher the priority.
+            It can either be a string C(node_name:priority,node_name:priority) or an actual list of strings.
         required: false
-        type: str
+        type: list
+        elements: str
     nofailback:
         description: |
             The CRM tries to run services on the node with the highest priority. If a node with higher priority comes online, the CRM migrates the service to
@@ -118,7 +120,7 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
     def create(self, groups, name, comment, nodes, nofailback, restricted):
         data = {
             "comment": comment,
-            "nodes": nodes,
+            "nodes": ",".join(nodes),
             "nofailback": int(nofailback),
             "restricted": int(restricted)
         }
@@ -126,6 +128,10 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
         for group in groups:
             if group["group"] != name:
                 continue
+
+            group["nodes"] = sorted(
+                group.get("nodes", "").split(",")
+            )
 
             if (
                 group.get("comment", ""),
@@ -139,6 +145,7 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
                 return True
 
         self._post(group=name, **data)
+        return True
 
     def delete(self, groups, name):
         for group in groups:
@@ -157,7 +164,7 @@ def run_module():
         state=dict(choices=['present', 'absent'], required=True),
         name=dict(type='str', required=True),
         comment=dict(type='str', required=False),
-        nodes=dict(type='str', required=False),
+        nodes=dict(type='list', elements='str', required=False),
         nofailback=dict(type='bool', default=False),
         restricted=dict(type='bool', default=False),
     )
@@ -177,7 +184,7 @@ def run_module():
 
     name = module.params['name']
     comment = module.params['comment']
-    nodes = module.params['nodes']
+    nodes = sorted(module.params['nodes'])
     nofailback = module.params['nofailback']
     restricted = module.params['restricted']
     try:
