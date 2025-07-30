@@ -225,12 +225,12 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg="Uploading template %s failed with error: %s" % (realpath, e))
 
-    def fetch_template(self, node, storage, content_type, url, timeout):
+    def fetch_template(self, node, storage, content_type, url, timeout, template):
         """Fetch a template from a web url source using the proxmox download-url endpoint
         """
         try:
             taskid = self.proxmox_api.nodes(node).storage(storage)("download-url").post(
-                url=url, content=content_type, filename=os.path.basename(url)
+                url=url, content=content_type, filename=template
             )
             return self.task_status(node, taskid, timeout)
         except Exception as e:
@@ -256,13 +256,13 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             time.sleep(1)
         return False
 
-    def fetch_and_verify(self, node, storage, url, content_type, timeout, checksum, checksum_algorithm):
+    def fetch_and_verify(self, node, storage, url, content_type, timeout, checksum, checksum_algorithm, template):
         """ Fetch a template from a web url, then verify it using a checksum.
         """
         data = {
             'url': url,
             'content': content_type,
-            'filename': os.path.basename(url),
+            'filename': template,
             'checksum': checksum,
             'checksum-algorithm': checksum_algorithm}
         try:
@@ -310,11 +310,10 @@ def main():
         content_type = module.params['content_type']
         src = module.params['src']
         url = module.params['url']
+        template = module.params['template']
 
         # download appliance template
         if content_type == 'vztmpl' and not (src or url):
-            template = module.params['template']
-
             if not template:
                 module.fail_json(msg='template param for downloading appliance template is mandatory')
 
@@ -336,7 +335,9 @@ def main():
             if proxmox.upload_template(node, storage, content_type, src, timeout):
                 module.exit_json(changed=True, msg='template with volid=%s:%s/%s uploaded' % (storage, content_type, template))
         elif not src:
-            template = os.path.basename(urlparse(url).path)
+            if not template:
+                template = os.path.basename(urlparse(url).path)
+
             if proxmox.has_template(node, storage, content_type, template):
                 if not module.params['force']:
                     module.exit_json(changed=False, msg='template with volid=%s:%s/%s already exists' % (storage, content_type, template))
@@ -344,9 +345,9 @@ def main():
                     module.fail_json(changed=False, msg='failed to delete template with volid=%s:%s/%s' % (storage, content_type, template))
 
             if checksum:
-                if proxmox.fetch_and_verify(node, storage, url, content_type, timeout, checksum, checksum_algorithm):
+                if proxmox.fetch_and_verify(node, storage, url, content_type, timeout, checksum, checksum_algorithm, template):
                     module.exit_json(changed=True, msg="Checksum verified, template with volid=%s:%s/%s uploaded" % (storage, content_type, template))
-            if proxmox.fetch_template(node, storage, content_type, url, timeout):
+            if proxmox.fetch_template(node, storage, content_type, url, timeout, template):
                 module.exit_json(changed=True, msg='template with volid=%s:%s/%s uploaded' % (storage, content_type, template))
 
     elif state == 'absent':
