@@ -1480,6 +1480,7 @@ def main():
                               sshkeys=module.params['sshkeys'],
                               startdate=module.params['startdate'],
                               startup=module.params['startup'],
+                              storage=module.params['storage'],
                               tablet=module.params['tablet'],
                               tags=module.params['tags'],
                               target=module.params['target'],
