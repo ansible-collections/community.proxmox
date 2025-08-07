@@ -461,6 +461,7 @@ options:
   storage:
     description:
       - Target storage for full clone.
+      - If restoring from archive, target storage for all disks. If omitted, storage location embedded inside archive will be used.
     type: str
   tablet:
     description:
