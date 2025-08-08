@@ -17,7 +17,7 @@ description:
   - Create or delete a user for Proxmox VE clusters.
 author:
   - Jeffrey van Pelt (@Thulium-Drake)
-  - Kevin Quick
+  - Kevin Quick (@kevinquick)
 version_added: "1.2.0"
 attributes:
   check_mode:
