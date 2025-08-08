@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
+# Copyright (c) 2025, Kevin Quick <kevin@overwrite.io>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
+# SPDX-FileCopyrightText: (c) 2025, Kevin Quick <kevin@overwrite.io>
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -13,7 +15,9 @@ module: proxmox_user
 short_description: User management for Proxmox VE cluster
 description:
   - Create or delete a user for Proxmox VE clusters.
-author: "Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>"
+author:
+  - Jeffrey van Pelt (@Thulium-Drake)
+  - Kevin Quick (@kevinquick)
 version_added: "1.2.0"
 attributes:
   check_mode:
@@ -123,7 +127,8 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec, ProxmoxAnsible)
 
 
 class ProxmoxUserAnsible(ProxmoxAnsible):
@@ -132,18 +137,39 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         """Check whether user already exist
 
         :param userid: str - name of the user
-        :return: bool - is user exists?
+        :return: dict|bool - user data if exists, False otherwise
         """
         try:
-            users = self.proxmox_api.access.users.get()
-            for user in users:
-                if user['userid'] == userid:
-                    return user
-            return False
+            user_data = self.proxmox_api.access.users(userid).get()
+            return user_data
         except Exception as e:
-            self.module.fail_json(msg="Unable to retrieve users: {0}".format(e))
+            if "does not exist" in str(e).lower() or "not found" in str(e).lower():
+                return False
+            else:
+                self.module.fail_json(msg="Unable to retrieve user {0}: {1}".format(userid, e))
 
-    def create_update_user(self, userid, comment=None, email=None, enable=True, expire=0, firstname=None, groups=None, password=None, keys=None, lastname=None):
+    def _user_needs_update(self, existing_user, comment, email, enable, expire, firstname, lastname, groups, keys):
+        """Check if user needs updating by comparing current vs desired state"""
+        # Check standard fields
+        fields = [('comment', comment, ''), ('email', email, ''), ('enable', enable, 1),
+                  ('expire', expire, 0), ('firstname', firstname, ''),
+                  ('lastname', lastname, ''), ('keys', keys, '')]
+
+        for field, new_value, default in fields:
+            if new_value is not None and existing_user.get(field, default) != new_value:
+                return True
+
+        # Check groups (API returns list, we send comma-separated string)
+        if groups is not None:
+            existing_groups_str = ','.join(existing_user.get('groups', []))
+            if existing_groups_str != groups:
+                return True
+
+        return False
+
+    def create_update_user(self, userid, comment=None, email=None, enable=True, expire=0,
+                           firstname=None, groups=None, password=None, keys=None,
+                           lastname=None):
         """Create or update Proxmox VE user
 
         :param userid: str - name of the user
@@ -158,30 +184,33 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         :param lastname: str, optional - Lastname of the user
         :return: None
         """
-
         # Translate input to make API happy
         enable = int(enable)
-        groups = ','.join(groups)
-
-        if self.is_user_existing(userid):
+        groups = ','.join(groups) if groups else None
+        existing_user = self.is_user_existing(userid)
+        if existing_user:
+            needs_update = self._user_needs_update(existing_user, comment, email, enable, expire,
+                                                   firstname, lastname, groups, keys)
+            if not needs_update and not password:
+                self.module.exit_json(changed=False, userid=userid, msg="User {0} already up to date".format(userid))
             if self.module.check_mode:
-                self.module.exit_json(changed=False, userid=userid, msg="Would update {0} (check mode)".format(userid))
+                self.module.exit_json(changed=needs_update or bool(password), userid=userid,
+                                      msg="Would update {0} (check mode)".format(userid))
 
-            # Update the user details
-            try:
-                self.proxmox_api.access.users(userid).put(comment=comment,
-                                                          email=email,
-                                                          enable=enable,
-                                                          expire=expire,
-                                                          firstname=firstname,
-                                                          groups=groups,
-                                                          keys=keys,
-                                                          lastname=lastname)
-
-                self.module.exit_json(changed=True, userid=userid, msg="User {0} updated".format(userid))
-
-            except Exception as e:
-                self.module.fail_json(changed=False, userid=userid, msg="Failed to update user with ID {0}: {1}".format(userid, e))
+            if needs_update:
+                try:
+                    # Build update parameters - only include non-None values
+                    update_params = {'enable': enable}
+                    for field, value in [('comment', comment), ('email', email), ('expire', expire),
+                                         ('firstname', firstname), ('lastname', lastname),
+                                         ('groups', groups), ('keys', keys)]:
+                        if value is not None:
+                            update_params[field] = value
+                    self.proxmox_api.access.users(userid).put(**update_params)
+                    self.module.exit_json(changed=True, userid=userid, msg="User {0} updated".format(userid))
+                except Exception as e:
+                    self.module.fail_json(changed=False, userid=userid,
+                                          msg="Failed to update user with ID {0}: {1}".format(userid, e))
 
             # We have no way of testing if the user's password needs to be changed
             # so, if it's provided we will update it anyway
@@ -190,10 +219,11 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     self.proxmox_api.access.password.put(userid=userid, password=password)
                     self.module.exit_json(changed=True, userid=userid, msg="User {0} updated".format(userid))
                 except Exception as e:
-                    self.module.fail_json(changed=False, userid=userid, msg="Failed to update user password for user ID {0}: {1}".format(userid, e))
+                    self.module.fail_json(changed=False, userid=userid,
+                                          msg="Failed to update user password for user ID {0}: {1}".format(userid, e))
 
         if self.module.check_mode:
-            self.module.exit_json(changed=True, userid=userid, msg="Would update user {0} (check mode)".format(userid))
+            self.module.exit_json(changed=True, userid=userid, msg="Would create user {0} (check mode)".format(userid))
 
         # if the user is new, post it to the API
         try:
@@ -221,7 +251,8 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=False, userid=userid, msg="User {0} doesn't exist".format(userid))
 
         if self.module.check_mode:
-            self.module.exit_json(changed=False, userid=userid, msg="Would deleted user with ID {0} (check mode)".format(userid))
+            self.module.exit_json(changed=False, userid=userid,
+                                  msg="Would deleted user with ID {0} (check mode)".format(userid))
 
         try:
             self.proxmox_api.access.users(userid).delete()
@@ -269,12 +300,15 @@ def main():
 
     proxmox = ProxmoxUserAnsible(module)
 
+    # Convert empty strings to None for proper comparison
+    for param in ['comment', 'email', 'firstname', 'lastname', 'keys']:
+        if locals()[param] == "":
+            locals()[param] = None
+
     if state == "present":
         proxmox.create_update_user(userid, comment, email, enable, expire, firstname, groups, password, keys, lastname)
-        module.exit_json(changed=True, userid=userid, msg="User {0} successfully created".format(userid))
     else:
         proxmox.delete_user(userid)
-        module.exit_json(changed=True, userid=userid, msg="User {0} successfully deleted".format(userid))
 
 
 if __name__ == "__main__":
