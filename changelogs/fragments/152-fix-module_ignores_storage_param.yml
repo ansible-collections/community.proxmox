@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - proxmox_kvm - Add missing 'storage' parameter to create_vm()-call.

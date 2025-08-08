@@ -461,6 +461,7 @@ options:
   storage:
     description:
       - Target storage for full clone.
+      - If restoring from archive, target storage for all disks. If omitted, storage location embedded inside archive will be used.
     type: str
   tablet:
     description:
@@ -1480,6 +1481,7 @@ def main():
                               sshkeys=module.params['sshkeys'],
                               startdate=module.params['startdate'],
                               startup=module.params['startup'],
+                              storage=module.params['storage'],
                               tablet=module.params['tablet'],
                               tags=module.params['tags'],
                               target=module.params['target'],
