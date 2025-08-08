@@ -81,7 +81,7 @@ class ProxmoxAnsible(object):
         if not HAS_PROXMOXER:
             module.fail_json(msg=missing_required_lib('proxmoxer'), exception=PROXMOXER_IMP_ERR)
         if proxmoxer_version < LooseVersion('2.0'):
-            self.module.fail_json(f'Requires proxmoxer 2.0 or newer; found version {proxmoxer_version}')
+            module.fail_json(f'Requires proxmoxer 2.0 or newer; found version {proxmoxer_version}')
 
         self.module = module
         self.proxmoxer_version = proxmoxer_version
