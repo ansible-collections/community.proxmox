@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
+# Copyright (c) 2025, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # Copyright (c) 2025, Kevin Quick <kevin@overwrite.io>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-FileCopyrightText: (c) 2025, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # SPDX-FileCopyrightText: (c) 2025, Kevin Quick <kevin@overwrite.io>
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import (absolute_import, division, print_function)
@@ -14,7 +16,8 @@ short_description: User management for Proxmox VE cluster
 description:
   - Create or delete a user for Proxmox VE clusters.
 author:
-  - "Kevin Quick <kevin@overwrite.io>"
+  - Jeffrey van Pelt (@Thulium-Drake)
+  - Kevin Quick
 version_added: "1.2.0"
 attributes:
   check_mode:
