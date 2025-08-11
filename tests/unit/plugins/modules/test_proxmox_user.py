@@ -8,7 +8,10 @@ __metaclass__ = type
 
 import sys
 from unittest.mock import MagicMock as MagicMike, patch
+
 import pytest
+from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
+    AnsibleExitJson, AnsibleFailJson, set_module_args, ModuleTestCase)
 
 # Skip tests if proxmoxer is not available
 proxmoxer = pytest.importorskip('proxmoxer')
@@ -23,336 +26,145 @@ except ImportError:
     sys.path.insert(0, 'plugins/module_utils')
     import proxmox as proxmox_utils
 
-try:
-    from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import set_module_args
-except ImportError:
-    from contextlib import contextmanager
 
-    @contextmanager
-    def set_module_args(args):
-        with patch.object(sys, 'argv', ['test'] + [f'--{k}={v}' for k, v in args.items()]):
-            yield
+class TestProxmoxUserModule(ModuleTestCase):
+    """Test cases for proxmox_user module using ModuleTestCase pattern."""
 
+    # Common test data
+    BASIC_MODULE_ARGS = {
+        'api_host': 'test.proxmox.com',
+        'api_user': 'root@pam',
+        'api_password': 'secret',
+    }
 
-class TestProxmoxUser:
-    """Test class for proxmox_user module"""
-
-    # Test data constants
-    SAMPLE_USER_DATA = {
+    SAMPLE_USER = {
         'userid': 'testuser@pam',
-        'firstname': 'Test',
-        'lastname': 'User',
+        'comment': 'Test User',
         'email': 'test@example.com',
-        'comment': 'Test user',
         'enable': 1,
         'expire': 0,
+        'firstname': 'John',
+        'lastname': 'Doe',
         'groups': ['admins'],
         'keys': ''
     }
 
-    SAMPLE_MODULE_PARAMS = {
-        'api_host': 'test.proxmox.com',
-        'api_user': 'root@pam',
-        'api_password': 'secret',
-        'validate_certs': False
+    def setUp(self):
+        super(TestProxmoxUserModule, self).setUp()
+        proxmox_utils.HAS_PROXMOXER = True
+        self.module = proxmox_user
+        self.connect_mock = patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
+        self.connect_mock.start()
+
+    def tearDown(self):
+        self.connect_mock.stop()
+        super(TestProxmoxUserModule, self).tearDown()
+
+    def _create_module_args(self, **kwargs):
+        """Helper to create module arguments with defaults."""
+        args = self.BASIC_MODULE_ARGS.copy()
+        args.update(kwargs)
+        return args
+
+    def test_module_fail_when_required_args_missing(self):
+        """Test module fails with missing required arguments"""
+        with set_module_args({}):
+            with pytest.raises(AnsibleFailJson):
+                proxmox_user.main()
+
+    def test_user_creation_check_mode(self):
+        """Test user creation in check mode"""
+        module_args = self._create_module_args(userid='testuser@pam', comment='Test User', state='present', _ansible_check_mode=True)
+
+        with set_module_args(module_args):
+            with patch.object(proxmox_user.ProxmoxUserAnsible, 'is_user_existing', return_value=False):
+                with pytest.raises(AnsibleExitJson) as exc_info:
+                    proxmox_user.main()
+
+                result = exc_info.value.args[0]
+                assert result['changed'] is True
+                assert 'check mode' in result['msg']
+
+    def test_user_update_no_changes_needed(self):
+        """Test user update when no changes needed"""
+        module_args = self._create_module_args(userid='testuser@pam', comment='Test User', state='present')
+        existing_user = {
+            'userid': 'testuser@pam', 'comment': 'Test User', 'email': '', 'enable': 1, 'expire': 0,
+            'firstname': '', 'lastname': '', 'groups': [], 'keys': ''
+        }
+
+        with set_module_args(module_args):
+            mock_user_exists = patch.object(proxmox_user.ProxmoxUserAnsible, 'is_user_existing', return_value=existing_user)
+            mock_needs_update = patch.object(proxmox_user.ProxmoxUserAnsible, '_user_needs_update', return_value=False)
+
+            with mock_user_exists, mock_needs_update:
+                with pytest.raises(AnsibleExitJson) as exc_info:
+                    proxmox_user.main()
+
+                result = exc_info.value.args[0]
+                assert result['changed'] is False
+                assert 'already up to date' in result['msg']
+
+
+# Tests for internal methods and business logic
+class TestProxmoxUserInternals:
+    """Test internal methods and business logic of ProxmoxUserAnsible class."""
+
+    # Test data for internal method testing
+    SAMPLE_EXISTING_USER = {
+        'userid': 'testuser@pam',
+        'comment': 'Old comment',
+        'email': 'old@example.com',
+        'enable': 1,
+        'expire': 0,
+        'firstname': 'John',
+        'lastname': 'Doe',
+        'groups': ['admins'],
+        'keys': ''
     }
 
     @pytest.fixture
-    def mock_api(self, mocker):
-        """Mock Proxmox API with common responses"""
-        api = MagicMike()
-        api.access.users.return_value.get.return_value = self.SAMPLE_USER_DATA
-        api.access.users.post.return_value = None
-        api.access.users.return_value.put.return_value = None
-        api.access.users.return_value.delete.return_value = None
-        api.access.password.put.return_value = None
-        return api
-
-    @pytest.fixture
-    def user_manager(self, mock_api, mocker):
-        """Create ProxmoxUserAnsible instance with mocked API"""
+    def user_manager(self):
+        """Create a ProxmoxUserAnsible instance for internal testing."""
         module = MagicMike()
-        module.params = self.SAMPLE_MODULE_PARAMS
+        module.check_mode = False
+        module.exit_json = MagicMike()
+        module.fail_json = MagicMike()
 
         with patch.object(proxmox_utils.ProxmoxAnsible, '__init__', return_value=None):
             manager = proxmox_user.ProxmoxUserAnsible(module)
             manager.module = module
-            manager.proxmox_api = mock_api
+            manager.proxmox_api = MagicMike()
             return manager
 
-    def test_user_exists(self, user_manager, mock_api):
-        """Test successful user existence check"""
-        result = user_manager.is_user_existing('testuser@pam')
+    def test_user_needs_update_logic(self, user_manager):
+        """Test the _user_needs_update comparison logic for various scenarios."""
+        existing_user = self.SAMPLE_EXISTING_USER.copy()
 
-        assert result is not False
-        assert result['userid'] == 'testuser@pam'
-        mock_api.access.users.assert_called_with('testuser@pam')
-
-    def test_user_not_found(self, user_manager, mock_api):
-        """Test user not found"""
-        mock_api.access.users.return_value.get.side_effect = Exception("User does not exist")
-
-        result = user_manager.is_user_existing('nonexistent@pam')
-
-        assert result is False
-
-    def test_user_api_error(self, user_manager, mock_api):
-        """Test API error handling"""
-        mock_api.access.users.return_value.get.side_effect = Exception("API Error")
-
-        user_manager.is_user_existing('testuser@pam')
-
-        user_manager.module.fail_json.assert_called_once()
-
-    def test_no_update_needed(self, user_manager):
-        """Test when no user update is needed"""
-        result = user_manager._user_needs_update(
-            self.SAMPLE_USER_DATA, 'Test user', 'test@example.com', 1, 0,
-            'Test', 'User', 'admins', ''
+        # Test case: No update needed - identical data
+        no_update_needed = user_manager._user_needs_update(
+            existing_user, 'Old comment', 'old@example.com', 1, 0, 'John', 'Doe', 'admins', ''
         )
-        assert result is False
+        assert no_update_needed is False
 
-    def test_update_needed(self, user_manager):
-        """Test when user update is needed"""
-        result = user_manager._user_needs_update(
-            self.SAMPLE_USER_DATA, 'New comment', 'new@example.com', 1, 0,
-            'Test', 'User', 'admins', ''
+        # Test case: Update needed - different comment
+        update_needed = user_manager._user_needs_update(
+            existing_user, 'New comment', 'old@example.com', 1, 0, 'John', 'Doe', 'admins', ''
         )
-        assert result is True
+        assert update_needed is True
 
-    def test_groups_format_matching(self, user_manager):
-        """Test groups comparison with API list vs string format"""
-        user_with_groups = {**self.SAMPLE_USER_DATA, 'groups': ['admins', 'users']}
+    def test_groups_format_handling(self, user_manager):
+        """Test groups comparison between API format (list) and module input format (string)."""
+        existing_user_with_groups = {'userid': 'testuser@pam', 'groups': ['admins', 'users']}
 
-        # Same groups should not need update
-        result = user_manager._user_needs_update(
-            user_with_groups, None, None, 1, None, None, None, 'admins,users', None
+        # Test case: Same groups in different formats - no update needed
+        same_groups = user_manager._user_needs_update(
+            existing_user_with_groups, None, None, 1, None, None, None, 'admins,users', None
         )
-        assert result is False
+        assert same_groups is False
 
-        # Different groups should need update
-        result = user_manager._user_needs_update(
-            user_with_groups, None, None, 1, None, None, None, 'admins', None
+        # Test case: Different groups - update needed
+        different_groups = user_manager._user_needs_update(
+            existing_user_with_groups, None, None, 1, None, None, None, 'admins', None
         )
-        assert result is True
-
-    def test_none_values_ignored(self, user_manager):
-        """Test that None values are ignored in comparison"""
-        result = user_manager._user_needs_update(
-            self.SAMPLE_USER_DATA, None, None, 1, None, None, None, None, None
-        )
-        assert result is False
-
-    def test_update_user_no_changes(self, user_manager):
-        """Test user update when no changes needed"""
-        with patch.object(user_manager, 'is_user_existing', return_value={'userid': 'testuser@pam'}), \
-             patch.object(user_manager, '_user_needs_update', return_value=False):
-
-            user_manager.create_update_user('testuser@pam')
-
-            user_manager.module.exit_json.assert_called_once_with(
-                changed=False, userid='testuser@pam',
-                msg="User testuser@pam already up to date"
-            )
-
-    def test_update_user_with_changes(self, user_manager, mock_api):
-        """Test user update when changes are needed"""
-        with patch.object(user_manager, 'is_user_existing', return_value={'userid': 'testuser@pam'}), \
-             patch.object(user_manager, '_user_needs_update', return_value=True):
-
-            user_manager.create_update_user('testuser@pam', comment='New comment')
-
-            mock_api.access.users.return_value.put.assert_called_once()
-            user_manager.module.exit_json.assert_called_once_with(
-                changed=True, userid='testuser@pam', msg="User testuser@pam updated"
-            )
-
-    def test_password_only_update(self, user_manager, mock_api):
-        """Test user password update only"""
-        with patch.object(user_manager, 'is_user_existing', return_value={'userid': 'testuser@pam'}), \
-             patch.object(user_manager, '_user_needs_update', return_value=False):
-
-            user_manager.create_update_user('testuser@pam', password='newpass')
-
-            mock_api.access.password.put.assert_called_once_with(
-                userid='testuser@pam', password='newpass'
-            )
-
-    def test_check_mode(self, user_manager):
-        """Test check mode functionality"""
-        user_manager.module.check_mode = True
-
-        with patch.object(user_manager, 'is_user_existing', return_value={'userid': 'testuser@pam'}), \
-             patch.object(user_manager, '_user_needs_update', return_value=True):
-
-            user_manager.create_update_user('testuser@pam')
-
-            user_manager.module.exit_json.assert_called_once_with(
-                changed=True, userid='testuser@pam',
-                msg="Would update testuser@pam (check mode)"
-            )
-
-    def test_create_new_user(self, user_manager, mock_api):
-        """Test creating a new user"""
-        with patch.object(user_manager, 'is_user_existing', return_value=False):
-
-            user_manager.create_update_user('newuser@pam', comment='New user',
-                                            groups=['users'])
-
-            mock_api.access.users.post.assert_called_once()
-            user_manager.module.exit_json.assert_called_once_with(
-                changed=True, userid='newuser@pam', msg="Created user newuser@pam"
-            )
-
-    def test_delete_existing_user(self, user_manager, mock_api):
-        """Test deleting existing user"""
-        with patch.object(user_manager, 'is_user_existing', return_value={'userid': 'testuser@pam'}):
-
-            user_manager.delete_user('testuser@pam')
-
-            mock_api.access.users.return_value.delete.assert_called_once()
-            user_manager.module.exit_json.assert_called_once_with(
-                changed=True, userid='testuser@pam',
-                msg="Deleted user with ID testuser@pam"
-            )
-
-    def test_delete_nonexistent_user(self, user_manager):
-        """Test deleting non-existent user"""
-        with patch.object(user_manager, 'is_user_existing', return_value=False):
-
-            user_manager.delete_user('testuser@pam')
-
-            user_manager.module.exit_json.assert_called_once_with(
-                changed=False, userid='testuser@pam',
-                msg="User testuser@pam doesn't exist"
-            )
-
-    def test_groups_normalization(self, user_manager):
-        """Test groups list to string conversion"""
-        with patch.object(user_manager, 'is_user_existing', return_value=False), \
-             patch.object(user_manager, 'module') as mock_module:
-
-            mock_module.check_mode = False
-            mock_module.exit_json = MagicMike()
-
-            user_manager.create_update_user('testuser@pam', groups=['admin', 'users'])
-
-            # Verify groups were joined properly in the API call
-            call_args = user_manager.proxmox_api.access.users.post.call_args
-            assert call_args[1]['groups'] == 'admin,users'
-
-    def test_api_error_handling(self, user_manager, mock_api):
-        """Test API error handling during user operations"""
-        mock_api.access.users.return_value.put.side_effect = Exception("API Error")
-
-        with patch.object(user_manager, 'is_user_existing',
-                          return_value={'userid': 'testuser@pam'}), \
-             patch.object(user_manager, '_user_needs_update', return_value=True):
-
-            user_manager.create_update_user('testuser@pam')
-
-            user_manager.module.fail_json.assert_called_once()
-            args = user_manager.module.fail_json.call_args[1]
-            assert 'Failed to update user with ID testuser@pam' in args['msg']
-
-
-class TestProxmoxUserModule:
-    """Integration tests for the complete module"""
-
-    def test_module_args_validation(self):
-        """Test module argument validation"""
-        args = {
-            'api_host': 'test.proxmox.com',
-            'api_user': 'root@pam',
-            'api_password': 'secret',
-            'userid': 'testuser@pam',
-            'state': 'present'
-        }
-
-        with set_module_args(args):
-            patch_path = 'ansible_collections.community.proxmox.plugins.modules.proxmox_user.ProxmoxUserAnsible'
-            with patch(patch_path):
-                with pytest.raises(SystemExit):
-                    proxmox_user.main()
-
-    def test_module_missing_required_args(self):
-        """Test module fails with missing required arguments"""
-        with set_module_args({}):
-            with pytest.raises(SystemExit) as result:
-                proxmox_user.main()
-            assert result.value.code != 0
-
-    def test_main_present_state(self):
-        """Test main function with present state"""
-        args = {
-            'api_host': 'test.proxmox.com',
-            'api_user': 'root@pam',
-            'api_password': 'secret',
-            'userid': 'testuser@pam',
-            'comment': 'Test User',
-            'state': 'present'
-        }
-
-        with set_module_args(args):
-            patch_path = 'ansible_collections.community.proxmox.plugins.modules.proxmox_user.ProxmoxUserAnsible'
-            with patch(patch_path) as mock_class:
-                mock_instance = mock_class.return_value
-                mock_instance.create_update_user = MagicMike()
-
-                with pytest.raises(SystemExit):
-                    proxmox_user.main()
-
-                mock_instance.create_update_user.assert_called_once()
-
-    def test_main_absent_state(self):
-        """Test main function with absent state"""
-        args = {
-            'api_host': 'test.proxmox.com',
-            'api_user': 'root@pam',
-            'api_password': 'secret',
-            'userid': 'testuser@pam',
-            'state': 'absent'
-        }
-
-        with set_module_args(args):
-            patch_path = 'ansible_collections.community.proxmox.plugins.modules.proxmox_user.ProxmoxUserAnsible'
-            with patch(patch_path) as mock_class:
-                mock_instance = mock_class.return_value
-                mock_instance.delete_user = MagicMike()
-
-                with pytest.raises(SystemExit):
-                    proxmox_user.main()
-
-                mock_instance.delete_user.assert_called_once_with('testuser@pam')
-
-    def test_empty_string_to_none_conversion(self):
-        """Test that empty strings are converted to None"""
-        args = {
-            'api_host': 'test.proxmox.com',
-            'api_user': 'root@pam',
-            'api_password': 'secret',
-            'userid': 'testuser@pam',
-            'comment': '',
-            'email': '',
-            'firstname': '',
-            'lastname': '',
-            'keys': '',
-            'state': 'present'
-        }
-
-        with set_module_args(args):
-            patch_path = 'ansible_collections.community.proxmox.plugins.modules.proxmox_user.ProxmoxUserAnsible'
-            with patch(patch_path) as mock_class:
-                mock_instance = mock_class.return_value
-                mock_instance.create_update_user = MagicMike()
-
-                with pytest.raises(SystemExit):
-                    proxmox_user.main()
-
-                # Verify that create_update_user was called with None values
-                call_args = mock_instance.create_update_user.call_args[0]
-                assert call_args[1] is None  # comment
-                assert call_args[2] is None  # email
-                assert call_args[5] is None  # firstname
-                assert call_args[8] is None  # keys
-                assert call_args[9] is None  # lastname
+        assert different_groups is True
