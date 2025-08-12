@@ -27,6 +27,7 @@ action_groups:
     - proxmox_pool
     - proxmox_pool_member
     - proxmox_snap
+    - proxmox_storage
     - proxmox_storage_contents_info
     - proxmox_storage_info
     - proxmox_tasks_info
