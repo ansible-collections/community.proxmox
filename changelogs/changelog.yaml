@@ -127,3 +127,39 @@ releases:
         name: proxmox_user
         namespace: ''
     release_date: '2025-07-16'
+  1.3.0:
+    changes:
+      bugfixes:
+        - proxmox_pct_remote connection plugin - avoid deprecated ansible-core paramiko
+          import helper, import paramiko directly instead (https://github.com/ansible-collections/community.proxmox/issues/146,
+          https://github.com/ansible-collections/community.proxmox/pull/151).
+      minor_changes:
+        - proxmox* modules - added fallback environment variables for ``api_token``,
+          ``api_secret``, and ``validate_certs`` (https://github.com/ansible-collections/community.proxmox/issues/63,
+          https://github.com/ansible-collections/community.proxmox/pull/136).
+        - proxmox_cluster_ha_groups - fix idempotency in proxmox_cluster_ha_groups
+          module (https://github.com/ansible-collections/community.proxmox/issues/138,
+          https://github.com/ansible-collections/community.proxmox/pull/139).
+        - proxmox_cluster_ha_resources -  Fix idempotency proxmox_cluster_ha_resources
+          (https://github.com/ansible-collections/community.proxmox/pull/135).
+        - proxmox_kvm - Add missing 'storage' parameter to create_vm()-call.
+        - proxmox_kvm - add new purge parameter to proxmox_kvm module (https://github.com/ansible-collections/community.proxmox/issues/60,
+          https://github.com/ansible-collections/community.proxmox/pull/148).
+      release_summary: 'This is the minor release of the ``community.proxmox`` collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.'
+    fragments:
+      - 1.3.0.yml
+      - 135-fix-idempotency-ha-resources.yml
+      - 136-api-token-env-var-support.yml
+      - 139-ha-group-idempotency.yml
+      - 148-kvm-purge-parameter.yml
+      - 151-connection-paramiko.yml
+      - 152-fix-module_ignores_storage_param.yml
+    modules:
+      - description: Manage storage in PVE clusters and nodes.
+        name: proxmox_storage
+        namespace: ''
+    release_date: '2025-08-12'

@@ -4,6 +4,35 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.3.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Minor Changes
+-------------
+
+- proxmox* modules - added fallback environment variables for ``api_token``, ``api_secret``, and ``validate_certs`` (https://github.com/ansible-collections/community.proxmox/issues/63, https://github.com/ansible-collections/community.proxmox/pull/136).
+- proxmox_cluster_ha_groups - fix idempotency in proxmox_cluster_ha_groups module (https://github.com/ansible-collections/community.proxmox/issues/138, https://github.com/ansible-collections/community.proxmox/pull/139).
+- proxmox_cluster_ha_resources -  Fix idempotency proxmox_cluster_ha_resources (https://github.com/ansible-collections/community.proxmox/pull/135).
+- proxmox_kvm - Add missing 'storage' parameter to create_vm()-call.
+- proxmox_kvm - add new purge parameter to proxmox_kvm module (https://github.com/ansible-collections/community.proxmox/issues/60, https://github.com/ansible-collections/community.proxmox/pull/148).
+
+Bugfixes
+--------
+
+- proxmox_pct_remote connection plugin - avoid deprecated ansible-core paramiko import helper, import paramiko directly instead (https://github.com/ansible-collections/community.proxmox/issues/146, https://github.com/ansible-collections/community.proxmox/pull/151).
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_storage - Manage storage in PVE clusters and nodes.
+
 v1.2.0
 ======
 
