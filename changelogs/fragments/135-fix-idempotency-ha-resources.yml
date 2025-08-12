@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_cluster_ha_resources -  Fix idempotency proxmox_cluster_ha_resources (https://github.com/ansible-collections/community.proxmox/pull/135).
