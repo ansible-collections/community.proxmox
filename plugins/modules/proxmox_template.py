@@ -168,6 +168,24 @@ EXAMPLES = r"""
     url: ubuntu-20.04-standard_20.04-1_amd64.tar.gz
     checksum_algorithm: sha256
     checksum: 65d860160bdc9b98abf72407e14ca40b609417de7939897d3b58d55787aaef69
+
+- name: Upload new disk image template with minimal options
+  community.proxmox.proxmox_template:
+    node: uk-mc02
+    api_user: root@pam
+    api_password: 1q2w3e
+    api_host: node1
+    content_type: import
+    src: debian-13-genericcloud-amd64.qcow2
+
+- name: Upload new ISO with minimal options
+  community.proxmox.proxmox_template:
+    node: uk-mc02
+    api_user: root@pam
+    api_password: 1q2w3e
+    api_host: node1
+    content_type: import
+    src: proxmox.iso
 """
 
 import os
