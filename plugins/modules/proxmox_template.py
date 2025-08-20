@@ -42,11 +42,11 @@ options:
     type: str
   content_type:
     description:
-      - Content type.
-      - Required only for O(state=present).
+      - Content type of the template.
+      - Valid values are V(vztmpl) for LXC container templates, V(iso) for ISO disc images, and V(import) for harddisk images and Open Virtual Appliances (OVA).
     type: str
     default: 'vztmpl'
-    choices: ['vztmpl', 'iso']
+    choices: ['vztmpl', 'import', 'iso']
   storage:
     description:
       - Target storage.
@@ -279,7 +279,7 @@ def main():
         src=dict(type='path'),
         url=dict(),
         template=dict(),
-        content_type=dict(default='vztmpl', choices=['vztmpl', 'iso']),
+        content_type=dict(default='vztmpl', choices=['vztmpl', 'iso', 'import']),
         storage=dict(default='local'),
         timeout=dict(type='int', default=30),
         force=dict(type='bool', default=False),
