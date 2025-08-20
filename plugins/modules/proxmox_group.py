@@ -78,7 +78,7 @@ msg:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
-
+from ansible_collections.community.proxmox.plugins.module_utils.models.paths import AccessGroupsGetResponse
 
 class ProxmoxGroupAnsible(ProxmoxAnsible):
 
@@ -89,9 +89,10 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         :return: bool - is group exists?
         """
         try:
-            groups = self.proxmox_api.access.groups.get()
-            for group in groups:
-                if group['groupid'] == groupid:
+            data = self.proxmox_api.access.groups.get()
+            response = AccessGroupsGetResponse.model_validate(data)
+            for group in response.root:
+                if group.groupid == groupid:
                     return True
             return False
         except Exception as e:
