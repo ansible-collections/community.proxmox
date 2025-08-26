@@ -86,7 +86,7 @@ EXAMPLES = r"""
     cluster_name: "devcluster"
 
 - name: Join a Proxmox VE Cluster with different API password
-    community.proxmox.proxmox_cluster:
+  community.proxmox.proxmox_cluster:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: "{{ joining_node_api_password }}"
