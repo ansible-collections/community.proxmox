@@ -125,10 +125,17 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=True, msg="Cluster '{}' created.".format(cluster_name), cluster=cluster_name)
 
     def cluster_join(self):
-        master_ip = self.module.params.get("master_ip")
-        fingerprint = self.module.params.get("fingerprint")
-        api_password = self.module.params.get("api_password")
         cluster_name = self.module.params.get("cluster_name")
+        payload = {"clustername": cluster_name}
+
+        payload["master_ip"] = self.module.params.get("master_ip")
+        payload["fingerprint"] = self.module.params.get("fingerprint")
+        payload["api_password"] = self.module.params.get("api_password")
+
+        if self.module.params.get("link0") is not None:
+            payload["link0"] = self.module.params.get("link0")
+        if self.module.params.get("link1") is not None:
+            payload["link1"] = self.module.params.get("link1")
         is_in_cluster = True
 
         if self.module.check_mode:
@@ -145,11 +152,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
                 self.module.exit_json(changed=True, msg="Node would join the cluster '{}' (check mode).".format(cluster_name), cluster=cluster_name)
 
         try:
-            self.proxmox_api.cluster.config.join.post(
-                hostname=master_ip,
-                fingerprint=fingerprint,
-                password=api_password
-            )
+            self.proxmox_api.cluster.config.join.post(**payload)
 
         except Exception as e:
             self.module.fail_json(msg="Error while joining the cluster: {}".format(str(e)))
