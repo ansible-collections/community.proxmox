@@ -130,7 +130,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
 
         payload["master_ip"] = self.module.params.get("master_ip")
         payload["fingerprint"] = self.module.params.get("fingerprint")
-        payload["api_password"] = self.module.params.get("api_password")
+        payload["password"] = self.module.params.get("api_password")
 
         if self.module.params.get("link0") is not None:
             payload["link0"] = self.module.params.get("link0")
