@@ -126,7 +126,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
 
     def cluster_join(self):
         cluster_name = self.module.params.get("cluster_name")
-        payload = {"clustername": cluster_name}
+        payload = {}
 
         payload["master_ip"] = self.module.params.get("master_ip")
         payload["fingerprint"] = self.module.params.get("fingerprint")
