@@ -184,7 +184,7 @@ EXAMPLES = r"""
     api_user: root@pam
     api_password: 1q2w3e
     api_host: node1
-    content_type: import
+    content_type: iso
     src: proxmox.iso
 """
 
