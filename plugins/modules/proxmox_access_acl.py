@@ -5,6 +5,8 @@
 # SPDX-FileCopyrightText: (c) 2025, Markus Kötter <koetter@cispa.de>
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import (absolute_import, division, print_function)
+from typing import List
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -99,19 +101,21 @@ new_acls:
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
-
+from ansible_collections.community.proxmox.plugins.module_utils.models.paths import AccessAclGetResponse, AccessAcl
 
 class ProxmoxAccessACLAnsible(ProxmoxAnsible):
-    def _get(self):
-        acls = self.proxmox_api.access.acl.get()
-        return acls
+
+    def _get(self) -> List[AccessAcl]:
+        data = self.proxmox_api.access.acl.get()
+        response = AccessAclGetResponse.model_validate(data)
+        return response.root
 
     def _put(self, **data):
         return self.proxmox_api.access.acl.put(**data)
 
     def create(self, acls, path, roleid, type, ugid, propagate):
         for ace in acls:
-            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], bool(ace.get("propagate", 1))) == (path, roleid, type, ugid, propagate):
+            if (ace.path, ace.roleid, ace.type, ace.ugid, bool(ace.propagate)) == (path, roleid, type, ugid, propagate):
                 return False
 
         data = {
@@ -127,15 +131,15 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
     def delete(self, acls, path, roleid, type, ugid, propagate):
         changed = False
         for ace in acls:
-            if path != ace["path"]:
+            if path != ace.path:
                 continue
-            if roleid and roleid != ace["roleid"]:
+            if roleid and roleid != ace.roleid:
                 continue
-            if type and type != ace["type"]:
+            if type and type != ace.type:
                 continue
-            if ugid and ace["ugid"] != ugid:
+            if ugid and ace.ugid != ugid:
                 continue
-            if propagate and bool(ace.get("propagate", 1)) != propagate:
+            if propagate and bool(ace.propagate) != propagate:
                 continue
 
             data = {
@@ -191,7 +195,7 @@ def run_module():
     propagate = module.params["propagate"]
 
     try:
-        result["old_acls"] = acls = proxmox._get()
+        acls = proxmox._get()
 
         if module.params["state"] == "present":
             r = proxmox.create(acls, path, roleid, type, ugid, propagate)
@@ -199,8 +203,6 @@ def run_module():
             r = proxmox.delete(acls, path, roleid, type, ugid, propagate)
 
         result['changed'] = r
-        if r:
-            result["new_acls"] = proxmox._get()
     except Exception as e:
         module.fail_json(msg=str(e), **result)
 
