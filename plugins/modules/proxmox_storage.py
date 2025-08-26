@@ -357,7 +357,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload['password'] = password
                 payload['datastore'] = datastore
                 if fingerprint:
-                  payload['fingerprint'] = fingerprint
+                    payload['fingerprint'] = fingerprint
 
         # Check Mode validation
         if self.module.check_mode:
