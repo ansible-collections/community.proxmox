@@ -82,7 +82,7 @@ options:
         type: bool
     type:
         description: HA rule type.
-        required: true
+        required: false
         choices: ['node-affinity', 'resource-affinity']
         type: str
 
@@ -161,18 +161,6 @@ EXAMPLES = r"""
       - vm:100
       - vm:101
     disable: false
-  delegate_to: localhost
-
-- name: Update the comment of an existing rule - this will fail if the rule does not exist yet
-  community.proxmox.proxmox_cluster_ha_rules:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_token_id: "{{ proxmox_api_token_id }}"
-    api_token_secret: "{{ proxmox_api_token_secret }}"
-    name: resource-affinity-rule-1
-    state: present
-    type: resource-affinity
-    comment: My new description
   delegate_to: localhost
 """
 
@@ -328,14 +316,14 @@ def run_module():
     acl_args = dict(
         affinity=dict(choices=["positive", "negative"], required=False),
         comment=dict(type="str", required=False),
-        disable=dict(type="bool"),
-        force=dict(type="bool", default=False),
+        disable=dict(type="bool", required=False),
+        force=dict(type="bool", default=False, required=False),
         name=dict(type="str", required=True),
         nodes=dict(type="list", elements="str", required=False),
         resources=dict(type="list", elements="str", required=False),
         state=dict(choices=["present", "absent"], required=True),
-        strict=dict(type="bool"),
-        type=dict(choices=["node-affinity", "resource-affinity"], required=True),
+        strict=dict(type="bool", required=False),
+        type=dict(choices=["node-affinity", "resource-affinity"], required=False),
     )
 
     module_args.update(acl_args)
@@ -350,6 +338,11 @@ def run_module():
         argument_spec=module_args,
         required_one_of=[("api_password", "api_token_id")],
         required_together=[("api_token_id", "api_token_secret")],
+        required_if=[
+            ("state", "present", ["type", "resources"]),
+            ("type", "node-affinity", ["nodes"]),
+            ("type", "resource-affinity", ["affinity"]),
+        ],
         supports_check_mode=True,
     )
 
@@ -357,29 +350,11 @@ def run_module():
 
     name = module.params["name"]
     state = module.params["state"]
-    rule_type = module.params["type"]
 
     try:
         rules = proxmox.get()
 
         existing: dict = next((item for item in rules if item.get("rule") == name), {})
-
-        # some additional parameter validation if the rule does not exist yet
-        if state == "present" and not existing:
-            if rule_type == "node-affinity":
-                for key in ["nodes", "resources"]:
-                    if module.params.get(key) is None:
-                        module.fail_json(
-                            changed=False,
-                            msg=f"parameter {key} is mandatory for new rules with type=node-affinity",
-                        )
-            if rule_type == "resource-affinity":
-                for key in ["affinity", "resources"]:
-                    if module.params.get(key) is None:
-                        module.fail_json(
-                            changed=False,
-                            msg=f"parameter {key} is mandatory for new rules with type=resource-affinity",
-                        )
 
         if state == "present":
             result = proxmox.create(existing)
