@@ -9,11 +9,141 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = r""""""
+DOCUMENTATION = r"""
+module: proxmox_vnet_info
+short_description: Retrieve information about one or more Proxmox VE SDN vnets
+description:
+  - Retrieve information about one or more Proxmox VE SDN vnets.
+author: 'Jana Hoch <janahoch91@proton.me>'
+options:
+  vnet:
+    description:
+      - Restrict results to a specific vnet.
+    type: str
+  
+extends_documentation_fragment:
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
+"""
 
-EXAMPLES = r""""""
+EXAMPLES = r"""
+- name: Get all vnet details
+    community.proxmox.proxmox_vnet_info:
+      api_user: "{{ proxmox.api_user }}"
+      api_token_id: "{{ proxmox.api_token_id }}"
+      api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+      api_host: "{{ proxmox.api_host }}"
+      validate_certs: no
 
-RETURN = r""""""
+- name: Get details for vnet - test
+    community.proxmox.proxmox_vnet_info:
+      api_user: "{{ proxmox.api_user }}"
+      api_token_id: "{{ proxmox.api_token_id }}"
+      api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+      api_host: "{{ proxmox.api_host }}"
+      vnet: test
+      validate_certs: no
+"""
+
+RETURN = r"""
+description: List of vnets.
+    returned: on success
+    type: list
+    elements: dict
+    sample:
+      [
+        {
+          "digest": "01505201eb33919888fb0cacba27d3aae803f6d2",
+          "firewall_rules": [],
+          "subnets": [
+            {
+              "cidr": "10.10.100.0/24",
+              "dhcp-range": [],
+              "digest": "47684c511d9b67e8eb41b93bc5c0b078786b0ee3",
+              "id": "lab-10.10.100.0-24",
+              "mask": "24",
+              "network": "10.10.100.0",
+              "snat": 1,
+              "subnet": "lab-10.10.100.0-24",
+              "type": "subnet",
+              "vnet": "lab",
+              "zone": "lab"
+            }
+          ],
+          "tag": 100,
+          "type": "vnet",
+          "vnet": "lab",
+          "zone": "lab"
+        },
+        {
+          "digest": "01505201eb33919888fb0cacba27d3aae803f6d2",
+          "firewall_rules": [
+            {
+              "action": "ACCEPT",
+              "dest": "+sdn/test2-gateway",
+              "digest": "36016a02a5387d4c1171d29be966d550216bc500",
+              "enable": 1,
+              "log": "nolog",
+              "macro": "DNS",
+              "pos": 0,
+              "type": "forward"
+            },
+            {
+              "action": "ACCEPT",
+              "digest": "36016a02a5387d4c1171d29be966d550216bc500",
+              "enable": 1,
+              "log": "nolog",
+              "macro": "DHCPfwd",
+              "pos": 1,
+              "type": "forward"
+            }
+          ],
+          "subnets": [
+            {
+              "cidr": "10.10.0.0/24",
+              "dhcp-range": [
+                {
+                  "end-address": "10.10.0.50",
+                  "start-address": "10.10.0.5"
+                }
+              ],
+              "digest": "47684c511d9b67e8eb41b93bc5c0b078786b0ee3",
+              "gateway": "10.10.0.1",
+              "id": "test1-10.10.0.0-24",
+              "mask": "24",
+              "network": "10.10.0.0",
+              "subnet": "test1-10.10.0.0-24",
+              "type": "subnet",
+              "vnet": "test2",
+              "zone": "test1"
+            },
+            {
+              "cidr": "10.10.1.0/24",
+              "dhcp-range": [
+                {
+                  "end-address": "10.10.1.50",
+                  "start-address": "10.10.1.5"
+                }
+              ],
+              "digest": "47684c511d9b67e8eb41b93bc5c0b078786b0ee3",
+              "gateway": "10.10.1.0",
+              "id": "test1-10.10.1.0-24",
+              "mask": "24",
+              "network": "10.10.1.0",
+              "subnet": "test1-10.10.1.0-24",
+              "type": "subnet",
+              "vnet": "test2",
+              "zone": "test1"
+            }
+          ],
+          "type": "vnet",
+          "vnet": "test2",
+          "zone": "test1"
+        }
+      ]
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
