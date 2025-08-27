@@ -276,12 +276,14 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
     def test_update_ha_rule(self):
         self.mock_get.side_effect = [
-            [{"rule": "my-rule", "type": "node-affinity", "comment": "old comment"}]
+            [{"rule": "my-rule", "resources": "vm:100,vm:101", "type": "node-affinity", "comment": "old comment", "nodes": "pve01:10,pve02:20"}]
         ]
 
         module_params = {
             "comment": "new comment",
             "name": "my-rule",
+            "nodes": ["pve01:10", "pve02:20"],
+            "resources": ["vm:100", "vm:101"],
             "state": "present",
             "type": "node-affinity",
         }
@@ -300,17 +302,19 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         assert self.mock_delete.call_count == 0
         self.mock_put.assert_called_once_with(
             "my-rule",
-            {"comment": "new comment", "rule": "my-rule", "type": "node-affinity"},
+            {"comment": "new comment", "nodes": "pve01:10,pve02:20", "resources": "vm:100,vm:101", "rule": "my-rule", "type": "node-affinity"},
         )
 
     def test_update_ha_rule_no_change(self):
         self.mock_get.side_effect = [
-            [{"rule": "my-rule", "type": "node-affinity", "comment": "new comment"}]
+            [{"rule": "my-rule", "nodes": "pve01:10,pve02:20", "resources": "vm:100,vm:101", "type": "node-affinity", "comment": "new comment"}]
         ]
 
         module_params = {
             "comment": "new comment",
             "name": "my-rule",
+            "nodes": ["pve01:10", "pve02:20"],
+            "resources": ["vm:100", "vm:101"],
             "state": "present",
             "type": "node-affinity",
         }
@@ -333,7 +337,6 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         module_params = {
             "name": "my-rule",
             "state": "absent",
-            "type": "node-affinity",
             "_ansible_check_mode": True,
         }
 
@@ -355,7 +358,6 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         module_params = {
             "name": "my-absent-rule",
             "state": "absent",
-            "type": "node-affinity",
         }
 
         with set_module_args(self.build_module_params(module_params)):
