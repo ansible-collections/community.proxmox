@@ -159,6 +159,32 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             }
         )
 
+    def test_update_ha_rule_idempotence(self):
+        self.mock_get.side_effect = [
+            [{"rule": "my-rule", "nodes": "pve02:20,pve01:10", "resources": "vm:101,vm:100", "type": "node-affinity", "comment": "new comment"}]
+        ]
+
+        module_params = {
+            "comment": "new comment",
+            "name": "my-rule",
+            "nodes": ["pve01:10", "pve02:20"],
+            "resources": ["vm:100", "vm:101"],
+            "state": "present",
+            "type": "node-affinity",
+        }
+
+        with set_module_args(self.build_module_params(module_params)):
+            with pytest.raises(AnsibleExitJson) as exc_info:
+                proxmox_cluster_ha_rules.main()
+
+        result = exc_info.value.args[0]
+
+        assert result.get("changed") is False
+        assert self.mock_get.call_count == 1
+        assert self.mock_post.call_count == 0
+        assert self.mock_put.call_count == 0
+        assert self.mock_delete.call_count == 0
+
     # new resource-affinity rule with minimal parameters
     def test_create_ha_rule_minimal_resource(self):
         self.mock_get.side_effect = [
