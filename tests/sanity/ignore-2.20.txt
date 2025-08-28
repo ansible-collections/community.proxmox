@@ -1,0 +1,2 @@
+plugins/inventory/proxmox.py pylint:ansible-bad-import-from
+plugins/plugin_utils/unsafe.py pylint:ansible-bad-import-from
