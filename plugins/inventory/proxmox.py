@@ -202,13 +202,12 @@ want_proxmox_nodes_ansible_host: true
 
 import itertools
 import re
+from urllib.parse import urlencode
 
 from ansible.module_utils.common._collections_compat import MutableMapping
 
 from ansible.errors import AnsibleError
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
-from ansible.module_utils.six import string_types
-from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.utils.display import Display
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
@@ -472,7 +471,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                         out_val[k] = v
                     value = out_val
 
-                if config not in plaintext_configs and isinstance(value, string_types) \
+                if config not in plaintext_configs and isinstance(value, (str, bytes)) \
                         and all("=" in v for v in value.split(",")):
                     # split off strings with commas to a dict
                     # skip over any keys that cannot be processed
