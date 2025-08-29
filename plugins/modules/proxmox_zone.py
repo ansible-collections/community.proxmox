@@ -81,40 +81,41 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         state = self.params.get("state")
         force = self.params.get("force")
 
+        zone_params = {
+            "type": self.params.get("type"),
+            "zone": self.params.get("zone"),
+            "advertise-subnets": self.params.get("advertise_subnets"),
+            "bridge": self.params.get("bridge"),
+            "bridge-disable-mac-learning": self.params.get("bridge_disable_mac_learning"),
+            "controller": self.params.get("controller"),
+            "dhcp": self.params.get("dhcp"),
+            "disable-arp-nd-suppression": self.params.get("disable_arp_nd_suppression"),
+            "dns": self.params.get("dns"),
+            "dnszone": self.params.get("dnszone"),
+            "dp-id": self.params.get("dp_id"),
+            "exitnodes": self.params.get("exitnodes"),
+            "exitnodes-local-routing": self.params.get("exitnodes_local_routing"),
+            "exitnodes-primary": self.params.get("exitnodes_primary"),
+            "fabric": self.params.get("fabric"),
+            "ipam": self.params.get("ipam"),
+            "lock-token": self.params.get("lock_token"),
+            "mac": self.params.get("mac"),
+            "mtu": self.params.get("mtu"),
+            "nodes": self.params.get("nodes"),
+            "peers": self.params.get("peers"),
+            "reversedns": self.params.get("reversedns"),
+            "rt-import": self.params.get("rt_import"),
+            "tag": self.params.get("tag"),
+            "vlan-protocol": self.params.get("vlan_protocol"),
+            "vrf-vxlan": self.params.get("vrf_vxlan"),
+            "vxlan-port": self.params.get("vxlan_port"),
+        }
+
         if state == "present":
-            params = {
-                "type": self.params.get("type"),
-                "zone": self.params.get("zone"),
-                "advertise-subnets": self.params.get("advertise_subnets"),
-                "bridge": self.params.get("bridge"),
-                "bridge-disable-mac-learning": self.params.get("bridge_disable_mac_learning"),
-                "controller": self.params.get("controller"),
-                "dhcp": self.params.get("dhcp"),
-                "disable-arp-nd-suppression": self.params.get("disable_arp_nd_suppression"),
-                "dns": self.params.get("dns"),
-                "dnszone": self.params.get("dnszone"),
-                "dp-id": self.params.get("dp_id"),
-                "exitnodes": self.params.get("exitnodes"),
-                "exitnodes-local-routing": self.params.get("exitnodes_local_routing"),
-                "exitnodes-primary": self.params.get("exitnodes_primary"),
-                "fabric": self.params.get("fabric"),
-                "ipam": self.params.get("ipam"),
-                "lock-token": self.params.get("lock_token"),
-                "mac": self.params.get("mac"),
-                "mtu": self.params.get("mtu"),
-                "nodes": self.params.get("nodes"),
-                "peers": self.params.get("peers"),
-                "reversedns": self.params.get("reversedns"),
-                "rt-import": self.params.get("rt_import"),
-                "tag": self.params.get("tag"),
-                "vlan-protocol": self.params.get("vlan_protocol"),
-                "vrf-vxlan": self.params.get("vrf_vxlan"),
-                "vxlan-port": self.params.get("vxlan_port"),
-            }
-            self.zone_present(force, **params)
+            self.zone_present(force, **zone_params)
 
         elif state == "update":
-            self.zone_update(
+            self.zone_update(**zone_params
 
             )
         elif state == "absent":
@@ -122,13 +123,13 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
 
             )
         else:
-            zones = self.get_zones({'type': self.params.get('type')})
+            zones = self.get_zones(**zone_params)
             self.module.exit_json(
                 changed=False, msg=zones
             )
 
 
-    def get_zones(self, type=dict()):
+    def get_zones(self, **type):
         print("reached")
         try:
             return self.proxmox_api.cluster().sdn().zones().get(**type)
@@ -146,7 +147,6 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         if zone in available_zones.keys() and force:
             if type != available_zones[zone]:
                 self.module.fail_json(
-                    zone=zone,
                     msg=f'zone {zone} exists with different type and we cannot change type post fact.'
                 )
             else:
