@@ -9,6 +9,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# from ansible_collections.community.sap_libs.plugins.modules.sap_control_exec import choices
+# from pygments.lexer import default
+
 DOCUMENTATION = r""""""
 
 EXAMPLES = r""""""
@@ -21,46 +24,159 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible
 )
 
+def get_proxmox_args():
+    return dict(
+        state=dict(type="str", choices=["present", "absent"], required=False),
+        force=dict(type="bool", default=False, required=False),
+        update=dict(type="bool", default=False, required=False),
+        type=dict(type="str",
+                  choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"],
+                  required=False),
+        zone=dict(type="str", required=False),
+        advertise_subnets=dict(type="bool", required=False),
+        bridge=dict(type="str", required=False),
+        bridge_disable_mac_learning=dict(type="bool", required=False),
+        controller=dict(type="str", required=False),
+        dhcp=dict(type="str", choices=["dnsmasq"], required=False),
+        disable_arp_nd_suppression=dict(type="bool", required=False),
+        dns=dict(type="str", required=False),
+        dnszone=dict(type="str", required=False),
+        dp_id=dict(type="int", required=False),
+        exitnodes=dict(type="str", required=False),
+        exitnodes_local_routing=dict(type="bool", required=False),
+        exitnodes_primary=dict(type="str", required=False),
+        fabric=dict(type="str", required=False),
+        ipam=dict(type="str", required=False),
+        lock_token=dict(type="str", required=False),
+        mac=dict(type="str", required=False),
+        mtu=dict(type="int", required=False),
+        nodes=dict(type="str", required=False),
+        peers=dict(type="str", required=False),
+        reversedns=dict(type="str", required=False),
+        rt_import=dict(type="str", required=False),
+        tag=dict(type="int", required=False),
+        vlan_protocol=dict(type="str", choices=["802.1q", "802.1ad"], required=False),
+        vrf_vxlan=dict(type="int", required=False),
+        vxlan_port=dict(type="int", required=False),
+    )
 
-class ProxmoxZoneAnsible(ProxmoxAnsible):  
-   def get_zones(self, type):
+def get_ansible_module():
+    module_args = proxmox_auth_argument_spec()
+    module_args.update(get_proxmox_args())
+
+    return AnsibleModule(
+        argument_spec=module_args,
+        required_if=[
+            ('state', 'present', ['type', 'zone']),
+            ('update', True, ['zone'])
+        ]
+    )
+
+class ProxmoxZoneAnsible(ProxmoxAnsible):
+    def __init__(self, module):
+        super(ProxmoxZoneAnsible, self).__init__(module)
+        self.params = module.params
+
+    def run(self):
+        state = self.params.get("state")
+        force = self.params.get("force")
+
+        if state == "present":
+            params = {
+                "type": self.params.get("type"),
+                "zone": self.params.get("zone"),
+                "advertise-subnets": self.params.get("advertise_subnets"),
+                "bridge": self.params.get("bridge"),
+                "bridge-disable-mac-learning": self.params.get("bridge_disable_mac_learning"),
+                "controller": self.params.get("controller"),
+                "dhcp": self.params.get("dhcp"),
+                "disable-arp-nd-suppression": self.params.get("disable_arp_nd_suppression"),
+                "dns": self.params.get("dns"),
+                "dnszone": self.params.get("dnszone"),
+                "dp-id": self.params.get("dp_id"),
+                "exitnodes": self.params.get("exitnodes"),
+                "exitnodes-local-routing": self.params.get("exitnodes_local_routing"),
+                "exitnodes-primary": self.params.get("exitnodes_primary"),
+                "fabric": self.params.get("fabric"),
+                "ipam": self.params.get("ipam"),
+                "lock-token": self.params.get("lock_token"),
+                "mac": self.params.get("mac"),
+                "mtu": self.params.get("mtu"),
+                "nodes": self.params.get("nodes"),
+                "peers": self.params.get("peers"),
+                "reversedns": self.params.get("reversedns"),
+                "rt-import": self.params.get("rt_import"),
+                "tag": self.params.get("tag"),
+                "vlan-protocol": self.params.get("vlan_protocol"),
+                "vrf-vxlan": self.params.get("vrf_vxlan"),
+                "vxlan-port": self.params.get("vxlan_port"),
+            }
+            self.zone_present(force, **params)
+
+        elif state == "update":
+            self.zone_update(
+
+            )
+        elif state == "absent":
+            self.zone_absent(
+
+            )
+        else:
+            zones = self.get_zones({'type': self.params.get('type')})
+            self.module.exit_json(
+                changed=False, msg=zones
+            )
+
+
+    def get_zones(self, type=dict()):
+        print("reached")
         try:
-            if type == "all":
-              zones = self.proxmox_api.cluster().sdn().zones().get()
-            else:
-              zones = self.proxmox_api.cluster().sdn().zones().get(type=type)
-            return zones
-                
+            return self.proxmox_api.cluster().sdn().zones().get(**type)
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve zone information from cluster: {e}'
             )
 
+    def zone_present(self, force, **kwargs):
+        available_zones = {x["zone"]: x["type"] for x in self.get_zones()}
+        zone = kwargs.get("zone")
+        type = kwargs.get("type")
+
+        # Check if zone already exists
+        if zone in available_zones.keys() and force:
+            if type != available_zones[zone]:
+                self.module.fail_json(
+                    zone=zone,
+                    msg=f'zone {zone} exists with different type and we cannot change type post fact.'
+                )
+            else:
+                del kwargs['type']
+                self.zone_update(kwargs)
+        elif zone in available_zones.keys() and not force:
+            self.module.exit_json(
+                changed=False, zone=zone, msg=f'Zone {zone} already exists and force is false!'
+            )
+        else:
+            self.proxmox_api.cluster().sdn().zones().post(**kwargs)
+            self.module.exit_json(
+                changed=True, zone=zone, msg=f'Created new Zone - {zone}'
+            )
+
+    def zone_update(self):
+        pass
+
+    def zone_absent(self):
+        pass
+
 
 def main():
-    
-    module_args = proxmox_auth_argument_spec()
-    zone_args = dict(
-        type=dict(type="str", 
-                  choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan", "all"], 
-                  default="all", required=False)
-    )
-    module_args.update(zone_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True,
-    )
-
+    module = get_ansible_module()
     proxmox = ProxmoxZoneAnsible(module)
-    type = module.params['type']
-    results = {}
-    zones = proxmox.get_zones(type)
 
-    results['zones'] = zones
-    module.exit_json(**results)
+    try:
+        proxmox.run()
+    except Exception as e:
+        module.fail_json(msg=f'An error occurred: {e}')
 
 if __name__ == "__main__":
     main()
