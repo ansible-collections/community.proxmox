@@ -121,7 +121,8 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
 
         elif state == "absent":
             self.zone_absent(
-
+                zone_name=zone_params.get('zone'),
+                lock=zone_params.get('lock-token')
             )
         else:
             zones = self.get_zones(**zone_params)
@@ -241,11 +242,32 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(lock)
             self.module.fail_json(
-                msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
+                msg=f'Failed to update zone {e}'
             )
 
-    def zone_absent(self):
-        pass
+    def zone_absent(self, zone_name, lock):
+        available_zones = [x['zone'] for x in self.get_zones()]
+        params = {'lock-token': lock}
+
+        try:
+            if zone_name not in available_zones:
+                self.release_lock(lock)
+                self.module.exit_json(
+                    changed=False, msg=f"zone {zone_name} already doesn't exist."
+                )
+            else:
+                zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
+                zone.delete(**params)
+                self.apply_sdn_changes_and_release_lock(lock)
+                self.module.exit_json(
+                    changed=True, msg=f'Successfully deleted zone {zone_name}'
+                )
+        except Exception as e:
+            self.rollback_sdn_changes_and_release_lock(lock)
+            self.module.fail_json(
+                msg=f'Failed to delete zone {zone_name} {e}. Rolling back all pending changes.'
+            )
+
 
 
 def main():
