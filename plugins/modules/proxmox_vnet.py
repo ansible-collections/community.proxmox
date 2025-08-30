@@ -26,7 +26,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent", "update"], required=False),
+        state=dict(type="str", choices=["present", "absent", "update"], default='present', required=False),
         force=dict(type="bool", default=False, required=False),
         vnet=dict(type="str", required=False),
         zone=dict(type="str", required=False),
@@ -46,6 +46,9 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
+            ('state', 'present', ['vnet', 'zone']),
+            ('state', 'update', ['vnet']),
+            ('state', 'absent', ['vnet'])
         ]
     )
 
@@ -74,9 +77,7 @@ class ProxmoxVnetAnsible(ProxmoxAnsible):
         elif state == 'update':
             self.vnet_update(**vnet_params)
         elif state == 'absent':
-            self.vnet_absent(
-
-            )
+            self.vnet_absent(vnet_params['vnet'], vnet_params['lock-token'])
 
     def get_vnet_detail(self):
         try:
@@ -140,9 +141,28 @@ class ProxmoxVnetAnsible(ProxmoxAnsible):
                     msg=f'Failed to update vnet - {e}. Rolling back all changes.'
                 )
 
-    def vnet_absent(self):
-        pass
+    def vnet_absent(self, vnet_name, lock):
+        vnet_params = {'vnet': vnet_name, 'lock-token': lock}
+        available_vnets = [vnet['vnet'] for vnet in self.get_vnet_detail()]
 
+        if vnet_name not in available_vnets:
+            self.module.exit_json(
+                changed=False, vnet=vnet_name, msg=f"vnet already doesn't exist  {vnet_name}"
+            )
+        else:
+            try:
+                vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
+                vnet.delete(**vnet_params)
+                self.apply_sdn_changes_and_release_lock(lock)
+                self.module.exit_json(
+                    changed=True, msg=f'Deleted vnet {vnet_name}'
+                )
+            except Exception as e:
+                self.module.warn(f'Failed to update vnet - {e}')
+                self.rollback_sdn_changes_and_release_lock(lock)
+                self.module.fail_json(
+                    msg=f'Failed to delete vnet - {e}. Rolling back all changes.'
+                )
 
 def main():
     module = get_ansible_module()
