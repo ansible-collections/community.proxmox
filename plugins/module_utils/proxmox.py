@@ -245,3 +245,67 @@ class ProxmoxAnsible(object):
                 msg="Unable to list content on %s, %s for %s and %s: %s"
                 % (node, storage, content, vmid, e)
             )
+
+    def get_global_sdn_lock(self):
+        """Acquire global SDN lock. Needed for any changes under SDN.
+
+        @return: lock-token
+        """
+        try:
+            return self.proxmox_api.cluster().sdn().lock().post()
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to acquire global sdn lock {e}'
+            )
+
+    def apply_sdn_changes_and_release_lock(self, lock, release_lock=True):
+        """Apply all SDN changes done under a lock token.
+
+        @param lock: Global SDN lock token
+        @param release_lock: if True release lock after successfully applying changes
+        """
+        lock_params = {
+            'lock-token': lock,
+            'release-lock': ansible_to_proxmox_bool(release_lock)
+        }
+        try:
+            self.proxmox_api.cluster().sdn().put(**lock_params)
+        except Exception as e:
+            self.rollback_sdn_changes_and_release_lock(lock)
+            self.module.fail_json(
+                msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
+            )
+
+    def rollback_sdn_changes_and_release_lock(self, lock, release_lock=True):
+        """Rollback all changes  done under a lock token.
+
+        @param lock: Global SDN lock token
+        @param release_lock: if True release lock after successfully rolling back changes
+        """
+        lock_params = {
+            'lock-token': lock,
+            'release-lock': ansible_to_proxmox_bool(release_lock)
+        }
+        try:
+            self.proxmox_api.cluster().sdn().rollback().post(**lock_params)
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Rollback attempt failed - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock'
+            )
+
+    def release_lock(self, lock, force=False):
+        """Release lock
+
+        @param lock: Global SDN lock token
+        @param force: if true, allow releasing lock without providing the token
+        """
+        lock_params = {
+            'lock-token': lock,
+            'force': ansible_to_proxmox_bool(force)
+        }
+        try:
+            self.proxmox_api.cluster().sdn().lock().delete(**lock_params)
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to release lock - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock'
+            )
