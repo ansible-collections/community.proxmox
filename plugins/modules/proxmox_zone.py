@@ -12,11 +12,259 @@ __metaclass__ = type
 # from ansible_collections.community.sap_libs.plugins.modules.sap_control_exec import choices
 # from pygments.lexer import default
 
-DOCUMENTATION = r""""""
+DOCUMENTATION = r"""
+module: proxmox_zone
+short_description: Manage Proxmox zone configurations
+description:
+  - list/create/update/delete proxmox sdn zones
+author: 'Jana Hoch <janahoch91@proton.me>'
+options:
+  state:
+    description:
+      - The desired state of the zone configuration.
+    type: str
+    choices:
+      - present
+      - absent
+      - update
+  force:
+    description:
+      - If state is present and zone exists it'll update.
+      - If state is update and zone doesn't exists it'll create new zone
+    type: bool
+    default: false
+  type:
+    description:
+      - Specify the type of zone.
+    type: str
+    choices:
+      - evpn
+      - faucet
+      - qinq
+      - simple
+      - vlan
+      - vxlan
+  zone:
+    description:
+      - Unique zone name.
+    type: str
+  advertise_subnets:
+    description:
+      - Advertise evpn subnets if you have silent hosts.
+    type: bool
+  bridge:
+    description:
+      - Specify the bridge interface to use.
+    type: str
+  bridge_disable_mac_learning:
+    description:
+      - Disable auto MAC address learning on the bridge interface.
+    type: bool
+  controller:
+    description:
+      - Frr router name.
+    type: str
+  dhcp:
+    description:
+      - Type of the DHCP backend for this zone.
+    type: str
+    choices:
+      - dnsmasq
+  disable_arp_nd_suppression:
+    description:
+      - Disable ipv4 arp && ipv6 neighbour discovery suppression.
+    type: bool
+  dns:
+    description:
+      - dns api server.
+    type: str
+  dnszone:
+    description:
+      - dns domain zone  ex: mydomain.com
+    type: str
+  dp_id:
+    description:
+      - Faucet dataplane id.
+    type: int
+  exitnodes:
+    description:
+      - List of cluster node names.
+    type: str
+  exitnodes_local_routing:
+    description:
+      - Allow exitnodes to connect to evpn guests.
+    type: bool
+  exitnodes_primary:
+    description:
+      - Force traffic to this exitnode first.
+    type: str
+  fabric:
+    description:
+      - SDN fabric to use as underlay for this VXLAN zone.
+    type: str
+  ipam:
+    description:
+      - use a specific ipam.
+    type: str
+  lock_token:
+    description:
+      - the token for unlocking the global SDN configuration. If not provided it will generate new token
+      - If the playbook fails for some reason you can manually clear lock token by deleting `/etc/pve/sdn/.lock`
+    type: str
+  mac:
+    description:
+      - Anycast logical router mac address.
+    type: str
+  mtu:
+    description:
+      - Set the Maximum Transmission Unit (MTU).
+    type: int
+  nodes:
+    description:
+      - List of cluster node names.
+    type: str
+  peers:
+    description:
+      - peers address list.
+    type: str
+  reversedns:
+    description:
+      - reverse dns api server
+    type: str
+  rt_import:
+    description:
+      - Route-Target import.
+    type: str
+  tag:
+    description:
+      - Service-VLAN Tag.
+    type: int
+  vlan_protocol:
+    description:
+      - Specify the VLAN protocol to use.
+    type: str
+    choices:
+      - 802.1q
+      - 802.1ad
+  vrf_vxlan:
+    description:
+      - Specify the VRF VXLAN identifier.
+    type: int
+  vxlan_port:
+    description:
+      - Vxlan tunnel udp port (default 4789).
+    type: int
+extends_documentation_fragment:
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+"""
 
-EXAMPLES = r""""""
+EXAMPLES = r"""
+- name: Get all zones
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    
+- name: Get all simple zones
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    type: simple
+  register: zones
 
-RETURN = r""""""
+- name: create a simple zones
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    type: simple
+    zone: ansible
+    state: present
+    
+- name: create a vlan zones
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    type: vlan
+    zone: ansible
+    state: present
+    bridge: vmbr0
+    
+- name: update a zones
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    type: vlan
+    zone: ansible
+    state: update
+    mtu: 1200
+    
+- name: Delete a zones
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    type: simple
+    zone: ansible
+    state: absent
+"""
+
+RETURN = r"""
+zones:
+    description: 
+      - List of zones. if you do not pass zone name. 
+      - If you are creating/updating/deleting it'll just return a msg with status
+    returned: on success
+    type: list
+    elements: dict
+    sample:
+      [   
+        {
+            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
+            "type": "simple",
+            "zone": "ans1"
+        },
+        {
+            "bridge": "vmbr0",
+            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
+            "mtu": 1200,
+            "type": "vlan",
+            "zone": "ansible"
+        },
+        {
+            "bridge": "vmbr100",
+            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
+            "ipam": "pve",
+            "type": "vlan",
+            "zone": "lab"
+        },
+        {
+            "dhcp": "dnsmasq",
+            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
+            "ipam": "pve",
+            "type": "simple",
+            "zone": "test1"
+        },
+        {
+            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
+            "ipam": "pve",
+            "type": "simple",
+            "zone": "tsjsfv"
+        }
+      ]
+        
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
