@@ -35,7 +35,8 @@ def get_proxmox_args():
         lock_token=dict(type="str", required=False),
         tag=dict(type="int", required=False),
         type=dict(type="str", choices=['vnet'], required=False),
-        vlanaware=dict(type="str", required=False)
+        vlanaware=dict(type="str", required=False),
+        delete=dict(type="str", required=False)
     )
 
 def get_ansible_module():
@@ -71,9 +72,7 @@ class ProxmoxVnetAnsible(ProxmoxAnsible):
         if state == 'present':
             self.vnet_present(force=force, **vnet_params)
         elif state == 'update':
-            self.vnet_update(
-
-            )
+            self.vnet_update(**vnet_params)
         elif state == 'absent':
             self.vnet_absent(
 
@@ -109,13 +108,37 @@ class ProxmoxVnetAnsible(ProxmoxAnsible):
                     changed=True, vnet=vnet, msg=f'Create new vnet {vnet}'
                 )
             except Exception as e:
+                self.module.warn(f'Failed to create vnet - {e}')
                 self.rollback_sdn_changes_and_release_lock(lock)
                 self.module.fail_json(
                     msg=f'Failed to create vnet - {e}. Rolling back all changes.'
                 )
 
-    def vnet_update(self):
-        pass
+    def vnet_update(self, **vnet_params):
+        available_vnets = {vnet['vnet']: vnet['digest'] for vnet in self.get_vnet_detail()}
+        lock = vnet_params['lock-token']
+        vnet_name = vnet_params['vnet']
+
+        if vnet_name not in available_vnets.keys():
+            self.vnet_present(force=False, **vnet_params)
+        else:
+            vnet_params['digest'] = available_vnets[vnet_name]
+            vnet_params['delete'] = self.params.get('delete')
+            del vnet_params['type']
+
+            try:
+                vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
+                vnet.put(**vnet_params)
+                self.apply_sdn_changes_and_release_lock(lock)
+                self.module.exit_json(
+                    changed=True, vnet=vnet_name, msg=f'updated vnet {vnet_name}'
+                )
+            except Exception as e:
+                self.module.warn(f'Failed to update vnet - {e}')
+                self.rollback_sdn_changes_and_release_lock(lock)
+                self.module.fail_json(
+                    msg=f'Failed to update vnet - {e}. Rolling back all changes.'
+                )
 
     def vnet_absent(self):
         pass
