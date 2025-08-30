@@ -35,7 +35,7 @@ def get_proxmox_args():
         lock_token=dict(type="str", required=False),
         tag=dict(type="int", required=False),
         type=dict(type="str", choices=['vnet'], required=False),
-        vlanaware=dict(type="str", required=False),
+        vlanaware=dict(type="bool", required=False),
         delete=dict(type="str", required=False)
     )
 
@@ -69,7 +69,7 @@ class ProxmoxVnetAnsible(ProxmoxAnsible):
             'lock-token': self.params.get('lock_token') or self.get_global_sdn_lock(),
             'tag': self.params.get('tag'),
             'type': self.params.get('type'),
-            'vlanaware': self.params.get('vlanaware')
+            'vlanaware': ansible_to_proxmox_bool(self.params.get('vlanaware'))
         }
 
         if state == 'present':
@@ -155,7 +155,7 @@ class ProxmoxVnetAnsible(ProxmoxAnsible):
                 vnet.delete(**vnet_params)
                 self.apply_sdn_changes_and_release_lock(lock)
                 self.module.exit_json(
-                    changed=True, msg=f'Deleted vnet {vnet_name}'
+                    changed=True, vnet=vnet_name, msg=f'Deleted vnet {vnet_name}'
                 )
             except Exception as e:
                 self.module.warn(f'Failed to update vnet - {e}')
