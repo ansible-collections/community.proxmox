@@ -26,9 +26,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent"], required=False),
+        state=dict(type="str", choices=["present", "absent", "update"], required=False),
         force=dict(type="bool", default=False, required=False),
-        update=dict(type="bool", default=False, required=False),
         type=dict(type="str",
                   choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"],
                   required=False),
@@ -68,7 +67,7 @@ def get_ansible_module():
         argument_spec=module_args,
         required_if=[
             ('state', 'present', ['type', 'zone']),
-            ('update', True, ['zone'])
+            ('state', 'update', ['type', 'zone'])
         ]
     )
 
@@ -134,7 +133,6 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().sdn().lock().post()
         except Exception as e:
-            self.apply_sdn_changes_and_release_lock()
             self.module.fail_json(
                 msg=f'Failed to acquire global sdn lock {e}'
             )
@@ -147,12 +145,16 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().sdn().put(**lock_params)
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock_params)
+            self.rollback_sdn_changes_and_release_lock(lock)
             self.module.fail_json(
                 msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
             )
 
-    def rollback_sdn_changes_and_release_lock(self, lock_params):
+    def rollback_sdn_changes_and_release_lock(self, lock):
+        lock_params = {
+            'lock-token': lock,
+            'release-lock': 1
+        }
         try:
             self.proxmox_api.cluster().sdn().rollback().post(**lock_params)
         except Exception as e:
@@ -183,22 +185,21 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             )
 
     def zone_present(self, force, **kwargs):
-        available_zones = {x["zone"]: x["type"] for x in self.get_zones()}
+        available_zones = {x['zone']: {'type': x["type"], 'digest': x['digest']} for x in self.get_zones()}
         zone = kwargs.get("zone")
         type = kwargs.get("type")
         lock = kwargs.get('lock-token')
 
         # Check if zone already exists
         if zone in available_zones.keys() and force:
-            if type != available_zones[zone]:
+            if type != available_zones[zone]['type']:
                 self.release_lock(lock)
                 self.module.fail_json(
                     lock=lock,
                     msg=f'zone {zone} exists with different type and we cannot change type post fact.'
                 )
             else:
-                del kwargs['type']
-                self.zone_update(kwargs)
+                self.zone_update(**kwargs)
         elif zone in available_zones.keys() and not force:
             self.release_lock(lock)
             self.module.exit_json(
@@ -212,7 +213,36 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             )
 
     def zone_update(self, **kwargs):
-        pass
+        available_zones = {x['zone']: {'type': x["type"], 'digest': x['digest']} for x in self.get_zones()}
+        type = kwargs.get("type")
+        zone_name = kwargs.get("zone")
+        lock = kwargs.get('lock-token')
+
+        try:
+            # If zone is not present create it
+            if zone_name not in available_zones.keys():
+                self.zone_present(force=False, **kwargs)
+            elif type == available_zones[zone_name]['type']:
+                del kwargs['type']
+                del kwargs['zone']
+                kwargs['digest'] = available_zones[zone_name]['digest']
+
+                zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
+                zone.put(**kwargs)
+                self.apply_sdn_changes_and_release_lock(lock)
+                self.module.exit_json(
+                    changed=True, msg=f'Updated zone {zone_name}'
+                )
+            else:
+                self.release_lock(lock)
+                self.module.fail_json(
+                    msg=f'zone {zone_name} already exists with different type'
+                )
+        except Exception as e:
+            self.rollback_sdn_changes_and_release_lock(lock)
+            self.module.fail_json(
+                msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
+            )
 
     def zone_absent(self):
         pass
