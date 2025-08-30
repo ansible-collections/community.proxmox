@@ -444,7 +444,6 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             if type != available_zones[zone]['type']:
                 self.release_lock(lock)
                 self.module.fail_json(
-                    lock=lock,
                     msg=f'zone {zone} exists with different type and we cannot change type post fact.'
                 )
             else:
@@ -455,11 +454,17 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
                 changed=False, zone=zone, msg=f'Zone {zone} already exists and force is false!'
             )
         else:
-            self.proxmox_api.cluster().sdn().zones().post(**kwargs)
-            self.apply_sdn_changes_and_release_lock(lock)
-            self.module.exit_json(
-                changed=True, zone=zone, msg=f'Created new Zone - {zone}'
-            )
+            try:
+                self.proxmox_api.cluster().sdn().zones().post(**kwargs)
+                self.apply_sdn_changes_and_release_lock(lock)
+                self.module.exit_json(
+                    changed=True, zone=zone, msg=f'Created new Zone - {zone}'
+                )
+            except Exception as e:
+                self.rollback_sdn_changes_and_release_lock(lock)
+                self.module.fail_json(
+                    msg=f'Failed to create zone {zone}'
+                )
 
     def zone_update(self, **kwargs):
         available_zones = {x['zone']: {'type': x["type"], 'digest': x['digest']} for x in self.get_zones()}
