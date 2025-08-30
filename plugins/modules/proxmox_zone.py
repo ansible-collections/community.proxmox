@@ -315,7 +315,8 @@ def get_ansible_module():
         argument_spec=module_args,
         required_if=[
             ('state', 'present', ['type', 'zone']),
-            ('state', 'update', ['type', 'zone'])
+            ('state', 'update', ['type', 'zone']),
+            ('state', 'absent', ['zone'])
         ]
     )
 
@@ -324,9 +325,35 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         super(ProxmoxZoneAnsible, self).__init__(module)
         self.params = module.params
 
+    def validate_params(self):
+        type = self.params.get('type')
+        if self.params.get('state') in ['present', 'update']:
+            if type == 'vlan':
+                return self.params.get('bridge')
+            elif type == 'qinq':
+                return self.params.get('tag') and self.params.get('vlan_protocol')
+            elif type == 'vxlan':
+                return self.params.get('fabric')
+            elif type == 'evpn':
+                return self.params.get('controller') and self.params.get('vrf_vxlan')
+        else:
+            return True
+
     def run(self):
         state = self.params.get("state")
         force = self.params.get("force")
+        type = self.params['type']
+
+        if not self.validate_params():
+            required_params = {
+                'vlan': ['bridge'],
+                'qinq': ['bridge', 'tag', 'vlan_protocol'],
+                'vxlan': ['fabric'],
+                'evpn': ['controller', 'vrf_vxlan']
+            }
+            self.module.fail_json(
+                msg=f'to create zone of type {type} it needs - {required_params[type]}'
+            )
 
         zone_params = {
             "type": self.params.get("type"),
