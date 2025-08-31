@@ -9,11 +9,117 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = r""""""
+DOCUMENTATION = r"""
+module: proxmox_ipam_info
+short_description: Retrieve information about ipams
+description:
+  - Retrieve all IPs under IPAM
+  - get IP by vmid
+author: 'Jana Hoch <janahoch91@proton.me>'
+options:
+  vmid:
+    description:
+      - Get ip of a VM under IPAM.
+    type: str
+  ipam:
+    description:
+      - Limit results to single ipam
+  
+extends_documentation_fragment:
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
+"""
 
-EXAMPLES = r""""""
+EXAMPLES = r"""
+- name: Get all IPs under all IPAM
+  community.proxmox.proxmox_ipam_info:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
 
-RETURN = r""""""
+- name: Get all IPs under pve IPAM
+  community.proxmox.proxmox_ipam_info:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    ipam: pve
+
+- name: Get IP under IPAM for vmid
+  community.proxmox.proxmox_ipam_info:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    vmid: 102
+"""
+
+RETURN = r"""
+ip:
+  description: IP for specific vmid.
+  returned: on success
+  type: str
+  elements: str
+  sample:
+    "10.10.0.6"
+ipams:
+  description: List of all IPAMs and IPs under them.
+  returned: on success
+  type: dict
+  elements: dict
+  sample:
+    {
+        "pve": [
+            {
+                "gateway": 1,
+                "ip": "10.10.1.0",
+                "subnet": "10.10.1.0/24",
+                "vnet": "test2",
+                "zone": "test1"
+            },
+            {
+                "hostname": "ns3.proxmox.pc.test3",
+                "ip": "10.10.0.6",
+                "mac": "BC:24:11:0E:72:04",
+                "subnet": "10.10.0.0/24",
+                "vmid": 102,
+                "vnet": "test2",
+                "zone": "test1"
+            },
+            {
+                "hostname": "ns4.proxmox.pc",
+                "ip": "10.10.0.7",
+                "mac": "BC:24:11:D5:CD:82",
+                "subnet": "10.10.0.0/24",
+                "vmid": 103,
+                "vnet": "test2",
+                "zone": "test1"
+            },
+            {
+                "gateway": 1,
+                "ip": "10.10.0.1",
+                "subnet": "10.10.0.0/24",
+                "vnet": "test2",
+                "zone": "test1"
+            },
+            {
+                "hostname": "ns2.proxmox.pc.test3",
+                "ip": "10.10.0.5",
+                "mac": "BC:24:11:86:77:56",
+                "subnet": "10.10.0.0/24",
+                "vmid": 101,
+                "vnet": "test2",
+                "zone": "test1"
+            }
+        ]
+    }
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
