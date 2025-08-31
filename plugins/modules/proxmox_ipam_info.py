@@ -61,13 +61,32 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-ip:
-  description: IP for specific vmid.
+ips:
+  description: Filter by vmid
   returned: on success
-  type: str
-  elements: str
+  type: list
+  elements: dict
   sample:
-    "10.10.0.6"
+     [
+        {
+            "hostname": "ns3.proxmox.pc",
+            "ip": "10.10.5.5",
+            "mac": "BC:24:11:0E:72:04",
+            "subnet": "10.10.5.0/24",
+            "vmid": 102,
+            "vnet": "test",
+            "zone": "ans1"
+        },
+        {
+            "hostname": "ns3.proxmox.pc",
+            "ip": "10.10.0.8",
+            "mac": "BC:24:11:F3:B1:81",
+            "subnet": "10.10.0.0/24",
+            "vmid": 102,
+            "vnet": "test2",
+            "zone": "test1"
+        }
+    ]
 ipams:
   description: List of all IPAMs and IPs under them.
   returned: on success
@@ -151,7 +170,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
         ipam = self.params.get('ipam')
         if vmid:
             self.module.exit_json(
-                changed=False, ip=self.get_ip_by_vmid(vmid)
+                changed=False, ips=self.get_ip_by_vmid(vmid)
             )
 
         elif self.params.get('ipam'):
@@ -194,10 +213,12 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
 
     def get_ip_by_vmid(self, vmid):
         ipam_status = self.get_ipam_status()
+        ips = []
         for ipam in ipam_status.values():
             for item in ipam:
                 if item.get('vmid') == vmid:
-                    return item.get('ip')
+                    ips.append(item)
+        return ips
 
 def main():
     module = get_ansible_module()
