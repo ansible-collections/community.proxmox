@@ -42,11 +42,11 @@ options:
     type: str
   content_type:
     description:
-      - Content type.
-      - Required only for O(state=present).
+      - Content type of the template.
+      - Valid values are V(vztmpl) for LXC container templates, V(iso) for ISO disc images, and V(import) for harddisk images and Open Virtual Appliances (OVA).
     type: str
     default: 'vztmpl'
-    choices: ['vztmpl', 'iso']
+    choices: ['vztmpl', 'import', 'iso']
   storage:
     description:
       - Target storage.
@@ -168,6 +168,24 @@ EXAMPLES = r"""
     url: ubuntu-20.04-standard_20.04-1_amd64.tar.gz
     checksum_algorithm: sha256
     checksum: 65d860160bdc9b98abf72407e14ca40b609417de7939897d3b58d55787aaef69
+
+- name: Upload new disk image template with minimal options
+  community.proxmox.proxmox_template:
+    node: uk-mc02
+    api_user: root@pam
+    api_password: 1q2w3e
+    api_host: node1
+    content_type: import
+    src: debian-13-genericcloud-amd64.qcow2
+
+- name: Upload new ISO with minimal options
+  community.proxmox.proxmox_template:
+    node: uk-mc02
+    api_user: root@pam
+    api_password: 1q2w3e
+    api_host: node1
+    content_type: iso
+    src: proxmox.iso
 """
 
 import os
@@ -279,7 +297,7 @@ def main():
         src=dict(type='path'),
         url=dict(),
         template=dict(),
-        content_type=dict(default='vztmpl', choices=['vztmpl', 'iso']),
+        content_type=dict(default='vztmpl', choices=['vztmpl', 'iso', 'import']),
         storage=dict(default='local'),
         timeout=dict(type='int', default=30),
         force=dict(type='bool', default=False),
