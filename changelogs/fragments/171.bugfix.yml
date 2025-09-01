@@ -1,2 +1,2 @@
 bugfixes:
-  - proxmox_storage - fixed adding PBS-type storage by ensuring its parameters (server, datastore, etc.) are correctly sent to the Proxmox API.
+  - proxmox_storage - fixed adding PBS-type storage by ensuring its parameters (server, datastore, etc.) are correctly sent to the Proxmox API (https://github.com/ansible-collections/community.proxmox/pull/171).
