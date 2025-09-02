@@ -350,7 +350,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             datastore = pbs_options.get('datastore')
             fingerprint = pbs_options.get('fingerprint')
             if not all([server, datastore, username, password]):
-                self.module.fail_json(msg="PBS storage requires 'server', 'username', 'password', 'datastore' and 'fingerprint' parameters.")
+                self.module.fail_json(msg="PBS storage requires 'server', 'username', 'password' and 'datastore' parameters.")
+            else:
+                payload['server'] = server
+                payload['username'] = username
+                payload['password'] = password
+                payload['datastore'] = datastore
+                if fingerprint:
+                    payload['fingerprint'] = fingerprint
 
         # Check Mode validation
         if self.module.check_mode:
