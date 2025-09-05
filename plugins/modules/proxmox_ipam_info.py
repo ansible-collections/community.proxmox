@@ -15,16 +15,17 @@ short_description: Retrieve information about ipams
 description:
   - Retrieve all IPs under IPAM
   - get IP by vmid
-author: 'Jana Hoch <janahoch91@proton.me>'
+author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   vmid:
     description:
       - Get ip of a VM under IPAM.
-    type: str
+    type: int
   ipam:
     description:
       - Limit results to single ipam
-  
+    type: str
+
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -157,7 +158,7 @@ def get_proxmox_args():
 def get_ansible_module():
     module_args = proxmox_auth_argument_spec()
     module_args.update(get_proxmox_args())
-    return AnsibleModule(argument_spec=module_args)
+    return AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
 
 class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
@@ -220,6 +221,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
                     ips.append(item)
         return ips
 
+
 def main():
     module = get_ansible_module()
     proxmox = ProxmoxIpamInfoAnsible(module)
@@ -228,6 +230,7 @@ def main():
         proxmox.run()
     except Exception as e:
         module.fail_json(msg=f'An error occurred: {e}')
+
 
 if __name__ == "__main__":
     main()

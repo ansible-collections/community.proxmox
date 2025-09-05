@@ -35,3 +35,4 @@ action_groups:
     - proxmox_user
     - proxmox_user_info
     - proxmox_vm_info
+    - proxmox_ipam_info
