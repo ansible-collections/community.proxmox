@@ -14,13 +14,13 @@ module: proxmox_vnet_info
 short_description: Retrieve information about one or more Proxmox VE SDN vnets
 description:
   - Retrieve information about one or more Proxmox VE SDN vnets.
-author: 'Jana Hoch <janahoch91@proton.me>'
+author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   vnet:
     description:
       - Restrict results to a specific vnet.
     type: str
-  
+
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -153,7 +153,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 
-class ProxmoxVnetInfoAnsible(ProxmoxAnsible):  
+class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
     def get_subnets(self, vnet):
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet)
@@ -179,7 +179,6 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
                 vnet['subnets'] = self.get_subnets(vnet['vnet'])
                 vnet['firewall_rules'] = self.get_firewall(vnet['vnet'])
             return vnets
-                
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve vnet information from cluster: {e}'
@@ -187,7 +186,7 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-    
+
     module_args = proxmox_auth_argument_spec()
     vnet_info_args = dict(
         vnet=dict(type="str", required=False)
@@ -208,9 +207,10 @@ def main():
 
     if vnet:
         vnets = [vnet_details for vnet_details in vnets if vnet_details['vnet'] == vnet]
-    
+
     results['vnets'] = vnets
     module.exit_json(**results)
+
 
 if __name__ == "__main__":
     main()
