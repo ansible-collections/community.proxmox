@@ -17,7 +17,12 @@ module: proxmox_zone
 short_description: Manage Proxmox zone configurations
 description:
   - list/create/update/delete proxmox sdn zones
-author: 'Jana Hoch <janahoch91@proton.me>'
+author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
+attributes:
+  check_mode:
+    support: none
+  diff_mode:
+    support: none
 options:
   state:
     description:
@@ -80,7 +85,7 @@ options:
     type: str
   dnszone:
     description:
-      - dns domain zone  ex: mydomain.com
+      - dns domain zone.
     type: str
   dp_id:
     description:
@@ -167,7 +172,7 @@ EXAMPLES = r"""
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
     validate_certs: no
-    
+
 - name: Get all simple zones
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
@@ -186,7 +191,7 @@ EXAMPLES = r"""
     type: simple
     zone: ansible
     state: present
-    
+
 - name: create a vlan zones
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
@@ -197,7 +202,7 @@ EXAMPLES = r"""
     zone: ansible
     state: present
     bridge: vmbr0
-    
+
 - name: update a zones
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
@@ -208,7 +213,7 @@ EXAMPLES = r"""
     zone: ansible
     state: update
     mtu: 1200
-    
+
 - name: Delete a zones
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
@@ -222,14 +227,14 @@ EXAMPLES = r"""
 
 RETURN = r"""
 zones:
-    description: 
-      - List of zones. if you do not pass zone name. 
+    description:
+      - List of zones. if you do not pass zone name.
       - If you are creating/updating/deleting it'll just return a msg with status
     returned: on success
     type: list
     elements: dict
     sample:
-      [   
+      [
         {
             "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
             "type": "simple",
@@ -263,7 +268,7 @@ zones:
             "zone": "tsjsfv"
         }
       ]
-        
+
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -271,6 +276,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
     ProxmoxAnsible
 )
+
 
 def get_proxmox_args():
     return dict(
@@ -294,7 +300,7 @@ def get_proxmox_args():
         exitnodes_primary=dict(type="str", required=False),
         fabric=dict(type="str", required=False),
         ipam=dict(type="str", required=False),
-        lock_token=dict(type="str", required=False),
+        lock_token=dict(type="str", required=False, no_log=False),
         mac=dict(type="str", required=False),
         mtu=dict(type="int", required=False),
         nodes=dict(type="str", required=False),
@@ -306,6 +312,7 @@ def get_proxmox_args():
         vrf_vxlan=dict(type="int", required=False),
         vxlan_port=dict(type="int", required=False),
     )
+
 
 def get_ansible_module():
     module_args = proxmox_auth_argument_spec()
@@ -319,6 +326,7 @@ def get_ansible_module():
             ('state', 'absent', ['zone'])
         ]
     )
+
 
 class ProxmoxZoneAnsible(ProxmoxAnsible):
     def __init__(self, module):
@@ -406,7 +414,6 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             )
 
     def get_zones(self, **type):
-        print("reached")
         try:
             return self.proxmox_api.cluster().sdn().zones().get(**type)
         except Exception as e:
@@ -503,7 +510,6 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             )
 
 
-
 def main():
     module = get_ansible_module()
     proxmox = ProxmoxZoneAnsible(module)
@@ -512,6 +518,7 @@ def main():
         proxmox.run()
     except Exception as e:
         module.fail_json(msg=f'An error occurred: {e}')
+
 
 if __name__ == "__main__":
     main()
