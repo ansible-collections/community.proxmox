@@ -56,7 +56,7 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
-            ('state', 'present', ['subnet', 'type', 'vnet']),
+            ('state', 'present', ['subnet', 'type', 'vnet', 'zone']),
             ('state', 'update', ['zone', 'vnet', 'subnet']),
             ('state', 'absent', ['zone', 'vnet', 'subnet']),
         ]
@@ -84,9 +84,9 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
         }
 
         if state == 'present':
-            self.subnet_present(**subnet_params)
+            self.subnet_present(force=force, **subnet_params)
         elif state == 'update':
-            self.subnet_update(**subnet_params)
+            self.subnet_update(force=force, **subnet_params)
         elif state == 'absent':
             self.subnet_absent(**subnet_params)
 
@@ -96,44 +96,65 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
         dhcp_range = [f"start-address={x['start']},end-address={x['end']}" for x in self.params.get('dhcp_range')]
         return dhcp_range
 
-    def subnet_present(self, **subnet_params):
+    def subnet_present(self,force, **subnet_params):
         vnet_name = subnet_params['vnet']
         lock = subnet_params['lock-token']
         subnet = subnet_params['subnet']
+        subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
-            vnet.subnets().post(**subnet_params)
-            self.apply_sdn_changes_and_release_lock(lock=lock)
-            self.module.exit_json(
-                changed=True, subnet=subnet, msg=f'Created new subnet {subnet}'
-            )
+
+            # Check if subnet already present
+            if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
+                if force:
+                    self.subnet_update(force=False, **subnet_params)
+                else:
+                    self.release_lock(lock=lock)
+                    self.module.exit_json(
+                        changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already present and force is false.'
+                    )
+            else:
+                vnet.subnets().post(**subnet_params)
+                self.apply_sdn_changes_and_release_lock(lock=lock)
+                self.module.exit_json(
+                    changed=True, subnet=subnet_id, msg=f'Created new subnet {subnet}'
+                )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(lock=lock)
             self.module.fail_json(
                 msg=f'Failed to create subnet. Rolling back all changes. : {e}'
             )
 
-    def subnet_update(self, **subnet_params):
+    def subnet_update(self,force, **subnet_params):
         lock = subnet_params['lock-token']
         vnet_id = subnet_params['vnet']
         subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
-        subnet_params['delete'] = self.params.get('delete')
-        del subnet_params['type']
-        del subnet_params['subnet']
-
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_id)
-            subnet = getattr(vnet().subnets(), subnet_id)
 
-            subnet_params['digest'] = subnet.get()['digest']
+            # Check if subnet already present
+            if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
+                subnet = getattr(vnet().subnets(), subnet_id)
+                subnet_params['digest'] = subnet.get()['digest']
+                subnet_params['delete'] = self.params.get('delete')
+                del subnet_params['type']
+                del subnet_params['subnet']
 
-            subnet.put(**subnet_params)
-            self.apply_sdn_changes_and_release_lock(lock=lock)
-            self.module.exit_json(
-                changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
-            )
+                subnet.put(**subnet_params)
+                self.apply_sdn_changes_and_release_lock(lock=lock)
+                self.module.exit_json(
+                    changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
+                )
+            else:
+                if force:
+                    self.subnet_present(force=False, **subnet_params)
+                else:
+                    self.release_lock(lock=lock)
+                    self.module.exit_json(
+                        changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} not present and force is false.'
+                    )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(lock=lock)
             self.module.fail_json(
@@ -153,12 +174,20 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
 
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_id)
-            subnet = getattr(vnet().subnets(), subnet_id)
-            subnet.delete(**params)
-            self.apply_sdn_changes_and_release_lock(lock=lock)
-            self.module.exit_json(
-                changed=True, subnet=subnet_id, msg=f'Deleted subnet {subnet_id}'
-            )
+
+            # Check if subnet already present
+            if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
+                subnet = getattr(vnet().subnets(), subnet_id)
+                subnet.delete(**params)
+                self.apply_sdn_changes_and_release_lock(lock=lock)
+                self.module.exit_json(
+                    changed=True, subnet=subnet_id, msg=f'Deleted subnet {subnet_id}'
+                )
+            else:
+                self.release_lock(lock=lock)
+                self.module.exit_json(
+                    changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already not present.'
+                )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(lock=lock)
             self.module.fail_json(
