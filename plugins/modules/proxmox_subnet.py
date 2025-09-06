@@ -58,6 +58,7 @@ def get_ansible_module():
         required_if=[
             ('state', 'present', ['subnet', 'type', 'vnet']),
             ('state', 'update', ['zone', 'vnet', 'subnet']),
+            ('state', 'absent', ['zone', 'vnet', 'subnet']),
         ]
     )
 
@@ -86,6 +87,8 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
             self.subnet_present(**subnet_params)
         elif state == 'update':
             self.subnet_update(**subnet_params)
+        elif state == 'absent':
+            self.subnet_absent(**subnet_params)
 
     def get_dhcp_range(self):
         if self.params.get('dhcp_range') is None:
@@ -135,6 +138,31 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
             self.rollback_sdn_changes_and_release_lock(lock=lock)
             self.module.fail_json(
                 msg=f'Failed to update subnet. Rolling back all changes. : {e}'
+            )
+
+    def subnet_absent(self, **subnet_params):
+        vnet_id = subnet_params['vnet']
+        lock = subnet_params['lock-token']
+        subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
+
+        params = {
+            'subnet': subnet_id,
+            'vnet': vnet_id,
+            'lock-token': lock
+        }
+
+        try:
+            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_id)
+            subnet = getattr(vnet().subnets(), subnet_id)
+            subnet.delete(**params)
+            self.apply_sdn_changes_and_release_lock(lock=lock)
+            self.module.exit_json(
+                changed=True, subnet=subnet_id, msg=f'Deleted subnet {subnet_id}'
+            )
+        except Exception as e:
+            self.rollback_sdn_changes_and_release_lock(lock=lock)
+            self.module.fail_json(
+                msg=f'Failed to delete subnet. Rolling back all changes. : {e}'
             )
 
 
