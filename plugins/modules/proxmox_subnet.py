@@ -31,13 +31,15 @@ def get_proxmox_args():
         subnet=dict(type="str", required=True),
         type=dict(type="str", choices=['subnet'], default='subnet', required=False),
         vnet=dict(type="str", required=True),
+        zone=dict(type="str", required=False),
         dhcp_dns_server=dict(type="str", required=False),
         dhcp_range=dict(
             type='list',
             elements='dict',
+            required=False,
             options=dict(
-                start=dict(type='str'),
-                end=dict(type='str')
+                start=dict(type='str', required=True),
+                end=dict(type='str', required=True)
             )
         ),
         dnszoneprefix=dict(type='str', required=False),
@@ -55,6 +57,7 @@ def get_ansible_module():
         argument_spec=module_args,
         required_if=[
             ('state', 'present', ['subnet', 'type', 'vnet']),
+            ('state', 'update', ['zone', 'vnet', 'subnet']),
         ]
     )
 
@@ -80,7 +83,9 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
         }
 
         if state == 'present':
-            self.subnet_present(force=force, **subnet_params)
+            self.subnet_present(**subnet_params)
+        elif state == 'update':
+            self.subnet_update(**subnet_params)
 
     def get_dhcp_range(self):
         if self.params.get('dhcp_range') is None:
@@ -104,6 +109,32 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
             self.rollback_sdn_changes_and_release_lock(lock=lock)
             self.module.fail_json(
                 msg=f'Failed to create subnet. Rolling back all changes. : {e}'
+            )
+
+    def subnet_update(self, **subnet_params):
+        lock = subnet_params['lock-token']
+        vnet_id = subnet_params['vnet']
+        subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
+
+        subnet_params['delete'] = self.params.get('delete')
+        del subnet_params['type']
+        del subnet_params['subnet']
+
+        try:
+            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_id)
+            subnet = getattr(vnet().subnets(), subnet_id)
+
+            subnet_params['digest'] = subnet.get()['digest']
+
+            subnet.put(**subnet_params)
+            self.apply_sdn_changes_and_release_lock(lock=lock)
+            self.module.exit_json(
+                changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
+            )
+        except Exception as e:
+            self.rollback_sdn_changes_and_release_lock(lock=lock)
+            self.module.fail_json(
+                msg=f'Failed to update subnet. Rolling back all changes. : {e}'
             )
 
 
