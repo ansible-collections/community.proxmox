@@ -27,7 +27,7 @@ def get_proxmox_args():
     return dict(
         state=dict(type="str", choices=["present", "absent", "update"], required=False),
         force=dict(type="bool", default=False, required=False),
-        level=dict(type="str", choices=["cluster", "node", "vm", "vnet"], default="cluster", required=False),
+        level=dict(type="str", choices=["cluster", "node", "vm", "vnet", "group"], default="cluster", required=False),
         node=dict(type="str", required=False),
         vmid=dict(type="int", required=False),
         vnet=dict(type="str", required=False)
@@ -61,16 +61,27 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             rules = self.get_node_fw_rules(node=self.params['node'])
         elif level == "vnet":
             rules = self.get_vnet_fw_rules(vnet=self.params['vnet'])
+        elif level == "group":
+            rules = self.get_group_fw_rules(group=self.params['group'])
         else:
             rules = self.get_cluster_fw_rules()
         self.module.exit_json(
             changed=False, firewall_rules=rules, msg=f'successfully retrieved firewall rules'
         )
 
+    def get_group_fw_rules(self, group, pos=None):
+        try:
+            group = getattr(self.proxmox_api.cluster().firewall().groups(), group)
+            return group().get(pos=pos)
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve security group level firewall rules: {e}'
+            )
+
     def get_vnet_fw_rules(self, vnet, pos=None):
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet)
-            return vnet().firewall().rules().get()
+            return vnet().firewall().rules().get(pos=pos)
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve vnet level firewall rules: {e}'
@@ -101,7 +112,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             virt = getattr(node(), vm['type'])
             vm = getattr(virt(), vmid)
 
-            return vm().firewall().rules().get()
+            return vm().firewall().rules().get(pos=pos)
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve firewall rules for vmid - {vmid}: {e}'
