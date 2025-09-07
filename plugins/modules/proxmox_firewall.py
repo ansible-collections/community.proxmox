@@ -80,94 +80,58 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         level = self.params.get("level")
         rules =self.params.get("rules")
 
-        # if rules is not None:
-        #     rules = [rules.get('icmp_type')
+        if level == "vm":
+            vm = self.get_vm(vmid=self.params.get('vmid'))
+            node = getattr(self.proxmox_api.nodes(), vm['node'])
+            virt = getattr(node(), vm['type'])
+            vm = getattr(virt(), vm['vmid'])
+            firewall_obj = vm().firewall
+            rules_obj = firewall_obj().rules
+
+        elif level == "node":
+            node = getattr(self.proxmox_api.nodes(), self.params.get('node'))
+            firewall_obj = node().firewall
+            rules_obj = firewall_obj().rules
+
+        elif level == "vnet":
+            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), self.params.get('vnet'))
+            firewall_obj = vnet().firewall
+            rules_obj = firewall_obj().rules
+
+        elif level == "group":
+            rules_obj = getattr(self.proxmox_api.cluster().firewall().groups(), self.params.get('group'))
+
+        else:
+            firewall_obj = self.proxmox_api.cluster().firewall
+            rules_obj = firewall_obj().rules
 
         if state == "present":
-            if level == "vm":
-                pass
-            elif level == "node":
-                pass
-            elif level == "vnet":
-                pass
-            elif level == "group":
-                pass
-            else:
-                if rules is not None:
-                    self.create_cluster_fw_rules(rules=rules)
+            if rules is not None:
+                self.create_fw_rules(rules_obj=rules_obj, rules=rules)
         else:
-            if level == "vm":
-                rules = self.get_vmid_fw_rules(vmid=self.params['vmid'])
-            elif level == "node":
-                rules = self.get_node_fw_rules(node=self.params['node'])
-            elif level == "vnet":
-                rules = self.get_vnet_fw_rules(vnet=self.params['vnet'])
-            elif level == "group":
-                rules = self.get_group_fw_rules(group=self.params['group'])
-            else:
-                rules = self.get_cluster_fw_rules()
+            rules = self.get_fw_rules(rules_obj)
             self.module.exit_json(
                 changed=False, firewall_rules=rules, msg=f'successfully retrieved firewall rules'
             )
 
-    def get_group_fw_rules(self, group, pos=None):
+    def get_fw_rules(self, rules_obj, pos=None):
+        if pos is not None:
+            rules_obj = getattr(rules_obj(), str(pos))
         try:
-            group = getattr(self.proxmox_api.cluster().firewall().groups(), group)
-            return group().get(pos=pos)
+            return rules_obj.get()
         except Exception as e:
             self.module.fail_json(
-                msg=f'Failed to retrieve security group level firewall rules: {e}'
+                msg=f'Failed to retrieve firewall rules: {e}'
             )
 
-    def get_vnet_fw_rules(self, vnet, pos=None):
-        try:
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet)
-            return vnet().firewall().rules().get(pos=pos)
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve vnet level firewall rules: {e}'
-            )
-
-    def get_cluster_fw_rules(self, pos=None):
-        try:
-            return self.proxmox_api.cluster().firewall().rules().get(pos=pos)
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve cluster level firewall rules: {e}'
-            )
-
-    def get_node_fw_rules(self, node, pos=None):
-        try:
-            node = getattr(self.proxmox_api.nodes(), node)
-            return node().firewall().rules().get(pos=pos)
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve cluster level firewall rules: {e}'
-            )
-
-    def get_vmid_fw_rules(self, vmid, pos=None):
-        try:
-            vm = self.get_vm(vmid=vmid)
-
-            node = getattr(self.proxmox_api.nodes(), vm['node'])
-            virt = getattr(node(), vm['type'])
-            vm = getattr(virt(), vmid)
-
-            return vm().firewall().rules().get(pos=pos)
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve firewall rules for vmid - {vmid}: {e}'
-            )
-
-    def create_cluster_fw_rules(self, rules):
+    def create_fw_rules(self, rules_obj, rules):
         for rule in rules:
             rule['icmp-type'] = rule.get('icmp_type')
             rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
             del rule['icmp_type']
             try:
-                firewall_obj =  self.proxmox_api.cluster().firewall
-                firewall_obj().rules().post(**rule)
-                self.move_rule_to_correct_pos(firewall_obj, rule)
+                rules_obj().post(**rule)
+                self.move_rule_to_correct_pos(rules_obj, rule)
 
             except Exception as e:
                 self.module.fail_json(
@@ -178,7 +142,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 changed=True, msg=f'successfully created firewall rules'
             )
 
-    def move_rule_to_correct_pos(self, firewall_obj, rule):
+    def move_rule_to_correct_pos(self, rules_obj, rule):
         ##################################################################################################
         # TODO: Once below mentioned issue is fixed. Remove this workaround.                             #
         # Currently Proxmox API doesn't honor pos. All new rules are created at pos 0                    #
@@ -191,7 +155,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         rule = {k: v for k, v in rule.items() if v is not None}
         if pos is not None and pos != 0:
             try:
-                fw_rule_at0 = getattr(firewall_obj().rules(), str(0))
+                fw_rule_at0 = getattr(rules_obj(), str(0))
                 for param, value, in fw_rule_at0.get().items():
                     if param in rule.keys() and param != 'pos' and value != rule.get(param):
                         self.module.warn(
