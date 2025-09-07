@@ -108,6 +108,9 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         if state == "present":
             if rules is not None:
                 self.create_fw_rules(rules_obj=rules_obj, rules=rules)
+        elif state == "update":
+            if rules is not None:
+                self.update_fw_rules(rules_obj=rules_obj, rules=rules)
         else:
             rules = self.get_fw_rules(rules_obj)
             self.module.exit_json(
@@ -122,6 +125,25 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve firewall rules: {e}'
+            )
+
+    def update_fw_rules(self, rules_obj, rules):
+        for rule in rules:
+            rule['icmp-type'] = rule.get('icmp_type')
+            rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
+            del rule['icmp_type']
+            try:
+                rule_obj = getattr(rules_obj(), str(rule['pos']))
+                rule['digest'] = rule_obj.get().get('digest') # Avoids concurrent changes
+                rule_obj.put(**rule)
+
+            except Exception as e:
+                self.module.fail_json(
+                    msg=f'Failed to update firewall rule at pos {rule["pos"]}: {e}'
+                )
+        else:
+            self.module.exit_json(
+                changed=True, msg=f'successfully created firewall rules'
             )
 
     def create_fw_rules(self, rules_obj, rules):
