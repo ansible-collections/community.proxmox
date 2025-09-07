@@ -26,7 +26,6 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 def get_proxmox_args():
     return dict(
         state=dict(type="str", choices=["present", "absent", "update"], required=False),
-        force=dict(type="bool", default=False, required=False),
         level=dict(type="str", choices=["cluster", "node", "vm", "vnet", "group"], default="cluster", required=False),
         node=dict(type="str", required=False),
         vmid=dict(type="int", required=False),
@@ -69,6 +68,11 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
+            ('group_conf', True, ['group']),
+            ('level', 'vm', ['vmid']),
+            ('level', 'node', ['node']),
+            ('level', 'vnet', ['vnet']),
+            ('level', 'group', ['group']),
         ]
     )
 
@@ -78,11 +82,26 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         super(ProxmoxFirewallAnsible, self).__init__(module)
         self.params = module.params
 
+    def validate_params(self):
+        if self.params.get('state') in ['present', 'update']:
+            return self.params.get('group_conf') or self.params.get('rules')
+        elif self.params.get('state') == 'absent':
+            return self.params.get('group_conf') or self.params.get('pos')
+        else:
+            return True
+
+
     def run(self):
+        if not self.validate_params():
+            self.module.fail_json(
+                msg=f'parameter validation failed. '
+                    f'If state is present/update we need either group_conf to be True or rules to be present. '
+                    f'If state is absent we need group_conf to be True or pos to be present. '
+            )
+
         state = self.params.get("state")
-        force = self.params.get("force")
         level = self.params.get("level")
-        rules =self.params.get("rules")
+        rules = self.params.get("rules")
 
         if level == "vm":
             vm = self.get_vm(vmid=self.params.get('vmid'))
