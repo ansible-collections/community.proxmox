@@ -32,6 +32,9 @@ def get_proxmox_args():
         vmid=dict(type="int", required=False),
         vnet=dict(type="str", required=False),
         pos=dict(type="int", required=False),
+        group_conf=dict(type="bool", default=False),
+        group=dict(type="str", required=False),
+        comment=dict(type="str", required=False),
         rules=dict(
             type="list",
             elements="dict",
@@ -107,17 +110,47 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             rules_obj = firewall_obj().rules
 
         if state == "present":
+            if self.params.get('group_conf'):
+                self.create_group(group=self.params.get('group'), comment=self.params.get('comment'))
             if rules is not None:
                 self.create_fw_rules(rules_obj=rules_obj, rules=rules)
         elif state == "update":
+            if self.params.get('group_conf'):
+                self.create_group(group=self.params.get('group'), comment=self.params.get('comment'))
             if rules is not None:
                 self.update_fw_rules(rules_obj=rules_obj, rules=rules)
         elif state == "absent":
-            self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
+            if self.params.get('pos'):
+                self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
+            if self.params.get('group_conf'):
+                self.delete_group(group_name=self.params.get('group'))
         else:
-            rules = self.get_fw_rules(rules_obj)
+            rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
             self.module.exit_json(
                 changed=False, firewall_rules=rules, msg=f'successfully retrieved firewall rules'
+            )
+
+    def create_group(self, group, comment=None):
+        try:
+            self.proxmox_api.cluster().firewall().groups.post(group=group, comment=comment)
+            self.module.exit_json(
+                changed=True, group=group, msg=f'successfully created security group {group}'
+            )
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to create security group: {e}'
+            )
+
+    def delete_group(self, group_name):
+        try:
+            group = getattr(self.proxmox_api.cluster().firewall().groups(), group_name)
+            group.delete()
+            self.module.exit_json(
+                changed=True, group=group_name, msg=f'successfully deleted security group {group_name}'
+            )
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to delete security group {group_name}: {e}'
             )
 
     def get_fw_rules(self, rules_obj, pos=None):
