@@ -31,6 +31,7 @@ def get_proxmox_args():
         node=dict(type="str", required=False),
         vmid=dict(type="int", required=False),
         vnet=dict(type="str", required=False),
+        pos=dict(type="int", required=False),
         rules=dict(
             type="list",
             elements="dict",
@@ -111,6 +112,8 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         elif state == "update":
             if rules is not None:
                 self.update_fw_rules(rules_obj=rules_obj, rules=rules)
+        elif state == "absent":
+            self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
         else:
             rules = self.get_fw_rules(rules_obj)
             self.module.exit_json(
@@ -125,6 +128,20 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve firewall rules: {e}'
+            )
+
+    def delete_fw_rule(self, rules_obj, pos):
+        try:
+            rule_obj = getattr(rules_obj(), str(pos))
+            digest = rule_obj.get().get('digest')
+            rule_obj.delete(pos=pos, digest=digest)
+
+            self.module.exit_json(
+                changed=True, msg=f'successfully deleted firewall rules'
+            )
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to delete firewall rule at pos {pos}: {e}'
             )
 
     def update_fw_rules(self, rules_obj, rules):
