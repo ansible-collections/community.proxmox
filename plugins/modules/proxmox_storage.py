@@ -476,7 +476,7 @@ def main():
         nodes=dict(type='list', elements='str',),
         name=dict(type='str', required=True),
         state=dict(choices=['present', 'absent']),
-        type=dict(choices=['cephfs', 'cifs', 'iscsi', 'nfs', 'pbs'], required=True),
+        type=dict(choices=['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool'], required=True),
         cephfs_options=dict(type='dict', options={
             'monhost': dict(type='list', elements='str'),
             'username': dict(type='str'),
