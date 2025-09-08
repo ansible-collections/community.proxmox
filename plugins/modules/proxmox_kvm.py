@@ -543,8 +543,9 @@ options:
   vga:
     description:
       - Select VGA type. If you want to use high resolution modes (>= 1280x1024x16) then you should use option V(std) or V(vmware).
+      - Values allowed are - V("[,clipboard=(vnc)] [,memory=<integer>] [,[type=](cirrus | qxl | qxl2 | qxl3 | qxl4 | none | serial0
+        | serial1 | serial2 | serial3 | std | virtio | virtio-gl | vmware)]").
     type: str
-    choices: ['std', 'cirrus', 'vmware', 'qxl', 'serial0', 'serial1', 'serial2', 'serial3', 'qxl2', 'qxl3', 'qxl4']
   virtio:
     description:
       - A hash/dictionary of volume used as VIRTIO hard disk. O(virtio='{"key":"value", "key":"value"}').
@@ -1314,7 +1315,7 @@ def main():
         update=dict(type='bool', default=False),
         update_unsafe=dict(type='bool', default=False),
         vcpus=dict(type='int'),
-        vga=dict(choices=['std', 'cirrus', 'vmware', 'qxl', 'serial0', 'serial1', 'serial2', 'serial3', 'qxl2', 'qxl3', 'qxl4']),
+        vga=dict(type='str'),
         virtio=dict(type='dict'),
         vmid=dict(type='int'),
         watchdog=dict(),
