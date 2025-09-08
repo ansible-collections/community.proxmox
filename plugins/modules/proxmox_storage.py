@@ -130,7 +130,7 @@ options:
         description:
           - The path of the direcotry on the node(s).
         type: str
-        required: true
+        required: false
   nfs_options:
     description:
       - Extended information for adding NFS storage.
@@ -205,7 +205,7 @@ options:
         description:
           - The name of the ZFS pool to use.
         type: str
-        required: true
+        required: false
   content:
     description:
       - The desired content that should be used with this storage type.
@@ -477,6 +477,9 @@ def main():
         name=dict(type='str', required=True),
         state=dict(choices=['present', 'absent']),
         type=dict(choices=['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool'], required=True),
+        dir_options=dict(type='dict', options={
+            'path': dict(type='str')
+        }),
         cephfs_options=dict(type='dict', options={
             'monhost': dict(type='list', elements='str'),
             'username': dict(type='str'),
@@ -509,6 +512,9 @@ def main():
             'password': dict(type='str', no_log=True),
             'datastore': dict(type='str'),
             'fingerprint': dict(type='str')
+        }),
+        zfspool_options=dict(type='dict', options={
+            'pool': dict(type='str')
         }),
         content=dict(type='list', elements='str', choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]),
     )
