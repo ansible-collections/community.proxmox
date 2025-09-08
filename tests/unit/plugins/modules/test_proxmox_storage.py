@@ -12,6 +12,25 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import P
 
 
 @pytest.fixture
+def dir_storage_args():
+    return {
+        "api_host": "localhost",
+        "api_user": "root@pam",
+        "api_password": "secret",
+        "validate_certs": False,
+        "node_name": "pve01",
+        "nodes": ["pve01", "pve02"],
+        "state": "present",
+        "name": "dir-storage",
+        "type": "dir",
+        "dir_options": {
+            "path": "/dir",
+        },
+        "content": ["images"]
+    }
+
+
+@pytest.fixture
 def pbs_storage_args():
     return {
         "api_host": "localhost",
@@ -55,11 +74,53 @@ def nfs_storage_args():
 
 
 @pytest.fixture
+def zfspool_storage_args():
+    return {
+        "api_host": "localhost",
+        "api_user": "root@pam",
+        "api_password": "secret",
+        "validate_certs": False,
+        "node_name": "pve01",
+        "nodes": ["pve01", "pve02"],
+        "state": "present",
+        "name": "zfspool-storage",
+        "type": "zfspooldir",
+        "zfspool_options": {
+            "pool": "mypool",
+        },
+        "content": ["images"]
+    }
+
+
+@pytest.fixture
 def existing_storages():
     return [
         {"storage": "existing-storage"},
         {"storage": "nfs-share"}
     ]
+
+
+@patch.object(ProxmoxAnsible, "__init__", return_value=None)
+@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
+def test_add_dir_storage(mock_api, mock_init, dir_storage_args):
+    module = MagicMock(spec=AnsibleModule)
+    module.params = dir_storage_args
+    module.check_mode = False
+
+    mock_api_instance = MagicMock()
+    mock_api.return_value = mock_api_instance
+    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
+    mock_api_instance.storage.get.return_value = []
+    mock_api_instance.storage.post.return_value = {}
+
+    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
+    proxmox.module = module
+    proxmox.proxmox_api = mock_api_instance
+
+    changed, msg = proxmox.add_storage()
+
+    assert changed is True
+    assert "created successfully" in msg
 
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)
@@ -215,6 +276,29 @@ def test_add_cephfs_storage(mock_api, mock_init):
 
     module = MagicMock(spec=AnsibleModule)
     module.params = cephfs_args
+    module.check_mode = False
+
+    mock_api_instance = MagicMock()
+    mock_api.return_value = mock_api_instance
+    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
+    mock_api_instance.storage.get.return_value = []
+    mock_api_instance.storage.post.return_value = {}
+
+    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
+    proxmox.module = module
+    proxmox.proxmox_api = mock_api_instance
+
+    changed, msg = proxmox.add_storage()
+
+    assert changed is True
+    assert "created successfully" in msg
+
+
+@patch.object(ProxmoxAnsible, "__init__", return_value=None)
+@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
+def test_add_zfspool_storage(mock_api, mock_init, zfspool_storage_args):
+    module = MagicMock(spec=AnsibleModule)
+    module.params = zfspool_storage_args
     module.check_mode = False
 
     mock_api_instance = MagicMock()
