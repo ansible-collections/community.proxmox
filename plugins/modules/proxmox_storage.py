@@ -43,7 +43,7 @@ options:
       - The storage type/protocol to use when adding the storage.
     type: str
     required: true
-    choices: ['cephfs', 'cifs', 'iscsi', 'nfs', 'pbs']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool']
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -121,6 +121,16 @@ options:
           - The minimum SMB version to use for.
         type: str
         required: false
+  dir_options:
+    description:
+      - Extended information for adding Directory storage.
+    type: dict
+    suboptions:
+      path:
+        description:
+          - The path of the direcotry on the node(s).
+        type: str
+        required: true
   nfs_options:
     description:
       - Extended information for adding NFS storage.
@@ -186,6 +196,16 @@ options:
           - The required fingerprint of the Proxmox Backup Server system.
         type: str
         required: false
+  zfspool_options:
+    description:
+      - Extended information for adding ZFS storage.
+    type: dict
+    suboptions:
+      pool:
+        description:
+          - The name of the ZFS pool to use.
+        type: str
+        required: true
   content:
     description:
       - The desired content that should be used with this storage type.
@@ -322,6 +342,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload['server'] = server
                 payload['share'] = share
 
+        if storage_type == "dir":
+            dir_options = self.module.params.get(f'{storage_type}_options', {})
+            path = dir_options.get('path')
+            if not all([path]):
+                self.module.fail_json(msg="Directory storage requires 'path' parameter.")
+            else:
+                payload['path'] = path
+
         if storage_type == "iscsi":
             iscsi_options = self.module.params.get(f'{storage_type}_options', {})
             portal = iscsi_options.get('portal')
@@ -358,6 +386,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload['datastore'] = datastore
                 if fingerprint:
                     payload['fingerprint'] = fingerprint
+
+        if storage_type == "zfspool":
+            zfspool_options = self.module.params.get(f'{storage_type}_options', {})
+            pool = zfspool_options.get('pool')
+            if not all([path]):
+                self.module.fail_json(msg="ZFS storage requires 'pool' parameter.")
+            else:
+                payload['pool'] = pool
 
         # Check Mode validation
         if self.module.check_mode:
