@@ -32,6 +32,12 @@ options:
       - present
       - update
       - absent
+  force:
+    description:
+      - If state is present and if 1 or more rule already exists at given pos force will update them
+      - If state is update and if 1 or more rule doesn't exist force will create
+    type: bool
+    default: false
   level:
     description:
       - Level at which the firewall rule applies.
@@ -157,6 +163,7 @@ options:
         description:
           - Position of the rule in the list.
         type: int
+        required: true
       proto:
         description:
           - IP protocol. You can use protocol names ('tcp'/'udp') or simple numbers, as defined in '/etc/protocols'.
@@ -276,6 +283,14 @@ group:
     sample:
       test
 
+groups:
+    description: list of firewall security groups
+    returned: on success
+    type: list
+    elements: str
+    sample:
+      [ "test" ]
+
 firewall_rules:
     description: List of firewall rules.
     returned: on success
@@ -391,6 +406,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 def get_proxmox_args():
     return dict(
         state=dict(type="str", choices=["present", "absent", "update"], required=False),
+        force=dict(type="bool", default=False),
         level=dict(type="str", choices=["cluster", "node", "vm", "vnet", "group"], default="cluster", required=False),
         node=dict(type="str", required=False),
         vmid=dict(type="int", required=False),
@@ -417,7 +433,7 @@ def get_proxmox_args():
                          choices=["emerg", "alert", "crit", "err", "warning", "notice", "info", "debug", "nolog"],
                          required=False),
                 macro=dict(type="str", required=False),
-                pos=dict(type="int", required=False),
+                pos=dict(type="int", required=True),
                 proto=dict(type="str", required=False),
                 source=dict(type="str", required=False),
                 sport=dict(type="str", required=False)
@@ -449,21 +465,29 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
 
     def validate_params(self):
         if self.params.get('state') in ['present', 'update']:
-            return self.params.get('group_conf') or self.params.get('rules')
+            if ((self.params.get('group_conf') and self.params.get('rules') is None) or
+                    (not self.params.get('group_conf') and self.params.get('rules') is not None)):
+                return True
+            else:
+                self.module.fail_json(
+                    msg="When state is present either group_conf should be true or rules must be present but not both"
+                )
         elif self.params.get('state') == 'absent':
-            return self.params.get('group_conf') or self.params.get('pos')
+            if ((self.params.get('group_conf') and self.params.get('pos') is None) or
+                    (not self.params.get('group_conf') and self.params.get('pos') is not None)):
+                return True
+            else:
+                self.module.fail_json(
+                    msg="When State is absent either group_conf should be true or pos must be present but not both"
+                )
         else:
             return True
 
     def run(self):
-        if not self.validate_params():
-            self.module.fail_json(
-                msg='parameter validation failed. '
-                    'If state is present/update we need either group_conf to be True or rules to be present. '
-                    'If state is absent we need group_conf to be True or pos to be present. '
-            )
+        self.validate_params()
 
         state = self.params.get("state")
+        force = self.params.get("force")
         level = self.params.get("level")
         rules = self.params.get("rules")
 
@@ -496,12 +520,12 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             if self.params.get('group_conf'):
                 self.create_group(group=self.params.get('group'), comment=self.params.get('comment'))
             if rules is not None:
-                self.create_fw_rules(rules_obj=rules_obj, rules=rules)
+                self.create_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
         elif state == "update":
             if self.params.get('group_conf'):
                 self.create_group(group=self.params.get('group'), comment=self.params.get('comment'))
             if rules is not None:
-                self.update_fw_rules(rules_obj=rules_obj, rules=rules)
+                self.update_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
         elif state == "absent":
             if self.params.get('pos'):
                 self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
@@ -509,11 +533,19 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 self.delete_group(group_name=self.params.get('group'))
         else:
             rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
+            groups = self.get_groups()
             self.module.exit_json(
-                changed=False, firewall_rules=rules, msg='successfully retrieved firewall rules'
+                changed=False,
+                firewall_rules=rules,
+                groups=groups,
+                msg='successfully retrieved firewall rules and groups'
             )
 
     def create_group(self, group, comment=None):
+        if group in self.get_groups():
+            self.module.exit_json(
+                changed=False, group=group, msg=f"security group {group} already exists"
+            )
         try:
             self.proxmox_api.cluster().firewall().groups.post(group=group, comment=comment)
             self.module.exit_json(
@@ -525,6 +557,10 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             )
 
     def delete_group(self, group_name):
+        if group_name not in self.get_groups():
+            self.module.exit_json(
+                changed=False, group=group_name, msg=f"security group {group_name} already doesn't exists"
+            )
         try:
             group = getattr(self.proxmox_api.cluster().firewall().groups(), group_name)
             group.delete()
@@ -546,8 +582,23 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 msg=f'Failed to retrieve firewall rules: {e}'
             )
 
+    def get_groups(self):
+        try:
+            return [x['group'] for x in self.proxmox_api.cluster().firewall().groups().get()]
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve firewall security groups: {e}'
+            )
+
     def delete_fw_rule(self, rules_obj, pos):
         try:
+            for item in self.get_fw_rules(rules_obj):
+                if item.get('pos') == pos:
+                    break
+            else:
+                self.module.exit_json(
+                    changed=False, msg="Firewall rule already doesn't exist"
+                )
             rule_obj = getattr(rules_obj(), str(pos))
             digest = rule_obj.get().get('digest')
             rule_obj.delete(pos=pos, digest=digest)
@@ -560,8 +611,21 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 msg=f'Failed to delete firewall rule at pos {pos}: {e}'
             )
 
-    def update_fw_rules(self, rules_obj, rules):
-        for rule in rules:
+    def update_fw_rules(self, rules_obj, rules, force):
+        existing_rules = self.get_fw_rules(rules_obj)
+        rules_to_create = []
+        if len(existing_rules) > 0:
+            existing_pos = [x['pos'] for x in existing_rules]
+            for rule in rules:
+                if rule.get('pos') not in existing_pos:
+                    if force:
+                        rules_to_create.append(rule)
+                    else:
+                        self.module.fail_json(
+                            msg=f"Rule doesn't exists at pos - {rule.get('pos')} and force is false."
+                        )
+        rules_to_update = [rule for rule in rules if rule not in rules_to_create]
+        for rule in rules_to_update:
             rule['icmp-type'] = rule.get('icmp_type')
             rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
             del rule['icmp_type']
@@ -574,12 +638,29 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 self.module.fail_json(
                     msg=f'Failed to update firewall rule at pos {rule["pos"]}: {e}'
                 )
+
+        if len(rules_to_create) > 0:
+            self.create_fw_rules(rules_obj=rules_obj, rules=rules_to_create, force=False)
         self.module.exit_json(
-            changed=True, msg='successfully created firewall rules'
+            changed=True, msg='successfully updated firewall rules'
         )
 
-    def create_fw_rules(self, rules_obj, rules):
-        for rule in rules:
+    def create_fw_rules(self, rules_obj, rules, force):
+        existing_rules = self.get_fw_rules(rules_obj)
+        rules_to_update = []
+        if len(existing_rules) > 0:
+            existing_pos = [x['pos'] for x in existing_rules]
+            for rule in rules:
+                if rule.get('pos') in existing_pos:
+                    if force:
+                        rules_to_update.append(rule)
+                    else:
+                        self.module.fail_json(
+                            msg=f"Rule already exists at pos - {rule.get('pos')} and force is false."
+                        )
+        rules_to_create = [rule for rule in rules if rule not in rules_to_update]
+
+        for rule in rules_to_create:
             rule['icmp-type'] = rule.get('icmp_type')
             rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
             del rule['icmp_type']
@@ -591,6 +672,8 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 self.module.fail_json(
                     msg=f'Failed to create firewall rule {rule}: {e}'
                 )
+        if len(rules_to_update) > 0:
+            self.update_fw_rules(rules_obj=rules_obj, rules=rules_to_update, force=False)
         self.module.exit_json(
             changed=True, msg='successfully created firewall rules'
         )
