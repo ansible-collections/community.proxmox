@@ -390,7 +390,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         if storage_type == "zfspool":
             zfspool_options = self.module.params.get(f'{storage_type}_options', {})
             pool = zfspool_options.get('pool')
-            if not all([path]):
+            if not all([pool]):
                 self.module.fail_json(msg="ZFS storage requires 'pool' parameter.")
             else:
                 payload['pool'] = pool
