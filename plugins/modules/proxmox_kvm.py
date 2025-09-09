@@ -543,8 +543,8 @@ options:
   vga:
     description:
       - Select VGA type. If you want to use high resolution modes (>= 1280x1024x16) then you should use option V(std) or V(vmware).
-      - Values allowed are - V("[,clipboard=(vnc)] [,memory=<integer>] [,[type=](cirrus | qxl | qxl2 | qxl3 | qxl4 | none | serial0
-        | serial1 | serial2 | serial3 | std | virtio | virtio-gl | vmware)]").
+      - Please refer to the Proxmox VE Administrator Guide, section QEMU/KVM Virtual Machines (see
+        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options)) for more information on possible values.
     type: str
   virtio:
     description:
