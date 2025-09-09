@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_kvm - remove limited choice for vga option in proxmox_kvm (https://github.com/ansible-collections/community.proxmox/pull/185)
