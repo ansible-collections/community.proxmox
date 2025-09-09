@@ -322,7 +322,7 @@ def test_add_zfspool_storage(mock_api, mock_init, zfspool_storage_args):
 def test_add_dir_missing_required_path(mock_api, mock_init):
     dir_args = {
         "api_host": "localhost",
-        "api_user": "root@pam", 
+        "api_user": "root@pam",
         "api_password": "secret",
         "validate_certs": False,
         "node_name": "pve01",
@@ -357,11 +357,11 @@ def test_add_dir_missing_required_path(mock_api, mock_init):
 @patch.object(ProxmoxAnsible, "proxmox_api", create=True)
 def test_add_zfspool_missing_required_pool(mock_api, mock_init):
     zfspool_args = {
-        "api_host": "localhost", 
+        "api_host": "localhost",
         "api_user": "root@pam",
         "api_password": "secret",
         "validate_certs": False,
-        "node_name": "pve01", 
+        "node_name": "pve01",
         "nodes": ["pve01"],
         "state": "present",
         "name": "zfspool-storage",
