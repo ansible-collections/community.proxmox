@@ -226,10 +226,17 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
+zone:
+    description:
+      - Name of the zone which was created/updated/deleted
+    returned: on success
+    type: str
+    sample:
+      test
 zones:
     description:
-      - List of zones. if you do not pass zone name.
-      - If you are creating/updating/deleting it'll just return a msg with status
+      - List of zones.
+      - If type is passed it'll filter based on type
     returned: on success
     type: list
     elements: dict
@@ -344,6 +351,8 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
                 return self.params.get('fabric')
             elif type == 'evpn':
                 return self.params.get('controller') and self.params.get('vrf_vxlan')
+            else:
+                return True
         else:
             return True
 
@@ -408,21 +417,23 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
                 lock=zone_params.get('lock-token')
             )
         else:
-            zones = self.get_zones(**zone_params)
+            zones = self.get_zones(
+                type=self.params.get('type')
+            )
             self.module.exit_json(
-                changed=False, msg=zones
+                changed=False, zones=zones, msg="Successfully retrieved zone info."
             )
 
-    def get_zones(self, **type):
+    def get_zones(self, type=None):
         try:
-            return self.proxmox_api.cluster().sdn().zones().get(**type)
+            return self.proxmox_api.cluster().sdn().zones().get(type=type)
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve zone information from cluster: {e}'
             )
 
     def zone_present(self, force, **kwargs):
-        available_zones = {x['zone']: {'type': x["type"], 'digest': x['digest']} for x in self.get_zones()}
+        available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
         zone = kwargs.get("zone")
         type = kwargs.get("type")
         lock = kwargs.get('lock-token')
@@ -455,7 +466,7 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
                 )
 
     def zone_update(self, **kwargs):
-        available_zones = {x['zone']: {'type': x["type"], 'digest': x['digest']} for x in self.get_zones()}
+        available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
         type = kwargs.get("type")
         zone_name = kwargs.get("zone")
         lock = kwargs.get('lock-token')
@@ -473,7 +484,7 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
                 zone.put(**kwargs)
                 self.apply_sdn_changes_and_release_lock(lock)
                 self.module.exit_json(
-                    changed=True, msg=f'Updated zone {zone_name}'
+                    changed=True, zone=zone_name, msg=f'Updated zone {zone_name}'
                 )
             else:
                 self.release_lock(lock)
@@ -487,21 +498,21 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             )
 
     def zone_absent(self, zone_name, lock):
-        available_zones = [x['zone'] for x in self.get_zones()]
+        available_zones = [x.get('zone') for x in self.get_zones()]
         params = {'lock-token': lock}
 
         try:
             if zone_name not in available_zones:
                 self.release_lock(lock)
                 self.module.exit_json(
-                    changed=False, msg=f"zone {zone_name} already doesn't exist."
+                    changed=False, zone=zone_name, msg=f"zone {zone_name} already doesn't exist."
                 )
             else:
                 zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
                 zone.delete(**params)
                 self.apply_sdn_changes_and_release_lock(lock)
                 self.module.exit_json(
-                    changed=True, msg=f'Successfully deleted zone {zone_name}'
+                    changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
                 )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(lock)
