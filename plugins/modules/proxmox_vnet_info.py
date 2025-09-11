@@ -157,7 +157,7 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
     def get_subnets(self, vnet):
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet)
-            return vnet().subnets.get()
+            return vnet().subnets().get()
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve subnet information from vnet {vnet}: {e}'
@@ -166,7 +166,7 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
     def get_firewall(self, vnet_name):
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
-            return vnet().firewall.rules().get()
+            return vnet().firewall().rules().get()
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve subnet information from vnet {vnet_name}: {e}'
@@ -186,7 +186,6 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-
     module_args = proxmox_auth_argument_spec()
     vnet_info_args = dict(
         vnet=dict(type="str", required=False)
@@ -202,14 +201,16 @@ def main():
 
     proxmox = ProxmoxVnetInfoAnsible(module)
     vnet = module.params['vnet']
-    results = {}
     vnets = proxmox.get_vnet_detail()
 
     if vnet:
         vnets = [vnet_details for vnet_details in vnets if vnet_details['vnet'] == vnet]
 
-    results['vnets'] = vnets
-    module.exit_json(**results)
+    module.exit_json(
+        changed=False,
+        vnets=vnets,
+        msg='Successfully retrieved vnet info'
+    )
 
 
 if __name__ == "__main__":
