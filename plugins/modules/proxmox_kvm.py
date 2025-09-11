@@ -261,6 +261,7 @@ options:
     description:
       - Specifies the Qemu machine type.
       - Type => V((pc|pc(-i440fx\)?-\\d+\\.\\d+(\\.pxe\)?|q35|pc-q35-\\d+\\.\\d+(\\.pxe\)?\)).
+      - Allows to set, [[type=]<machine type>] [,enable-s3=<1|0>] [,enable-s4=<1|0>] [,viommu=<intel|virtio>].
     type: str
   memory:
     description:
