@@ -281,6 +281,7 @@ zones:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
+    ansible_to_proxmox_bool,
     ProxmoxAnsible
 )
 
@@ -375,17 +376,17 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
         zone_params = {
             "type": self.params.get("type"),
             "zone": self.params.get("zone"),
-            "advertise-subnets": self.params.get("advertise_subnets"),
+            "advertise-subnets": ansible_to_proxmox_bool(self.params.get("advertise_subnets")),
             "bridge": self.params.get("bridge"),
-            "bridge-disable-mac-learning": self.params.get("bridge_disable_mac_learning"),
+            "bridge-disable-mac-learning": ansible_to_proxmox_bool(self.params.get("bridge_disable_mac_learning")),
             "controller": self.params.get("controller"),
             "dhcp": self.params.get("dhcp"),
-            "disable-arp-nd-suppression": self.params.get("disable_arp_nd_suppression"),
+            "disable-arp-nd-suppression": ansible_to_proxmox_bool(self.params.get("disable_arp_nd_suppression")),
             "dns": self.params.get("dns"),
             "dnszone": self.params.get("dnszone"),
             "dp-id": self.params.get("dp_id"),
             "exitnodes": self.params.get("exitnodes"),
-            "exitnodes-local-routing": self.params.get("exitnodes_local_routing"),
+            "exitnodes-local-routing": ansible_to_proxmox_bool(self.params.get("exitnodes_local_routing")),
             "exitnodes-primary": self.params.get("exitnodes_primary"),
             "fabric": self.params.get("fabric"),
             "ipam": self.params.get("ipam"),
