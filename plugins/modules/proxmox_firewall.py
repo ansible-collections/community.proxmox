@@ -491,6 +491,11 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         group = self.params.get("group")
         group_conf = self.params.get("group_conf")
 
+        for rule in rules:
+            rule['icmp-type'] = rule.get('icmp_type')
+            rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
+            del rule['icmp_type']
+
         if level == "vm":
             vm = self.get_vm(vmid=self.params.get('vmid'))
             node = getattr(self.proxmox_api.nodes(), vm['node'])
@@ -611,24 +616,56 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 msg=f'Failed to delete firewall rule at pos {pos}: {e}'
             )
 
+    def check_rules(self, existing_rules, new_rules):
+        rules_to_update = []
+        new_rules = [{k: v for k, v in item.items() if v is not None} for item in new_rules]
+
+        if existing_rules is None:
+            rules_to_create = new_rules
+            rules_to_update = list()
+            return rules_to_create, rules_to_update
+
+        existing_rules = {x['pos']: x for x in existing_rules}
+        new_rules = {x['pos']: x for x in new_rules}
+
+        common_pos = set(existing_rules.keys()).intersection(set(new_rules.keys()))
+        pos_to_create = set(new_rules.keys()) - set(existing_rules.keys())
+        rules_to_create = [new_rules[pos] for pos in pos_to_create]
+
+        params_to_ignore = ['digest', 'ipversion']
+
+        for pos in common_pos:
+            # If new rule has a parameter that is not present in existing rule we need to update
+            if set(new_rules[pos].keys()) - set(existing_rules[pos].keys()) != set():
+                rules_to_update.append(new_rules[pos])
+                continue
+
+            # If existing rule param value doesn't match new rule param OR
+            # If existing rule has a param that is not present in new rule except for params in params_to_ignore
+            for existing_rule_param, existing_parm_value in existing_rules[pos].items():
+                if (existing_rule_param not in params_to_ignore and
+                        new_rules[pos].get(existing_rule_param) != existing_parm_value):
+                    rules_to_update.append(new_rules[pos])
+
+        return rules_to_create, rules_to_update
+
     def update_fw_rules(self, rules_obj, rules, force):
         existing_rules = self.get_fw_rules(rules_obj)
-        rules_to_create = []
-        if len(existing_rules) > 0:
-            existing_pos = [x['pos'] for x in existing_rules]
-            for rule in rules:
-                if rule.get('pos') not in existing_pos:
-                    if force:
-                        rules_to_create.append(rule)
-                    else:
-                        self.module.fail_json(
-                            msg=f"Rule doesn't exists at pos - {rule.get('pos')} and force is false."
-                        )
-        rules_to_update = [rule for rule in rules if rule not in rules_to_create]
+        rules_to_create, rules_to_update = self.check_rules(existing_rules=existing_rules, new_rules=rules)
+
+        if len(rules_to_update) == 0:
+            if len(rules_to_create) == 0:
+                self.module.exit_json(
+                    changed=False,
+                    msg='No need to update any FW rules.'
+
+                )
+            elif len(rules_to_create) > 0 and not force:
+                self.module.fail_json(
+                    msg=f"Need to create new rules for pos - {[x['pos'] for x in rules_to_create]} But force is false"
+                )
+
         for rule in rules_to_update:
-            rule['icmp-type'] = rule.get('icmp_type')
-            rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
-            del rule['icmp_type']
             try:
                 rule_obj = getattr(rules_obj(), str(rule['pos']))
                 rule['digest'] = rule_obj.get().get('digest')  # Avoids concurrent changes
@@ -646,24 +683,20 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         )
 
     def create_fw_rules(self, rules_obj, rules, force):
-        existing_rules = self.get_fw_rules(rules_obj)
-        rules_to_update = []
-        if len(existing_rules) > 0:
-            existing_pos = [x['pos'] for x in existing_rules]
-            for rule in rules:
-                if rule.get('pos') in existing_pos:
-                    if force:
-                        rules_to_update.append(rule)
-                    else:
-                        self.module.fail_json(
-                            msg=f"Rule already exists at pos - {rule.get('pos')} and force is false."
-                        )
-        rules_to_create = [rule for rule in rules if rule not in rules_to_update]
+        existing_rules = self.get_fw_rules(rules_obj=rules_obj)
+        rules_to_create, rules_to_update = self.check_rules(existing_rules=existing_rules, new_rules=rules)
+
+        if len(rules_to_create) == 0 and len(rules_to_update) == 0:
+            self.module.exit_json(
+                changed=False,
+                msg='No need to create/update any rule'
+            )
+        elif len(rules_to_update) > 0 and not force:
+            self.module.fail_json(
+                msg=f"Need to update rules at pos - {[x['pos'] for x in rules_to_update]} but force is false"
+            )
 
         for rule in rules_to_create:
-            rule['icmp-type'] = rule.get('icmp_type')
-            rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
-            del rule['icmp_type']
             try:
                 rules_obj().post(**rule)
                 self.move_rule_to_correct_pos(rules_obj, rule)
@@ -672,7 +705,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 self.module.fail_json(
                     msg=f'Failed to create firewall rule {rule}: {e}'
                 )
-        if len(rules_to_update) > 0:
+        if len(rules_to_update) > 0 and force:
             self.update_fw_rules(rules_obj=rules_obj, rules=rules_to_update, force=False)
         self.module.exit_json(
             changed=True, msg='successfully created firewall rules'
