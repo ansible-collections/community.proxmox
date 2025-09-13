@@ -73,6 +73,53 @@ def ansible_to_proxmox_bool(value):
     return 1 if value else 0
 
 
+def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
+    """ Compare 2 list of dicts
+    Use case - for firewall rules we will be getting a list of rules from user.
+    We want to filter out which rules needs to be updated and which rules are completely new and needs to be created
+
+    @param existing_list: Existing values example - list of existing rules
+    @param new_list: New values example - list of rules passed to module
+    @param uid: unique identifier in dict. It should always be present in both lists - in case of firewall rules it's pos
+    @param params_to_ignore:  list of params we want to ignore which are present in existing_list's dict.
+                            In case of firewall rules we want to ignore ['digest', 'ipversion']
+
+    @return: returns 2 list items 1st is the list of items which are completely new and needs to be created
+            2nd is a list of items which needs to be updated
+    """
+    if params_to_ignore is None:
+        params_to_ignore = list()
+    items_to_update = []
+    new_list = [{k: v for k, v in item.items() if v is not None} for item in new_list]
+
+    if existing_list is None:
+        items_to_create = new_list
+        items_to_update = list()
+        return items_to_create, items_to_update
+
+    existing_list = {x[uid]: x for x in existing_list}
+    new_list = {x[uid]: x for x in new_list}
+
+    common_uids = set(existing_list.keys()).intersection(set(new_list.keys()))
+    missing_uids = set(new_list.keys()) - set(existing_list.keys())
+    items_to_create = [new_list[id] for id in missing_uids]
+
+    for id in common_uids:
+        # If new rule has a parameter that is not present in existing rule we need to update
+        if set(new_list[id].keys()) - set(existing_list[id].keys()) != set():
+            items_to_update.append(new_list[id])
+            continue
+
+        # If existing rule param value doesn't match new rule param OR
+        # If existing rule has a param that is not present in new rule except for params in params_to_ignore
+        for existing_rule_param, existing_parm_value in existing_list[id].items():
+            if (existing_rule_param not in params_to_ignore and
+                    new_list[id].get(existing_rule_param) != existing_parm_value):
+                items_to_update.append(new_list[id])
+
+    return items_to_create, items_to_update
+
+
 class ProxmoxAnsible(object):
     """Base class for Proxmox modules"""
     TASK_TIMED_OUT = 'timeout expired'

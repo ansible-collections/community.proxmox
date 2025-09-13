@@ -399,6 +399,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
     ansible_to_proxmox_bool,
+    compare_list_of_dicts,
     ProxmoxAnsible
 )
 
@@ -491,10 +492,11 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         group = self.params.get("group")
         group_conf = self.params.get("group_conf")
 
-        for rule in rules:
-            rule['icmp-type'] = rule.get('icmp_type')
-            rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
-            del rule['icmp_type']
+        if rules is not None:
+            for rule in rules:
+                rule['icmp-type'] = rule.get('icmp_type')
+                rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
+                del rule['icmp_type']
 
         if level == "vm":
             vm = self.get_vm(vmid=self.params.get('vmid'))
@@ -616,54 +618,25 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 msg=f'Failed to delete firewall rule at pos {pos}: {e}'
             )
 
-    def check_rules(self, existing_rules, new_rules):
-        rules_to_update = []
-        new_rules = [{k: v for k, v in item.items() if v is not None} for item in new_rules]
-
-        if existing_rules is None:
-            rules_to_create = new_rules
-            rules_to_update = list()
-            return rules_to_create, rules_to_update
-
-        existing_rules = {x['pos']: x for x in existing_rules}
-        new_rules = {x['pos']: x for x in new_rules}
-
-        common_pos = set(existing_rules.keys()).intersection(set(new_rules.keys()))
-        pos_to_create = set(new_rules.keys()) - set(existing_rules.keys())
-        rules_to_create = [new_rules[pos] for pos in pos_to_create]
-
-        params_to_ignore = ['digest', 'ipversion']
-
-        for pos in common_pos:
-            # If new rule has a parameter that is not present in existing rule we need to update
-            if set(new_rules[pos].keys()) - set(existing_rules[pos].keys()) != set():
-                rules_to_update.append(new_rules[pos])
-                continue
-
-            # If existing rule param value doesn't match new rule param OR
-            # If existing rule has a param that is not present in new rule except for params in params_to_ignore
-            for existing_rule_param, existing_parm_value in existing_rules[pos].items():
-                if (existing_rule_param not in params_to_ignore and
-                        new_rules[pos].get(existing_rule_param) != existing_parm_value):
-                    rules_to_update.append(new_rules[pos])
-
-        return rules_to_create, rules_to_update
-
     def update_fw_rules(self, rules_obj, rules, force):
         existing_rules = self.get_fw_rules(rules_obj)
-        rules_to_create, rules_to_update = self.check_rules(existing_rules=existing_rules, new_rules=rules)
+        rules_to_create, rules_to_update = compare_list_of_dicts(
+            existing_list=existing_rules,
+            new_list=rules,
+            uid='pos',
+            params_to_ignore=['digest', 'ipversion']
+        )
 
-        if len(rules_to_update) == 0:
-            if len(rules_to_create) == 0:
-                self.module.exit_json(
-                    changed=False,
-                    msg='No need to update any FW rules.'
+        if len(rules_to_update) == 0 and len(rules_to_create) == 0:
+            self.module.exit_json(
+                changed=False,
+                msg='No need to update any FW rules.'
 
-                )
-            elif len(rules_to_create) > 0 and not force:
-                self.module.fail_json(
-                    msg=f"Need to create new rules for pos - {[x['pos'] for x in rules_to_create]} But force is false"
-                )
+            )
+        elif len(rules_to_create) > 0 and not force:
+            self.module.fail_json(
+                msg=f"Need to create new rules for pos - {[x['pos'] for x in rules_to_create]} But force is false"
+            )
 
         for rule in rules_to_update:
             try:
@@ -684,7 +657,12 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
 
     def create_fw_rules(self, rules_obj, rules, force):
         existing_rules = self.get_fw_rules(rules_obj=rules_obj)
-        rules_to_create, rules_to_update = self.check_rules(existing_rules=existing_rules, new_rules=rules)
+        rules_to_create, rules_to_update = compare_list_of_dicts(
+            existing_list=existing_rules,
+            new_list=rules,
+            uid='pos',
+            params_to_ignore=['digest', 'ipversion']
+        )
 
         if len(rules_to_create) == 0 and len(rules_to_update) == 0:
             self.module.exit_json(
