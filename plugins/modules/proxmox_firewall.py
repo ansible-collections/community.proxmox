@@ -465,16 +465,14 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
 
     def validate_params(self):
         if self.params.get('state') in ['present', 'update']:
-            if ((self.params.get('group_conf') and self.params.get('rules') is None) or
-                    (not self.params.get('group_conf') and self.params.get('rules') is not None)):
+            if self.params.get('group_conf') != bool(self.params.get('rules')):
                 return True
             else:
                 self.module.fail_json(
                     msg="When state is present either group_conf should be true or rules must be present but not both"
                 )
         elif self.params.get('state') == 'absent':
-            if ((self.params.get('group_conf') and self.params.get('pos') is None) or
-                    (not self.params.get('group_conf') and self.params.get('pos') is not None)):
+            if self.params.get('group_conf') != bool(self.params.get('pos')):
                 return True
             else:
                 self.module.fail_json(
@@ -490,6 +488,8 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         force = self.params.get("force")
         level = self.params.get("level")
         rules = self.params.get("rules")
+        group = self.params.get("group")
+        group_conf = self.params.get("group_conf")
 
         if level == "vm":
             vm = self.get_vm(vmid=self.params.get('vmid'))
@@ -510,27 +510,27 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             rules_obj = firewall_obj().rules
 
         elif level == "group":
-            rules_obj = getattr(self.proxmox_api.cluster().firewall().groups(), self.params.get('group'))
+            rules_obj = getattr(self.proxmox_api.cluster().firewall().groups(), group)
 
         else:
             firewall_obj = self.proxmox_api.cluster().firewall
             rules_obj = firewall_obj().rules
 
         if state == "present":
-            if self.params.get('group_conf'):
-                self.create_group(group=self.params.get('group'), comment=self.params.get('comment'))
+            if group_conf:
+                self.create_group(group=group, comment=self.params.get('comment'))
             if rules is not None:
                 self.create_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
         elif state == "update":
-            if self.params.get('group_conf'):
-                self.create_group(group=self.params.get('group'), comment=self.params.get('comment'))
+            if group_conf:
+                self.create_group(group=group, comment=self.params.get('comment'))
             if rules is not None:
                 self.update_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
         elif state == "absent":
             if self.params.get('pos'):
                 self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
-            if self.params.get('group_conf'):
-                self.delete_group(group_name=self.params.get('group'))
+            if group_conf:
+                self.delete_group(group_name=group)
         else:
             rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
             groups = self.get_groups()
