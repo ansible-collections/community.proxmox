@@ -84,6 +84,27 @@ options:
       - Comment for security group.
       - Only needed when creating group.
     type: str
+  aliases:
+    description:
+      - List of aliases
+      - Alias can only be created/updated/deleted at cluster or VM level
+    type: list
+    elements: dict
+    suboptions:
+      name:
+        description: Alias name
+        type: str
+        required: true
+      cidr:
+        description:
+          - CIDR for alias
+          - only needed when O(state=present) or O(state=update)
+        type: str
+        required: false
+      comment:
+        description: Comment for Alias
+        type: str
+        required: false
   rules:
     description:
       - List of individual rules to be applied.
@@ -273,6 +294,46 @@ EXAMPLES = r"""
     group_conf: True
     state: absent
     group: test
+
+- name: Create FW aliases
+  community.proxmox.proxmox_firewall:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    state: present
+    aliases:
+      - name: test1
+        cidr: '10.10.1.0/24'
+      - name: test2
+        cidr: '10.10.2.0/24'
+
+- name: Update FW aliases
+  community.proxmox.proxmox_firewall:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    state: update
+    aliases:
+      - name: test1
+        cidr: '10.10.1.0/28'
+      - name: test2
+        cidr: '10.10.2.0/28'
+
+- name: Delete FW aliases
+  community.proxmox.proxmox_firewall:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: no
+    state: absent
+    aliases:
+      - name: test1
+      - name: test2
 """
 
 RETURN = r"""
@@ -290,6 +351,35 @@ groups:
     elements: str
     sample:
       [ "test" ]
+
+aliases:
+    description:
+      - list of alias present at given level
+      - aliases are only available for cluster and VM level so if any other level it'll be empty list
+    returned: on success
+    type: list
+    elements: dict
+    sample:
+        [
+            {
+                "cidr": "10.10.1.0/24",
+                "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
+                "ipversion": 4,
+                "name": "test1"
+            },
+            {
+                "cidr": "10.10.2.0/24",
+                "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
+                "ipversion": 4,
+                "name": "test2"
+            },
+            {
+                "cidr": "10.10.3.0/24",
+                "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
+                "ipversion": 4,
+                "name": "test3"
+            }
+        ]
 
 firewall_rules:
     description: List of firewall rules.
@@ -416,6 +506,16 @@ def get_proxmox_args():
         group_conf=dict(type="bool", default=False),
         group=dict(type="str", required=False),
         comment=dict(type="str", required=False),
+        aliases=dict(
+            type="list",
+            elements="dict",
+            required=False,
+            options=dict(
+                name=dict(type="str", required=True),
+                cidr=dict(type="str", required=False),
+                comment=dict(type="str", required=False)
+            )
+        ),
         rules=dict(
             type="list",
             elements="dict",
@@ -455,6 +555,9 @@ def get_ansible_module():
             ('level', 'node', ['node']),
             ('level', 'vnet', ['vnet']),
             ('level', 'group', ['group']),
+        ],
+        mutually_exclusive=[
+            ('aliases', 'rules'),
         ]
     )
 
@@ -466,18 +569,18 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
 
     def validate_params(self):
         if self.params.get('state') in ['present', 'update']:
-            if self.params.get('group_conf') != bool(self.params.get('rules')):
+            if self.params.get('group_conf') != bool(self.params.get('rules') or self.params.get('aliases')):
                 return True
             else:
                 self.module.fail_json(
-                    msg="When state is present either group_conf should be true or rules must be present but not both"
+                    msg="When state is present either group_conf should be true or rules/aliases must be present but not both"
                 )
         elif self.params.get('state') == 'absent':
-            if self.params.get('group_conf') != bool(self.params.get('pos')):
+            if self.params.get('group_conf') != bool(self.params.get('pos') or self.params.get('aliases')):
                 return True
             else:
                 self.module.fail_json(
-                    msg="When State is absent either group_conf should be true or pos must be present but not both"
+                    msg="When State is absent either group_conf should be true or pos/aliases must be present but not both"
                 )
         else:
             return True
@@ -488,6 +591,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         state = self.params.get("state")
         force = self.params.get("force")
         level = self.params.get("level")
+        aliases = self.params.get("aliases")
         rules = self.params.get("rules")
         group = self.params.get("group")
         group_conf = self.params.get("group_conf")
@@ -517,6 +621,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
             rules_obj = firewall_obj().rules
 
         elif level == "group":
+            firewall_obj = None
             rules_obj = getattr(self.proxmox_api.cluster().firewall().groups(), group)
 
         else:
@@ -528,25 +633,139 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 self.create_group(group=group, comment=self.params.get('comment'))
             if rules is not None:
                 self.create_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
+            if aliases is not None:
+                self.create_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases, force=force)
         elif state == "update":
             if group_conf:
                 self.create_group(group=group, comment=self.params.get('comment'))
             if rules is not None:
                 self.update_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
+            if aliases is not None:
+                self.update_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases, force=force)
         elif state == "absent":
             if self.params.get('pos'):
                 self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
             if group_conf:
                 self.delete_group(group_name=group)
+            if aliases is not None:
+                self.delete_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases)
         else:
             rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
             groups = self.get_groups()
+            aliases = self.get_aliases(firewall_obj=firewall_obj, level=level)
             self.module.exit_json(
                 changed=False,
                 firewall_rules=rules,
                 groups=groups,
+                aliases=aliases,
                 msg='successfully retrieved firewall rules and groups'
             )
+
+    def get_aliases(self, firewall_obj, level):
+        if firewall_obj is None or level not in ['cluster', 'vm']:
+            return list()
+        try:
+            return firewall_obj().aliases().get()
+        except Exception as e:
+            self.module.fail_json(
+                msg='Failed to retrieve aliases'
+            )
+
+    def create_aliases(self, firewall_obj, level, aliases, force=False):
+        if firewall_obj is None or level not in ['cluster', 'vm']:
+            self.module.fail_json(
+                msg='Aliases can only be created at cluster or VM level'
+            )
+
+        aliases_to_create, aliases_to_update = compare_list_of_dicts(
+            existing_list=self.get_aliases(firewall_obj=firewall_obj, level=level),
+            new_list=aliases,
+            uid='name',
+            params_to_ignore=['digest', 'ipversion']
+        )
+
+        if len(aliases_to_create) == 0 and len(aliases_to_update) == 0:
+            self.module.exit_json(
+                changed=False,
+                msg='No need to create/update any aliases'
+            )
+        elif len(aliases_to_update) > 0 and not force:
+            self.module.fail_json(
+                msg=f"Need to update aliases - {[x['name'] for x in aliases_to_update]} but force is false"
+            )
+
+        for alias in aliases_to_create:
+            try:
+                firewall_obj().aliases().post(**alias)
+            except Exception as e:
+                self.module.fail_json(
+                    msg=f"Failed to create Alias {alias['name']} - {e}"
+                )
+        if len(aliases_to_update) > 0 and force:
+            self.update_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases_to_update, force=False)
+        else:
+            self.module.exit_json(
+                changed=True,
+                msg="Aliases created"
+            )
+
+    def update_aliases(self, firewall_obj, level, aliases, force=False):
+        aliases_to_create, aliases_to_update = compare_list_of_dicts(
+            existing_list=self.get_aliases(firewall_obj=firewall_obj, level=level),
+            new_list=aliases,
+            uid='name',
+            params_to_ignore=['digest', 'ipversion']
+        )
+
+        if len(aliases_to_update) == 0 and len(aliases_to_create) == 0:
+            self.module.exit_json(
+                changed=False,
+                msg='No need to create/update any alias.'
+
+            )
+        elif len(aliases_to_create) > 0 and not force:
+            self.module.fail_json(
+                msg=f"Need to create new alias - {[x['name'] for x in aliases_to_create]} But force is false"
+            )
+
+        for alias in aliases_to_update:
+            try:
+                alias_obj = getattr(firewall_obj().aliases(), alias['name'])
+                alias_obj().put(**alias)
+            except Exception as e:
+                self.module.fail_json(
+                    msg=f"Failed to update Alias {alias['name']} - {e}"
+                )
+        if len(aliases_to_update) > 0 and force:
+            self.update_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases_to_update, force=False)
+        else:
+            self.module.exit_json(
+                changed=True,
+                msg="Aliases updated"
+            )
+
+    def delete_aliases(self, firewall_obj, level, aliases):
+        existing_aliases = set([x.get('name') for x in self.get_aliases(firewall_obj=firewall_obj, level=level)])
+        aliases = set([x.get('name') for x in aliases])
+        aliases_to_delete = list(existing_aliases.intersection(aliases))
+
+        if len(aliases_to_delete) == 0:
+            self.module.exit_json(
+                changed=False,
+                msg="No need to delete any alias"
+            )
+        for alias_name in aliases_to_delete:
+            try:
+                alias_obj = getattr(firewall_obj().aliases(), alias_name)
+                alias_obj().delete()
+            except Exception as e:
+                self.module.fail_json(
+                    msg=f"Failed to delete alias {alias_name} - {e}"
+                )
+        self.module.exit_json(
+            changed=True,
+            msg="Successfully deleted aliases"
+        )
 
     def create_group(self, group, comment=None):
         if group in self.get_groups():
