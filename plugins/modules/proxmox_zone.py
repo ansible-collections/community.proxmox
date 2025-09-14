@@ -11,9 +11,9 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_zone
-short_description: Manage Proxmox zone configurations
+short_description: Manage Proxmox zone configurations.
 description:
-  - list/create/update/delete proxmox sdn zones
+  - Create/Update/Delete proxmox sdn zones.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 attributes:
   check_mode:
@@ -28,10 +28,10 @@ options:
     choices:
       - present
       - absent
-      - update
+    default: present
   update:
     description:
-      - If state is present and zone exists it'll update.
+      - If O(state=present) and zone exists it'll update.
     type: bool
     default: true
   type:
@@ -77,11 +77,11 @@ options:
     type: bool
   dns:
     description:
-      - dns api server.
+      - DNS api server.
     type: str
   dnszone:
     description:
-      - dns domain zone.
+      - DNS domain zone.
     type: str
   dp_id:
     description:
@@ -105,12 +105,7 @@ options:
     type: str
   ipam:
     description:
-      - use a specific ipam.
-    type: str
-  lock_token:
-    description:
-      - the token for unlocking the global SDN configuration. If not provided it will generate new token
-      - If the playbook fails for some reason you can manually clear lock token by deleting `/etc/pve/sdn/.lock`
+      - Use a specific ipam.
     type: str
   mac:
     description:
@@ -214,7 +209,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent"], required=True),
+        state=dict(type="str", default="present", choices=["present", "absent"]),
         update=dict(type="bool", default=True),
         type=dict(type="str",
                   choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"],
@@ -234,7 +229,6 @@ def get_proxmox_args():
         exitnodes_primary=dict(type="str", required=False),
         fabric=dict(type="str", required=False),
         ipam=dict(type="str", required=False),
-        lock_token=dict(type="str", required=False, no_log=False),
         mac=dict(type="str", required=False),
         mtu=dict(type="int", required=False),
         nodes=dict(type="str", required=False),
@@ -256,7 +250,6 @@ def get_ansible_module():
         argument_spec=module_args,
         required_if=[
             ('state', 'present', ['type', 'zone']),
-            ('state', 'update', ['type', 'zone']),
             ('state', 'absent', ['zone'])
         ]
     )
@@ -316,7 +309,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             "exitnodes-primary": self.params.get("exitnodes_primary"),
             "fabric": self.params.get("fabric"),
             "ipam": self.params.get("ipam"),
-            "lock-token": self.params.get("lock_token"),
+            "lock-token": None,
             "mac": self.params.get("mac"),
             "mtu": self.params.get("mtu"),
             "nodes": self.params.get("nodes"),
@@ -328,9 +321,6 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             "vrf-vxlan": self.params.get("vrf_vxlan"),
             "vxlan-port": self.params.get("vxlan_port"),
         }
-
-        if zone_params['lock-token'] is None and state is not None:
-            zone_params['lock-token'] = self.get_global_sdn_lock()
 
         if state == "present":
             self.zone_present(update, **zone_params)
@@ -345,67 +335,70 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
         available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
         zone_name = kwargs.get("zone")
         zone_type = kwargs.get("type")
-        lock = kwargs.get('lock-token')
 
         # Check if zone already exists
         if zone_name in available_zones.keys() and update:
             if zone_type != available_zones[zone_name]['type']:
-                self.release_lock(lock)
                 self.module.fail_json(
                     msg=f'zone {zone_name} exists with different type and we cannot change type post fact.'
                 )
             else:
                 try:
+                    kwargs['lock-token'] = self.get_global_sdn_lock()
                     kwargs['digest'] = available_zones[zone_name]['digest']
+                    del kwargs['zone']
+                    del kwargs['type']
+
                     zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
                     zone.put(**kwargs)
-                    self.apply_sdn_changes_and_release_lock(lock)
+                    self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
                     self.module.exit_json(
                         changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
                     )
                 except Exception as e:
-                    self.rollback_sdn_changes_and_release_lock(lock)
+                    self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
                     self.module.fail_json(
                         msg=f'Failed to update zone {zone_name} - {e}'
                     )
 
         elif zone_name in available_zones.keys() and not update:
-            self.release_lock(lock)
             self.module.exit_json(
-                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and force is false!'
+                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and update is false!'
             )
         else:
             try:
+                kwargs['lock-token'] = self.get_global_sdn_lock()
+
                 self.proxmox_api.cluster().sdn().zones().post(**kwargs)
-                self.apply_sdn_changes_and_release_lock(lock)
+                self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
                 self.module.exit_json(
                     changed=True, zone=zone_name, msg=f'Created new Zone - {zone_name}'
                 )
             except Exception as e:
-                self.rollback_sdn_changes_and_release_lock(lock)
+                self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
                 self.module.fail_json(
                     msg=f'Failed to create zone {zone_name} - {e}'
                 )
 
-    def zone_absent(self, zone_name, lock):
+    def zone_absent(self, zone_name, lock=None):
         available_zones = [x.get('zone') for x in self.get_zones()]
         params = {'lock-token': lock}
 
         try:
             if zone_name not in available_zones:
-                self.release_lock(lock)
                 self.module.exit_json(
-                    changed=False, zone=zone_name, msg=f"zone {zone_name} already doesn't exist."
+                    changed=False, zone=zone_name, msg=f"zone {zone_name} is absent."
                 )
             else:
+                params['lock-token'] = self.get_global_sdn_lock()
                 zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
                 zone.delete(**params)
-                self.apply_sdn_changes_and_release_lock(lock)
+                self.apply_sdn_changes_and_release_lock(params['lock-token'])
                 self.module.exit_json(
                     changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
                 )
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock)
+            self.rollback_sdn_changes_and_release_lock(params['lock-token'])
             self.module.fail_json(
                 msg=f'Failed to delete zone {zone_name} {e}. Rolling back all pending changes.'
             )

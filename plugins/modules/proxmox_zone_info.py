@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: proxmox_zone
+module: proxmox_zone_info
 short_description: Get Proxmox zone info.
 description:
   - List all available zones.
@@ -18,7 +18,7 @@ author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   type:
     description:
-      - Filter zones on based on type
+      - Filter zones on based on type.
     type: str
     choices:
       - evpn
@@ -114,6 +114,7 @@ def get_ansible_module():
     module_args.update(get_proxmox_args())
     return AnsibleModule(
         argument_spec=module_args,
+        supports_check_mode=True,
     )
 
 

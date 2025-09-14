@@ -8,18 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import traceback
 from typing import List, Dict
-
-PROXMOXER_IMP_ERR = None
-try:
-    from proxmoxer import ProxmoxAPI
-    from proxmoxer import __version__ as proxmoxer_version
-
-    HAS_PROXMOXER = True
-except ImportError:
-    HAS_PROXMOXER = False
-    PROXMOXER_IMP_ERR = traceback.format_exc()
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ansible_to_proxmox_bool,
