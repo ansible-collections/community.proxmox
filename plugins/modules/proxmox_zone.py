@@ -9,9 +9,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-# from ansible_collections.community.sap_libs.plugins.modules.sap_control_exec import choices
-# from pygments.lexer import default
-
 DOCUMENTATION = r"""
 module: proxmox_zone
 short_description: Manage Proxmox zone configurations
@@ -166,22 +163,6 @@ extends_documentation_fragment:
 """
 
 EXAMPLES = r"""
-- name: Get all zones
-  community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-
-- name: Get all simple zones
-  community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-    type: simple
-  register: zones
-
 - name: create a simple zones
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
@@ -233,56 +214,13 @@ zone:
     type: str
     sample:
       test
-zones:
-    description:
-      - List of zones.
-      - If type is passed it'll filter based on type
-    returned: on success
-    type: list
-    elements: dict
-    sample:
-      [
-        {
-            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
-            "type": "simple",
-            "zone": "ans1"
-        },
-        {
-            "bridge": "vmbr0",
-            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
-            "mtu": 1200,
-            "type": "vlan",
-            "zone": "ansible"
-        },
-        {
-            "bridge": "vmbr100",
-            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
-            "ipam": "pve",
-            "type": "vlan",
-            "zone": "lab"
-        },
-        {
-            "dhcp": "dnsmasq",
-            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
-            "ipam": "pve",
-            "type": "simple",
-            "zone": "test1"
-        },
-        {
-            "digest": "e29dea494461aa699ab3bfb7264d95631c8d0e0d",
-            "ipam": "pve",
-            "type": "simple",
-            "zone": "tsjsfv"
-        }
-      ]
-
 """
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
-    ansible_to_proxmox_bool,
-    ProxmoxAnsible
+    ansible_to_proxmox_bool
 )
 
 
@@ -336,21 +274,21 @@ def get_ansible_module():
     )
 
 
-class ProxmoxZoneAnsible(ProxmoxAnsible):
+class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
         super(ProxmoxZoneAnsible, self).__init__(module)
         self.params = module.params
 
     def validate_params(self):
-        type = self.params.get('type')
+        zone_type = self.params.get('type')
         if self.params.get('state') in ['present', 'update']:
-            if type == 'vlan':
+            if zone_type == 'vlan':
                 return self.params.get('bridge')
-            elif type == 'qinq':
+            elif zone_type == 'qinq':
                 return self.params.get('tag') and self.params.get('vlan_protocol')
-            elif type == 'vxlan':
+            elif zone_type == 'vxlan':
                 return self.params.get('fabric')
-            elif type == 'evpn':
+            elif zone_type == 'evpn':
                 return self.params.get('controller') and self.params.get('vrf_vxlan')
             else:
                 return True
@@ -360,7 +298,7 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
     def run(self):
         state = self.params.get("state")
         force = self.params.get("force")
-        type = self.params['type']
+        zone_type = self.params.get('type')
 
         if not self.validate_params():
             required_params = {
@@ -370,7 +308,7 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
                 'evpn': ['controller', 'vrf_vxlan']
             }
             self.module.fail_json(
-                msg=f'to create zone of type {type} it needs - {required_params[type]}'
+                msg=f'to create zone of type {zone_type} it needs - {required_params[zone_type]}'
             )
 
         zone_params = {
@@ -419,56 +357,48 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             )
         else:
             zones = self.get_zones(
-                type=self.params.get('type')
+                zone_type=self.params.get('type')
             )
             self.module.exit_json(
                 changed=False, zones=zones, msg="Successfully retrieved zone info."
             )
 
-    def get_zones(self, type=None):
-        try:
-            return self.proxmox_api.cluster().sdn().zones().get(type=type)
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve zone information from cluster: {e}'
-            )
-
     def zone_present(self, force, **kwargs):
         available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
-        zone = kwargs.get("zone")
-        type = kwargs.get("type")
+        zone_name = kwargs.get("zone")
+        zone_type = kwargs.get("type")
         lock = kwargs.get('lock-token')
 
         # Check if zone already exists
-        if zone in available_zones.keys() and force:
-            if type != available_zones[zone]['type']:
+        if zone_name in available_zones.keys() and force:
+            if zone_type != available_zones[zone_name]['type']:
                 self.release_lock(lock)
                 self.module.fail_json(
-                    msg=f'zone {zone} exists with different type and we cannot change type post fact.'
+                    msg=f'zone {zone_name} exists with different type and we cannot change type post fact.'
                 )
             else:
                 self.zone_update(**kwargs)
-        elif zone in available_zones.keys() and not force:
+        elif zone_name in available_zones.keys() and not force:
             self.release_lock(lock)
             self.module.exit_json(
-                changed=False, zone=zone, msg=f'Zone {zone} already exists and force is false!'
+                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and force is false!'
             )
         else:
             try:
                 self.proxmox_api.cluster().sdn().zones().post(**kwargs)
                 self.apply_sdn_changes_and_release_lock(lock)
                 self.module.exit_json(
-                    changed=True, zone=zone, msg=f'Created new Zone - {zone}'
+                    changed=True, zone=zone_name, msg=f'Created new Zone - {zone_name}'
                 )
             except Exception as e:
                 self.rollback_sdn_changes_and_release_lock(lock)
                 self.module.fail_json(
-                    msg=f'Failed to create zone {zone}'
+                    msg=f'Failed to create zone {zone_name} - {e}'
                 )
 
     def zone_update(self, **kwargs):
         available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
-        type = kwargs.get("type")
+        zone_type = kwargs.get("type")
         zone_name = kwargs.get("zone")
         lock = kwargs.get('lock-token')
 
@@ -476,7 +406,7 @@ class ProxmoxZoneAnsible(ProxmoxAnsible):
             # If zone is not present create it
             if zone_name not in available_zones.keys():
                 self.zone_present(force=False, **kwargs)
-            elif type == available_zones[zone_name]['type']:
+            elif zone_type == available_zones[zone_name]['type']:
                 del kwargs['type']
                 del kwargs['zone']
                 kwargs['digest'] = available_zones[zone_name]['digest']
