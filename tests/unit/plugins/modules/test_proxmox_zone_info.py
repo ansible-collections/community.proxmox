@@ -14,7 +14,7 @@ import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_zone
+from ansible_collections.community.proxmox.plugins.modules import proxmox_zone_info
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
@@ -80,11 +80,11 @@ def get_module_args_zone(zone_type, zone, state='present', update=True, bridge=N
     }
 
 
-class TestProxmoxZoneModule(ModuleTestCase):
+class TestProxmoxZoneInfoModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxZoneModule, self).setUp()
+        super(TestProxmoxZoneInfoModule, self).setUp()
         proxmox_utils.HAS_PROXMOXER = True
-        self.module = proxmox_zone
+        self.module = proxmox_zone_info
         self.fail_json_patcher = patch('ansible.module_utils.basic.AnsibleModule.fail_json',
                                        new=Mock(side_effect=fail_json))
         self.exit_json_patcher = patch('ansible.module_utils.basic.AnsibleModule.exit_json', new=exit_json)
@@ -100,50 +100,13 @@ class TestProxmoxZoneModule(ModuleTestCase):
         self.connect_mock.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
-        super(TestProxmoxZoneModule, self).tearDown()
+        super(TestProxmoxZoneInfoModule, self).tearDown()
 
-    def test_zone_present(self):
-        # Create new Zone
+    def test_get_zones(self):
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type='simple', zone='test')):
-                self.module.main()
-        result = exc_info.value.args[0]
-        assert result["changed"] is True
-        assert result["msg"] == "Created new Zone - test"
-        assert result['zone'] == 'test'
-
-        # Update the zone
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type='simple', zone='test1', state='present')):
-                self.module.main()
-        result = exc_info.value.args[0]
-        assert result["changed"] is True
-        assert result["msg"] == "Updated zone - test1"
-        assert result['zone'] == 'test1'
-
-        # Zone Already exists update=False
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type='simple', zone='test1', update=False)):
+            with set_module_args(get_module_args_state_none()):
                 self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
-        assert result["msg"] == 'Zone test1 already exists and update is false!'
-        assert result['zone'] == 'test1'
-
-        # Zone Already exists with update=True
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type='vlan', zone='test1', update=True, bridge='test')):
-                self.module.main()
-        result = exc_info.value.args[0]
-        assert self.fail_json_mock.called
-        assert result['failed'] is True
-        assert result['msg'] == 'zone test1 exists with different type and we cannot change type post fact.'
-
-    def test_zone_absent(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type='simple', zone='test1', state='absent')):
-                self.module.main()
-        result = exc_info.value.args[0]
-        assert result["changed"] is True
-        assert result["msg"] == "Successfully deleted zone test1"
-        assert result['zone'] == 'test1'
+        assert result["msg"] == "Successfully retrieved zone info."
+        assert result["zones"] == RAW_ZONES
