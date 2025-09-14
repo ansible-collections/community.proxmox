@@ -234,6 +234,13 @@ options:
     type: int
     vars:
       - name: proxmox_vmid
+  proxmox_ssh_user:
+    description:
+      - Become command used in proxmox
+    type: str
+    default: root
+    vars:
+      - name: proxmox_ssh_user
   proxmox_become_method:
     description:
       - Become command used in proxmox
@@ -266,7 +273,7 @@ notes:
   - >
     When NOT using this plugin as root, you need to have a become mechanism,
     e.g. C(sudo), installed on Proxmox and setup so we can run it without prompting for the password.
-    Inside the VM, we need a shell and commands like C(cat), C(dd), C(stat), C(base64), and C(sha256sum) 
+    Inside the VM, we need a shell and commands like C(cat), C(dd), C(stat), C(base64), and C(sha256sum)
     available in the C(PATH) for this plugin to work with file transfers.
   - >
     The VM must have QEMU guest agent installed and running.
@@ -307,12 +314,12 @@ EXAMPLES = r"""
   tasks:
     - name: Ping VM
       ansible.builtin.ping:
-    
+
     - name: Copy file to VM
       ansible.builtin.copy:
         src: ./local_file.txt
         dest: /tmp/remote_file.txt
-    
+
     - name: Fetch file from VM
       ansible.builtin.fetch:
         src: /tmp/remote_file.txt
@@ -342,6 +349,12 @@ from ansible.plugins.connection import ConnectionBase
 from ansible.utils.display import Display
 from ansible.utils.path import makedirs_safe
 from binascii import hexlify
+
+import os
+if os.getenv("ANSIBLE_DEBUGPY") == "1":
+    import debugpy
+    debugpy.listen(("0.0.0.0", 5678))
+    debugpy.wait_for_client()
 
 try:
     import paramiko
@@ -496,7 +509,7 @@ class Connection(ConnectionBase):
 
             ssh.connect(
                 self.get_option('remote_addr').lower(),
-                username=self.get_option('remote_user'),
+                username=self.get_option('proxmox_ssh_user'),
                 allow_agent=allow_agent,
                 look_for_keys=self.get_option('look_for_keys'),
                 key_filename=key_filename,
@@ -521,7 +534,7 @@ class Connection(ConnectionBase):
                 raise AnsibleConnectionFailure(msg)
             else:
                 raise AnsibleConnectionFailure(msg)
-        
+
         self.ssh = ssh
         self._connected = True
         return self
@@ -558,9 +571,9 @@ class Connection(ConnectionBase):
     def _build_qm_command(self, cmd: str) -> str:
         """Build qm guest exec command"""
         qm_cmd = ['/usr/sbin/qm', 'guest', 'exec', str(self.get_option('vmid')), '--', cmd]
-        if self.get_option('remote_user') != 'root':
+        if self.get_option('proxmox_ssh_user') != 'root':
             qm_cmd = [self.get_option('proxmox_become_method')] + qm_cmd
-            display.vvv(f'INFO Running as non root user: {self.get_option("remote_user")}, trying to run qm with become method: ' +
+            display.vvv(f'INFO Running as non root user: {self.get_option("proxmox_ssh_user")}, trying to run qm with become method: ' +
                         f'{self.get_option("proxmox_become_method")}',
                         host=self.get_option('remote_addr'))
         return ' '.join(qm_cmd)
@@ -569,42 +582,43 @@ class Connection(ConnectionBase):
         """Execute command inside VM via qm guest exec and return output"""
         if timeout is None:
             timeout = self.get_option('qm_timeout')
-        
+
         qm_cmd = ['/usr/sbin/qm', 'guest', 'exec', str(self.get_option('vmid'))]
-        
+
         if data_in:
             qm_cmd += ['--pass-stdin', '1']
-        
+
         qm_cmd += ['--timeout', str(timeout), '--'] + cmd
-        
-        if self.get_option('remote_user') != 'root':
+
+        if self.get_option('proxmox_ssh_user') != 'root':
             qm_cmd = [self.get_option('proxmox_become_method')] + qm_cmd
 
         try:
             chan = self.ssh.get_transport().open_session()
-            chan.exec_command(' '.join(qm_cmd))
-            
+            command = ' '.join(qm_cmd)
+            chan.exec_command(command)
+
             if data_in:
                 chan.sendall(data_in)
                 chan.shutdown_write()
-            
+
             stdout = b''.join(chan.makefile('rb', 4096))
             stderr = b''.join(chan.makefile_stderr('rb', 4096))
             returncode = chan.recv_exit_status()
-            
+
             if returncode != 0:
                 raise AnsibleError(f'qm command failed: {stderr.decode()}')
-            
+
             if not stdout:
                 return None
-                
+
             stdout_json = json.loads(stdout.decode())
-            
+
             if stdout_json.get('exitcode') != 0 or stdout_json.get('exited') != 1:
                 raise AnsibleError(f'VM command failed: {stdout_json}')
-            
+
             return stdout_json.get('out-data')
-            
+
         except Exception as e:
             raise AnsibleError(f'qm execution failed: {to_text(e)}')
 
@@ -612,16 +626,16 @@ class Connection(ConnectionBase):
         """Check if guest agent is available"""
         try:
             qm_cmd = ['/usr/sbin/qm', 'guest', 'cmd', str(self.get_option('vmid')), 'ping']
-            if self.get_option('remote_user') != 'root':
+            if self.get_option('proxmox_ssh_user') != 'root':
                 qm_cmd = [self.get_option('proxmox_become_method')] + qm_cmd
-            
+
             chan = self.ssh.get_transport().open_session()
             chan.exec_command(' '.join(qm_cmd))
             returncode = chan.recv_exit_status()
-            
+
             if returncode != 0:
                 raise AnsibleError('Guest agent is not installed or not responding')
-                
+
         except Exception as e:
             raise AnsibleError(f'Guest agent check failed: {to_text(e)}')
 
@@ -630,7 +644,7 @@ class Connection(ConnectionBase):
         required_commands = ["cat", "dd", "stat", "base64", "sha256sum"]
         for cmd in required_commands:
             try:
-                result = self._qm_exec(['sh', '-c', f'which {cmd}'])
+                result = self._qm_exec(['sh', '-c', f"'which {cmd}'"])
                 if not result:
                     raise AnsibleError(f"Command '{cmd}' is not available on the VM")
             except Exception:
@@ -722,59 +736,73 @@ class Connection(ConnectionBase):
         if 'qm: not found' in stderr.decode('utf-8'):
             raise AnsibleError(f'qm not found in path of host: {to_text(self.get_option("remote_addr"))}')
 
+        # Check proxmox qm binary return code:
+        if returncode == 0:
+          # Parse results of command executed inside of the vm
+          stdout_json = json.loads(stdout.decode())
+          # Check if command inside of vm failed
+          if stdout_json.get('exitcode') != 0 or stdout_json.get('exited') != 1:
+                raise AnsibleError(f'VM command failed: {stdout_json}')
+          returncode = stdout_json.get('exitcode')
+          # Extract output from command executed inside of vm
+          if stdout_json.get('out-data'):
+            stdout = stdout_json.get('out-data').encode()
+          else:
+            stdout = b''
+
         return (returncode, no_prompt_out + stdout, no_prompt_out + stderr)
 
     def put_file(self, in_path: str, out_path: str) -> None:
         """ transfer a file from local to VM using chunked transfer """
 
         display.vvv(f'PUT {in_path} TO {out_path}', host=self.get_option('remote_addr'))
-        
+
         try:
             # Check guest agent and required commands
             self._check_guest_agent()
             self._check_required_commands()
-            
+
             file_size = os.path.getsize(in_path)
             chunk_size = self.get_option('qm_file_chunk_size_put')
             total_chunks = (file_size + chunk_size - 1) // chunk_size
-            
+
             display.vvv(f'File size: {file_size} bytes. Transferring in {total_chunks} chunks.')
-            
+
             operator = '>'
-            
+
             with open(in_path, 'rb') as f:
                 for chunk_num in range(total_chunks):
                     chunk = f.read(chunk_size)
                     if not chunk:
                         break
-                    
+
                     display.vvv(f'Transferring chunk {chunk_num + 1}/{total_chunks} ({len(chunk)} bytes)')
-                    
+
                     # Transfer chunk using qm guest exec
-                    self._qm_exec(['sh', '-c', f'cat {operator} {out_path}'], data_in=chunk)
+                    self._qm_exec(['sh', '-c', f"'cat {operator} {out_path}'"], data_in=chunk)
                     operator = '>>'  # After first chunk, append
-            
+
             # Verify file transfer
             try:
-                remote_size = int(self._qm_exec(['sh', '-c', f'stat --printf="%s" {out_path}']) or '0')
+                remote_size = int(self._qm_exec(['sh', '-c', f"'stat --printf=\"%s\" {out_path}'"]) or '0')
                 if remote_size != file_size:
                     raise AnsibleError(f'File size mismatch: local={file_size}, remote={remote_size}')
-                
+
                 # Calculate checksums for verification
                 local_hash = hashlib.sha256()
                 with open(in_path, 'rb') as f:
                     for chunk in iter(lambda: f.read(8192), b""):
                         local_hash.update(chunk)
                 local_checksum = local_hash.hexdigest()
-                
-                remote_checksum = self._qm_exec(['sh', '-c', f'sha256sum {out_path} | cut -d " " -f 1']).strip()
-                
+
+                remote_checksum = self._qm_exec(['sh', '-c', f"'sha256sum {out_path} | cut -d \" \" -f 1'"]).strip()
+
                 if local_checksum != remote_checksum:
                     raise AnsibleError(f'Checksum mismatch: local={local_checksum}, remote={remote_checksum}')
-                
+
             except Exception as e:
                 display.warning(f'File verification failed: {to_text(e)}')
-                
+
         except Exception as e:
             raise AnsibleError(f'error occurred while putting file from {in_path} to {out_path}!\n{to_text(e)}')
 
@@ -782,75 +810,75 @@ class Connection(ConnectionBase):
         """ fetch a file from VM using chunked transfer """
 
         display.vvv(f'FETCH {in_path} TO {out_path}', host=self.get_option('remote_addr'))
-        
+
         try:
             # Check guest agent and required commands
             self._check_guest_agent()
             self._check_required_commands()
-            
+
             # Get file size
-            file_size = int(self._qm_exec(['sh', '-c', f'stat --printf="%s" {in_path}']) or '0')
+            file_size = int(self._qm_exec(['sh', '-c', f"'stat --printf=\"%s\" {in_path}'"]) or '0')
             if file_size == 0:
                 raise AnsibleError(f'File {in_path} does not exist or is empty')
-            
+
             chunk_size = self.get_option('qm_file_chunk_size_fetch')
             blocksize = 4096
             count = int(chunk_size / blocksize)
             total_chunks = (file_size + chunk_size - 1) // chunk_size
-            
+
             display.vvv(f'File size: {file_size} bytes. Fetching in {total_chunks} chunks.')
-            
+
             transferred_bytes = 0
-            
+
             with open(out_path, 'wb') as f:
                 for chunk_num in range(total_chunks):
                     display.vvv(f'Fetching chunk {chunk_num + 1}/{total_chunks}')
-                    
+
                     # Calculate remaining bytes to transfer
                     remaining_bytes = file_size - transferred_bytes
                     current_chunk_size = min(chunk_size, remaining_bytes)
-                    
+
                     # Fetch chunk using dd + base64
-                    cmd = f'dd if={in_path} bs={blocksize} count={count} skip={count * chunk_num} 2>/dev/null | base64 -w0'
+                    cmd = f"'dd if={in_path} bs={blocksize} count={count} skip={count * chunk_num} 2>/dev/null | base64 -w0'"
                     chunk_data_b64 = self._qm_exec(['sh', '-c', cmd])
-                    
+
                     if not chunk_data_b64:
                         break
-                    
+
                     # Decode base64 data
                     chunk_data = base64.standard_b64decode(chunk_data_b64)
-                    
+
                     # Trim chunk to actual remaining file size
                     if len(chunk_data) > remaining_bytes:
                         chunk_data = chunk_data[:remaining_bytes]
-                    
+
                     f.write(chunk_data)
                     transferred_bytes += len(chunk_data)
-                    
+
                     if transferred_bytes >= file_size:
                         break
-            
+
             # Verify file transfer
             try:
                 local_size = os.path.getsize(out_path)
                 if local_size != file_size:
                     raise AnsibleError(f'File size mismatch: local={local_size}, remote={file_size}')
-                
+
                 # Calculate checksums for verification
                 local_hash = hashlib.sha256()
                 with open(out_path, 'rb') as f:
                     for chunk in iter(lambda: f.read(8192), b""):
                         local_hash.update(chunk)
                 local_checksum = local_hash.hexdigest()
-                
-                remote_checksum = self._qm_exec(['sh', '-c', f'sha256sum {in_path} | cut -d " " -f 1']).strip()
-                
+
+                remote_checksum = self._qm_exec(['sh', '-c', f"'sha256sum {in_path} | cut -d \" \" -f 1'"]).strip()
+
                 if local_checksum != remote_checksum:
                     raise AnsibleError(f'Checksum mismatch: local={local_checksum}, remote={remote_checksum}')
-                
+
             except Exception as e:
                 display.warning(f'File verification failed: {to_text(e)}')
-                
+
         except Exception as e:
             raise AnsibleError(f'error occurred while fetching file from {in_path} to {out_path}!\n{to_text(e)}')
 
