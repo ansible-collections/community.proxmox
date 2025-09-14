@@ -29,12 +29,11 @@ options:
       - present
       - absent
       - update
-  force:
+  update:
     description:
       - If state is present and zone exists it'll update.
-      - If state is update and zone doesn't exists it'll create new zone
     type: bool
-    default: false
+    default: true
   type:
     description:
       - Specify the type of zone.
@@ -184,17 +183,6 @@ EXAMPLES = r"""
     state: present
     bridge: vmbr0
 
-- name: update a zones
-  community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-    type: vlan
-    zone: ansible
-    state: update
-    mtu: 1200
-
 - name: Delete a zones
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
@@ -226,8 +214,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent", "update"], required=False),
-        force=dict(type="bool", default=False, required=False),
+        state=dict(type="str", choices=["present", "absent"], required=True),
+        update=dict(type="bool", default=True),
         type=dict(type="str",
                   choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"],
                   required=False),
@@ -281,7 +269,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
 
     def validate_params(self):
         zone_type = self.params.get('type')
-        if self.params.get('state') in ['present', 'update']:
+        if self.params.get('state') == 'present':
             if zone_type == 'vlan':
                 return self.params.get('bridge')
             elif zone_type == 'qinq':
@@ -296,8 +284,8 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             return True
 
     def run(self):
-        state = self.params.get("state")
-        force = self.params.get("force")
+        state = self.params.get('state')
+        update = self.params.get('update')
         zone_type = self.params.get('type')
 
         if not self.validate_params():
@@ -345,40 +333,43 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             zone_params['lock-token'] = self.get_global_sdn_lock()
 
         if state == "present":
-            self.zone_present(force, **zone_params)
-
-        elif state == "update":
-            self.zone_update(**zone_params)
+            self.zone_present(update, **zone_params)
 
         elif state == "absent":
             self.zone_absent(
                 zone_name=zone_params.get('zone'),
                 lock=zone_params.get('lock-token')
             )
-        else:
-            zones = self.get_zones(
-                zone_type=self.params.get('type')
-            )
-            self.module.exit_json(
-                changed=False, zones=zones, msg="Successfully retrieved zone info."
-            )
 
-    def zone_present(self, force, **kwargs):
+    def zone_present(self, update, **kwargs):
         available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
         zone_name = kwargs.get("zone")
         zone_type = kwargs.get("type")
         lock = kwargs.get('lock-token')
 
         # Check if zone already exists
-        if zone_name in available_zones.keys() and force:
+        if zone_name in available_zones.keys() and update:
             if zone_type != available_zones[zone_name]['type']:
                 self.release_lock(lock)
                 self.module.fail_json(
                     msg=f'zone {zone_name} exists with different type and we cannot change type post fact.'
                 )
             else:
-                self.zone_update(**kwargs)
-        elif zone_name in available_zones.keys() and not force:
+                try:
+                    kwargs['digest'] = available_zones[zone_name]['digest']
+                    zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
+                    zone.put(**kwargs)
+                    self.apply_sdn_changes_and_release_lock(lock)
+                    self.module.exit_json(
+                        changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
+                    )
+                except Exception as e:
+                    self.rollback_sdn_changes_and_release_lock(lock)
+                    self.module.fail_json(
+                        msg=f'Failed to update zone {zone_name} - {e}'
+                    )
+
+        elif zone_name in available_zones.keys() and not update:
             self.release_lock(lock)
             self.module.exit_json(
                 changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and force is false!'
@@ -395,38 +386,6 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
                 self.module.fail_json(
                     msg=f'Failed to create zone {zone_name} - {e}'
                 )
-
-    def zone_update(self, **kwargs):
-        available_zones = {x.get('zone'): {'type': x.get('type'), 'digest': x.get('digest')} for x in self.get_zones()}
-        zone_type = kwargs.get("type")
-        zone_name = kwargs.get("zone")
-        lock = kwargs.get('lock-token')
-
-        try:
-            # If zone is not present create it
-            if zone_name not in available_zones.keys():
-                self.zone_present(force=False, **kwargs)
-            elif zone_type == available_zones[zone_name]['type']:
-                del kwargs['type']
-                del kwargs['zone']
-                kwargs['digest'] = available_zones[zone_name]['digest']
-
-                zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
-                zone.put(**kwargs)
-                self.apply_sdn_changes_and_release_lock(lock)
-                self.module.exit_json(
-                    changed=True, zone=zone_name, msg=f'Updated zone {zone_name}'
-                )
-            else:
-                self.release_lock(lock)
-                self.module.fail_json(
-                    msg=f'zone {zone_name} already exists with different type'
-                )
-        except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock)
-            self.module.fail_json(
-                msg=f'Failed to update zone {e}'
-            )
 
     def zone_absent(self, zone_name, lock):
         available_zones = [x.get('zone') for x in self.get_zones()]
