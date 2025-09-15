@@ -353,6 +353,43 @@ def test_exec_command_with_forward_agent(mock_ssh, connection):
         mock_agent_handler.assert_called_once_with(mock_channel)
 
 
+def test_qm_exec_failure(connection):
+    """Test _qm_exec with command failure"""
+    connection._build_qm_command = MagicMock(return_value=['qm', 'guest', 'exec', '100', '--', 'false'])
+    connection._execute_ssh_command = MagicMock(return_value=(1, b'', b'Command failed'))
+
+    with pytest.raises(AnsibleError, match='qm command failed'):
+        connection._qm_exec(['false'])
+
+
+def test_qm_exec_vm_command_failure(connection):
+    """Test _qm_exec with VM command failure"""
+    connection._build_qm_command = MagicMock(return_value=['qm', 'guest', 'exec', '100', '--', 'false'])
+
+    vm_response = {
+        'exitcode': 1,
+        'exited': 1,
+        'out-data': None
+    }
+    connection._execute_ssh_command = MagicMock(return_value=(0, json.dumps(vm_response).encode(), b''))
+
+    with pytest.raises(AnsibleError, match='VM command failed'):
+        connection._qm_exec(['false'])
+
+
+@patch('paramiko.SSHClient')
+def test_check_guest_agent_not_responding(mock_ssh, connection):
+    """Test guest agent check when not responding"""
+    mock_client = MagicMock()
+    connection.ssh = mock_client
+    connection._connected = True
+
+    connection._execute_ssh_command = MagicMock(return_value=(1, b'', b'guest agent not responding'))
+
+    with pytest.raises(AnsibleError, match='Guest agent is not installed or not responding'):
+        connection._check_guest_agent()
+
+
 def test_put_file(connection):
     """Test putting a file using chunked transfer"""
     connection._check_guest_agent = MagicMock()
@@ -398,6 +435,14 @@ def test_put_file_cat_not_found(connection):
     connection._check_required_commands = MagicMock(side_effect=AnsibleError("Command 'cat' is not available on the VM"))
 
     with pytest.raises(AnsibleError, match="error occurred while putting file"):
+        connection.put_file('/local/path', '/remote/path')
+
+
+def test_put_file_error_handling(connection):
+    """Test put_file error handling"""
+    connection._check_guest_agent = MagicMock(side_effect=Exception("Guest agent error"))
+
+    with pytest.raises(AnsibleError, match='error occurred while putting file'):
         connection.put_file('/local/path', '/remote/path')
 
 
@@ -448,6 +493,41 @@ def test_fetch_file_cat_not_found(connection):
 
     with pytest.raises(AnsibleError, match="error occurred while fetching file"):
         connection.fetch_file('/remote/path', '/local/path')
+
+
+def test_fetch_file_error_handling(connection):
+    """Test fetch_file error handling"""
+    connection._check_guest_agent = MagicMock(side_effect=Exception("Guest agent error"))
+
+    with pytest.raises(AnsibleError, match='error occurred while fetching file'):
+        connection.fetch_file('/remote/path', '/local/path')
+
+
+def test_fetch_file_empty_file(connection):
+    """Test fetching an empty or non-existent file"""
+    connection._check_guest_agent = MagicMock()
+    connection._check_required_commands = MagicMock()
+    connection._qm_exec = MagicMock(return_value='0')
+
+    with pytest.raises(AnsibleError, match='File .* does not exist or is empty'):
+        connection.fetch_file('/remote/path', '/local/path')
+
+
+def test_verify_file_transfer_size_mismatch(connection):
+    """Test file verification with size mismatch"""
+    connection._qm_exec = MagicMock(return_value='100')
+
+    with pytest.raises(AnsibleError, match='File size mismatch'):
+        connection._verify_file_transfer('/local/path', '/remote/path', 50)
+
+
+def test_verify_file_transfer_checksum_mismatch(connection):
+    """Test file verification with checksum mismatch"""
+    connection._qm_exec = MagicMock(side_effect=['50', 'wrong_checksum'])
+
+    with patch('builtins.open', mock_open(read_data=b'test content')):
+        with pytest.raises(AnsibleError, match='Checksum mismatch'):
+            connection._verify_file_transfer('/local/path', '/remote/path', 50)
 
 
 def test_close(connection):
