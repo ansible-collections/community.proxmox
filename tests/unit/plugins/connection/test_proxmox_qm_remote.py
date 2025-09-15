@@ -416,7 +416,7 @@ def test_fetch_file(connection):
     connection._check_guest_agent.assert_called_once()
     connection._check_required_commands.assert_called_once()
     connection._verify_file_transfer.assert_called_once()
-    
+
     mock_file.assert_called_with('/local/path', 'wb')
 
 
