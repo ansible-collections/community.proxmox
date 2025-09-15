@@ -34,7 +34,6 @@ def connection():
 
     conn = connection_loader.get('community.proxmox.proxmox_qm_remote', play_context, in_stream)
 
-
     conn.set_option('remote_addr', '192.168.1.100')
     conn.set_option('remote_user', 'root')
     conn.set_option('password', 'password')
@@ -407,6 +406,7 @@ def test_put_file(connection):
     connection._verify_file_transfer.assert_called_once_with('/local/path', '/remote/path', len(test_content))
 
     assert connection._qm_exec.call_count >= 1
+
 
 @patch('paramiko.SSHClient')
 def test_put_file_general_error(mock_ssh, connection):
