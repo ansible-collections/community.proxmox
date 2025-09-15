@@ -675,7 +675,7 @@ class Connection(ConnectionBase):
             if self.get_option('proxmox_ssh_user') != 'root':
                 qm_cmd = [self.get_option('proxmox_become_method')] + qm_cmd
 
-            returncode, _, _ = self._execute_ssh_command(qm_cmd)
+            returncode, stdout, stderr = self._execute_ssh_command(qm_cmd)
 
             if returncode != 0:
                 raise AnsibleError(
