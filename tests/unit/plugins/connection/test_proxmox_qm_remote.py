@@ -7,6 +7,8 @@
 from __future__ import (annotations, absolute_import, division, print_function)
 __metaclass__ = type
 
+import base64
+import json
 import os
 import pytest
 
@@ -26,12 +28,19 @@ paramiko = pytest.importorskip('paramiko')
 
 @pytest.fixture
 def connection():
+    """Fixture to create a Connection instance for testing"""
     play_context = PlayContext()
     in_stream = StringIO()
+
     conn = connection_loader.get('community.proxmox.proxmox_qm_remote', play_context, in_stream)
+
+
     conn.set_option('remote_addr', '192.168.1.100')
     conn.set_option('remote_user', 'root')
     conn.set_option('password', 'password')
+    conn.set_option('proxmox_ssh_user', 'root')
+    conn.set_option('vmid', 100)
+
     return conn
 
 
@@ -206,39 +215,51 @@ def test_save_ssh_host_keys(mock_tempfile, mock_stat, mock_exists, connection):
 
 
 def test_build_qm_command(connection):
-    """ Test qm command building with different users """
+    """Test qm command building with different users"""
     connection.set_option('vmid', '100')
 
-    cmd = connection._build_qm_command('/bin/sh -c "ls -la"')
-    assert cmd == '/usr/sbin/qm exec 100 -- /bin/sh -c "ls -la"'
+    cmd = connection._build_qm_command(['/bin/sh', '-c', 'ls -la'])
+    expected = ['/usr/sbin/qm', 'guest', 'exec', '100', '--timeout', '60', '--', '/bin/sh', '-c', 'ls -la']
+    assert cmd == expected
 
-    connection.set_option('remote_user', 'user')
+    connection.set_option('proxmox_ssh_user', 'user')
     connection.set_option('proxmox_become_method', 'sudo')
-    cmd = connection._build_qm_command('/bin/sh -c "ls -la"')
-    assert cmd == 'sudo /usr/sbin/qm exec 100 -- /bin/sh -c "ls -la"'
+    cmd = connection._build_qm_command(['/bin/sh', '-c', 'ls -la'])
+    expected = ['sudo', '/usr/sbin/qm', 'guest', 'exec', '100', '--timeout', '60', '--', '/bin/sh', '-c', 'ls -la']
+    assert cmd == expected
+
+    cmd = connection._build_qm_command(['/bin/sh', '-c', 'cat'], pass_stdin=True)
+    expected = ['sudo', '/usr/sbin/qm', 'guest', 'exec', '100', '--pass-stdin', '1', '--timeout', '60', '--', '/bin/sh', '-c', 'cat']
+    assert cmd == expected
 
 
 @patch('paramiko.SSHClient')
 def test_exec_command_success(mock_ssh, connection):
-    """ Test successful command execution """
+    """Test successful command execution"""
     mock_client = MagicMock()
-    mock_ssh.return_value = mock_client
     mock_channel = MagicMock()
     mock_transport = MagicMock()
 
     mock_client.get_transport.return_value = mock_transport
     mock_transport.open_session.return_value = mock_channel
-    mock_channel.recv_exit_status.return_value = 0
-    mock_channel.makefile.return_value = [to_bytes('stdout')]
-    mock_channel.makefile_stderr.return_value = [to_bytes("")]
-
     connection._connected = True
     connection.ssh = mock_client
+    connection.become = None
+
+    mock_channel.recv_exit_status.return_value = 0
+    qm_response = {
+        'exitcode': 0,
+        'exited': 1,
+        'out-data': 'test output'
+    }
+    mock_channel.makefile.return_value = [to_bytes(json.dumps(qm_response))]
+    mock_channel.makefile_stderr.return_value = [to_bytes("")]
 
     returncode, stdout, stderr = connection.exec_command('ls -la')
 
+    assert returncode == 0
+    assert stdout == b'test output'
     mock_transport.open_session.assert_called_once()
-    mock_channel.get_pty.assert_called_once()
     mock_transport.set_keepalive.assert_called_once_with(5)
 
 
@@ -280,7 +301,7 @@ def test_exec_command_session_open_failure(mock_ssh, connection):
 
 @patch('paramiko.SSHClient')
 def test_exec_command_with_privilege_escalation(mock_ssh, connection):
-    """ Test exec_command with privilege escalation """
+    """Test exec_command with privilege escalation"""
     mock_client = MagicMock()
     mock_channel = MagicMock()
     mock_transport = MagicMock()
@@ -298,12 +319,19 @@ def test_exec_command_with_privilege_escalation(mock_ssh, connection):
 
     mock_channel.recv.return_value = b'[sudo] password:'
     mock_channel.recv_exit_status.return_value = 0
-    mock_channel.makefile.return_value = [b""]
-    mock_channel.makefile_stderr.return_value = [b""]
+
+    qm_response = {
+        'exitcode': 0,
+        'exited': 1,
+        'out-data': 'test output'
+    }
+    mock_channel.makefile.return_value = [to_bytes(json.dumps(qm_response))]
+    mock_channel.makefile_stderr.return_value = [to_bytes("")]
 
     returncode, stdout, stderr = connection.exec_command('sudo test command')
 
     mock_channel.sendall.assert_called_once_with(b'sudo_password\n')
+    assert returncode == 0
 
 
 @patch('paramiko.SSHClient')
@@ -326,16 +354,22 @@ def test_exec_command_with_forward_agent(mock_ssh, connection):
 
 
 def test_put_file(connection):
-    """ Test putting a file to the remote system """
-    connection.exec_command = MagicMock()
-    connection.exec_command.return_value = (0, b"", b"")
+    """Test putting a file using chunked transfer"""
+    connection._check_guest_agent = MagicMock()
+    connection._check_required_commands = MagicMock()
+    connection._qm_exec = MagicMock()
+    connection._verify_file_transfer = MagicMock()
+    test_content = b'test content that is longer than usual to test chunking behavior'
 
-    with patch('builtins.open', create=True) as mock_open:
-        mock_open.return_value.__enter__.return_value.read.return_value = b'test content'
-        connection.put_file('/local/path', '/remote/path')
+    with patch('builtins.open', mock_open(read_data=test_content)):
+        with patch('os.path.getsize', return_value=len(test_content)):
+            connection.put_file('/local/path', '/remote/path')
 
-    connection.exec_command.assert_called_once_with("/bin/sh -c 'cat > /remote/path'", in_data=b'test content', sudoable=False)
+    connection._check_guest_agent.assert_called_once()
+    connection._check_required_commands.assert_called_once()
+    connection._verify_file_transfer.assert_called_once_with('/local/path', '/remote/path', len(test_content))
 
+    assert connection._qm_exec.call_count >= 1
 
 @patch('paramiko.SSHClient')
 def test_put_file_general_error(mock_ssh, connection):
@@ -358,37 +392,32 @@ def test_put_file_general_error(mock_ssh, connection):
         connection.put_file('/remote/path', '/local/path')
 
 
-@patch('paramiko.SSHClient')
-def test_put_file_cat_not_found(mock_ssh, connection):
-    """ Test command execution when cat is not found """
-    mock_client = MagicMock()
-    mock_ssh.return_value = mock_client
-    mock_channel = MagicMock()
-    mock_transport = MagicMock()
+def test_put_file_cat_not_found(connection):
+    """Test put_file when required commands are missing"""
+    connection._check_guest_agent = MagicMock()
+    connection._check_required_commands = MagicMock(side_effect=AnsibleError("Command 'cat' is not available on the VM"))
 
-    mock_client.get_transport.return_value = mock_transport
-    mock_transport.open_session.return_value = mock_channel
-    mock_channel.recv_exit_status.return_value = 1
-    mock_channel.makefile.return_value = [to_bytes("")]
-    mock_channel.makefile_stderr.return_value = [to_bytes('cat: not found')]
-
-    connection._connected = True
-    connection.ssh = mock_client
-
-    with pytest.raises(AnsibleError, match='cat not found in path of container:'):
-        connection.fetch_file('/remote/path', '/local/path')
+    with pytest.raises(AnsibleError, match="error occurred while putting file"):
+        connection.put_file('/local/path', '/remote/path')
 
 
 def test_fetch_file(connection):
-    """ Test fetching a file from the remote system """
-    connection.exec_command = MagicMock()
-    connection.exec_command.return_value = (0, b'test content', b"")
+    """Test fetching a file using chunked transfer"""
+    connection._check_guest_agent = MagicMock()
+    connection._check_required_commands = MagicMock()
+    connection._verify_file_transfer = MagicMock()
+    test_content = b'test content from remote file'
+    encoded_content = base64.standard_b64encode(test_content).decode('ascii')
+    connection._qm_exec = MagicMock(side_effect=[str(len(test_content)), encoded_content])
 
-    with patch('builtins.open', create=True) as mock_open:
+    with patch('builtins.open', mock_open()) as mock_file:
         connection.fetch_file('/remote/path', '/local/path')
 
-    connection.exec_command.assert_called_once_with("/bin/sh -c 'cat /remote/path'", sudoable=False)
-    mock_open.assert_called_with('/local/path', 'wb')
+    connection._check_guest_agent.assert_called_once()
+    connection._check_required_commands.assert_called_once()
+    connection._verify_file_transfer.assert_called_once()
+    
+    mock_file.assert_called_with('/local/path', 'wb')
 
 
 @patch('paramiko.SSHClient')
@@ -412,24 +441,12 @@ def test_fetch_file_general_error(mock_ssh, connection):
         connection.fetch_file('/remote/path', '/local/path')
 
 
-@patch('paramiko.SSHClient')
-def test_fetch_file_cat_not_found(mock_ssh, connection):
-    """ Test command execution when cat is not found """
-    mock_client = MagicMock()
-    mock_ssh.return_value = mock_client
-    mock_channel = MagicMock()
-    mock_transport = MagicMock()
+def test_fetch_file_cat_not_found(connection):
+    """Test fetch_file when required commands are missing"""
+    connection._check_guest_agent = MagicMock()
+    connection._check_required_commands = MagicMock(side_effect=AnsibleError("Command 'cat' is not available on the VM"))
 
-    mock_client.get_transport.return_value = mock_transport
-    mock_transport.open_session.return_value = mock_channel
-    mock_channel.recv_exit_status.return_value = 1
-    mock_channel.makefile.return_value = [to_bytes("")]
-    mock_channel.makefile_stderr.return_value = [to_bytes('cat: not found')]
-
-    connection._connected = True
-    connection.ssh = mock_client
-
-    with pytest.raises(AnsibleError, match='cat not found in path of container:'):
+    with pytest.raises(AnsibleError, match="error occurred while fetching file"):
         connection.fetch_file('/remote/path', '/local/path')
 
 
