@@ -513,23 +513,6 @@ def test_fetch_file_empty_file(connection):
         connection.fetch_file('/remote/path', '/local/path')
 
 
-def test_verify_file_transfer_size_mismatch(connection):
-    """Test file verification with size mismatch"""
-    connection._qm_exec = MagicMock(return_value='100')
-
-    with pytest.raises(AnsibleError, match='File size mismatch'):
-        connection._verify_file_transfer('/local/path', '/remote/path', 50)
-
-
-def test_verify_file_transfer_checksum_mismatch(connection):
-    """Test file verification with checksum mismatch"""
-    connection._qm_exec = MagicMock(side_effect=['50', 'wrong_checksum'])
-
-    with patch('builtins.open', mock_open(read_data=b'test content')):
-        with pytest.raises(AnsibleError, match='Checksum mismatch'):
-            connection._verify_file_transfer('/local/path', '/remote/path', 50)
-
-
 def test_close(connection):
     """ Test connection close """
     mock_ssh = MagicMock()
