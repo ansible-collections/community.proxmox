@@ -14,12 +14,14 @@ action_groups:
     - proxmox_backup_schedule
     - proxmox_cluster
     - proxmox_cluster_ha_resources
+    - proxmox_cluster_ha_rules
     - proxmox_cluster_ha_groups
     - proxmox_cluster_join_info
     - proxmox_disk
     - proxmox_domain_info
     - proxmox_group
     - proxmox_group_info
+    - proxmox_ipam_info
     - proxmox_kvm
     - proxmox_nic
     - proxmox_node
@@ -35,4 +37,5 @@ action_groups:
     - proxmox_user
     - proxmox_user_info
     - proxmox_vm_info
-    - proxmox_ipam_info
+    - proxmox_zone
+    - proxmox_zone_info

@@ -26,6 +26,12 @@ options:
       - Return specific task.
     aliases: ['upid', 'name']
     type: str
+  source:
+    description:
+      - Source of tasks to be considered.
+    type: str
+    choices: ['archive', 'active', 'all']
+    default: archive
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -35,7 +41,7 @@ extends_documentation_fragment:
 
 
 EXAMPLES = r"""
-- name: List tasks on node01
+- name: List finished tasks on node01
   community.proxmox.proxmox_tasks_info:
     api_host: proxmoxhost
     api_user: root@pam
@@ -43,6 +49,17 @@ EXAMPLES = r"""
     api_token_id: '{{ token_id | default(omit) }}'
     api_token_secret: '{{ token_secret | default(omit) }}'
     node: node01
+  register: result
+
+- name: List active tasks on node02
+  community.proxmox.proxmox_tasks_info:
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: '{{ password | default(omit) }}'
+    api_token_id: '{{ token_id | default(omit) }}'
+    api_token_secret: '{{ token_secret | default(omit) }}'
+    node: node02
+    source: active
   register: result
 
 - name: Retrieve information about specific tasks on node01
@@ -122,14 +139,14 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 
 class ProxmoxTaskInfoAnsible(ProxmoxAnsible):
-    def get_task(self, upid, node):
-        tasks = self.get_tasks(node)
+    def get_task(self, upid, node, source):
+        tasks = self.get_tasks(node, source)
         for task in tasks:
             if task.info['upid'] == upid:
                 return [task]
 
-    def get_tasks(self, node):
-        tasks = self.proxmox_api.nodes(node).tasks.get()
+    def get_tasks(self, node, source):
+        tasks = self.proxmox_api.nodes(node).tasks.get(source=source)
         return [ProxmoxTask(task) for task in tasks]
 
 
@@ -149,6 +166,7 @@ def proxmox_task_info_argument_spec():
     return dict(
         task=dict(type='str', aliases=['upid', 'name'], required=False),
         node=dict(type='str', required=True),
+        source=dict(default='archive', choices=['archive', 'active', 'all']),
     )
 
 
@@ -167,10 +185,11 @@ def main():
     proxmox = ProxmoxTaskInfoAnsible(module)
     upid = module.params['task']
     node = module.params['node']
+    source = module.params['source']
     if upid:
-        tasks = proxmox.get_task(upid=upid, node=node)
+        tasks = proxmox.get_task(upid=upid, node=node, source=source)
     else:
-        tasks = proxmox.get_tasks(node=node)
+        tasks = proxmox.get_tasks(node=node, source=source)
     if tasks is not None:
         result['proxmox_tasks'] = [task.info for task in tasks]
         module.exit_json(**result)
