@@ -21,135 +21,135 @@ attributes:
   diff_mode:
     support: none
 options:
-  state:
-    description:
-      - The desired state of the zone configuration.
-    type: str
-    choices:
-      - present
-      - absent
-    default: present
-  update:
-    description:
-      - If O(state=present) and zone exists it'll update.
-    type: bool
-    default: true
-  type:
-    description:
-      - Specify the type of zone.
-    type: str
-    choices:
-      - evpn
-      - faucet
-      - qinq
-      - simple
-      - vlan
-      - vxlan
-  zone:
-    description:
-      - Unique zone name.
-    type: str
-  advertise_subnets:
-    description:
-      - Advertise evpn subnets if you have silent hosts.
-    type: bool
-  bridge:
-    description:
-      - Specify the bridge interface to use.
-    type: str
-  bridge_disable_mac_learning:
-    description:
-      - Disable auto MAC address learning on the bridge interface.
-    type: bool
-  controller:
-    description:
-      - Frr router name.
-    type: str
-  dhcp:
-    description:
-      - Type of the DHCP backend for this zone.
-    type: str
-    choices:
-      - dnsmasq
-  disable_arp_nd_suppression:
-    description:
-      - Disable ipv4 arp && ipv6 neighbour discovery suppression.
-    type: bool
-  dns:
-    description:
-      - DNS api server.
-    type: str
-  dnszone:
-    description:
-      - DNS domain zone.
-    type: str
-  dp_id:
-    description:
-      - Faucet dataplane id.
-    type: int
-  exitnodes:
-    description:
-      - List of cluster node names.
-    type: str
-  exitnodes_local_routing:
-    description:
-      - Allow exitnodes to connect to evpn guests.
-    type: bool
-  exitnodes_primary:
-    description:
-      - Force traffic to this exitnode first.
-    type: str
-  fabric:
-    description:
-      - SDN fabric to use as underlay for this VXLAN zone.
-    type: str
-  ipam:
-    description:
-      - Use a specific ipam.
-    type: str
-  mac:
-    description:
-      - Anycast logical router mac address.
-    type: str
-  mtu:
-    description:
-      - Set the Maximum Transmission Unit (MTU).
-    type: int
-  nodes:
-    description:
-      - List of cluster node names.
-    type: str
-  peers:
-    description:
-      - peers address list.
-    type: str
-  reversedns:
-    description:
-      - reverse dns api server
-    type: str
-  rt_import:
-    description:
-      - Route-Target import.
-    type: str
-  tag:
-    description:
-      - Service-VLAN Tag.
-    type: int
-  vlan_protocol:
-    description:
-      - Specify the VLAN protocol to use.
-    type: str
-    choices:
-      - 802.1q
-      - 802.1ad
-  vrf_vxlan:
-    description:
-      - Specify the VRF VXLAN identifier.
-    type: int
-  vxlan_port:
-    description:
-      - Vxlan tunnel udp port (default 4789).
-    type: int
+    advertise_subnets:
+      description:
+        - Advertise EVPN subnets if you have silent hosts.
+      type: bool
+    bridge:
+      description:
+        - Specify the bridge interface to use.
+      type: str
+    bridge_disable_mac_learning:
+      description:
+        - Disable auto MAC address learning on the bridge interface.
+      type: bool
+    controller:
+      description:
+        - FRR router name.
+      type: str
+    dhcp:
+      description:
+        - Type of the DHCP backend for this zone.
+      type: str
+      choices:
+        - dnsmasq
+    disable_arp_nd_suppression:
+      description:
+        - Disable IPv4 ARP and IPv6 neighbour discovery suppression.
+      type: bool
+    dns:
+      description:
+        - DNS API server.
+      type: str
+    dnszone:
+      description:
+        - DNS domain zone.
+      type: str
+    dp_id:
+      description:
+        - Faucet dataplane ID.
+      type: int
+    exitnodes:
+      description:
+        - List of cluster node names.
+      type: str
+    exitnodes_local_routing:
+      description:
+        - Allow exitnodes to connect to EVPN guests.
+      type: bool
+    exitnodes_primary:
+      description:
+        - Force traffic to this exit node first.
+      type: str
+    fabric:
+      description:
+        - SDN fabric to use as underlay for this VXLAN zone.
+      type: str
+    ipam:
+      description:
+        - Use a specific IPAM.
+      type: str
+    mac:
+      description:
+        - Anycast logical router MAC address.
+      type: str
+    mtu:
+      description:
+        - Set the Maximum Transmission Unit (MTU).
+      type: int
+    nodes:
+      description:
+        - List of cluster node names.
+      type: str
+    peers:
+      description:
+        - Peers address list.
+      type: str
+    reversedns:
+      description:
+        - Reverse DNS API server.
+      type: str
+    rt_import:
+      description:
+        - Route-Target import.
+      type: str
+    state:
+      description:
+        - The desired state of the zone configuration.
+      type: str
+      choices:
+        - present
+        - absent
+      default: present
+    tag:
+      description:
+        - Service-VLAN tag.
+      type: int
+    type:
+      description:
+        - Specify the type of zone.
+      type: str
+      choices:
+        - evpn
+        - faucet
+        - qinq
+        - simple
+        - vlan
+        - vxlan
+    update:
+      description:
+        - If O(state=present) and zone exists it'll update.
+      type: bool
+      default: true
+    vlan_protocol:
+      description:
+        - Specify the VLAN protocol to use.
+      type: str
+      choices:
+        - 802.1q
+        - 802.1ad
+    vrf_vxlan:
+      description:
+        - Specify the VRF VXLAN identifier.
+      type: int
+    vxlan_port:
+      description:
+        - VXLAN tunnel UDP port (default 4789).
+      type: int
+    zone:
+      description:
+        - Unique zone name.
+      type: str
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
