@@ -337,34 +337,32 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
         zone_type = kwargs.get("type")
 
         # Check if zone already exists
+        if zone_name in available_zones.keys() and not update:
+            self.module.exit_json(
+                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and update is false!'
+            )
         if zone_name in available_zones.keys() and update:
             if zone_type != available_zones[zone_name]['type']:
                 self.module.fail_json(
                     msg=f'zone {zone_name} exists with different type and we cannot change type post fact.'
                 )
-            else:
-                try:
-                    kwargs['lock-token'] = self.get_global_sdn_lock()
-                    kwargs['digest'] = available_zones[zone_name]['digest']
-                    del kwargs['zone']
-                    del kwargs['type']
+            try:
+                kwargs['lock-token'] = self.get_global_sdn_lock()
+                kwargs['digest'] = available_zones[zone_name]['digest']
+                del kwargs['zone']
+                del kwargs['type']
 
-                    zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
-                    zone.put(**kwargs)
-                    self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
-                    self.module.exit_json(
-                        changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
-                    )
-                except Exception as e:
-                    self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
-                    self.module.fail_json(
-                        msg=f'Failed to update zone {zone_name} - {e}'
-                    )
-
-        elif zone_name in available_zones.keys() and not update:
-            self.module.exit_json(
-                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and update is false!'
-            )
+                self.proxmox_api.cluster().sdn().zones(zone_name).put(**kwargs)
+                self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
+                self.module.exit_json(
+                    changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
+                )
+            except Exception as e:
+                self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
+                self.module.fail_json(
+                    msg=f'Failed to update zone {zone_name} - {e}'
+                )
+        # Zone does not exist and gets created
         else:
             try:
                 kwargs['lock-token'] = self.get_global_sdn_lock()
@@ -384,19 +382,17 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
         available_zones = [x.get('zone') for x in self.get_zones()]
         params = {'lock-token': lock}
 
+        if zone_name not in available_zones:
+            self.module.exit_json(
+                changed=False, zone=zone_name, msg=f"zone {zone_name} is absent."
+            )
         try:
-            if zone_name not in available_zones:
-                self.module.exit_json(
-                    changed=False, zone=zone_name, msg=f"zone {zone_name} is absent."
-                )
-            else:
-                params['lock-token'] = self.get_global_sdn_lock()
-                zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
-                zone.delete(**params)
-                self.apply_sdn_changes_and_release_lock(params['lock-token'])
-                self.module.exit_json(
-                    changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
-                )
+            params['lock-token'] = self.get_global_sdn_lock()
+            self.proxmox_api.cluster().sdn().zones(zone_name).delete(**params)
+            self.apply_sdn_changes_and_release_lock(params['lock-token'])
+            self.module.exit_json(
+                changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
+            )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(params['lock-token'])
             self.module.fail_json(
