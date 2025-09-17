@@ -15,6 +15,7 @@ short_description: Manage Proxmox zone configurations.
 description:
   - Create/Update/Delete proxmox sdn zones.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
+version_added: "1.4.0"
 attributes:
   check_mode:
     support: none

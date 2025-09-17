@@ -14,6 +14,7 @@ module: proxmox_zone_info
 short_description: Get Proxmox zone info.
 description:
   - List all available zones.
+version_added: "1.4.0"
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   type:
