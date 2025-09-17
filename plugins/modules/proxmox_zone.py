@@ -157,33 +157,33 @@ extends_documentation_fragment:
 """
 
 EXAMPLES = r"""
-- name: create a simple zones
+- name: Create a simple zone
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: simple
     zone: ansible
     state: present
 
-- name: create a vlan zones
+- name: Create a vlan zone
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: vlan
     zone: ansible
     state: present
     bridge: vmbr0
 
-- name: Delete a zones
+- name: Delete a zone
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: simple
     zone: ansible
     state: absent

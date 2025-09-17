@@ -40,14 +40,14 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
 
 - name: Get all simple zones
   community.proxmox.proxmox_zone_info:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: simple
   register: zones
 """
