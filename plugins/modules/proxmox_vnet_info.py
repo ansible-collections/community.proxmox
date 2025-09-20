@@ -11,7 +11,8 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_vnet_info
-short_description: Retrieve information about one or more Proxmox VE SDN vnets
+short_description: Retrieve information about one or more Proxmox VE SDN vnets.
+version_added: "1.4.0"
 description:
   - Retrieve information about one or more Proxmox VE SDN vnets.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
@@ -35,7 +36,7 @@ EXAMPLES = r"""
     api_token_id: "{{ proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
 
 - name: Get details for vnet - test
   community.proxmox.proxmox_vnet_info:
@@ -44,7 +45,7 @@ EXAMPLES = r"""
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ proxmox.api_host }}"
     vnet: test
-    validate_certs: no
+    validate_certs: false
 """
 
 RETURN = r"""
@@ -156,8 +157,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
     def get_subnets(self, vnet):
         try:
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet)
-            return vnet().subnets().get()
+            return self.proxmox_api.cluster().sdn().vnets(vnet).subnets().get()
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve subnet information from vnet {vnet}: {e}'
@@ -165,8 +165,7 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
 
     def get_firewall(self, vnet_name):
         try:
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
-            return vnet().firewall().rules().get()
+            return self.proxmox_api.cluster().sdn().vnets(vnet_name).firewall().rules().get()
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve subnet information from vnet {vnet_name}: {e}'

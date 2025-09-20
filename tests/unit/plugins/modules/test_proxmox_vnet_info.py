@@ -200,7 +200,6 @@ class TestProxmoxVnetInfoModule(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        # self.mock_module_helper.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
         super(TestProxmoxVnetInfoModule, self).tearDown()
@@ -210,11 +209,13 @@ class TestProxmoxVnetInfoModule(ModuleTestCase):
             with set_module_args(get_module_args()):
                 self.module.main()
 
+       # Aggregate all vnet information into a single variable
+        full_vnet_information = RAW_VNETS.copy()
         for vnet in RAW_VNETS:
             subnet_var = f"{vnet['vnet'].upper()}_SUBNETS"
             firewall_var = f"{vnet['vnet'].upper()}_FIREWALL"
-            vnet['subnets'] = globals()[subnet_var]
-            vnet['firewall_rules'] = globals()[firewall_var]
+            full_vnet_information['subnets'] = globals()[subnet_var]
+            full_vnet_information['firewall_rules'] = globals()[firewall_var]
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
