@@ -11,10 +11,9 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_ipam_info
-short_description: Retrieve information about ipams
+short_description: Retrieve information about IPAMs.
 description:
-  - Retrieve all IPs under IPAM
-  - get IP by vmid
+  - Retrieve all IPs under IPAM and limit it by IP or IPAM.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   vmid:
@@ -23,7 +22,7 @@ options:
     type: int
   ipam:
     description:
-      - Limit results to single ipam
+      - Limit results to a single IPAM.
     type: str
 
 extends_documentation_fragment:
@@ -40,7 +39,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
 
 - name: Get all IPs under pve IPAM
   community.proxmox.proxmox_ipam_info:
@@ -48,16 +47,16 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     ipam: pve
 
-- name: Get IP under IPAM for vmid
+- name: Get IP under IPAM of vmid 106
   community.proxmox.proxmox_ipam_info:
     api_user: "{{ pc.proxmox.api_user }}"
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     vmid: 102
 """
 
@@ -177,7 +176,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
         elif self.params.get('ipam'):
             if ipam not in self.get_ipams():
                 self.module.fail_json(
-                    msg=f'Ipam {ipam} is not present'
+                    msg=f'IPAM {ipam} is not present'
                 )
             else:
                 self.module.exit_json(
@@ -196,7 +195,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
             return [ipam['ipam'] for ipam in ipams]
         except Exception as e:
             self.module.fail_json(
-                msg=f'Failed to retrieve ipam information {e}'
+                msg=f'Failed to retrieve IPAM information {e}'
             )
 
     def get_ipam_status(self):
@@ -204,12 +203,11 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
             ipam_status = dict()
             ipams = self.get_ipams()
             for ipam_id in ipams:
-                ipam = getattr(self.proxmox_api.cluster().sdn().ipams(), ipam_id)
-                ipam_status[ipam_id] = ipam().status().get()
+                ipam_status[ipam_id] = self.proxmox_api.cluster().sdn().ipams(ipam_id).status().get()
             return ipam_status
         except Exception as e:
             self.module.fail_json(
-                msg=f'Failed to retrieve ipam status {e}'
+                msg=f'Failed to retrieve IPAM status {e}'
             )
 
     def get_ip_by_vmid(self, vmid):
