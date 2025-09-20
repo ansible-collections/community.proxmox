@@ -12,18 +12,19 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_ipam_info
 short_description: Retrieve information about IPAMs.
+version_added: "1.4.0"
 description:
   - Retrieve all IPs under IPAM and limit it by IP or IPAM.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
-  vmid:
-    description:
-      - Get ip of a VM under IPAM.
-    type: int
   ipam:
     description:
       - Limit results to a single IPAM.
     type: str
+  vmid:
+    description:
+      - Get IP of a VM under IPAM.
+    type: int
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -50,7 +51,7 @@ EXAMPLES = r"""
     validate_certs: false
     ipam: pve
 
-- name: Get IP under IPAM of vmid 106
+- name: Get IP under IPAM of vmid 102
   community.proxmox.proxmox_ipam_info:
     api_user: "{{ pc.proxmox.api_user }}"
     api_token_id: "{{ pc.proxmox.api_token_id }}"

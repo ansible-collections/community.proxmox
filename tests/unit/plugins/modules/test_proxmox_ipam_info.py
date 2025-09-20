@@ -113,6 +113,7 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
         self.mock_ipam = self.connect_mock.return_value.cluster.return_value.sdn.return_value.ipams.return_value
         self.mock_ipam.get.return_value = RAW_IPAM
         self.mock_ipam.pve.return_value.status.return_value.get.return_value = RAW_IPAM_STATUS
+        self.mock_ipam.status.return_value.get.return_value = RAW_IPAM_STATUS
 
     def tearDown(self):
         self.connect_mock.stop()
