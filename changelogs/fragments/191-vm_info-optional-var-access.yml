@@ -1,0 +1,2 @@
+bugfixes:
+  - proxmox_vm_info - do not throw exception when iterating through machines and optional api results are missing (https://github.com/ansible-collections/community.proxmox/pull/191)
