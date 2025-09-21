@@ -30,14 +30,13 @@ options:
     type: str
     choices:
       - present
-      - update
       - absent
-  force:
+    default: present
+  update:
     description:
-      - If state is present and if 1 or more rule already exists at given pos force will update them
-      - If state is update and if 1 or more rule doesn't exist force will create
+      - If O(state=present) and if 1 or more rule/alias already exists it will update them
     type: bool
-    default: false
+    default: truw
   level:
     description:
       - Level at which the firewall rule applies.
@@ -239,7 +238,8 @@ EXAMPLES = r"""
     api_host: "{{ pc.proxmox.api_host }}"
     validate_certs: no
     level: cluster
-    state: update
+    state: present
+    update: True
     rules:
       - type: out
         action: ACCEPT
@@ -307,7 +307,8 @@ EXAMPLES = r"""
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
     validate_certs: no
-    state: update
+    state: present
+    update: True
     aliases:
       - name: test1
         cidr: '10.10.1.0/28'
@@ -347,8 +348,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent", "update"], required=False),
-        force=dict(type="bool", default=False),
+        state=dict(type="str", choices=["present", "absent"],  default="present"),
+        update=dict(type="bool", default=True),
         level=dict(type="str", choices=["cluster", "node", "vm", "vnet", "group"], default="cluster", required=False),
         node=dict(type="str", required=False),
         vmid=dict(type="int", required=False),
@@ -419,7 +420,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         self.params = module.params
 
     def validate_params(self):
-        if self.params.get('state') in ['present', 'update']:
+        if self.params.get('state') == 'present':
             if self.params.get('group_conf') != bool(self.params.get('rules') or self.params.get('aliases')):
                 return True
             else:
@@ -433,14 +434,12 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.module.fail_json(
                     msg="When State is absent either group_conf should be true or pos/aliases must be present but not both"
                 )
-        else:
-            return True
 
     def run(self):
         self.validate_params()
 
         state = self.params.get("state")
-        force = self.params.get("force")
+        update = self.params.get("update")
         level = self.params.get("level")
         aliases = self.params.get("aliases")
         rules = self.params.get("rules")
@@ -478,48 +477,38 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
         if state == "present":
             if group_conf:
-                self.create_group(group=group, comment=self.params.get('comment'))
+                self.group_present(group=group, comment=self.params.get('comment'))
             if rules is not None:
-                self.create_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
+                self.fw_rules_present(rules_obj=rules_obj, rules=rules, update=update)
             if aliases is not None:
-                self.create_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases, force=force)
-        elif state == "update":
-            if group_conf:
-                self.create_group(group=group, comment=self.params.get('comment'))
-            if rules is not None:
-                self.update_fw_rules(rules_obj=rules_obj, rules=rules, force=force)
-            if aliases is not None:
-                self.update_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases, force=force)
+                self.aliases_present(firewall_obj=firewall_obj, level=level, aliases=aliases, update=update)
         elif state == "absent":
             if self.params.get('pos'):
-                self.delete_fw_rule(rules_obj=rules_obj, pos=self.params.get('pos'))
+                self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get('pos'))
             if group_conf:
-                self.delete_group(group_name=group)
+                self.group_absent(group_name=group)
             if aliases is not None:
-                self.delete_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases)
+                self.aliases_absent(firewall_obj=firewall_obj, aliases=aliases)
 
 
-    def create_aliases(self, firewall_obj, level, aliases, force=False):
+    def aliases_present(self, firewall_obj, level, aliases, update):
         if firewall_obj is None or level not in ['cluster', 'vm']:
             self.module.fail_json(
                 msg='Aliases can only be created at cluster or VM level'
             )
 
         aliases_to_create, aliases_to_update = compare_list_of_dicts(
-            existing_list=self.get_aliases(firewall_obj=firewall_obj, level=level),
+            existing_list=self.get_aliases(firewall_obj=firewall_obj),
             new_list=aliases,
             uid='name',
             params_to_ignore=['digest', 'ipversion']
         )
 
         if len(aliases_to_create) == 0 and len(aliases_to_update) == 0:
-            self.module.exit_json(
-                changed=False,
-                msg='No need to create/update any aliases'
-            )
-        elif len(aliases_to_update) > 0 and not force:
+            self.module.exit_json(changed=False, msg='No need to create/update any aliases')
+        elif len(aliases_to_update) > 0 and not update:
             self.module.fail_json(
-                msg=f"Need to update aliases - {[x['name'] for x in aliases_to_update]} but force is false"
+                msg=f"Need to update aliases - {[x['name'] for x in aliases_to_update]} but update is false"
             )
 
         for alias in aliases_to_create:
@@ -529,51 +518,18 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.module.fail_json(
                     msg=f"Failed to create Alias {alias['name']} - {e}"
                 )
-        if len(aliases_to_update) > 0 and force:
-            self.update_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases_to_update, force=False)
-        else:
-            self.module.exit_json(
-                changed=True,
-                msg="Aliases created"
-            )
-
-    def update_aliases(self, firewall_obj, level, aliases, force=False):
-        aliases_to_create, aliases_to_update = compare_list_of_dicts(
-            existing_list=self.get_aliases(firewall_obj=firewall_obj, level=level),
-            new_list=aliases,
-            uid='name',
-            params_to_ignore=['digest', 'ipversion']
-        )
-
-        if len(aliases_to_update) == 0 and len(aliases_to_create) == 0:
-            self.module.exit_json(
-                changed=False,
-                msg='No need to create/update any alias.'
-
-            )
-        elif len(aliases_to_create) > 0 and not force:
-            self.module.fail_json(
-                msg=f"Need to create new alias - {[x['name'] for x in aliases_to_create]} But force is false"
-            )
-
         for alias in aliases_to_update:
             try:
-                alias_obj = getattr(firewall_obj().aliases(), alias['name'])
-                alias_obj().put(**alias)
+                firewall_obj().aliases(alias['name']).put(**alias)
             except Exception as e:
                 self.module.fail_json(
                     msg=f"Failed to update Alias {alias['name']} - {e}"
                 )
-        if len(aliases_to_update) > 0 and force:
-            self.update_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases_to_update, force=False)
-        else:
-            self.module.exit_json(
-                changed=True,
-                msg="Aliases updated"
-            )
 
-    def delete_aliases(self, firewall_obj, level, aliases):
-        existing_aliases = set([x.get('name') for x in self.get_aliases(firewall_obj=firewall_obj, level=level)])
+        self.module.exit_json(changed=True, msg="Aliases created/updated")
+
+    def aliases_absent(self, firewall_obj, aliases):
+        existing_aliases = set([x.get('name') for x in self.get_aliases(firewall_obj=firewall_obj)])
         aliases = set([x.get('name') for x in aliases])
         aliases_to_delete = list(existing_aliases.intersection(aliases))
 
@@ -595,7 +551,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             msg="Successfully deleted aliases"
         )
 
-    def create_group(self, group, comment=None):
+    def group_present(self, group, comment=None):
         if group in self.get_groups():
             self.module.exit_json(
                 changed=False, group=group, msg=f"security group {group} already exists"
@@ -610,7 +566,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 msg=f'Failed to create security group: {e}'
             )
 
-    def delete_group(self, group_name):
+    def group_absent(self, group_name):
         if group_name not in self.get_groups():
             self.module.exit_json(
                 changed=False, group=group_name, msg=f"security group {group_name} already doesn't exists"
@@ -626,7 +582,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 msg=f'Failed to delete security group {group_name}: {e}'
             )
 
-    def delete_fw_rule(self, rules_obj, pos):
+    def fw_rule_absent(self, rules_obj, pos):
         try:
             for item in self.get_fw_rules(rules_obj):
                 if item.get('pos') == pos:
@@ -647,8 +603,8 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 msg=f'Failed to delete firewall rule at pos {pos}: {e}'
             )
 
-    def update_fw_rules(self, rules_obj, rules, force):
-        existing_rules = self.get_fw_rules(rules_obj)
+    def fw_rules_present(self, rules_obj, rules, update):
+        existing_rules = self.get_fw_rules(rules_obj=rules_obj)
         rules_to_create, rules_to_update = compare_list_of_dicts(
             existing_list=existing_rules,
             new_list=rules,
@@ -656,15 +612,11 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             params_to_ignore=['digest', 'ipversion']
         )
 
-        if len(rules_to_update) == 0 and len(rules_to_create) == 0:
-            self.module.exit_json(
-                changed=False,
-                msg='No need to update any FW rules.'
-
-            )
-        elif len(rules_to_create) > 0 and not force:
+        if len(rules_to_create) == 0 and len(rules_to_update) == 0:
+            self.module.exit_json(changed=False, msg='No need to create/update any rule')
+        elif len(rules_to_update) > 0 and not update:
             self.module.fail_json(
-                msg=f"Need to create new rules for pos - {[x['pos'] for x in rules_to_create]} But force is false"
+                msg=f"Need to update rules at pos - {[x['pos'] for x in rules_to_update]} but update is false"
             )
 
         for rule in rules_to_update:
@@ -677,32 +629,6 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.module.fail_json(
                     msg=f'Failed to update firewall rule at pos {rule["pos"]}: {e}'
                 )
-
-        if len(rules_to_create) > 0:
-            self.create_fw_rules(rules_obj=rules_obj, rules=rules_to_create, force=False)
-        self.module.exit_json(
-            changed=True, msg='successfully updated firewall rules'
-        )
-
-    def create_fw_rules(self, rules_obj, rules, force):
-        existing_rules = self.get_fw_rules(rules_obj=rules_obj)
-        rules_to_create, rules_to_update = compare_list_of_dicts(
-            existing_list=existing_rules,
-            new_list=rules,
-            uid='pos',
-            params_to_ignore=['digest', 'ipversion']
-        )
-
-        if len(rules_to_create) == 0 and len(rules_to_update) == 0:
-            self.module.exit_json(
-                changed=False,
-                msg='No need to create/update any rule'
-            )
-        elif len(rules_to_update) > 0 and not force:
-            self.module.fail_json(
-                msg=f"Need to update rules at pos - {[x['pos'] for x in rules_to_update]} but force is false"
-            )
-
         for rule in rules_to_create:
             try:
                 rules_obj().post(**rule)
@@ -712,10 +638,8 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.module.fail_json(
                     msg=f'Failed to create firewall rule {rule}: {e}'
                 )
-        if len(rules_to_update) > 0 and force:
-            self.update_fw_rules(rules_obj=rules_obj, rules=rules_to_update, force=False)
         self.module.exit_json(
-            changed=True, msg='successfully created firewall rules'
+            changed=True, msg='successfully created/updated firewall rules'
         )
 
     def move_rule_to_correct_pos(self, rules_obj, rule):
