@@ -604,25 +604,22 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
 
         if level == "vm":
             vm = self.get_vm(vmid=self.params.get('vmid'))
-            node = getattr(self.proxmox_api.nodes(), vm['node'])
-            virt = getattr(node(), vm['type'])
-            vm = getattr(virt(), vm['vmid'])
-            firewall_obj = vm().firewall
+            node = self.proxmox_api.nodes(vm['node'])
+            virt = node(vm['type'])
+            firewall_obj = virt(str(vm['vmid'])).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "node":
-            node = getattr(self.proxmox_api.nodes(), self.params.get('node'))
-            firewall_obj = node().firewall
+            firewall_obj = self.proxmox_api.nodes(self.params.get('node')).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "vnet":
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), self.params.get('vnet'))
-            firewall_obj = vnet().firewall
+            firewall_obj = self.proxmox_api.cluster().sdn().vnets(self.params.get('vnet')).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "group":
             firewall_obj = None
-            rules_obj = getattr(self.proxmox_api.cluster().firewall().groups(), group)
+            rules_obj = self.proxmox_api.cluster().firewall().groups(group)
 
         else:
             firewall_obj = self.proxmox_api.cluster().firewall
