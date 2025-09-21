@@ -90,7 +90,7 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
     if params_to_ignore is None:
         params_to_ignore = list()
     items_to_update = []
-    new_list = [{k: v for k, v in item.items() if v is not None} for item in new_list]
+    new_list = [{k: v for k, v in item.items() if v is not None and k not in params_to_ignore} for item in new_list]
 
     if existing_list is None:
         items_to_create = new_list
