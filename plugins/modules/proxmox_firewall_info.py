@@ -10,8 +10,9 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: proxmox_firewall
+module: proxmox_firewall_info
 short_description: Manage firewall rules in Proxmox
+version_added: "1.4.0"
 description:
     - create/update/delete FW rules at cluster/group/vnet/node/vm level
     - Create/delete firewall security groups
@@ -58,6 +59,7 @@ extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
+  - community.proxmox.attributes.info_module
 """
 
 EXAMPLES = r"""
@@ -73,7 +75,7 @@ EXAMPLES = r"""
 
 RETURN = r"""
 groups:
-    description: 
+    description:
       - List of firewall security groups.
       - This will always be given for cluster level regardless of the level passed.
       - Because only at cluster level we can have firewall security groups
@@ -238,6 +240,7 @@ def get_ansible_module():
 
     return AnsibleModule(
         argument_spec=module_args,
+        supports_check_mode=True,
         required_if=[
             ('level', 'vm', ['vmid']),
             ('level', 'node', ['node']),
@@ -257,7 +260,7 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
 
         if level == "vm":
             vm = self.get_vm(vmid=self.params.get('vmid'))
-            node = self.proxmox_api.nodes( vm['node'])
+            node = self.proxmox_api.nodes(vm['node'])
             virt = node(vm['type'])
             firewall_obj = virt(str(vm['vmid'])).firewall
             rules_obj = firewall_obj().rules

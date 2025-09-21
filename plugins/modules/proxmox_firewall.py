@@ -12,6 +12,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_firewall
 short_description: Manage firewall rules in Proxmox
+version_added: "1.4.0"
 description:
     - create/update/delete FW rules at cluster/group/vnet/node/vm level
     - Create/delete firewall security groups
@@ -36,7 +37,7 @@ options:
     description:
       - If O(state=present) and if 1 or more rule/alias already exists it will update them
     type: bool
-    default: truw
+    default: true
   level:
     description:
       - Level at which the firewall rule applies.
@@ -348,7 +349,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent"],  default="present"),
+        state=dict(type="str", choices=["present", "absent"], default="present"),
         update=dict(type="bool", default=True),
         level=dict(type="str", choices=["cluster", "node", "vm", "vnet", "group"], default="cluster", required=False),
         node=dict(type="str", required=False),
@@ -489,7 +490,6 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.group_absent(group_name=group)
             if aliases is not None:
                 self.aliases_absent(firewall_obj=firewall_obj, aliases=aliases)
-
 
     def aliases_present(self, firewall_obj, level, aliases, update):
         if firewall_obj is None or level not in ['cluster', 'vm']:

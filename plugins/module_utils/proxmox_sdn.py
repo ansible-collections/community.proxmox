@@ -8,17 +8,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import traceback
-
-PROXMOXER_IMP_ERR = None
-try:
-    from proxmoxer import ProxmoxResource
-    from proxmoxer import __version__ as proxmoxer_version
-    HAS_PROXMOXER = True
-except ImportError:
-    HAS_PROXMOXER = False
-    PROXMOXER_IMP_ERR = traceback.format_exc()
-
 from typing import List, Dict
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
@@ -111,7 +100,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
                 msg=f'Failed to retrieve zone information from cluster: {e}'
             )
 
-    def get_aliases(self, firewall_obj: ProxmoxResource | None) -> List[Dict]:
+    def get_aliases(self, firewall_obj):
         """Get aliases for IP/CIDR at given firewall endpoint level
 
         :param firewall_obj: Firewall endpoint as a ProxmoxResource e.g. self.proxmox_api.cluster().firewall
@@ -127,7 +116,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
                 msg='Failed to retrieve aliases'
             )
 
-    def get_fw_rules(self, rules_obj: ProxmoxResource, pos: int = None) -> List[Dict]:
+    def get_fw_rules(self, rules_obj, pos=None):
         """Get firewall rules at given rules endpoint level
 
         :param rules_obj: Firewall Rules endpoint as a ProxmoxResource e.g. self.proxmox_api.cluster().firewall().rules
@@ -143,7 +132,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
                 msg=f'Failed to retrieve firewall rules: {e}'
             )
 
-    def get_groups(self) -> List:
+    def get_groups(self):
         """Get firewall security groups
 
         :return: list of groups

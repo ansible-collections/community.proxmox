@@ -15,7 +15,7 @@ import pytest
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible.module_utils import basic
-from ansible_collections.community.proxmox.plugins.modules import proxmox_firewall
+from ansible_collections.community.proxmox.plugins.modules import proxmox_firewall_info
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
@@ -55,6 +55,51 @@ RAW_GROUPS = [
     }
 ]
 
+RAW_ALIASES = [
+    {
+        "name": "test1",
+        "cidr": "10.10.1.0/24",
+        "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
+        "ipversion": 4
+    },
+    {
+        "name": "test2",
+        "cidr": "10.10.2.0/24",
+        "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
+        "ipversion": 4
+    },
+    {
+        "name": "test3",
+        "cidr": "10.10.3.0/24",
+        "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
+        "ipversion": 4
+    }
+]
+
+RAW_CLUSTER_RESOURCES = [
+    {
+        "vmid": 100,
+        "maxcpu": 8,
+        "memhost": 860138496,
+        "type": "qemu",
+        "id": "qemu/100",
+        "diskread": 127452302,
+        "netin": 42,
+        "netout": 0,
+        "cpu": 0.0046731498237984,
+        "uptime": 119787,
+        "template": 0,
+        "disk": 0,
+        "name": "nextcloud",
+        "maxdisk": 644245094400,
+        "mem": 445415424,
+        "status": "running",
+        "diskwrite": 1024,
+        "maxmem": 8589934592,
+        "node": "pve"
+    }
+]
+
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
@@ -69,45 +114,16 @@ def fail_json(*args, **kwargs):
     raise SystemExit(kwargs)
 
 
-def get_module_args_group_conf(group, level="cluster", state="present"):
+def get_module_args(level="cluster", vmid=None, node=None, vnet=None, group=None):
     return {
         "api_host": "host",
         "api_user": "user",
         "api_password": "password",
         "level": level,
-        "group": group,
-        "group_conf": True,
-        "state": state
-    }
-
-
-def get_module_args_rules(state, pos=1, level='cluster', source_ip='1.1.1.1'):
-    return {
-        "api_host": "host",
-        "api_user": "user",
-        "api_password": "password",
-        "level": level,
-        "state": state,
-        'rules': [
-            {
-                'type': 'out',
-                'action': 'ACCEPT',
-                'source': source_ip,
-                'pos': pos,
-                'enable': True
-            }
-        ]
-    }
-
-
-def get_module_args_fw_delete(pos, level='cluster', state='absent'):
-    return {
-        "api_host": "host",
-        "api_user": "user",
-        "api_password": "password",
-        "level": level,
-        "state": state,
-        "pos": pos
+        "vmid": vmid,
+        "node": node,
+        "vnet": vnet,
+        "group": group
     }
 
 
@@ -115,7 +131,7 @@ class TestProxmoxFirewallModule(ModuleTestCase):
     def setUp(self):
         super(TestProxmoxFirewallModule, self).setUp()
         proxmox_utils.HAS_PROXMOXER = True
-        self.module = proxmox_firewall
+        self.module = proxmox_firewall_info
         self.mock_module_helper = patch.multiple(basic.AnsibleModule,
                                                  exit_json=exit_json,
                                                  fail_json=fail_json)
@@ -123,44 +139,44 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.connect_mock.return_value.cluster.return_value.firewall.return_value.rules.get.return_value = RAW_FIREWALL_RULES
-        self.connect_mock.return_value.cluster.return_value.firewall.return_value.groups.return_value.get.return_value = RAW_GROUPS
+
+        self.connect_mock.return_value.cluster.resources.get.return_value = (
+            RAW_CLUSTER_RESOURCES
+        )
+
+        mock_cluster_fw = self.connect_mock.return_value.cluster.return_value.firewall.return_value
+        mock_vm100_fw = self.connect_mock.return_value.nodes.return_value.return_value.return_value.firewall.return_value
+
+        mock_cluster_fw.rules.get.return_value = RAW_FIREWALL_RULES
+        mock_cluster_fw.groups.return_value.get.return_value = RAW_GROUPS
+        mock_cluster_fw.aliases.return_value.get.return_value = RAW_ALIASES
+
+        mock_vm100_fw.rules.get.return_value = RAW_FIREWALL_RULES
+        mock_vm100_fw.aliases.return_value.get.return_value = RAW_ALIASES
 
     def tearDown(self):
         self.connect_mock.stop()
         self.mock_module_helper.stop()
         super(TestProxmoxFirewallModule, self).tearDown()
 
-    def test_create_group(self):
+    def test_cluster_level_info(self):
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_group_conf(group='test')):
+            with set_module_args(get_module_args()):
                 self.module.main()
         result = exc_info.value.args[0]
-        assert result['changed'] is True
-        assert result["msg"] == 'successfully created security group test'
-        assert result['group'] == 'test'
+        assert result["changed"] is False
+        assert result["msg"] == "successfully retrieved firewall rules and groups"
+        assert result["firewall_rules"] == RAW_FIREWALL_RULES
+        assert result["groups"] == ['test1', 'test2']
+        assert result["aliases"] == RAW_ALIASES
 
-    def test_delete_group(self):
+    def test_vm_level_info(self):
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_group_conf(group='test1', state="absent")):
+            with set_module_args(get_module_args(level='vm', vmid=100)):
                 self.module.main()
         result = exc_info.value.args[0]
-        assert result['changed'] is True
-        assert result["msg"] == 'successfully deleted security group test1'
-        assert result['group'] == 'test1'
-
-    def test_create_fw_rules(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_rules(state='present', pos=2)):
-                self.module.main()
-        result = exc_info.value.args[0]
-        assert result['changed'] is True
-        assert result["msg"] == 'successfully created/updated firewall rules'
-
-    def test_delete_fw_rule(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_fw_delete(state='absent', pos=1)):
-                self.module.main()
-        result = exc_info.value.args[0]
-        assert result['changed'] is True
-        assert result["msg"] == 'successfully deleted firewall rules'
+        assert result["changed"] is False
+        assert result["msg"] == "successfully retrieved firewall rules and groups"
+        assert result["firewall_rules"] == RAW_FIREWALL_RULES
+        assert result["groups"] == ['test1', 'test2']
+        assert result["aliases"] == RAW_ALIASES
