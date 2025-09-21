@@ -209,15 +209,6 @@ extends_documentation_fragment:
 """
 
 EXAMPLES = r"""
-- name: Get Cluster level firewall rules
-  community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-    level: cluster
-
 - name: Create firewall rules at cluster level
   community.proxmox.proxmox_firewall:
     api_user: "{{ pc.proxmox.api_user }}"
@@ -343,154 +334,14 @@ group:
     type: str
     sample:
       test
-
-groups:
-    description: list of firewall security groups
-    returned: on success
-    type: list
-    elements: str
-    sample:
-      [ "test" ]
-
-aliases:
-    description:
-      - list of alias present at given level
-      - aliases are only available for cluster and VM level so if any other level it'll be empty list
-    returned: on success
-    type: list
-    elements: dict
-    sample:
-        [
-            {
-                "cidr": "10.10.1.0/24",
-                "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
-                "ipversion": 4,
-                "name": "test1"
-            },
-            {
-                "cidr": "10.10.2.0/24",
-                "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
-                "ipversion": 4,
-                "name": "test2"
-            },
-            {
-                "cidr": "10.10.3.0/24",
-                "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
-                "ipversion": 4,
-                "name": "test3"
-            }
-        ]
-
-firewall_rules:
-    description: List of firewall rules.
-    returned: on success
-    type: list
-    elements: dict
-    sample:
-      [
-        {
-            "action": "ACCEPT",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "dport": "53",
-            "enable": 1,
-            "ipversion": 4,
-            "log": "nolog",
-            "pos": 0,
-            "proto": "udp",
-            "source": "192.168.1.0/24",
-            "type": "in"
-        },
-        {
-            "action": "ACCEPT",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "dport": "53",
-            "enable": 1,
-            "ipversion": 4,
-            "log": "nolog",
-            "pos": 1,
-            "proto": "tcp",
-            "source": "192.168.1.0/24",
-            "type": "in"
-        },
-        {
-            "action": "ACCEPT",
-            "dest": "192.168.1.0/24",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "enable": 1,
-            "ipversion": 4,
-            "log": "nolog",
-            "pos": 2,
-            "type": "out"
-        },
-        {
-            "action": "ACCEPT",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "enable": 1,
-            "ipversion": 4,
-            "log": "nolog",
-            "pos": 3,
-            "source": "192.168.1.0/24",
-            "type": "in"
-        },
-        {
-            "action": "ACCEPT",
-            "dest": "+sdn/test2-gateway",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "enable": 1,
-            "iface": "test2",
-            "log": "nolog",
-            "macro": "DNS",
-            "pos": 4,
-            "type": "in"
-        },
-        {
-            "action": "ACCEPT",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "enable": 1,
-            "iface": "test2",
-            "log": "nolog",
-            "macro": "DHCPfwd",
-            "pos": 5,
-            "type": "in"
-        },
-        {
-            "action": "ACCEPT",
-            "dest": "+sdn/test2-all",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "dport": "68",
-            "enable": 1,
-            "log": "nolog",
-            "pos": 6,
-            "proto": "udp",
-            "source": "+sdn/test2-gateway",
-            "sport": "67",
-            "type": "out"
-        },
-        {
-            "action": "DROP",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "enable": 1,
-            "log": "nolog",
-            "pos": 7,
-            "type": "in"
-        },
-        {
-            "action": "DROP",
-            "digest": "b5ddaed23b415b9368706fc9edc83d037526aae9",
-            "enable": 1,
-            "log": "nolog",
-            "pos": 8,
-            "type": "out"
-        }
-      ]
 """
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
     ansible_to_proxmox_bool,
-    compare_list_of_dicts,
-    ProxmoxAnsible
+    compare_list_of_dicts
 )
 
 
@@ -562,7 +413,7 @@ def get_ansible_module():
     )
 
 
-class ProxmoxFirewallAnsible(ProxmoxAnsible):
+class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
         super(ProxmoxFirewallAnsible, self).__init__(module)
         self.params = module.params
@@ -646,27 +497,7 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
                 self.delete_group(group_name=group)
             if aliases is not None:
                 self.delete_aliases(firewall_obj=firewall_obj, level=level, aliases=aliases)
-        else:
-            rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
-            groups = self.get_groups()
-            aliases = self.get_aliases(firewall_obj=firewall_obj, level=level)
-            self.module.exit_json(
-                changed=False,
-                firewall_rules=rules,
-                groups=groups,
-                aliases=aliases,
-                msg='successfully retrieved firewall rules and groups'
-            )
 
-    def get_aliases(self, firewall_obj, level):
-        if firewall_obj is None or level not in ['cluster', 'vm']:
-            return list()
-        try:
-            return firewall_obj().aliases().get()
-        except Exception as e:
-            self.module.fail_json(
-                msg='Failed to retrieve aliases'
-            )
 
     def create_aliases(self, firewall_obj, level, aliases, force=False):
         if firewall_obj is None or level not in ['cluster', 'vm']:
@@ -793,24 +624,6 @@ class ProxmoxFirewallAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to delete security group {group_name}: {e}'
-            )
-
-    def get_fw_rules(self, rules_obj, pos=None):
-        if pos is not None:
-            rules_obj = getattr(rules_obj(), str(pos))
-        try:
-            return rules_obj.get()
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve firewall rules: {e}'
-            )
-
-    def get_groups(self):
-        try:
-            return [x['group'] for x in self.proxmox_api.cluster().firewall().groups().get()]
-        except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve firewall security groups: {e}'
             )
 
     def delete_fw_rule(self, rules_obj, pos):
