@@ -26,6 +26,8 @@ action_groups:
     - proxmox_nic
     - proxmox_node
     - proxmox_node_info
+    - proxmox_node_network
+    - proxmox_node_network_info
     - proxmox_pool
     - proxmox_pool_member
     - proxmox_snap
