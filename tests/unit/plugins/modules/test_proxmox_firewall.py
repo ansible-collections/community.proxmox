@@ -123,7 +123,7 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.connect_mock.return_value.cluster.return_value.firewall.return_value.rules.get.return_value = RAW_FIREWALL_RULES
+        self.connect_mock.return_value.cluster.return_value.firewall.return_value.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         self.connect_mock.return_value.cluster.return_value.firewall.return_value.groups.return_value.get.return_value = RAW_GROUPS
 
     def tearDown(self):
@@ -159,7 +159,7 @@ class TestProxmoxFirewallModule(ModuleTestCase):
 
     def test_delete_fw_rule(self):
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_fw_delete(state='absent', pos=1)):
+            with set_module_args(get_module_args_fw_delete(state='absent', pos=0)):
                 self.module.main()
         result = exc_info.value.args[0]
         assert result['changed'] is True

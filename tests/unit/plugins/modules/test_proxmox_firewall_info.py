@@ -147,11 +147,11 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         mock_cluster_fw = self.connect_mock.return_value.cluster.return_value.firewall.return_value
         mock_vm100_fw = self.connect_mock.return_value.nodes.return_value.return_value.return_value.firewall.return_value
 
-        mock_cluster_fw.rules.get.return_value = RAW_FIREWALL_RULES
+        mock_cluster_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         mock_cluster_fw.groups.return_value.get.return_value = RAW_GROUPS
         mock_cluster_fw.aliases.return_value.get.return_value = RAW_ALIASES
 
-        mock_vm100_fw.rules.get.return_value = RAW_FIREWALL_RULES
+        mock_vm100_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         mock_vm100_fw.aliases.return_value.get.return_value = RAW_ALIASES
 
     def tearDown(self):

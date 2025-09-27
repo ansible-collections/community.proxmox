@@ -15,6 +15,8 @@ short_description: Manage firewall rules in Proxmox
 version_added: "1.4.0"
 description:
     - Get firewall rules at cluster/group/vnet/node/vm level.
+    - Get firewall security groups at cluster level.
+    - Get aliases at cluster/VM level.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   level:

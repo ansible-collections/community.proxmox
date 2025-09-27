@@ -102,20 +102,20 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
 
     common_uids = set(existing_list.keys()).intersection(set(new_list.keys()))
     missing_uids = set(new_list.keys()) - set(existing_list.keys())
-    items_to_create = [new_list[id] for id in missing_uids]
+    items_to_create = [new_list[uid] for uid in missing_uids]
 
-    for id in common_uids:
+    for uid in common_uids:
         # If new rule has a parameter that is not present in existing rule we need to update
-        if set(new_list[id].keys()) - set(existing_list[id].keys()) != set():
-            items_to_update.append(new_list[id])
+        if set(new_list[uid].keys()) - set(existing_list[uid].keys()) != set():
+            items_to_update.append(new_list[uid])
             continue
 
         # If existing rule param value doesn't match new rule param OR
         # If existing rule has a param that is not present in new rule except for params in params_to_ignore
-        for existing_rule_param, existing_parm_value in existing_list[id].items():
+        for existing_rule_param, existing_parm_value in existing_list[uid].items():
             if (existing_rule_param not in params_to_ignore and
-                    new_list[id].get(existing_rule_param) != existing_parm_value):
-                items_to_update.append(new_list[id])
+                    new_list[uid].get(existing_rule_param) != existing_parm_value):
+                items_to_update.append(new_list[uid])
 
     return items_to_create, items_to_update
 

@@ -14,8 +14,9 @@ module: proxmox_firewall
 short_description: Manage firewall rules in Proxmox
 version_added: "1.4.0"
 description:
-    - Create/update/delete firewall rules at cluster/group/vnet/node/vm level. 
-    - Create/delete firewall security groups.
+    - create/update/delete FW rules at cluster/group/vnet/node/vm level
+    - Create/delete firewall security groups
+    - Create/delete aliases
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 attributes:
   check_mode:
@@ -25,7 +26,7 @@ attributes:
 options:
   state:
     description:
-      - Create/update/delete firewall rules or security group. 
+      - Create/update/delete firewall rules or security group.
     type: str
     choices:
       - present
@@ -33,7 +34,7 @@ options:
     default: present
   update:
     description:
-      - If O(state=present) and if one or more rule/alias already exists it will update them. 
+      - If O(state=present) and if one or more rule/alias already exists it will update them.
     type: bool
     default: true
   level:
@@ -427,7 +428,8 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                     msg="When state is present either group_conf should be true or rules/aliases must be present but not both"
                 )
         elif self.params.get('state') == 'absent':
-            if self.params.get('group_conf') != bool(self.params.get('pos') or self.params.get('aliases')):
+            if self.params.get('group_conf') != bool(
+                    (self.params.get('pos') is not None) or self.params.get('aliases')):
                 return True
             else:
                 self.module.fail_json(
@@ -482,7 +484,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             if aliases:
                 self.aliases_present(firewall_obj=firewall_obj, level=level, aliases=aliases, update=update)
         elif state == "absent":
-            if self.params.get('pos'):
+            if self.params.get('pos') is not None:
                 self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get('pos'))
             if group_conf:
                 self.group_absent(group_name=group)

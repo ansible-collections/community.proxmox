@@ -113,7 +113,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             return firewall_obj().aliases().get()
         except Exception as e:
             self.module.fail_json(
-                msg='Failed to retrieve aliases'
+                msg=f'Failed to retrieve aliases - {e}'
             )
 
     def get_fw_rules(self, rules_obj, pos=None):
@@ -123,13 +123,14 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         :param pos: Rule position if it is None it'll return all rules
         :return: Firewall rules as a list of dict
         """
-        if pos:
-            try:
-                return rules_obj(str(pos)).get()
-            except Exception as e:
-                self.module.fail_json(
-                    msg=f'Failed to retrieve firewall rules: {e}'
-                )
+        if pos is not None:
+            pos = str(pos)
+        try:
+            return rules_obj(pos).get()
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve firewall rules: {e}'
+            )
 
     def get_groups(self):
         """Get firewall security groups
