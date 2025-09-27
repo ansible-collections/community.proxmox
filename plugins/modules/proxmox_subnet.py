@@ -26,25 +26,18 @@ options:
       - Desired state of the network configuration.
       - Choices include present (create), absent (delete), or update (modify).
     type: str
-    choices: ['present', 'absent', 'update']
+    choices: ['present', 'absent']
     default: present
-  force:
+  update:
     description:
-      - If true it will create subnet when state is update but subnet is missing and update the subnet when state is present and subnet already exists
+      - If O(state=present) then it will update the subnet if needed.
     type: bool
-    default: False
+    default: True
   subnet:
     description:
       - subnet CIDR.
     type: str
     required: true
-  type:
-    description:
-      - Type of network configuration.
-      - Currently only supports 'subnet'.
-    type: str
-    choices: ['subnet']
-    default: subnet
   vnet:
     description:
       - The virtual network to which the subnet belongs.
@@ -113,18 +106,6 @@ EXAMPLES = r"""
     subnet: 10.10.2.0/24
     zone: ans1
     state: present
-
-- name: Update a subnet
-  community.proxmox.proxmox_subnet:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-    vnet: test
-    subnet: 10.10.2.0/24
-    zone: ans1
-    state: update
     dhcp_range:
       - start: 10.10.2.5
         end: 10.10.2.50
@@ -156,19 +137,18 @@ subnet:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
-    ansible_to_proxmox_bool,
-    ProxmoxAnsible
+    ansible_to_proxmox_bool
 )
 
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent", "update"], default='present', required=False),
-        force=dict(type="bool", default=False, required=False),
+        state=dict(type="str", choices=["present", "absent"], default='present', required=False),
+        update=dict(type="bool", default=True),
         subnet=dict(type="str", required=True),
-        type=dict(type="str", choices=['subnet'], default='subnet', required=False),
         vnet=dict(type="str", required=True),
         zone=dict(type="str", required=False),
         dhcp_dns_server=dict(type="str", required=False),
@@ -196,25 +176,24 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
-            ('state', 'present', ['subnet', 'type', 'vnet', 'zone']),
-            ('state', 'update', ['zone', 'vnet', 'subnet']),
+            ('state', 'present', ['subnet', 'vnet', 'zone']),
             ('state', 'absent', ['zone', 'vnet', 'subnet']),
         ]
     )
 
 
-class ProxmoxSubnetAnsible(ProxmoxAnsible):
+class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
         super(ProxmoxSubnetAnsible, self).__init__(module)
         self.params = module.params
 
     def run(self):
         state = self.params.get("state")
-        force = self.params.get("force")
+        update = self.params.get("update")
 
         subnet_params = {
             'subnet': self.params.get('subnet'),
-            'type': self.params.get('type'),
+            'type': 'subnet',
             'vnet': self.params.get('vnet'),
             'dhcp-dns-server': self.params.get('dhcp_dns_server'),
             'dhcp-range': self.get_dhcp_range(),
@@ -225,9 +204,7 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
         }
 
         if state == 'present':
-            self.subnet_present(force=force, **subnet_params)
-        elif state == 'update':
-            self.subnet_update(force=force, **subnet_params)
+            self.subnet_present(update=update, **subnet_params)
         elif state == 'absent':
             self.subnet_absent(**subnet_params)
 
@@ -237,10 +214,10 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
         dhcp_range = [f"start-address={x['start']},end-address={x['end']}" for x in self.params.get('dhcp_range')]
         return dhcp_range
 
-    def subnet_present(self, force, **subnet_params):
+    def subnet_present(self, update, **subnet_params):
         vnet_name = subnet_params['vnet']
         lock = subnet_params['lock-token']
-        subnet = subnet_params['subnet']
+        subnet_cidr = subnet_params['subnet']
         subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
         try:
@@ -248,58 +225,33 @@ class ProxmoxSubnetAnsible(ProxmoxAnsible):
 
             # Check if subnet already present
             if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
-                if force:
-                    self.subnet_update(force=False, **subnet_params)
+                if update:
+                    subnet = getattr(vnet().subnets(), subnet_id)
+                    subnet_params['digest'] = subnet.get()['digest']
+                    subnet_params['delete'] = self.params.get('delete')
+                    del subnet_params['type']
+                    del subnet_params['subnet']
+
+                    subnet.put(**subnet_params)
+                    self.apply_sdn_changes_and_release_lock(lock=lock)
+                    self.module.exit_json(
+                        changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
+                    )
                 else:
                     self.release_lock(lock=lock)
                     self.module.exit_json(
-                        changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already present and force is false.'
+                        changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already present and update is false.'
                     )
             else:
                 vnet.subnets().post(**subnet_params)
                 self.apply_sdn_changes_and_release_lock(lock=lock)
                 self.module.exit_json(
-                    changed=True, subnet=subnet_id, msg=f'Created new subnet {subnet}'
+                    changed=True, subnet=subnet_id, msg=f'Created new subnet {subnet_cidr}'
                 )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(lock=lock)
             self.module.fail_json(
                 msg=f'Failed to create subnet. Rolling back all changes : {e}'
-            )
-
-    def subnet_update(self, force, **subnet_params):
-        lock = subnet_params['lock-token']
-        vnet_id = subnet_params['vnet']
-        subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
-
-        try:
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_id)
-
-            # Check if subnet already present
-            if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
-                subnet = getattr(vnet().subnets(), subnet_id)
-                subnet_params['digest'] = subnet.get()['digest']
-                subnet_params['delete'] = self.params.get('delete')
-                del subnet_params['type']
-                del subnet_params['subnet']
-
-                subnet.put(**subnet_params)
-                self.apply_sdn_changes_and_release_lock(lock=lock)
-                self.module.exit_json(
-                    changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
-                )
-            else:
-                if force:
-                    self.subnet_present(force=False, **subnet_params)
-                else:
-                    self.release_lock(lock=lock)
-                    self.module.exit_json(
-                        changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} not present and force is false.'
-                    )
-        except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock=lock)
-            self.module.fail_json(
-                msg=f'Failed to update subnet. Rolling back all changes. : {e}'
             )
 
     def subnet_absent(self, **subnet_params):
