@@ -99,3 +99,47 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             self.module.fail_json(
                 msg=f'Failed to retrieve zone information from cluster: {e}'
             )
+
+    def get_aliases(self, firewall_obj):
+        """Get aliases for IP/CIDR at given firewall endpoint level
+
+        :param firewall_obj: Firewall endpoint as a ProxmoxResource e.g. self.proxmox_api.cluster().firewall
+                            If it is None it'll return an empty list
+        :return: List of aliases and corresponding IP/CIDR
+        """
+        if firewall_obj is None:
+            return list()
+        try:
+            return firewall_obj().aliases().get()
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve aliases - {e}'
+            )
+
+    def get_fw_rules(self, rules_obj, pos=None):
+        """Get firewall rules at given rules endpoint level
+
+        :param rules_obj: Firewall Rules endpoint as a ProxmoxResource e.g. self.proxmox_api.cluster().firewall().rules
+        :param pos: Rule position if it is None it'll return all rules
+        :return: Firewall rules as a list of dict
+        """
+        if pos is not None:
+            pos = str(pos)
+        try:
+            return rules_obj(pos).get()
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve firewall rules: {e}'
+            )
+
+    def get_groups(self):
+        """Get firewall security groups
+
+        :return: list of groups
+        """
+        try:
+            return [x['group'] for x in self.proxmox_api.cluster().firewall().groups().get()]
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve firewall security groups: {e}'
+            )
