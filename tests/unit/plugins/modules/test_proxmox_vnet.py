@@ -80,7 +80,7 @@ class TestProxmoxVnetModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.connect_mock.return_value.cluster.return_value.sdn.return_value.vnets.return_value.get.return_value = RAW_VNETS
+        self.connect_mock.return_value.cluster.return_value.sdn.return_value.vnets.return_value.get.return_value = RAW_VNETS.copy()
 
     def tearDown(self):
         self.connect_mock.stop()

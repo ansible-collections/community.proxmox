@@ -11,7 +11,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_vnet
-short_description: Manage virtual networks in Proxmox SDN
+short_description: Manage virtual networks in Proxmox SDN.
 description:
   - Create, update, or delete virtual networks in Proxmox SDN.
   - Configure network isolation, VLAN awareness, and other network settings.
@@ -31,7 +31,7 @@ options:
     default: present
   update:
     description:
-      - If O(state=present) then it will update the vnet if needed
+      - If O(state=present) then it will update the vnet if needed.
     type: bool
     default: True
   vnet:
@@ -53,11 +53,11 @@ options:
     default: False
   lock_token:
     description:
-      - the token for unlocking the global SDN configuration.
+      - The token for unlocking the global SDN configuration.
     type: str
   tag:
     description:
-      - tag for the virtual network.
+      - Tag for the virtual network.
     type: int
   type:
     description:
@@ -86,7 +86,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     vnet: anstest
     zone: ans1
     state: present
@@ -97,12 +97,12 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     vnet: anstest
     zone: ans1
     alias: anst
     state: present
-    update: True
+    update: true
 
 - name: Delete a vnet
   community.proxmox.proxmox_vnet:
@@ -110,7 +110,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     vnet: anstest
     zone: ans1
     state: absent
@@ -119,7 +119,7 @@ EXAMPLES = r"""
 RETURN = r"""
 vnet:
   description:
-    - vnet name which was created/updated/deleted
+    - vnet name which was created/updated/deleted.
   returned: on success
   type: str
   sample:
@@ -265,8 +265,7 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
                 'lock-token': self.get_global_sdn_lock()
             }
             try:
-                vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
-                vnet.delete(**vnet_params)
+                self.proxmox_api.cluster().sdn().vnets(vnet_name).delete(**vnet_params)
                 self.apply_sdn_changes_and_release_lock(vnet_params['lock-token'])
                 self.module.exit_json(
                     changed=True, vnet=vnet_name, msg=f'Deleted vnet {vnet_name}'
