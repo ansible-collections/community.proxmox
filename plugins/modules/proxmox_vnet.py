@@ -12,6 +12,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_vnet
 short_description: Manage virtual networks in Proxmox SDN.
+version_added: "1.4.0"
 description:
   - Create, update, or delete virtual networks in Proxmox SDN.
   - Configure network isolation, VLAN awareness, and other network settings.
@@ -25,7 +26,6 @@ options:
   state:
     description:
       - Desired state of the virtual network.
-      - Choices include present (create), absent (delete), or update (modify).
     type: str
     choices: ['present', 'absent']
     default: present
@@ -59,12 +59,6 @@ options:
     description:
       - Tag for the virtual network.
     type: int
-  type:
-    description:
-      - Type of network configuration.
-    type: str
-    choices: ['vnet']
-    default: vnet
   vlanaware:
     description:
       - Enable VLAN awareness for the virtual network.
@@ -145,7 +139,6 @@ def get_proxmox_args():
         isolate_ports=dict(type="bool", default=False, required=False),
         lock_token=dict(type="str", required=False, no_log=False),
         tag=dict(type="int", required=False),
-        type=dict(type="str", choices=['vnet'], default='vnet'),
         vlanaware=dict(type="bool", required=False),
         delete=dict(type="str", required=False)
     )
@@ -180,7 +173,7 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
             'isolate-ports': ansible_to_proxmox_bool(self.params.get('isolate_ports')),
             'lock-token': None,
             'tag': self.params.get('tag'),
-            'type': self.params.get('type'),
+            'type': 'vnet',
             'vlanaware': ansible_to_proxmox_bool(self.params.get('vlanaware'))
         }
 
