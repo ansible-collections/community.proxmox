@@ -78,13 +78,13 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
     Use case - for firewall rules we will be getting a list of rules from user.
     We want to filter out which rules needs to be updated and which rules are completely new and needs to be created
 
-    @param existing_list: Existing values example - list of existing rules
-    @param new_list: New values example - list of rules passed to module
-    @param uid: unique identifier in dict. It should always be present in both lists - in case of firewall rules it's pos
-    @param params_to_ignore:  list of params we want to ignore which are present in existing_list's dict.
+    :param existing_list: Existing values example - list of existing rules
+    :param new_list: New values example - list of rules passed to module
+    :param uid: unique identifier in dict. It should always be present in both lists - in case of firewall rules it's pos
+    :param params_to_ignore:  list of params we want to ignore which are present in existing_list's dict.
                             In case of firewall rules we want to ignore ['digest', 'ipversion']
 
-    @return: returns 2 list items 1st is the list of items which are completely new and needs to be created
+    :return: returns 2 list items 1st is the list of items which are completely new and needs to be created
             2nd is a list of items which needs to be updated
     """
     if params_to_ignore is None:

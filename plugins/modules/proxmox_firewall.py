@@ -14,9 +14,8 @@ module: proxmox_firewall
 short_description: Manage firewall rules in Proxmox
 version_added: "1.4.0"
 description:
-    - create/update/delete FW rules at cluster/group/vnet/node/vm level
-    - Create/delete firewall security groups
-    - get firewall rules at cluster/group/vnet/node/vm level
+    - Create/update/delete firewall rules at cluster/group/vnet/node/vm level. 
+    - Create/delete firewall security groups.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 attributes:
   check_mode:
@@ -26,8 +25,7 @@ attributes:
 options:
   state:
     description:
-      - create/update/delete firewall rules or security group
-      - if state is not provided then it will just list firewall rules at level
+      - Create/update/delete firewall rules or security group. 
     type: str
     choices:
       - present
@@ -35,7 +33,7 @@ options:
     default: present
   update:
     description:
-      - If O(state=present) and if 1 or more rule/alias already exists it will update them
+      - If O(state=present) and if one or more rule/alias already exists it will update them. 
     type: bool
     default: true
   level:
@@ -52,22 +50,22 @@ options:
   node:
     description:
       - Name of the node.
-      - only needed when level is node.
+      - Only needed when O(level=node).
     type: str
   vmid:
     description:
       - ID of the VM to which the rule applies.
-      - only needed when level is vm.
+      - Only needed when O(level=vm).
     type: int
   vnet:
     description:
       - Name of the virtual network for the rule.
-      - only needed when level is vnet.
+      - Only needed when O(level=vnet).
     type: str
   pos:
     description:
       - Position of the rule in the list.
-      - only needed if deleting rule or trying to list it
+      - Only needed if O(state=absent).
     type: int
   group_conf:
     description:
@@ -77,7 +75,7 @@ options:
   group:
     description:
       - Name of the group to which the rule belongs.
-      - only needed when level is group or group_conf is True.
+      - Only needed when O(level=group) or O(group_conf=true).
     type: str
   comment:
     description:
@@ -86,23 +84,23 @@ options:
     type: str
   aliases:
     description:
-      - List of aliases
-      - Alias can only be created/updated/deleted at cluster or VM level
+      - List of aliases.
+      - Alias can only be created/updated/deleted at cluster or VM level.
     type: list
     elements: dict
     suboptions:
       name:
-        description: Alias name
+        description: Alias name.
         type: str
         required: true
       cidr:
         description:
-          - CIDR for alias
-          - only needed when O(state=present) or O(state=update)
+          - CIDR for alias.
+          - Only needed when O(state=present) or O(state=update).
         type: str
         required: false
       comment:
-        description: Comment for Alias
+        description: Comment for alias.
         type: str
         required: false
   rules:
@@ -215,7 +213,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     level: cluster
     state: present
     rules:
@@ -224,12 +222,12 @@ EXAMPLES = r"""
         source: 1.1.1.1
         log: nolog
         pos: 9
-        enable: True
+        enable: true
       - type: out
         action: ACCEPT
         source: 1.0.0.1
         pos: 10
-        enable: True
+        enable: true
 
 - name: Update Cluster level firewall rules
   community.proxmox.proxmox_firewall:
@@ -237,22 +235,22 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     level: cluster
     state: present
-    update: True
+    update: true
     rules:
       - type: out
         action: ACCEPT
         source: 8.8.8.8
         log: nolog
         pos: 9
-        enable: False
+        enable: false
       - type: out
         action: ACCEPT
         source: 8.8.4.4
         pos: 10
-        enable: False
+        enable: false
 
 - name: Delete cluster level firewall rule at pos 10
   community.proxmox.proxmox_firewall:
@@ -260,7 +258,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     level: cluster
     state: absent
     pos: 10
@@ -271,8 +269,8 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-    group_conf: True
+    validate_certs: false
+    group_conf: true
     state: present
     group: test
 
@@ -282,8 +280,8 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
-    group_conf: True
+    validate_certs: false
+    group_conf: true
     state: absent
     group: test
 
@@ -293,7 +291,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     state: present
     aliases:
       - name: test1
@@ -307,9 +305,9 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     state: present
-    update: True
+    update: true
     aliases:
       - name: test1
         cidr: '10.10.1.0/28'
@@ -322,7 +320,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     state: absent
     aliases:
       - name: test1
@@ -433,7 +431,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 return True
             else:
                 self.module.fail_json(
-                    msg="When State is absent either group_conf should be true or pos/aliases must be present but not both"
+                    msg="When state is absent either group_conf should be true or pos/aliases must be present but not both"
                 )
 
     def run(self):
@@ -447,7 +445,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         group = self.params.get("group")
         group_conf = self.params.get("group_conf")
 
-        if rules is not None:
+        if rules:
             for rule in rules:
                 rule['icmp-type'] = rule.get('icmp_type')
                 rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
@@ -479,20 +477,20 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         if state == "present":
             if group_conf:
                 self.group_present(group=group, comment=self.params.get('comment'))
-            if rules is not None:
+            if rules:
                 self.fw_rules_present(rules_obj=rules_obj, rules=rules, update=update)
-            if aliases is not None:
+            if aliases:
                 self.aliases_present(firewall_obj=firewall_obj, level=level, aliases=aliases, update=update)
         elif state == "absent":
             if self.params.get('pos'):
                 self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get('pos'))
             if group_conf:
                 self.group_absent(group_name=group)
-            if aliases is not None:
+            if aliases:
                 self.aliases_absent(firewall_obj=firewall_obj, aliases=aliases)
 
     def aliases_present(self, firewall_obj, level, aliases, update):
-        if firewall_obj is None or level not in ['cluster', 'vm']:
+        if not firewall_obj or level not in ['cluster', 'vm']:
             self.module.fail_json(
                 msg='Aliases can only be created at cluster or VM level'
             )

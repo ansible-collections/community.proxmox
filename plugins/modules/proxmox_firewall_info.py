@@ -14,9 +14,7 @@ module: proxmox_firewall_info
 short_description: Manage firewall rules in Proxmox
 version_added: "1.4.0"
 description:
-    - create/update/delete FW rules at cluster/group/vnet/node/vm level
-    - Create/delete firewall security groups
-    - get firewall rules at cluster/group/vnet/node/vm level
+    - Get firewall rules at cluster/group/vnet/node/vm level.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
 options:
   level:
@@ -33,27 +31,26 @@ options:
   node:
     description:
       - Name of the node.
-      - only needed when level is node.
+      - Only needed when O(level=node).
     type: str
   vmid:
     description:
       - ID of the VM to which the rule applies.
-      - only needed when level is vm.
+      - Only needed when O(level=vm).
     type: int
   vnet:
     description:
       - Name of the virtual network for the rule.
-      - only needed when level is vnet.
+      - Only needed when O(level=vnet).
     type: str
   pos:
     description:
       - Position of the rule in the list.
-      - only needed if deleting rule or trying to list it
     type: int
   group:
     description:
       - Name of the group to which the rule belongs.
-      - only needed when level is group or group_conf is True.
+      - Only needed when O(level=group).
     type: str
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -69,7 +66,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     level: cluster
 """
 
@@ -78,7 +75,7 @@ groups:
     description:
       - List of firewall security groups.
       - This will always be given for cluster level regardless of the level passed.
-      - Because only at cluster level we can have firewall security groups
+      - Because only at cluster level we can have firewall security groups.
     returned: on success
     type: list
     elements: str
@@ -87,8 +84,8 @@ groups:
 
 aliases:
     description:
-      - list of alias present at given level
-      - aliases are only available for cluster and VM level so if any other level it'll be empty list
+      - List of alias present at given level.
+      - Aliases are only available for cluster and VM level so if any other level it'll be empty list.
     returned: on success
     type: list
     elements: dict
