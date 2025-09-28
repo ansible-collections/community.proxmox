@@ -247,7 +247,7 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         try:
             return self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets().get()
         except Exception as e:
-            self.module.fail_json(f'Failed to retrieve subnet isubnet_paramsnfo {e}')
+            self.module.fail_json(f'Failed to retrieve subnets {e}')
 
     def update_subnet(self, **subnet_params):
         new_subnet = copy.deepcopy(subnet_params)
@@ -357,7 +357,6 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
         try:
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
             existing_subnets = self.get_subnets(vnet_name)
 
             # Check if subnet already present
@@ -365,7 +364,7 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
                 self.update_subnet(**subnet_params)
             else:
                 subnet_params['lock-token'] = self.get_global_sdn_lock()
-                vnet.subnets().post(**subnet_params)
+                self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets().post(**subnet_params)
                 self.apply_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
                 self.module.exit_json(
                     changed=True, subnet=subnet_id, msg=f'Created new subnet {subnet_cidr}'
@@ -377,22 +376,21 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
             )
 
     def subnet_absent(self, **subnet_params):
-        vnet_id = subnet_params['vnet']
+        vnet_name = subnet_params['vnet']
         subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
         params = {
             'subnet': subnet_id,
-            'vnet': vnet_id,
+            'vnet': vnet_name,
             'lock-token': None
         }
 
+        existing_subnets = self.get_subnets(vnet_name)
         try:
-            vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_id)
-
             # Check if subnet already present
-            if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
+            if subnet_id in [x['subnet'] for x in existing_subnets]:
                 params['lock-token'] = self.get_global_sdn_lock()
-                vnet().subnets(subnet_id).delete(**params)
+                self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets(subnet_id).delete(**params)
                 self.apply_sdn_changes_and_release_lock(lock=params['lock-token'])
                 self.module.exit_json(
                     changed=True, subnet=subnet_id, msg=f'Deleted subnet {subnet_id}'
