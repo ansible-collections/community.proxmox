@@ -12,6 +12,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_subnet
 short_description: Create/Update/Delete subnets from SDN
+version_added: "1.4.0"
 description:
   - Create, update, or delete subnets in Proxmox SDN.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
@@ -33,6 +34,16 @@ options:
       - If O(state=present) then it will update the subnet if needed.
     type: bool
     default: True
+  dhcp_range_update_mode:
+    description:
+      - Only applicable for O(state=present) and it will honor and only make changes when O(update=true)
+      - If set to append and new dhcp_range passed it will just append to existing ranges.
+      - And If no dhcp_range passed and there are existing ranges it will just ignore existing ranges and only update other params if needed
+      - If set to overwrite and new dhcp_range passed it will overwrite existing ranges.
+      - If no dhcp_range passed and there are existing ranges it will delete all dhcp_ranges
+    type: str
+    default: append
+    choices: ['append', 'overwrite']
   subnet:
     description:
       - subnet CIDR.
@@ -190,10 +201,12 @@ def get_ansible_module():
 def get_dhcp_range(dhcp_range=None):
     if not dhcp_range:
         return None
+
     def extract(item):
         start = item.get('start-address') or item.get('start')
         end = item.get('end-address') or item.get('end')
         return f"start-address={start},end-address={end}"
+
     return [extract(x) for x in dhcp_range]
 
 
@@ -267,7 +280,7 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         existing_subnets = self.get_subnets(vnet_name)
 
         # Check for subnet params other than dhcp-range
-        _, subnet_update = compare_list_of_dicts(
+        x, subnet_update = compare_list_of_dicts(
             existing_list=existing_subnets,
             new_list=[new_subnet],
             uid='id',
@@ -291,7 +304,7 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
             if dhcp_range_update_mode == 'append':
                 if partial_overlap:
                     self.module.fail_json(
-                        msg=f"There are partially overlapping DHCP ranges. this is not allowed."
+                        msg="There are partially overlapping DHCP ranges. this is not allowed."
                     )
 
                 if len(new_dhcp) > 0:
