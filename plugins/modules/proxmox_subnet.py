@@ -136,11 +136,15 @@ subnet:
     ans1-10.10.2.0-24
 """
 
+import copy
+from ipaddress import IPv4Address
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
-    ansible_to_proxmox_bool
+    ansible_to_proxmox_bool,
+    compare_list_of_dicts
+
 )
 
 
@@ -152,6 +156,7 @@ def get_proxmox_args():
         vnet=dict(type="str", required=True),
         zone=dict(type="str", required=False),
         dhcp_dns_server=dict(type="str", required=False),
+        dhcp_range_update_mode=dict(type='str', choices=['append', 'overwrite'], default='append'),
         dhcp_range=dict(
             type='list',
             elements='dict',
@@ -178,8 +183,39 @@ def get_ansible_module():
         required_if=[
             ('state', 'present', ['subnet', 'vnet', 'zone']),
             ('state', 'absent', ['zone', 'vnet', 'subnet']),
+            # ('dhcp_range_update_mode', 'overwrite', ['dhcp_range'])
         ]
     )
+
+
+def get_dhcp_range(dhcp_range=None):
+    if not dhcp_range:
+        return None
+    def extract(item):
+        start = item.get('start-address') or item.get('start')
+        end = item.get('end-address') or item.get('end')
+        return f"start-address={start},end-address={end}"
+    return [extract(x) for x in dhcp_range]
+
+
+def compare_dhcp_ranges(existing_ranges, new_ranges):
+    def to_tuple(r):
+        return int(IPv4Address(r['start-address'])), int(IPv4Address(r['end-address']))
+
+    existing_intervals = [to_tuple(r) for r in existing_ranges]
+
+    new_dhcp_ranges = []
+    partial_overlap = False
+
+    for dhcp_range in new_ranges:
+        tuple_dhcp_range = to_tuple(dhcp_range)
+        if tuple_dhcp_range not in existing_intervals:
+            new_dhcp_ranges.append(dhcp_range)
+        for (start, end) in existing_intervals:
+            if not (tuple_dhcp_range[1] < start or tuple_dhcp_range[0] > end):
+                if tuple_dhcp_range != (start, end):
+                    partial_overlap = True
+    return new_dhcp_ranges, partial_overlap
 
 
 class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
@@ -196,7 +232,7 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
             'type': 'subnet',
             'vnet': self.params.get('vnet'),
             'dhcp-dns-server': self.params.get('dhcp_dns_server'),
-            'dhcp-range': self.get_dhcp_range(),
+            'dhcp-range': get_dhcp_range(dhcp_range=self.params.get('dhcp_range')),
             'dnszoneprefix': self.params.get('dnszoneprefix'),
             'gateway': self.params.get('gateway'),
             'lock-token': self.params.get('lock_token') or self.get_global_sdn_lock(),
@@ -208,11 +244,117 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         elif state == 'absent':
             self.subnet_absent(**subnet_params)
 
-    def get_dhcp_range(self):
-        if self.params.get('dhcp_range') is None:
-            return None
-        dhcp_range = [f"start-address={x['start']},end-address={x['end']}" for x in self.params.get('dhcp_range')]
-        return dhcp_range
+    def get_subnets(self, vnet_name):
+        try:
+            return self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets().get()
+        except Exception as e:
+            self.module.fail_json(f'Failed to retrieve subnet isubnet_paramsnfo {e}')
+
+    def update_subnet(self, **subnet_params):
+        new_subnet = copy.deepcopy(subnet_params)
+        subnet_id = f"{self.params['zone']}-{new_subnet['subnet'].replace('/', '-')}"
+        lock = subnet_params['lock-token']
+        vnet_name = new_subnet['vnet']
+        dhcp_range_update_mode = self.params.get('dhcp_range_update_mode')
+
+        new_subnet['cidr'] = new_subnet['subnet']
+        new_subnet['network'] = new_subnet['subnet'].split('/')[0]
+        new_subnet['mask'] = new_subnet['subnet'].split('/')[1]
+        new_subnet['zone'] = self.params.get('zone')
+        new_subnet['id'] = subnet_id
+        new_subnet['subnet'] = subnet_id
+
+        subnet_params['delete'] = self.params.get('delete')
+
+        existing_subnets = self.get_subnets(vnet_name)
+
+        # Check for subnet params other than dhcp-range
+        _, subnet_update = compare_list_of_dicts(
+            existing_list=existing_subnets,
+            new_list=[new_subnet],
+            uid='id',
+            params_to_ignore=['digest', 'dhcp-range', 'lock-token']
+        )
+
+        existing_subnet = [x for x in existing_subnets if x['subnet'] == subnet_id][0]
+
+        # Check dhcp-range
+        update_dhcp = False
+        if self.params.get('dhcp_range'):
+            new_dhcp_range = [
+                {'start-address': d.get('start'), 'end-address': d.get('end')}
+                for d in self.params.get('dhcp_range')
+            ]
+            new_dhcp, partial_overlap = compare_dhcp_ranges(
+                existing_ranges=existing_subnet['dhcp-range'],
+                new_ranges=new_dhcp_range
+            )
+
+            if dhcp_range_update_mode == 'append':
+                if partial_overlap:
+                    self.module.fail_json(
+                        msg=f"There are overlapping DHCP ranges. this is not allowed. "
+                            f"Existing range - {existing_subnet['dhcp-range']} "
+                            f"New Range - {new_dhcp_range}"
+                    )
+
+                if len(new_dhcp) > 0:
+                    update_dhcp = True
+                    new_dhcp.extend(existing_subnet['dhcp-range'])  # By Default API overwrites DHCP Range
+                    subnet_params['dhcp-range'] = get_dhcp_range(new_dhcp)
+
+            elif dhcp_range_update_mode == 'overwrite' and new_dhcp:
+                update_dhcp = True
+
+        elif not self.params.get('dhcp_range') and existing_subnet['dhcp-range']:
+            if dhcp_range_update_mode == 'append':
+                self.module.warn(
+                    "dhcp_range_update_mode is set to append, but you didn't provide any DHCP ranges for the subnet. "
+                    "Existing ranges will be ignored."
+                )
+                
+            elif dhcp_range_update_mode == 'overwrite':
+                update_dhcp = True
+                self.module.warn(
+                    "dhcp_range_update_mode is set to overwrite, but no DHCP ranges were provided for the subnet. "
+                    "All existing DHCP ranges will be deleted."
+                )
+                if self.params.get('delete'):
+                    subnet_params['delete'] = f"{subnet_params['delete']},dhcp-range"
+                else:
+                    subnet_params['delete'] = "dhcp-range"
+
+        if subnet_update or update_dhcp:
+            self.module.warn(f"{subnet_params}, {update_dhcp}")
+            if self.params.get('update'):
+                try:
+                    subnet = getattr(self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets(), subnet_id)
+                    subnet_params['digest'] = subnet.get()['digest']
+                    del subnet_params['type']
+                    del subnet_params['subnet']
+
+                    subnet.put(**subnet_params)
+                    self.apply_sdn_changes_and_release_lock(lock=lock)
+                    self.module.exit_json(
+                        changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
+                    )
+                except Exception as e:
+                    self.rollback_sdn_changes_and_release_lock(lock=lock)
+                    self.module.fail_json(
+                        msg=f'Failed to update subnet. Rolling back all changes : {e}'
+                    )
+            else:
+                self.release_lock(lock=lock)
+                self.module.fail_json(
+                    msg=f"Subnet {subnet_id} needs to be updated but update is false."
+                )
+        else:
+            self.release_lock(lock=lock)
+            self.module.exit_json(
+                changed=False,
+                subnet=subnet_id,
+                msg=f'subnet {subnet_id} is already present with correct parameters.'
+            )
 
     def subnet_present(self, update, **subnet_params):
         vnet_name = subnet_params['vnet']
@@ -222,26 +364,11 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
 
         try:
             vnet = getattr(self.proxmox_api.cluster().sdn().vnets(), vnet_name)
+            existing_subnets = self.get_subnets(vnet_name)
 
             # Check if subnet already present
-            if subnet_id in [x['subnet'] for x in vnet().subnets().get()]:
-                if update:
-                    subnet = getattr(vnet().subnets(), subnet_id)
-                    subnet_params['digest'] = subnet.get()['digest']
-                    subnet_params['delete'] = self.params.get('delete')
-                    del subnet_params['type']
-                    del subnet_params['subnet']
-
-                    subnet.put(**subnet_params)
-                    self.apply_sdn_changes_and_release_lock(lock=lock)
-                    self.module.exit_json(
-                        changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
-                    )
-                else:
-                    self.release_lock(lock=lock)
-                    self.module.exit_json(
-                        changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already present and update is false.'
-                    )
+            if subnet_id in [x['subnet'] for x in existing_subnets]:
+                self.update_subnet(**subnet_params)
             else:
                 vnet.subnets().post(**subnet_params)
                 self.apply_sdn_changes_and_release_lock(lock=lock)
