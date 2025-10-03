@@ -177,13 +177,13 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         filtered_vms = {
             vm: info for vm, info in cluster_machines.items() if not (
                 type != info["type"]
-                or (node and info["node"] != node)
-                or (vmid and int(info["vmid"]) != vmid)
-                or (name is not None and info["name"] != name)
+                or (node and info.get("node") != node)
+                or (vmid and int(info.get("vmid", -1)) != vmid)
+                or (name is not None and info.get("name") != name)
             )
         }
         # Get list of unique node names and loop through it to get info about machines.
-        nodes = frozenset([info["node"] for vm, info in filtered_vms.items()])
+        nodes = frozenset([info["node"] for vm, info in filtered_vms.items() if "node" in info])
         for this_node in nodes:
             # "type" is mandatory and can have only values of "qemu" or "lxc". Seems that use of reflection is safe.
             call_vm_getter = getattr(self.proxmox_api.nodes(this_node), type)

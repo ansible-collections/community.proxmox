@@ -1559,9 +1559,10 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                         volume=volume,
                     ),
                 )
-            vol_string = "{storage}:{volume},size={size}".format(
-                storage=storage, volume=volume, size=size
-            )
+            vol_parts = [
+                "{storage}:{volume}".format(storage=storage, volume=volume),
+                "size={size}".format(size=size),
+            ]
         # 2. If volume not defined (but storage is), check if it exists
         elif storage is not None:
             proxmox_node = self.proxmox_api.nodes(
@@ -1570,9 +1571,10 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             try:
                 vol = proxmox_node.lxc(vmid).get("config").get(key)
                 volume = self.parse_disk_string(vol).get("volume")
-                vol_string = "{storage}:{volume},size={size}".format(
-                    storage=storage, volume=volume, size=size
-                )
+                vol_parts = [
+                    "{storage}:{volume}".format(storage=storage, volume=volume),
+                    "size={size}".format(size=size),
+                ]
 
             # If not, we have proxmox create one using the special syntax
             except Exception:
@@ -1582,7 +1584,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                     )
                 elif size.endswith("G"):
                     size = size.rstrip("G")
-                    vol_string = "{storage}:{size}".format(storage=storage, size=size)
+                    vol_parts = ["{storage}:{size}".format(storage=storage, size=size)]
                 else:
                     raise ValueError(
                         "Size must be provided in GiB for storage-backed volume creation. Convert it to GiB or allocate a new storage manually."
@@ -1590,28 +1592,24 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         # 3. If we have a host_path, we don't have storage, a volume, or a size
         # Then we don't have to do anything, just build and return the vol_string
         elif host_path is not None:
-            vol_string = ""
+            vol_parts = []
         else:
             raise ValueError(
                 "Could not build a valid volume string. One of volume, storage, or host_path must be provided."
             )
 
         if host_path is not None:
-            vol_string += "," + host_path
+            vol_parts += [host_path]
 
         if mountpoint is not None:
-            vol_string += ",mp={}".format(mountpoint)
+            vol_parts += ["mp={}".format(mountpoint)]
 
         if options is not None:
-            vol_string += "," + ",".join(
-                ["{0}={1}".format(k, v) for k, v in options.items()]
-            )
+            vol_parts += ["{0}={1}".format(k, v) for k, v in options.items()]
 
         if kwargs:
-            vol_string += "," + ",".join(
-                ["{0}={1}".format(k, v) for k, v in kwargs.items()]
-            )
-        return {key: vol_string}
+            vol_parts += ["{0}={1}".format(k, v) for k, v in kwargs.items()]
+        return {key: ",".join(vol_parts)}
 
     def get_lxc_resource(self, vmid, hostname):
         if not vmid and not hostname:

@@ -15,141 +15,142 @@ short_description: Manage Proxmox zone configurations.
 description:
   - Create/Update/Delete proxmox sdn zones.
 author: 'Jana Hoch <janahoch91@proton.me> (!UNKNOWN)'
+version_added: "1.4.0"
 attributes:
   check_mode:
     support: none
   diff_mode:
     support: none
 options:
-  state:
-    description:
-      - The desired state of the zone configuration.
-    type: str
-    choices:
-      - present
-      - absent
-    default: present
-  update:
-    description:
-      - If O(state=present) and zone exists it'll update.
-    type: bool
-    default: true
-  type:
-    description:
-      - Specify the type of zone.
-    type: str
-    choices:
-      - evpn
-      - faucet
-      - qinq
-      - simple
-      - vlan
-      - vxlan
-  zone:
-    description:
-      - Unique zone name.
-    type: str
-  advertise_subnets:
-    description:
-      - Advertise evpn subnets if you have silent hosts.
-    type: bool
-  bridge:
-    description:
-      - Specify the bridge interface to use.
-    type: str
-  bridge_disable_mac_learning:
-    description:
-      - Disable auto MAC address learning on the bridge interface.
-    type: bool
-  controller:
-    description:
-      - Frr router name.
-    type: str
-  dhcp:
-    description:
-      - Type of the DHCP backend for this zone.
-    type: str
-    choices:
-      - dnsmasq
-  disable_arp_nd_suppression:
-    description:
-      - Disable ipv4 arp && ipv6 neighbour discovery suppression.
-    type: bool
-  dns:
-    description:
-      - DNS api server.
-    type: str
-  dnszone:
-    description:
-      - DNS domain zone.
-    type: str
-  dp_id:
-    description:
-      - Faucet dataplane id.
-    type: int
-  exitnodes:
-    description:
-      - List of cluster node names.
-    type: str
-  exitnodes_local_routing:
-    description:
-      - Allow exitnodes to connect to evpn guests.
-    type: bool
-  exitnodes_primary:
-    description:
-      - Force traffic to this exitnode first.
-    type: str
-  fabric:
-    description:
-      - SDN fabric to use as underlay for this VXLAN zone.
-    type: str
-  ipam:
-    description:
-      - Use a specific ipam.
-    type: str
-  mac:
-    description:
-      - Anycast logical router mac address.
-    type: str
-  mtu:
-    description:
-      - Set the Maximum Transmission Unit (MTU).
-    type: int
-  nodes:
-    description:
-      - List of cluster node names.
-    type: str
-  peers:
-    description:
-      - peers address list.
-    type: str
-  reversedns:
-    description:
-      - reverse dns api server
-    type: str
-  rt_import:
-    description:
-      - Route-Target import.
-    type: str
-  tag:
-    description:
-      - Service-VLAN Tag.
-    type: int
-  vlan_protocol:
-    description:
-      - Specify the VLAN protocol to use.
-    type: str
-    choices:
-      - 802.1q
-      - 802.1ad
-  vrf_vxlan:
-    description:
-      - Specify the VRF VXLAN identifier.
-    type: int
-  vxlan_port:
-    description:
-      - Vxlan tunnel udp port (default 4789).
-    type: int
+    advertise_subnets:
+      description:
+        - Advertise EVPN subnets if you have silent hosts.
+      type: bool
+    bridge:
+      description:
+        - Specify the bridge interface to use.
+      type: str
+    bridge_disable_mac_learning:
+      description:
+        - Disable auto MAC address learning on the bridge interface.
+      type: bool
+    controller:
+      description:
+        - FRR router name.
+      type: str
+    dhcp:
+      description:
+        - Type of the DHCP backend for this zone.
+      type: str
+      choices:
+        - dnsmasq
+    disable_arp_nd_suppression:
+      description:
+        - Disable IPv4 ARP and IPv6 neighbour discovery suppression.
+      type: bool
+    dns:
+      description:
+        - DNS API server.
+      type: str
+    dnszone:
+      description:
+        - DNS domain zone.
+      type: str
+    dp_id:
+      description:
+        - Faucet dataplane ID.
+      type: int
+    exitnodes:
+      description:
+        - List of cluster node names.
+      type: str
+    exitnodes_local_routing:
+      description:
+        - Allow exitnodes to connect to EVPN guests.
+      type: bool
+    exitnodes_primary:
+      description:
+        - Force traffic to this exit node first.
+      type: str
+    fabric:
+      description:
+        - SDN fabric to use as underlay for this VXLAN zone.
+      type: str
+    ipam:
+      description:
+        - Use a specific IPAM.
+      type: str
+    mac:
+      description:
+        - Anycast logical router MAC address.
+      type: str
+    mtu:
+      description:
+        - Set the Maximum Transmission Unit (MTU).
+      type: int
+    nodes:
+      description:
+        - List of cluster node names.
+      type: str
+    peers:
+      description:
+        - Peers address list.
+      type: str
+    reversedns:
+      description:
+        - Reverse DNS API server.
+      type: str
+    rt_import:
+      description:
+        - Route-Target import.
+      type: str
+    state:
+      description:
+        - The desired state of the zone configuration.
+      type: str
+      choices:
+        - present
+        - absent
+      default: present
+    tag:
+      description:
+        - Service-VLAN tag.
+      type: int
+    type:
+      description:
+        - Specify the type of zone.
+      type: str
+      choices:
+        - evpn
+        - faucet
+        - qinq
+        - simple
+        - vlan
+        - vxlan
+    update:
+      description:
+        - If O(state=present) and zone exists it'll update.
+      type: bool
+      default: true
+    vlan_protocol:
+      description:
+        - Specify the VLAN protocol to use.
+      type: str
+      choices:
+        - 802.1q
+        - 802.1ad
+    vrf_vxlan:
+      description:
+        - Specify the VRF VXLAN identifier.
+      type: int
+    vxlan_port:
+      description:
+        - VXLAN tunnel UDP port (default 4789).
+      type: int
+    zone:
+      description:
+        - Unique zone name.
+      type: str
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -157,33 +158,33 @@ extends_documentation_fragment:
 """
 
 EXAMPLES = r"""
-- name: create a simple zones
+- name: Create a simple zone
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: simple
     zone: ansible
     state: present
 
-- name: create a vlan zones
+- name: Create a vlan zone
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: vlan
     zone: ansible
     state: present
     bridge: vmbr0
 
-- name: Delete a zones
+- name: Delete a zone
   community.proxmox.proxmox_zone:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     type: simple
     zone: ansible
     state: absent
@@ -337,34 +338,32 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
         zone_type = kwargs.get("type")
 
         # Check if zone already exists
+        if zone_name in available_zones.keys() and not update:
+            self.module.exit_json(
+                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and update is false!'
+            )
         if zone_name in available_zones.keys() and update:
             if zone_type != available_zones[zone_name]['type']:
                 self.module.fail_json(
                     msg=f'zone {zone_name} exists with different type and we cannot change type post fact.'
                 )
-            else:
-                try:
-                    kwargs['lock-token'] = self.get_global_sdn_lock()
-                    kwargs['digest'] = available_zones[zone_name]['digest']
-                    del kwargs['zone']
-                    del kwargs['type']
+            try:
+                kwargs['lock-token'] = self.get_global_sdn_lock()
+                kwargs['digest'] = available_zones[zone_name]['digest']
+                del kwargs['zone']
+                del kwargs['type']
 
-                    zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
-                    zone.put(**kwargs)
-                    self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
-                    self.module.exit_json(
-                        changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
-                    )
-                except Exception as e:
-                    self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
-                    self.module.fail_json(
-                        msg=f'Failed to update zone {zone_name} - {e}'
-                    )
-
-        elif zone_name in available_zones.keys() and not update:
-            self.module.exit_json(
-                changed=False, zone=zone_name, msg=f'Zone {zone_name} already exists and update is false!'
-            )
+                self.proxmox_api.cluster().sdn().zones(zone_name).put(**kwargs)
+                self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
+                self.module.exit_json(
+                    changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
+                )
+            except Exception as e:
+                self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
+                self.module.fail_json(
+                    msg=f'Failed to update zone {zone_name} - {e}'
+                )
+        # Zone does not exist and gets created
         else:
             try:
                 kwargs['lock-token'] = self.get_global_sdn_lock()
@@ -384,19 +383,17 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
         available_zones = [x.get('zone') for x in self.get_zones()]
         params = {'lock-token': lock}
 
+        if zone_name not in available_zones:
+            self.module.exit_json(
+                changed=False, zone=zone_name, msg=f"zone {zone_name} is absent."
+            )
         try:
-            if zone_name not in available_zones:
-                self.module.exit_json(
-                    changed=False, zone=zone_name, msg=f"zone {zone_name} is absent."
-                )
-            else:
-                params['lock-token'] = self.get_global_sdn_lock()
-                zone = getattr(self.proxmox_api.cluster().sdn().zones(), zone_name)
-                zone.delete(**params)
-                self.apply_sdn_changes_and_release_lock(params['lock-token'])
-                self.module.exit_json(
-                    changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
-                )
+            params['lock-token'] = self.get_global_sdn_lock()
+            self.proxmox_api.cluster().sdn().zones(zone_name).delete(**params)
+            self.apply_sdn_changes_and_release_lock(params['lock-token'])
+            self.module.exit_json(
+                changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
+            )
         except Exception as e:
             self.rollback_sdn_changes_and_release_lock(params['lock-token'])
             self.module.fail_json(
