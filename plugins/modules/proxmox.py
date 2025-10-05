@@ -110,6 +110,11 @@ options:
       - Some features require the use of a privileged container.
     type: list
     elements: str
+  delete:
+    description:
+      - A list of settings you want to delete.
+    type: list
+    elements: str
   startup:
     description:
       - Specifies the startup order of the container.
@@ -707,6 +712,7 @@ def get_proxmox_args():
         ),
         onboot=dict(type="bool"),
         features=dict(type="list", elements="str"),
+        delete=dict(type="list", elements="str"),
         startup=dict(type="list", elements="str"),
         storage=dict(default="local"),
         cpuunits=dict(type="int"),
@@ -876,6 +882,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                     disk=self.params.get("disk"),
                     disk_volume=self.params.get("disk_volume"),
                     features=self.params.get("features"),
+                    delete=self.params.get("delete"),
                     hookscript=self.params.get("hookscript"),
                     hostname=self.params.get("hostname"),
                     ip_address=self.params.get("ip_address"),
@@ -1055,6 +1062,8 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             kwargs["features"] = ",".join(kwargs.pop("features"))
         if "startup" in kwargs:
             kwargs["startup"] = ",".join(kwargs.pop("startup"))
+        if "delete" in kwargs:
+            kwargs["delete"] = ",".join(kwargs.pop("delete"))
 
         disk_updates = self.process_disk_keys(
             vmid,
