@@ -913,7 +913,7 @@ msg:
 
 import re
 import time
-from ansible.module_utils.six.moves.urllib.parse import quote
+from urllib.parse import quote
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
