@@ -191,10 +191,10 @@ EXAMPLES = r"""
 import os
 import time
 import traceback
+from urllib.parse import urlparse, urlencode
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import proxmox_auth_argument_spec, ProxmoxAnsible
-from ansible.module_utils.six.moves.urllib.parse import urlparse, urlencode
 
 REQUESTS_TOOLBELT_ERR = None
 try:
