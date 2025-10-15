@@ -202,6 +202,7 @@ want_proxmox_nodes_ansible_host: true
 
 import itertools
 import re
+from sys import version as python_version
 from urllib.parse import urlencode
 
 from ansible.module_utils.common._collections_compat import MutableMapping
@@ -209,6 +210,7 @@ from ansible.module_utils.common._collections_compat import MutableMapping
 from ansible.errors import AnsibleError
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
 from ansible.utils.display import Display
+from ansible.module_utils.ansible_release import __version__ as ansible_version
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 from ansible_collections.community.proxmox.plugins.plugin_utils.unsafe import make_unsafe
@@ -254,6 +256,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def _get_session(self):
         if not self.session:
             self.session = requests.session()
+            self.session.headers.update({
+                'User-Agent': f"ansible {ansible_version} Python {python_version.split(' ', 1)[0]}"
+            })
             self.session.verify = self.get_option('validate_certs')
         return self.session
 
