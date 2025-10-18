@@ -46,7 +46,7 @@ options:
     choices: ['append', 'overwrite']
   subnet:
     description:
-      - subnet CIDR.
+      - Subnet CIDR.
     type: str
     required: true
   vnet:
@@ -56,7 +56,7 @@ options:
     required: true
   zone:
     description:
-      - Vnet Zone
+      - Vnet Zone.
     type: str
   dhcp_dns_server:
     description:
@@ -112,7 +112,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     vnet: test
     subnet: 10.10.2.0/24
     zone: ans1
@@ -122,7 +122,7 @@ EXAMPLES = r"""
         end: 10.10.2.50
       - start: 10.10.2.100
         end: 10.10.2.150
-    snat: True
+    snat: true
 
 - name: Delete a subnet
   community.proxmox.proxmox_subnet:
@@ -130,7 +130,7 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: no
+    validate_certs: false
     vnet: test
     subnet: 10.10.2.0/24
     zone: ans1
