@@ -24,8 +24,7 @@ attributes:
 options:
   state:
     description:
-      - Desired state of the network configuration.
-      - Choices include present (create), absent (delete), or update (modify).
+      - Desired state of the subnet configuration.
     type: str
     choices: ['present', 'absent']
     default: present
