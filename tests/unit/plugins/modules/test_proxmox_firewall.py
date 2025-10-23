@@ -55,6 +55,21 @@ RAW_GROUPS = [
     }
 ]
 
+RAW_IPSET = [
+    {
+        "digest": "48671c29c6503157990fc99354b78f32e8654c78",
+        "name": "test_ipset"
+    }
+]
+
+RAW_IPSET_CIDR = [
+    {
+        "digest": "dce088809f001ca83c39c8dcfc2a5e4892bf3d1b",
+        "cidr": "192.168.1.10",
+        "nomatch": True
+    }
+]
+
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
@@ -100,6 +115,36 @@ def get_module_args_rules(state, pos=1, level='cluster', source_ip='1.1.1.1'):
     }
 
 
+def get_module_args_ipset(state, name, cidr=False, nomatch=False):
+    if cidr:
+        return {
+            "api_host": "host",
+            "api_user": "user",
+            "api_password": "password",
+            "level": "cluster",
+            "state": state,
+            "ip_sets": [{
+                "name": name,
+                "cidrs": [{
+                    "cidr": "192.168.1.10",
+                    "nomatch": nomatch
+                }]
+            }]
+
+        }
+    return {
+        "api_host": "host",
+        "api_user": "user",
+        "api_password": "password",
+        "level": "cluster",
+        "state": state,
+        "ip_sets": [{
+            "name": name,
+        }]
+
+    }
+
+
 def get_module_args_fw_delete(pos, level='cluster', state='absent'):
     return {
         "api_host": "host",
@@ -123,8 +168,12 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.connect_mock.return_value.cluster.return_value.firewall.return_value.rules.return_value.get.return_value = RAW_FIREWALL_RULES
-        self.connect_mock.return_value.cluster.return_value.firewall.return_value.groups.return_value.get.return_value = RAW_GROUPS
+
+        mock_cluster_fw = self.connect_mock.return_value.cluster.return_value.firewall.return_value
+        mock_cluster_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
+        mock_cluster_fw.groups.return_value.get.return_value = RAW_GROUPS
+        mock_cluster_fw.ipset.return_value.test_ipset.get.return_value = RAW_IPSET_CIDR
+        mock_cluster_fw.ipset.return_value.get.return_value = RAW_IPSET
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -164,3 +213,45 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         result = exc_info.value.args[0]
         assert result['changed'] is True
         assert result["msg"] == 'successfully deleted firewall rules'
+
+    def test_ipset_present(self):
+        # New Ipset name
+        with pytest.raises(SystemExit) as exc_info:
+            with set_module_args(get_module_args_ipset(state='present', name='new_ipset', cidr=True)):
+                self.module.main()
+        result = exc_info.value.args[0]
+        assert result['changed'] is True
+        assert result["msg"] == 'All ipsets present.'
+
+        # Same as existing ipset (no change)
+        with pytest.raises(SystemExit) as exc_info:
+            with set_module_args(get_module_args_ipset(state='present', name='test_ipset', cidr=True, nomatch=True)):
+                self.module.main()
+        result = exc_info.value.args[0]
+        assert result['changed'] is False
+        assert result["msg"] == 'All ipsets present.'
+
+    def test_ipset_absent(self):
+        # Delete full ipset
+        with pytest.raises(SystemExit) as exc_info:
+            with set_module_args(get_module_args_ipset(state='absent', name='test_ipset', cidr=False)):
+                self.module.main()
+        result = exc_info.value.args[0]
+        assert result['changed'] is True
+        assert result["msg"] == 'Ipsets are absent.'
+
+        # Delete only 1 CIDR
+        with pytest.raises(SystemExit) as exc_info:
+            with set_module_args(get_module_args_ipset(state='absent', name='test_ipset', cidr=True)):
+                self.module.main()
+        result = exc_info.value.args[0]
+        assert result['changed'] is True
+        assert result["msg"] == 'Ipsets are absent.'
+
+        # try to delete non existent ipset (changed=False)
+        with pytest.raises(SystemExit) as exc_info:
+            with set_module_args(get_module_args_ipset(state='absent', name='ipset_doesnt_exist')):
+                self.module.main()
+        result = exc_info.value.args[0]
+        assert result['changed'] is False
+        assert result["msg"] == 'Ipsets are absent.'

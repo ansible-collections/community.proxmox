@@ -150,10 +150,16 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
 
         :return: dict of ip_set name and cidr
         """
-        ip_sets = self.proxmox_api.cluster().firewall().ipset().get()
-        for ip_set in ip_sets:
-            cidrs = self.proxmox_api.cluster().firewall().ipset(ip_set['name']).get()
-            for cidr in cidrs:
-                cidr['nomatch'] = proxmox_to_ansible_bool(cidr.get('nomatch'))
-            ip_set['cidrs'] = cidrs
-        return ip_sets
+        try:
+            ip_sets = self.proxmox_api.cluster().firewall().ipset().get()
+            for ip_set in ip_sets:
+                ip_set_obj = getattr(self.proxmox_api.cluster().firewall().ipset(), ip_set['name'])
+                cidrs = ip_set_obj.get()
+                for cidr in cidrs:
+                    cidr['nomatch'] = proxmox_to_ansible_bool(cidr.get('nomatch'))
+                ip_set['cidrs'] = cidrs
+            return ip_sets
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve firewall ipsets: {e}'
+            )
