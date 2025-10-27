@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_kvm - update description of machine parameter in proxmox_kvm.py (https://github.com/ansible-collections/community.proxmox/pull/186)

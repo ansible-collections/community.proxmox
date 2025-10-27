@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_storage - added `dir` and `zfspool` storage types (https://github.com/ansible-collections/community.proxmox/pull/184)

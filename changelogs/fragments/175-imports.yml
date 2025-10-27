@@ -1,2 +1,0 @@
-bugfixes:
-  - "proxmox inventory plugin and proxmox module utils - avoid Python 2 compatibility imports (https://github.com/ansible-collections/community.proxmox/pull/175)."

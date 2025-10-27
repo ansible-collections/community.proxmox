@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_tasks_info - add source option to specify tasks to consider (https://github.com/ansible-collections/community.proxmox/pull/179)

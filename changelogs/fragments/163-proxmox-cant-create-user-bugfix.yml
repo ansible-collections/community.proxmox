@@ -1,2 +1,0 @@
-bugfixes:
-  - proxmox_user - added a third case when testing for not-yet-existant user (https://github.com/ansible-collections/community.proxmox/issues/163)
