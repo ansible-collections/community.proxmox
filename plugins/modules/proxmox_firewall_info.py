@@ -63,7 +63,7 @@ extends_documentation_fragment:
 
 EXAMPLES = r"""
 - name: Get Cluster level firewall rules, aliases, and security groups
-  community.proxmox.proxmox_firewall:
+  community.proxmox.proxmox_firewall_info:
     api_user: "{{ pc.proxmox.api_user }}"
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
