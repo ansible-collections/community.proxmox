@@ -1,2 +1,0 @@
-bugfixes:
-  - "proxmox_kvm, proxmox_template - remove ``ansible.module_utils.six`` dependency (https://github.com/ansible-collections/community.proxmox/pull/201)."

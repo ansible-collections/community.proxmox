@@ -4,6 +4,50 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.4.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Minor Changes
+-------------
+
+- proxmox - Add delete parameter to delete settings (https://github.com/ansible-collections/community.proxmox/pull/195).
+- proxmox_cluster -  Add master_api_password for authentication against master node (https://github.com/ansible-collections/community.proxmox/pull/140).
+- proxmox_cluster - added link0 and link1 to join command (https://github.com/ansible-collections/community.proxmox/issues/168, https://github.com/ansible-collections/community.proxmox/pull/172).
+- proxmox_kvm - update description of machine parameter in proxmox_kvm.py (https://github.com/ansible-collections/community.proxmox/pull/186)
+- proxmox_storage - added `dir` and `zfspool` storage types (https://github.com/ansible-collections/community.proxmox/pull/184)
+- proxmox_tasks_info - add source option to specify tasks to consider (https://github.com/ansible-collections/community.proxmox/pull/179)
+- proxmox_template -  Add 'import' to allowed content types of proxmox_template, so disk images and can be used as disk images on VM creation (https://github.com/ansible-collections/community.proxmox/pull/162).
+
+Bugfixes
+--------
+
+- proxmox inventory plugin and proxmox module utils - avoid Python 2 compatibility imports (https://github.com/ansible-collections/community.proxmox/pull/175).
+- proxmox_kvm - remove limited choice for vga option in proxmox_kvm (https://github.com/ansible-collections/community.proxmox/pull/185)
+- proxmox_kvm, proxmox_template - remove ``ansible.module_utils.six`` dependency (https://github.com/ansible-collections/community.proxmox/pull/201).
+- proxmox_storage - fixed adding PBS-type storage by ensuring its parameters (server, datastore, etc.) are correctly sent to the Proxmox API (https://github.com/ansible-collections/community.proxmox/pull/171).
+- proxmox_user - added a third case when testing for not-yet-existant user (https://github.com/ansible-collections/community.proxmox/issues/163)
+- proxmox_vm_info - do not throw exception when iterating through machines and optional api results are missing (https://github.com/ansible-collections/community.proxmox/pull/191)
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_cluster_ha_rules - Management of HA rules.
+- community.proxmox.proxmox_firewall - Manage firewall rules in Proxmox.
+- community.proxmox.proxmox_firewall_info - Manage firewall rules in Proxmox.
+- community.proxmox.proxmox_ipam_info - Retrieve information about IPAMs.
+- community.proxmox.proxmox_subnet - Create/Update/Delete subnets from SDN.
+- community.proxmox.proxmox_vnet - Manage virtual networks in Proxmox SDN.
+- community.proxmox.proxmox_vnet_info - Retrieve information about one or more Proxmox VE SDN vnets.
+- community.proxmox.proxmox_zone - Manage Proxmox zone configurations.
+- community.proxmox.proxmox_zone_info - Get Proxmox zone info.
+
 v1.3.0
 ======
 

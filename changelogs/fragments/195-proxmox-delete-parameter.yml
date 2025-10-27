@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox - Add delete parameter to delete settings (https://github.com/ansible-collections/community.proxmox/pull/195).
