@@ -34,7 +34,7 @@ options:
     default: present
   update:
     description:
-      - If O(state=present) and if one or more rule/alias already exists it will update them.
+      - If O(state=present) and if one or more rule/alias/ipset already exists it will update them.
     type: bool
     default: true
   level:
@@ -83,6 +83,45 @@ options:
       - Comment for security group.
       - Only needed when creating group.
     type: str
+  ip_sets:
+    description:
+      - List of IP set definitions to create, update, or remove.
+      - Each IP set is a named collection of CIDRs (with optional negation and comments).
+    type: list
+    elements: dict
+    required: false
+    suboptions:
+      name:
+        description:
+          - Unique name of the IP set.
+        type: str
+        required: true
+      comment:
+        description:
+          - Optional comment for the IP set.
+        type: str
+      cidrs:
+        description:
+          - List of CIDR entries in the IP set.
+        type: list
+        elements: dict
+        required: false
+        suboptions:
+          cidr:
+            description:
+              - CIDR notation for the entry.
+            type: str
+            required: true
+          nomatch:
+            description:
+              - When true, this CIDR acts as a negative match (exclusion) within the set.
+            type: bool
+            default: false
+          comment:
+            description:
+              - Optional comment for this CIDR entry.
+            type: str
+            required: false
   aliases:
     description:
       - List of aliases.
@@ -326,6 +365,53 @@ EXAMPLES = r"""
     aliases:
       - name: test1
       - name: test2
+
+- name: Create IP SET
+  community.proxmox.proxmox_firewall:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: false
+    ip_sets:
+      - name: hypervisors
+        comment: PVE hosts
+        cidrs:
+          - cidr: 192.168.1.10
+            nomatch: false
+            comment: Proxmox pve-01
+          - cidr: 192.168.1.11
+            nomatch: true
+            comment: Proxmox pve-02
+      - name: test
+        comment: PVE hosts
+        cidrs:
+          - cidr: 10.10.1.0
+            comment: Proxmox pve-01
+
+- name: Delete IP SETs
+  community.proxmox.proxmox_firewall:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: false
+    state: absent
+    ip_sets:
+      - name: hypervisors
+
+- name: Delete specific CIDR from IP SET
+  community.proxmox.proxmox_firewall:
+    api_user: "{{ pc.proxmox.api_user }}"
+    api_token_id: "{{ pc.proxmox.api_token_id }}"
+    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: false
+    state: absent
+    ip_sets:
+      - name: test
+        cidrs:
+          - cidr: 10.10.1.0
 """
 
 RETURN = r"""
@@ -358,6 +444,25 @@ def get_proxmox_args():
         group_conf=dict(type="bool", default=False),
         group=dict(type="str", required=False),
         comment=dict(type="str", required=False),
+        ip_sets=dict(
+            type="list",
+            elements="dict",
+            required=False,
+            options=dict(
+                name=dict(type="str", required=True),
+                comment=dict(type="str", required=False),
+                cidrs=dict(
+                    type="list",
+                    elements="dict",
+                    required=False,
+                    options=dict(
+                        cidr=dict(type="str", required=True),
+                        nomatch=dict(type="bool", default=False),
+                        comment=dict(type="str", required=False)
+                    )
+                )
+            )
+        ),
         aliases=dict(
             type="list",
             elements="dict",
@@ -410,6 +515,8 @@ def get_ansible_module():
         ],
         mutually_exclusive=[
             ('aliases', 'rules'),
+            ('aliases', 'ip_sets'),
+            ('rules', 'ip_sets'),
         ]
     )
 
@@ -421,19 +528,24 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
     def validate_params(self):
         if self.params.get('state') == 'present':
-            if self.params.get('group_conf') != bool(self.params.get('rules') or self.params.get('aliases')):
+            if self.params.get('group_conf') != bool(self.params.get('rules') or
+                                                     self.params.get('aliases') or
+                                                     self.params.get('ip_sets')):
                 return True
             else:
                 self.module.fail_json(
-                    msg="When state is present either group_conf should be true or rules/aliases must be present but not both"
+                    msg="When state is present either group_conf should be true or "
+                        "rules/aliases/ip_sets must be present but not both"
                 )
         elif self.params.get('state') == 'absent':
-            if self.params.get('group_conf') != bool(
-                    (self.params.get('pos') is not None) or self.params.get('aliases')):
+            if self.params.get('group_conf') != bool((self.params.get('pos') is not None) or
+                                                     self.params.get('aliases') or
+                                                     self.params.get('ip_sets')):
                 return True
             else:
                 self.module.fail_json(
-                    msg="When state is absent either group_conf should be true or pos/aliases must be present but not both"
+                    msg="When state is absent either group_conf should be true or "
+                        "pos/aliases/ip_sets must be present but not both"
                 )
 
     def run(self):
@@ -444,6 +556,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         level = self.params.get("level")
         aliases = self.params.get("aliases")
         rules = self.params.get("rules")
+        ip_sets = self.params.get("ip_sets")
         group = self.params.get("group")
         group_conf = self.params.get("group_conf")
 
@@ -483,6 +596,8 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.fw_rules_present(rules_obj=rules_obj, rules=rules, update=update)
             if aliases:
                 self.aliases_present(firewall_obj=firewall_obj, level=level, aliases=aliases, update=update)
+            if ip_sets:
+                self.ip_set_present(ip_sets=ip_sets, update=update)
         elif state == "absent":
             if self.params.get('pos') is not None:
                 self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get('pos'))
@@ -490,6 +605,96 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.group_absent(group_name=group)
             if aliases:
                 self.aliases_absent(firewall_obj=firewall_obj, aliases=aliases)
+            if ip_sets:
+                self.ip_set_absent(ip_sets=ip_sets)
+
+    def ip_set_present(self, ip_sets, update):
+        existing_ip_sets = self.get_ip_sets()
+        existing_ip_set_names = [x['name'] for x in existing_ip_sets]
+        changed = False
+
+        try:
+            for ip_set in ip_sets:
+                ip_set_name = ip_set['name']
+                if ip_set_name not in existing_ip_set_names:
+                    self.proxmox_api.cluster().firewall().ipset().post(
+                        name=ip_set.get('name'),
+                        comment=ip_set.get('comment')
+                    )
+                    cidrs_to_create = ip_set['cidrs']
+                    cidrs_to_update = []
+                else:
+                    existing_ip_set_cidrs = [x['cidrs'] for x in existing_ip_sets if x['name'] == ip_set_name][0]
+                    cidrs_to_create, cidrs_to_update = compare_list_of_dicts(
+                        existing_list=existing_ip_set_cidrs,
+                        new_list=ip_set['cidrs'],
+                        uid='cidr',
+                        params_to_ignore=['digest'],
+                    )
+
+                if cidrs_to_update and not update:
+                    self.module.fail_json(f'IP set {ip_set_name} needs to be updated but update is false.')
+
+                for cidr in cidrs_to_update:
+                    changed = True
+                    proxmoxer_cidr_obj = getattr(self.proxmox_api.cluster().firewall().ipset(ip_set_name), cidr['cidr'])
+                    proxmoxer_cidr_obj.put(
+                        cidr=cidr['cidr'],
+                        name=ip_set_name,
+                        comment=cidr['comment'],
+                        nomatch=ansible_to_proxmox_bool(cidr.get('nomatch'))
+                    )
+
+                for cidr in cidrs_to_create:
+                    changed = True
+                    self.proxmox_api.cluster().firewall().ipset(ip_set_name).post(
+                        cidr=cidr.get('cidr'),
+                        nomatch=ansible_to_proxmox_bool(cidr.get('nomatch')),
+                        comment=cidr.get('comment')
+                    )
+
+            self.module.exit_json(
+                changed=changed,
+                msg='All ipsets present.'
+            )
+        except Exception as e:
+            self.module.fail_json(f"Failed to create/update ipsets - {e}.")
+
+    def ip_set_absent(self, ip_sets):
+        existing_ip_sets = self.get_ip_sets()
+        existing_ip_set_names = [x['name'] for x in existing_ip_sets]
+        changed = False
+
+        try:
+            for ip_set in ip_sets:
+                delete_ipset = False
+                ip_set_name = ip_set['name']
+
+                if ip_set_name not in existing_ip_set_names:
+                    continue
+
+                existing_ip_set_cidrs = [x['cidrs'] for x in existing_ip_sets if x['name'] == ip_set_name][0]
+
+                if not ip_set.get('cidrs'):
+                    cidrs_to_delete = existing_ip_set_cidrs
+                    delete_ipset = True
+                else:
+                    cidrs_to_delete = ip_set['cidrs']
+
+                for cidr in cidrs_to_delete:
+                    if cidr['cidr'] not in [x['cidr'] for x in existing_ip_set_cidrs]:
+                        continue
+                    cidr_obj = getattr(self.proxmox_api.cluster().firewall().ipset(ip_set_name), cidr['cidr'])
+                    cidr_obj.delete()
+                    changed = True
+
+                if delete_ipset:
+                    self.proxmox_api.cluster().firewall().ipset(ip_set_name).delete()
+
+            self.module.exit_json(changed=changed, msg='Ipsets are absent.')
+
+        except Exception as e:
+            self.module.fail_json(f'Failed to delete ipsets {e}')
 
     def aliases_present(self, firewall_obj, level, aliases, update):
         if not firewall_obj or level not in ['cluster', 'vm']:

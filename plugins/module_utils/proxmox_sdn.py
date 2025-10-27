@@ -12,6 +12,7 @@ from typing import List, Dict
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ansible_to_proxmox_bool,
+    proxmox_to_ansible_bool,
     ProxmoxAnsible
 )
 
@@ -142,4 +143,23 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(
                 msg=f'Failed to retrieve firewall security groups: {e}'
+            )
+
+    def get_ip_sets(self):
+        """Get ipsets for firewall.
+
+        :return: dict of ip_set name and cidr
+        """
+        try:
+            ip_sets = self.proxmox_api.cluster().firewall().ipset().get()
+            for ip_set in ip_sets:
+                ip_set_obj = getattr(self.proxmox_api.cluster().firewall().ipset(), ip_set['name'])
+                cidrs = ip_set_obj.get()
+                for cidr in cidrs:
+                    cidr['nomatch'] = proxmox_to_ansible_bool(cidr.get('nomatch'))
+                ip_set['cidrs'] = cidrs
+            return ip_sets
+        except Exception as e:
+            self.module.fail_json(
+                msg=f'Failed to retrieve firewall ipsets: {e}'
             )

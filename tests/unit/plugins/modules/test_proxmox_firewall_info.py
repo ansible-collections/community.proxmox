@@ -100,6 +100,37 @@ RAW_CLUSTER_RESOURCES = [
     }
 ]
 
+RAW_IPSET = [
+    {
+        "digest": "48671c29c6503157990fc99354b78f32e8654c78",
+        "name": "test_ipset"
+    }
+]
+
+RAW_IPSET_CIDR = [
+    {
+        "digest": "dce088809f001ca83c39c8dcfc2a5e4892bf3d1b",
+        "cidr": "192.168.1.10",
+        "comment": "Proxmox pve-01"
+    }
+]
+
+EXPECTED_IPSET = [
+    {
+        "digest": "48671c29c6503157990fc99354b78f32e8654c78",
+        "name": "test_ipset",
+        "cidrs": [
+            {
+                "digest": "dce088809f001ca83c39c8dcfc2a5e4892bf3d1b",
+                "cidr": "192.168.1.10",
+                "comment": "Proxmox pve-01",
+                "nomatch": False
+            }
+        ]
+
+    }
+]
+
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
@@ -150,6 +181,8 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         mock_cluster_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         mock_cluster_fw.groups.return_value.get.return_value = RAW_GROUPS
         mock_cluster_fw.aliases.return_value.get.return_value = RAW_ALIASES
+        mock_cluster_fw.ipset.return_value.test_ipset.get.return_value = RAW_IPSET_CIDR
+        mock_cluster_fw.ipset.return_value.get.return_value = RAW_IPSET
 
         mock_vm100_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         mock_vm100_fw.aliases.return_value.get.return_value = RAW_ALIASES
@@ -164,11 +197,13 @@ class TestProxmoxFirewallModule(ModuleTestCase):
             with set_module_args(get_module_args()):
                 self.module.main()
         result = exc_info.value.args[0]
+
         assert result["changed"] is False
         assert result["msg"] == "successfully retrieved firewall rules and groups"
         assert result["firewall_rules"] == RAW_FIREWALL_RULES
         assert result["groups"] == ['test1', 'test2']
         assert result["aliases"] == RAW_ALIASES
+        assert result["ip_sets"] == EXPECTED_IPSET
 
     def test_vm_level_info(self):
         with pytest.raises(SystemExit) as exc_info:

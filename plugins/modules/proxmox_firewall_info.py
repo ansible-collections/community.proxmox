@@ -84,6 +84,54 @@ groups:
     sample:
       [ "test" ]
 
+ip_sets:
+    description:
+      - List of IP Sets.
+      - These are only supported on the O(level) = cluster, other inputs are ignored.
+    returned: on success
+    type: list
+    elements: dict
+    sample:
+          [
+                {
+                    "cidrs": [],
+                    "digest": "8c4a5e793355b2a877659315faaa78cbd0bc9f6c",
+                    "name": "emptytest"
+                },
+                {
+                    "cidrs": [
+                        {
+                            "cidr": "192.168.1.10",
+                            "comment": "Proxmox pve-01",
+                            "digest": "ed830373d096f6b9f868e59c6182e0b2042e6bad",
+                            "nomatch": false
+                        },
+                        {
+                            "cidr": "192.168.1.11",
+                            "comment": "Proxmox pve-02",
+                            "digest": "ed830373d096f6b9f868e59c6182e0b2042e6bad",
+                            "nomatch": true
+                        }
+                    ],
+                    "comment": "PVE hosts",
+                    "digest": "8c4a5e793355b2a877659315faaa78cbd0bc9f6c",
+                    "name": "hypervisors"
+                },
+                {
+                    "cidrs": [
+                        {
+                            "cidr": "10.10.1.0",
+                            "comment": "Proxmox pve-01",
+                            "digest": "f15cef67632375227d849ee0a449d845ab136677",
+                            "nomatch": false
+                        }
+                    ],
+                    "comment": "PVE hosts",
+                    "digest": "8c4a5e793355b2a877659315faaa78cbd0bc9f6c",
+                    "name": "test"
+                }
+          ]
+
 aliases:
     description:
       - List of alias present at given level.
@@ -283,11 +331,13 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
         rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
         groups = self.get_groups()
         aliases = self.get_aliases(firewall_obj=firewall_obj)
+        ip_sets = self.get_ip_sets()
         self.module.exit_json(
             changed=False,
             firewall_rules=rules,
             groups=groups,
             aliases=aliases,
+            ip_sets=ip_sets,
             msg='successfully retrieved firewall rules and groups'
         )
 
