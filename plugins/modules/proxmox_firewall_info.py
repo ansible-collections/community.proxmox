@@ -86,9 +86,8 @@ groups:
 
 ip_sets:
     description:
-      - List of IP Sets
-      - This will always be given at cluster level regardless of the level passed.
-      - because only at cluster level we can have IP Sets.
+      - List of IP Sets.
+      - These are only supported on the O(cluster) level, other inputs are ignored.
     returned: on success
     type: list
     elements: dict

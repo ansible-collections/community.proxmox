@@ -633,7 +633,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                     )
 
                 if cidrs_to_update and not update:
-                    self.module.fail_json(f'Ip set {ip_set_name} needs to be updated but update is false.')
+                    self.module.fail_json(f'IP set {ip_set_name} needs to be updated but update is false.')
 
                 for cidr in cidrs_to_update:
                     changed = True
