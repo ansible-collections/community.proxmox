@@ -87,7 +87,7 @@ groups:
 ip_sets:
     description:
       - List of IP Sets.
-      - These are only supported on the O(cluster) level, other inputs are ignored.
+      - These are only supported on the O(level) = cluster, other inputs are ignored.
     returned: on success
     type: list
     elements: dict
