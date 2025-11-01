@@ -42,7 +42,7 @@ RAW_IPAM_STATUS = [
         "vnet": "test2",
         "subnet": "10.10.0.0/24",
         "mac": "BC:24:11:F3:B1:81",
-        "vmid": 102,
+        "vmid": "102",
         "hostname": "ns3.proxmox.pc",
         "ip": "10.10.0.8"
     },
@@ -52,14 +52,14 @@ RAW_IPAM_STATUS = [
         "zone": "test1",
         "ip": "10.10.0.7",
         "hostname": "ns4.proxmox.pc",
-        "vmid": 103,
+        "vmid": "103",
         "mac": "BC:24:11:D5:CD:82"
     },
     {
         "ip": "10.10.0.5",
         "hostname": "ns2.proxmox.pc.test3",
         "mac": "BC:24:11:86:77:56",
-        "vmid": 101,
+        "vmid": "101",
         "subnet": "10.10.0.0/24",
         "vnet": "test2",
         "zone": "test1"
@@ -145,4 +145,12 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
-        assert result["ips"] == [x for x in RAW_IPAM_STATUS if x.get('vmid') == 102]
+        assert result["ips"] == [{
+            "zone": "test1",
+            "vnet": "test2",
+            "subnet": "10.10.0.0/24",
+            "mac": "BC:24:11:F3:B1:81",
+            "vmid": "102",
+            "hostname": "ns3.proxmox.pc",
+            "ip": "10.10.0.8"
+        }]
