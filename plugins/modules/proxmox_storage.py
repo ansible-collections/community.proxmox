@@ -121,6 +121,11 @@ options:
           - The minimum SMB version to use for.
         type: str
         required: false
+      subdir:
+        description:
+          - The subdir to be used within the CIFS.
+        type: str
+        required: false
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -336,6 +341,23 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             cifs_options = self.module.params.get(f'{storage_type}_options', {})
             server = cifs_options.get('server')
             share = cifs_options.get('share')
+            username = cifs_options.get('username')
+            password = cifs_options.get('password')
+            smb_version = cifs_options.get('smb_version')
+            domain = cifs_options.get('domain')
+            subdir = cifs_options.get('subdir')
+
+            if username:
+              payload['username'] = username
+            if password:
+              payload['password'] = password
+            if smb_version:
+              payload['smbversion'] = smb_version
+            if domain:
+              payload['domain'] = domain
+            if subdir:
+              payload['subdir'] = subdir
+            
             if not all([server, share]):
                 self.module.fail_json(msg="CIFS storage requires 'server' and 'share' parameters.")
             else:
@@ -495,7 +517,8 @@ def main():
             'password': dict(type='str', no_log=True),
             'share': dict(type='str'),
             'domain': dict(type='str'),
-            'smb_version': dict(type='str')
+            'smb_version': dict(type='str'),
+            'subdir': dict(type='str',)
         }),
         nfs_options=dict(type='dict', options={
             'server': dict(type='str'),
