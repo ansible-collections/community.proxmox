@@ -216,7 +216,9 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
         ips = []
         for ipam in ipam_status.values():
             for item in ipam:
-                if item.get('vmid') == str(vmid):
+                # vmid is always an integer
+                # ipam["vmid"] (if present) is a string on PVE 8.4 and an integer on PVE 9.0
+                if str(item.get('vmid')) == str(vmid):
                     ips.append(item)
         return ips
 

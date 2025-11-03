@@ -42,6 +42,50 @@ RAW_IPAM_STATUS = [
         "vnet": "test2",
         "subnet": "10.10.0.0/24",
         "mac": "BC:24:11:F3:B1:81",
+        "vmid": 102,
+        "hostname": "ns3.proxmox.pc",
+        "ip": "10.10.0.8"
+    },
+    {
+        "subnet": "10.10.0.0/24",
+        "vnet": "test2",
+        "zone": "test1",
+        "ip": "10.10.0.7",
+        "hostname": "ns4.proxmox.pc",
+        "vmid": 103,
+        "mac": "BC:24:11:D5:CD:82"
+    },
+    {
+        "ip": "10.10.0.5",
+        "hostname": "ns2.proxmox.pc.test3",
+        "mac": "BC:24:11:86:77:56",
+        "vmid": 101,
+        "subnet": "10.10.0.0/24",
+        "vnet": "test2",
+        "zone": "test1"
+    }
+]
+
+RAW_IPAM_STATUS_PVE8 = [
+    {
+        "subnet": "10.10.1.0/24",
+        "vnet": "test2",
+        "zone": "test1",
+        "ip": "10.10.1.0",
+        "gateway": 1
+    },
+    {
+        "ip": "10.10.0.1",
+        "gateway": 1,
+        "vnet": "test2",
+        "subnet": "10.10.0.0/24",
+        "zone": "test1"
+    },
+    {
+        "zone": "test1",
+        "vnet": "test2",
+        "subnet": "10.10.0.0/24",
+        "mac": "BC:24:11:F3:B1:81",
         "vmid": "102",
         "hostname": "ns3.proxmox.pc",
         "ip": "10.10.0.8"
@@ -139,6 +183,26 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
         assert result["ipams"] == RAW_IPAM_STATUS
 
     def test_get_ip_by_vmid(self):
+        with pytest.raises(SystemExit) as exc_info:
+            with set_module_args(get_module_args(vmid=102)):
+                self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is False
+        assert result["ips"] == [{
+            "zone": "test1",
+            "vnet": "test2",
+            "subnet": "10.10.0.0/24",
+            "mac": "BC:24:11:F3:B1:81",
+            "vmid": 102,
+            "hostname": "ns3.proxmox.pc",
+            "ip": "10.10.0.8"
+        }]
+
+    def test_get_ip_by_vmid_pve8(self):
+        self.mock_ipam.pve.return_value.status.return_value.get.return_value = RAW_IPAM_STATUS_PVE8
+        self.mock_ipam.status.return_value.get.return_value = RAW_IPAM_STATUS_PVE8
+
         with pytest.raises(SystemExit) as exc_info:
             with set_module_args(get_module_args(vmid=102)):
                 self.module.main()
