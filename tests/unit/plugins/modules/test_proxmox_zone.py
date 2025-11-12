@@ -98,6 +98,7 @@ def get_module_args_zone(zone_type, zone, state='present', update=True, bridge=N
         'bridge': bridge
     }
 
+
 def get_module_args_vxlan_fabric(zone, fabric, state='present', update=True, **kwargs):
     """Helper to build module args for VXLAN zones with fabric"""
     args = {
@@ -208,7 +209,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Created new Zone - new-vxlan-fabric"
@@ -224,7 +224,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Created new Zone - new-vxlan-peers"
@@ -243,11 +242,11 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 'update': True,
             }):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
         assert result['failed'] is True
         assert 'fabric or peers' in result['msg']
+
     def test_vxlan_zone_update_peers_zone(self):
         """Test updating an existing VXLAN zone with peers"""
         with pytest.raises(SystemExit) as exc_info:
@@ -259,7 +258,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Updated zone - vxlan-peers-zone"
@@ -276,7 +274,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Successfully deleted zone vxlan-fabric-zone"
@@ -293,7 +290,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Successfully deleted zone vxlan-peers-zone"
@@ -309,7 +305,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         # Should fail validation since neither fabric nor valid peers provided
         assert self.fail_json_mock.called or result["changed"] is False
@@ -324,9 +319,6 @@ class TestProxmoxZoneModule(ModuleTestCase):
                 )
             ):
                 self.module.main()
-        
         result = exc_info.value.args[0]
         # Should fail validation
         assert self.fail_json_mock.called or result["changed"] is False
-
-
