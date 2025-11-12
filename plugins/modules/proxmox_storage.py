@@ -348,16 +348,16 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             subdir = cifs_options.get('subdir')
 
             if username:
-              payload['username'] = username
+                payload['username'] = username
             if password:
-              payload['password'] = password
+                payload['password'] = password
             if smb_version:
-              payload['smbversion'] = smb_version
+                payload['smbversion'] = smb_version
             if domain:
-              payload['domain'] = domain
+                payload['domain'] = domain
             if subdir:
-              payload['subdir'] = subdir
-            
+                payload['subdir'] = subdir
+
             if not all([server, share]):
                 self.module.fail_json(msg="CIFS storage requires 'server' and 'share' parameters.")
             else:
