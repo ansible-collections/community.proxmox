@@ -1,0 +1,2 @@
+bugfixes: 
+  - "proxmox all - add missing timeout parameter to proxmoxer object creation (https://github.com/ansible-collections/community.proxmox/pull/218)."
