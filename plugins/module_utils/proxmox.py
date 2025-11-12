@@ -10,6 +10,7 @@ __metaclass__ = type
 import traceback
 from time import sleep
 
+PROXMOXER_DEFAULT_TIMEOUT = 5
 PROXMOXER_IMP_ERR = None
 try:
     from proxmoxer import ProxmoxAPI
@@ -147,7 +148,11 @@ class ProxmoxAnsible(object):
         api_token_id = self.module.params['api_token_id']
         api_token_secret = self.module.params['api_token_secret']
         validate_certs = self.module.params['validate_certs']
-        timeout = self.module.params['timeout']
+
+        if 'timeout' in self.module.params:
+            timeout = self.module.params['timeout']
+        else: 
+            timeout = PROXMOXER_DEFAULT_TIMEOUT
         
         auth_args = {'user': api_user}
 
