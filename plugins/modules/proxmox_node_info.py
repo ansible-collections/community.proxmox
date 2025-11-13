@@ -77,7 +77,7 @@ proxmox_nodes:
     network:
       description: Active network interfaces on the node
       returned: on success
-      type: array
+      type: dict
     node:
       description: Short hostname of this node.
       returned: on success
