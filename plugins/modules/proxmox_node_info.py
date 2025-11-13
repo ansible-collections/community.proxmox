@@ -74,6 +74,10 @@ proxmox_nodes:
       description: Used memory in bytes.
       returned: on success
       type: int
+    network:
+      description: Active network interfaces on the node
+      returned: on success
+      type: array
     node:
       description: Short hostname of this node.
       returned: on success
@@ -105,6 +109,10 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 class ProxmoxNodeInfoAnsible(ProxmoxAnsible):
     def get_nodes(self):
         nodes = self.proxmox_api.nodes.get()
+        for node in nodes:
+            node_name = node['node']
+            ifaces = self.proxmox_api.nodes(node_name).network.get()
+            node['network'] = ifaces
         return nodes
 
 
