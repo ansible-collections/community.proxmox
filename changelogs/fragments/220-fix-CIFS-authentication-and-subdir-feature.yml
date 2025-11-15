@@ -1,0 +1,4 @@
+bugfixes:
+  - proxmox_storage - fixed CIFS authentication by sending username and password parameters to proxmoxer.
+minor_changes:
+  - proxmox_storage - add feature of subdirectory in CIFS share
