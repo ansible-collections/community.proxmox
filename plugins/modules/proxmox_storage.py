@@ -364,11 +364,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             nfs_options = self.module.params.get(f'{storage_type}_options', {})
             server = nfs_options.get('server')
             export = nfs_options.get('export')
+            options = nfs_options.get('options')
             if not all([server, export]):
                 self.module.fail_json(msg="NFS storage requires 'server' and 'export' parameters.")
             else:
                 payload['server'] = server
                 payload['export'] = export
+                if options:
+                    payload['options'] = options
 
         if storage_type == "pbs":
             pbs_options = self.module.params.get(f'{storage_type}_options', {})
