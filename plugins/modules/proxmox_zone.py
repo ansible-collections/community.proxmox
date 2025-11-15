@@ -75,6 +75,7 @@ options:
     fabric:
       description:
         - SDN fabric to use as underlay for this VXLAN zone.
+        - Either O(fabric) or O(peers) is required for VXLAN zones.
       type: str
     ipam:
       description:
@@ -94,7 +95,9 @@ options:
       type: str
     peers:
       description:
-        - Peers address list.
+        - Peers address list (comma-separated IP addresses).
+        - Either O(fabric) or O(peers) is required for VXLAN zones.
+        - "Example: 192.168.0.1,192.168.0.2,192.168.0.3"
       type: str
     reversedns:
       description:
@@ -178,6 +181,28 @@ EXAMPLES = r"""
     zone: ansible
     state: present
     bridge: vmbr0
+
+- name: Create a VXLAN zone with fabric
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: false
+    type: vxlan
+    zone: myvxlan
+    fabric: my_fabric
+    state: present
+
+- name: Create a VXLAN zone with peers
+  community.proxmox.proxmox_zone:
+    api_user: "root@pam"
+    api_password: "{{ vault.proxmox.root_password }}"
+    api_host: "{{ pc.proxmox.api_host }}"
+    validate_certs: false
+    type: vxlan
+    zone: myvxlan
+    peers: "192.168.0.1,192.168.0.2,192.168.0.3"
+    state: present
 
 - name: Delete a zone
   community.proxmox.proxmox_zone:
@@ -269,7 +294,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             elif zone_type == 'qinq':
                 return self.params.get('tag') and self.params.get('vlan_protocol')
             elif zone_type == 'vxlan':
-                return self.params.get('fabric')
+                return self.params.get('fabric') or self.params.get('peers')
             elif zone_type == 'evpn':
                 return self.params.get('controller') and self.params.get('vrf_vxlan')
             else:
@@ -286,7 +311,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             required_params = {
                 'vlan': ['bridge'],
                 'qinq': ['bridge', 'tag', 'vlan_protocol'],
-                'vxlan': ['fabric'],
+                'vxlan': ['fabric or peers'],
                 'evpn': ['controller', 'vrf_vxlan']
             }
             self.module.fail_json(
