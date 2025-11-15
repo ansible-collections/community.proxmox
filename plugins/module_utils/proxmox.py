@@ -151,7 +151,7 @@ class ProxmoxAnsible(object):
 
         if 'timeout' in self.module.params:
             timeout = self.module.params['timeout']
-        else: 
+        else:
             timeout = PROXMOXER_DEFAULT_TIMEOUT
         
         auth_args = {'user': api_user}
