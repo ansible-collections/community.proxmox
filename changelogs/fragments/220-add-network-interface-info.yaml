@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_node_info - add information on node network interfaces to node information output (https://github.com/ansible-collections/community.proxmox/pull/220).

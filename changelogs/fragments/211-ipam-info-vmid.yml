@@ -1,0 +1,2 @@
+bugfixes:
+  - "proxmox_ipam_info - fix bug where selecting by vmid did not work (https://github.com/ansible-collections/community.proxmox/pull/211)."
