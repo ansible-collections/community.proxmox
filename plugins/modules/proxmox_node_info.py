@@ -98,6 +98,10 @@ proxmox_nodes:
       description: Node uptime in seconds.
       returned: on success
       type: int
+    version:
+      description: Version of PVE on the node
+      returned: on success
+      type: dict
 """
 
 
@@ -113,6 +117,7 @@ class ProxmoxNodeInfoAnsible(ProxmoxAnsible):
             node_name = node['node']
             ifaces = self.proxmox_api.nodes(node_name).network.get()
             node['network'] = ifaces
+            node['version'] = self.proxmox_api.nodes(node_name).version.get()
         return nodes
 
 
