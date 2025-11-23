@@ -13,7 +13,7 @@ DOCUMENTATION = r"""
 ---
 module: proxmox_sendkey
 short_description: Send key presses to a Proxmox VM console
-version_added: "TODO"
+version_added: "1.4.0" # TODO
 description:
   - Uses the Proxmox API to send a sequence of key presses to the console of a VM.
   - Keys can be specified explicitly or derived from a plain text string.
@@ -100,7 +100,7 @@ def get_proxmox_args():
     return dict(
         vmid=dict(type="int"),
         name=dict(type="str"),
-        keys_send=dict(type="list", default=[], elements="str", no_log=False),
+        keys_send=dict(type="list", elements="str", no_log=False),
         string_send=dict(type="str"),
         key_delay=dict(type="int", default=0),
     )
