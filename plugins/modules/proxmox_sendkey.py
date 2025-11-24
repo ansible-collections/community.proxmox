@@ -48,8 +48,8 @@ options:
   key_delay:
     description:
       - Delay in seconds between each key press.
-    type: int
-    default: 0
+    type: float
+    default: 0.0
 """
 
 EXAMPLES = r"""
@@ -71,7 +71,7 @@ EXAMPLES = r"""
     string_send: |
         root
         P@ssw0rd
-    key_delay: 1
+    key_delay: 1.0
 """
 
 RETURN = r"""
@@ -80,11 +80,20 @@ vmid:
   returned: success
   type: int
   sample: 101
-keys_send:
-  description: Final list of keys that were sent to the VM console.
+keys:
+  description: List of total keys that were sent to the VM console.
   returned: success
   type: list
   elements: str
+  sample: ["H", "e", "l", "l". "o"]
+keys_num:
+  description: Number of total keys that were sent to the VM console.
+  type: int
+  sample: 5
+completed_keys_num:
+  description: Number of keys that were sent to the VM console.
+  type: int
+  sample: 5
 """
 
 import time
@@ -102,7 +111,7 @@ def get_proxmox_args():
         name=dict(type="str"),
         keys_send=dict(type="list", elements="str", no_log=False),
         string_send=dict(type="str"),
-        key_delay=dict(type="int", default=0),
+        key_delay=dict(type="float", default=0.0),
     )
 
 def get_ansible_module():
@@ -293,54 +302,101 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         "compose",
     ]
     CHAR_MAP = {
-    "A": ["shift", "a"],
-    "B": ["shift", "b"],
-    "C": ["shift", "c"],
-    "D": ["shift", "d"],
-    "E": ["shift", "e"],
-    "F": ["shift", "f"],
-    "G": ["shift", "g"],
-    "H": ["shift", "h"],
-    "I": ["shift", "i"],
-    "J": ["shift", "j"],
-    "K": ["shift", "k"],
-    "L": ["shift", "l"],
-    "M": ["shift", "m"],
-    "N": ["shift", "n"],
-    "O": ["shift", "o"],
-    "P": ["shift", "p"],
-    "Q": ["shift", "q"],
-    "R": ["shift", "r"],
-    "S": ["shift", "s"],
-    "T": ["shift", "t"],
-    "U": ["shift", "u"],
-    "V": ["shift", "v"],
-    "W": ["shift", "w"],
-    "X": ["shift", "x"],
-    "Y": ["shift", "y"],
-    "Z": ["shift", "z"],
-    "!": ["shift", "1"],
-    "@": ["shift", "2"],
-    "#": ["shift", "3"],
-    "$": ["shift", "4"],
-    "%": ["shift", "5"],
-    "^": ["shift", "6"],
-    "&": ["shift", "7"],
-    "*": ["shift", "8"],
-    "(": ["shift", "9"],
-    ")": ["shift", "0"],
-    "_": ["shift", "minus"],
-    "+": ["shift", "equal"],
-    "{": ["shift", "bracket_left"],
-    "}": ["shift", "bracket_right"],
-    "|": ["shift", "backslash"],
-    ":": ["shift", "semicolon"],
-    "\"": ["shift", "apostrophe"],
-    "<": ["shift", "comma"],
-    ">": ["shift", "dot"],
-    "?": ["shift", "slash"],
-    "\n": ["ret"],
-}
+        "a": ["a"],
+        "b": ["b"],
+        "c": ["c"],
+        "d": ["d"],
+        "e": ["e"],
+        "f": ["f"],
+        "g": ["g"],
+        "h": ["h"],
+        "i": ["i"],
+        "j": ["j"],
+        "k": ["k"],
+        "l": ["l"],
+        "m": ["m"],
+        "n": ["n"],
+        "o": ["o"],
+        "p": ["p"],
+        "q": ["q"],
+        "r": ["r"],
+        "s": ["s"],
+        "t": ["t"],
+        "u": ["u"],
+        "v": ["v"],
+        "w": ["w"],
+        "x": ["x"],
+        "y": ["y"],
+        "z": ["z"],
+        "1": ["1"],
+        "2": ["2"],
+        "3": ["3"],
+        "4": ["4"],
+        "5": ["5"],
+        "6": ["6"],
+        "7": ["7"],
+        "8": ["8"],
+        "9": ["9"],
+        "0": ["0"],
+        "-": ["minus"],
+        "=": ["equal"],
+        "[": ["bracket_left"],
+        "]": ["bracket_right"],
+        "\\": ["backslash"],
+        ";": ["semicolon"],
+        "'": ["apostrophe"],
+        ",": ["comma"],
+        ".": ["dot"],
+        "/": ["slash"],
+        "A": ["shift", "a"],
+        "B": ["shift", "b"],
+        "C": ["shift", "c"],
+        "D": ["shift", "d"],
+        "E": ["shift", "e"],
+        "F": ["shift", "f"],
+        "G": ["shift", "g"],
+        "H": ["shift", "h"],
+        "I": ["shift", "i"],
+        "J": ["shift", "j"],
+        "K": ["shift", "k"],
+        "L": ["shift", "l"],
+        "M": ["shift", "m"],
+        "N": ["shift", "n"],
+        "O": ["shift", "o"],
+        "P": ["shift", "p"],
+        "Q": ["shift", "q"],
+        "R": ["shift", "r"],
+        "S": ["shift", "s"],
+        "T": ["shift", "t"],
+        "U": ["shift", "u"],
+        "V": ["shift", "v"],
+        "W": ["shift", "w"],
+        "X": ["shift", "x"],
+        "Y": ["shift", "y"],
+        "Z": ["shift", "z"],
+        "!": ["shift", "1"],
+        "@": ["shift", "2"],
+        "#": ["shift", "3"],
+        "$": ["shift", "4"],
+        "%": ["shift", "5"],
+        "^": ["shift", "6"],
+        "&": ["shift", "7"],
+        "*": ["shift", "8"],
+        "(": ["shift", "9"],
+        ")": ["shift", "0"],
+        "_": ["shift", "minus"],
+        "+": ["shift", "equal"],
+        "{": ["shift", "bracket_left"],
+        "}": ["shift", "bracket_right"],
+        "|": ["shift", "backslash"],
+        ":": ["shift", "semicolon"],
+        "\"": ["shift", "apostrophe"],
+        "<": ["shift", "comma"],
+        ">": ["shift", "dot"],
+        "?": ["shift", "slash"],
+        " ": ["spc"],
+        "\n": ["ret"],
+    }
 
     def __init__(self, module):
         super(ProxmoxSendkeyAnsible, self).__init__(module)
@@ -349,8 +405,11 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
     def string_to_keys(self, text):
         """Cnvert text to key list"""
         keys = []
-        for ch in text:
-            keys.append(self.CHAR_MAP[ch] if ch in self.CHAR_MAP else ch)
+        for ch in str(text):
+            if ch not in self.CHAR_MAP:
+                raise Exception(f"Unkonwn key charactor: {ch}")
+            key = "-".join(self.CHAR_MAP[ch])
+            keys.append(key)
         return keys
 
     def validate_keys(self, keys):
@@ -359,12 +418,24 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
             if key not in self.ALL_KEYS:
                 raise Exception(f"key is not corrected: {key}")
 
+    def send_keys(self, vmid, keys_send, key_delay):
+        """Send keys"""
+        vm = self.get_vm(vmid)
+        for key in keys_send:
+            self.proxmox_api.nodes(vm["node"]).qemu(vmid).sendkey.put(key=key)
+            self.completed_keys.append(key)
+            if key_delay > 0.0:
+                time.sleep(key_delay)
+
     def run(self):
         vmid = self.params.get("vmid")
         name = self.params.get("name")
         keys_send = self.params.get("keys_send")
         string_send = self.params.get("string_send")
         key_delay = self.params.get("key_delay")
+
+        self.total_keys = []
+        self.completed_keys = []
 
         # get vmid from name
         if not vmid:
@@ -373,21 +444,17 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         # convert text to key list
         if string_send:
             keys_send = self.string_to_keys(string_send)
+        self.total_keys = keys_send
 
-        self.send_keys(vmid, keys_send, key_delay)
+        self.send_keys(vmid, self.total_keys, key_delay)
 
         self.module.exit_json(
             changed=True,
             vmid=vmid,
-            keys_send=keys_send,
+            keys=self.total_keys,
+            keys_num=len(self.total_keys),
+            completed_keys_num=len(self.completed_keys),
         )
-
-    def send_keys(self, vmid, keys_send, key_delay):
-        vm = self.get_vm(vmid)
-        for key in keys_send:
-            self.proxmox_api.nodes(vm["node"]).qemu(vmid).sendkey.put(key=key)
-            if key_delay > 0:
-                time.sleep(float(key_delay))
 
 
 def main():
