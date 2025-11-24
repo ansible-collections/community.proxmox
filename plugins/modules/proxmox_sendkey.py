@@ -20,8 +20,8 @@ description:
 author:
   - "miyuk (@miyuk172) <enough7531@gmail.com>"
 notes:
-  - This module relies on the same authentication parameters as the modules from C(community.proxmox).
-  - Keys must match the qemu key names listed in L(QEMU ui.QKeyCode,https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#enum-QMP-ui.QKeyCode).
+  - Keys must match the qemu key names listed in
+    L(QEMU ui.QKeyCode,https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#enum-QMP-ui.QKeyCode).
 options:
   name:
     description:
@@ -36,13 +36,15 @@ options:
   keys_send:
     description:
       - List of keys or key chords to send in order.
-      - Each item must follow the qemu key naming format such as C(ctrl-alt-delete) or C(ret).
+      - Each item must follow the qemu key naming format such as
+        C(ctrl-alt-delete) or C(ret).
       - You can specify either O(keys_send) or O(string_send) or both of them.
     type: list
     elements: str
   string_send:
     description:
-      - Raw string that will be transformed to the corresponding key presses before sending.
+      - Raw string that will be transformed to the corresponding key presses
+        before sending.
       - You can specify either O(string_send) or O(keys_send) or both of them.
     type: str
   key_delay:
@@ -85,7 +87,7 @@ keys:
   returned: success
   type: list
   elements: str
-  sample: ["H", "e", "l", "l". "o"]
+  sample: ["H", "e", "l", "l", "o"]
 keys_num:
   description: Number of total keys that were sent to the VM console.
   type: int
@@ -114,6 +116,7 @@ def get_proxmox_args():
         key_delay=dict(type="float", default=0.0),
     )
 
+
 def get_ansible_module():
     module_args = proxmox_auth_argument_spec()
     module_args.update(get_proxmox_args())
@@ -134,9 +137,10 @@ def get_ansible_module():
         supports_check_mode=False,
     )
 
+
 class ProxmoxSendkeyAnsible(ProxmoxAnsible):
-    # List of keys can be found at QEMU reference
-    # https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#enum-QMP-ui.QKeyCode
+    """Proxmox sendkey module implementation."""
+    
     ALL_KEYS = [
         "unmapped",
         "pause",
@@ -301,6 +305,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         "meta_r",
         "compose",
     ]
+    
     CHAR_MAP = {
         "a": ["a"],
         "b": ["b"],
@@ -401,25 +406,27 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super(ProxmoxSendkeyAnsible, self).__init__(module)
         self.params = module.params
+        self.total_keys = []
+        self.completed_keys = []
 
     def string_to_keys(self, text):
-        """Cnvert text to key list"""
+        """Convert text to key list."""
         keys = []
         for ch in str(text):
             if ch not in self.CHAR_MAP:
-                raise Exception(f"Unkonwn key charactor: {ch}")
+                raise Exception(f"Unknown key character: {ch}")
             key = "-".join(self.CHAR_MAP[ch])
             keys.append(key)
         return keys
 
     def validate_keys(self, keys):
-        """Validate keys"""
+        """Validate keys."""
         for key in keys.split("-"):
             if key not in self.ALL_KEYS:
-                raise Exception(f"key is not corrected: {key}")
+                raise Exception(f"Key is not correct: {key}")
 
     def send_keys(self, vmid, keys_send, key_delay):
-        """Send keys"""
+        """Send keys to VM console."""
         vm = self.get_vm(vmid)
         for key in keys_send:
             self.proxmox_api.nodes(vm["node"]).qemu(vmid).sendkey.put(key=key)
@@ -428,20 +435,18 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
                 time.sleep(key_delay)
 
     def run(self):
+        """Main execution method."""
         vmid = self.params.get("vmid")
         name = self.params.get("name")
         keys_send = self.params.get("keys_send")
         string_send = self.params.get("string_send")
         key_delay = self.params.get("key_delay")
 
-        self.total_keys = []
-        self.completed_keys = []
-
-        # get vmid from name
+        # Get vmid from name
         if not vmid:
             vmid = self.get_vmid(name)
 
-        # convert text to key list
+        # Convert text to key list
         if string_send:
             keys_send = self.string_to_keys(string_send)
         self.total_keys = keys_send
@@ -458,13 +463,14 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
 
 
 def main():
+    """Main entry point."""
     module = get_ansible_module()
     proxmox = ProxmoxSendkeyAnsible(module)
 
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f"An error occured: {e}")    
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
