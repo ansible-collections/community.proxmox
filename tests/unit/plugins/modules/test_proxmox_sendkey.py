@@ -103,7 +103,9 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         result = json.loads(out)
         assert result["changed"] is True
         assert result["vmid"] == "100"
-        assert result["keys_send"] == ["ctrl-alt-delete"]
+        assert result["keys"] == ["ctrl-alt-delete"]
+        assert result["keys_num"] == 1
+        assert result["completed_keys_num"] == 0  # send_keys_mockなのでcompletedは0
         assert send_keys_mock.called
 
     @patch('ansible_collections.community.proxmox.plugins.modules.proxmox_sendkey.ProxmoxSendkeyAnsible.send_keys')
@@ -127,7 +129,9 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         result = json.loads(out)
         assert result["changed"] is True
         assert result["vmid"] == "100"
-        assert result["keys_send"] == ["ret"]
+        assert result["keys"] == ["ret"]
+        assert result["keys_num"] == 1
+        assert result["completed_keys_num"] == 0  # send_keys_mockなのでcompletedは0
         assert self.get_vmid_mock.called
 
     @patch('ansible_collections.community.proxmox.plugins.modules.proxmox_sendkey.ProxmoxSendkeyAnsible.send_keys')
@@ -150,8 +154,10 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         result = json.loads(out)
         assert result["changed"] is True
         # Check that string was converted to keys
-        expected_keys = [["shift", "h"], "e", "l", "l", "o", ["ret"]]
-        assert result["keys_send"] == expected_keys
+        expected_keys = ["shift-h", "e", "l", "l", "o", "ret"]
+        assert result["keys"] == expected_keys
+        assert result["keys_num"] == 6
+        assert result["completed_keys_num"] == 0  # send_keys_mockなのでcompletedは0
 
     @patch('ansible_collections.community.proxmox.plugins.modules.proxmox_sendkey.ProxmoxSendkeyAnsible.send_keys')
     def test_key_delay_parameter(self, send_keys_mock, capfd):
@@ -173,6 +179,9 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         assert not err
         result = json.loads(out)
         assert result["changed"] is True
+        assert result["keys"] == ["a", "b"]
+        assert result["keys_num"] == 2
+        assert result["completed_keys_num"] == 0  # send_keys_mockなのでcompletedは0
         # Verify send_keys was called with correct delay
         send_keys_mock.assert_called_once_with("100", ["a", "b"], 2)
 
@@ -184,17 +193,17 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         
         # Test basic conversion
         result = sendkey_ansible.string_to_keys("AB")
-        expected = [["shift", "a"], ["shift", "b"]]
+        expected = ["shift-a", "shift-b"]
         assert result == expected
         
         # Test mixed case with symbols
         result = sendkey_ansible.string_to_keys("A1!")
-        expected = [["shift", "a"], "1", ["shift", "1"]]
+        expected = ["shift-a", "1", "shift-1"]
         assert result == expected
         
         # Test newline
         result = sendkey_ansible.string_to_keys("\n")
-        expected = [["ret"]]
+        expected = ["ret"]
         assert result == expected
 
     def test_validate_keys_valid(self):
@@ -215,7 +224,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
             sendkey_ansible = self.module.ProxmoxSendkeyAnsible(module)
         
         # Should raise exception for invalid keys
-        with pytest.raises(Exception, match="key is not corrected"):
+        with pytest.raises(Exception, match="Key is not correct"):
             sendkey_ansible.validate_keys("invalid-key")
 
     @patch('time.sleep')
@@ -325,8 +334,10 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         assert not err
         result = json.loads(out)
         assert result["changed"] is True
-        assert result["keys_send"] == ["ctrl-alt-delete", "ret", "esc"]
-        send_keys_mock.assert_called_once_with("100", ["ctrl-alt-delete", "ret", "esc"], 0)
+        assert result["keys"] == ["ctrl-alt-delete", "ret", "esc"]
+        assert result["keys_num"] == 3
+        assert result["completed_keys_num"] == 0  # send_keys_mockなのでcompletedは0
+        send_keys_mock.assert_called_once_with("100", ["ctrl-alt-delete", "ret", "esc"], 0.0)
 
     def test_module_exception_handling(self, capfd):
         """Test module exception handling"""
@@ -348,4 +359,4 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         assert not err
         result = json.loads(out)
         assert result["failed"] is True
-        assert "An error occured: Test error" in result["msg"]
+        assert "An error occurred: Test error" in result["msg"]
