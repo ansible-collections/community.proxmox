@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_snap - Adds functionality to list snapshots for VM or container (https://github.com/ansible-collections/community.proxmox/issues/229).
