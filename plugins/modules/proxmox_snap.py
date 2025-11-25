@@ -40,6 +40,11 @@ options:
       - For removal from config file, even if removing disk snapshot fails.
     default: false
     type: bool
+  list_snapshots:
+    description:
+      - Lists all created snapshots for a VM or Container.
+    default: false
+    type: bool
   unbind:
     description:
       - This option only applies to LXC containers.
@@ -136,6 +141,14 @@ EXAMPLES = r"""
     vmid: 100
     state: rollback
     snapname: pre-updates
+
+- name: List all snapshots for container or VM
+  community.proxmox.proxmox_snap:
+    api_user: root@pam
+    api_password: 1q2w3e
+    api_host: node1
+    vmid: 100
+    list_snapshots: true
 """
 
 RETURN = r"""#"""
@@ -299,6 +312,7 @@ def main():
         unbind=dict(type='bool', default=False),
         vmstate=dict(type='bool', default=False),
         retention=dict(type='int', default=0),
+        list_snapshots=dict(type='bool', default=False),
     )
     module_args.update(snap_args)
 
@@ -327,6 +341,13 @@ def main():
         module.exit_json(changed=False, msg="Vmid could not be fetched for the following action: %s" % state)
 
     vm = proxmox.get_vm(vmid)
+
+    if module.params['list_snapshots']:
+        try:
+            snapshots = proxmox.snapshot(vm, vmid).get()
+            module.exit_json(changed=False, snapshots=snapshots)
+        except Exception as e:
+            module.fail_json(msg="Failed to list snapshots: %s" % e)
 
     if state == 'present':
         try:
