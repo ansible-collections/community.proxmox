@@ -57,18 +57,18 @@ options:
 EXAMPLES = r"""
 - name: Send Ctrl+Alt+Delete to a Windows VM
   proxmox_sendkey:
-    api_host: "{{ proxmox_host }}"
-    api_user: "{{ proxmox_user }}"
-    api_password: "{{ proxmox_password }}"
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: password123
     name: win-test
     keys_send:
       - ctrl-alt-delete
 
 - name: Type a login string into a Linux VM console
   proxmox_sendkey:
-    api_host: "{{ proxmox_host }}"
-    api_token_id: "{{ proxmox_token_id }}"
-    api_token_secret: "{{ proxmox_token_secret }}"
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: password123
     vmid: 101
     string_send: |
         root
