@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, (@teslamania) <nicolas.vial@protonmail.com>
@@ -140,7 +140,7 @@ def get_ansible_module():
 
 class ProxmoxSendkeyAnsible(ProxmoxAnsible):
     """Proxmox sendkey module implementation."""
-    
+
     ALL_KEYS = [
         "unmapped",
         "pause",
@@ -305,7 +305,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         "meta_r",
         "compose",
     ]
-    
+
     CHAR_MAP = {
         "a": ["a"],
         "b": ["b"],

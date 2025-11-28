@@ -37,6 +37,7 @@ module_args_string = {
     "string_send": "Hello World!",
 }
 
+
 class TestProxmoxSendkeyModule(ModuleTestCase):
     def setUp(self):
         super(TestProxmoxSendkeyModule, self).setUp()
@@ -45,7 +46,9 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect"
         ).start()
-        self.get_node_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_node").start()
+        self.get_node_mock = patch.object(
+            proxmox_utils.ProxmoxAnsible, "get_node"
+        ).start()
         self.get_vm_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_vm").start()
 
     def tearDown(self):
