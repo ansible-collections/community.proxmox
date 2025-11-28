@@ -47,7 +47,7 @@ options:
         before sending.
       - You can specify either O(string_send) or O(keys_send) or both of them.
     type: str
-  key_delay:
+  delay:
     description:
       - Delay in seconds between each key press.
     type: float
@@ -73,7 +73,7 @@ EXAMPLES = r"""
     string_send: |
         root
         P@ssw0rd
-    key_delay: 1.0
+    delay: 1.0
 """
 
 RETURN = r"""
@@ -82,17 +82,19 @@ vmid:
   returned: success
   type: int
   sample: 101
-keys:
-  description: List of total keys that were sent to the VM console.
+send_keys:
+  description: List of sent keys that were sent to the VM console.
   returned: success
   type: list
   elements: str
   sample: ["H", "e", "l", "l", "o"]
 keys_num:
-  description: Number of total keys that were sent to the VM console.
+  description: Number of sent keys that were sent to the VM console.
+  returned: success
   type: int
   sample: 5
 completed_keys_num:
+  returned: success
   description: Number of keys that were sent to the VM console.
   type: int
   sample: 5
@@ -113,7 +115,7 @@ def get_proxmox_args():
         name=dict(type="str"),
         keys_send=dict(type="list", elements="str", no_log=False),
         string_send=dict(type="str"),
-        key_delay=dict(type="float", default=0.0),
+        delay=dict(type="float", default=0.0),
     )
 
 
@@ -406,7 +408,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super(ProxmoxSendkeyAnsible, self).__init__(module)
         self.params = module.params
-        self.total_keys = []
+        self.send_keys = []
         self.completed_keys = []
 
     def string_to_keys(self, text):
@@ -425,14 +427,14 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
             if key not in self.ALL_KEYS:
                 raise Exception(f"Key is not correct: {key}")
 
-    def send_keys(self, vmid, keys_send, key_delay):
+    def send_keys(self, vmid, keys_send, delay):
         """Send keys to VM console."""
         vm = self.get_vm(vmid)
         for key in keys_send:
             self.proxmox_api.nodes(vm["node"]).qemu(vmid).sendkey.put(key=key)
             self.completed_keys.append(key)
-            if key_delay > 0.0:
-                time.sleep(key_delay)
+            if delay > 0.0:
+                time.sleep(delay)
 
     def run(self):
         """Main execution method."""
@@ -440,7 +442,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         name = self.params.get("name")
         keys_send = self.params.get("keys_send")
         string_send = self.params.get("string_send")
-        key_delay = self.params.get("key_delay")
+        dalay = self.params.get("delay")
 
         # Get vmid from name
         if not vmid:
@@ -449,15 +451,15 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         # Convert text to key list
         if string_send:
             keys_send = self.string_to_keys(string_send)
-        self.total_keys = keys_send
+        self.send_keys = keys_send
 
-        self.send_keys(vmid, self.total_keys, key_delay)
+        self.send_keys(vmid, self.send_keys, dalay)
 
         self.module.exit_json(
             changed=True,
             vmid=vmid,
-            keys=self.total_keys,
-            keys_num=len(self.total_keys),
+            send_keys=self.send_keys,
+            keys_num=len(self.send_keys),
             completed_keys_num=len(self.completed_keys),
         )
 
