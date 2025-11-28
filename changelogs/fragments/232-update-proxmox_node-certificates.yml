@@ -1,0 +1,2 @@
+bugfixes:
+  - "remove wrong api endpoints and error messages from proxmod_node certificate management(https://github.com/ansible-collections/community.proxmox/pull/232)."
