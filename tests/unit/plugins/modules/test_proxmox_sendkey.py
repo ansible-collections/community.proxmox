@@ -64,13 +64,13 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
 
     def test_module_fail_when_no_string_or_keys(self):
         with self.assertRaises(AnsibleFailJson):
-            test_args = module_args_base
+            test_args = dict(**module_args_base)
             with set_module_args(test_args):
                 self.module.main()
 
     def test_module_fail_when_string_and_keys_are_not_exclusive(self):
         """Test that module fails when neither keys_send nor string_send is provided"""
         with self.assertRaises(AnsibleFailJson):
-            test_args = module_args_base | module_args_keys | module_args_string
+            test_args = dict(**module_args_base, **module_args_keys, **module_args_string)
             with set_module_args(test_args):
                 self.module.main()
