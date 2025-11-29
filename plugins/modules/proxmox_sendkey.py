@@ -91,7 +91,7 @@ vmid:
   returned: success
   type: int
   sample: 101
-send_keys:
+total_keys:
   description: List of sent keys that were sent to the VM console.
   returned: success
   type: list
@@ -417,7 +417,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super(ProxmoxSendkeyAnsible, self).__init__(module)
         self.params = module.params
-        self.send_keys = []
+        self.total_keys = []
         self.completed_keys = []
 
     def string_to_keys(self, text):
@@ -460,15 +460,15 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         # Convert text to key list
         if string_send:
             keys_send = self.string_to_keys(string_send)
-        self.send_keys = keys_send
+        self.total_keys = keys_send
 
-        self.send_keys(vmid, self.send_keys, dalay)
+        self.send_keys(vmid, self.total_keys, dalay)
 
         self.module.exit_json(
             changed=True,
             vmid=vmid,
-            send_keys=self.send_keys,
-            keys_num=len(self.send_keys),
+            total_keys=self.total_keys,
+            keys_num=len(self.total_keys),
             completed_keys_num=len(self.completed_keys),
         )
 
