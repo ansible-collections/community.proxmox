@@ -19,6 +19,11 @@ description:
   - Keys can be specified explicitly or derived from a plain text string.
 author:
   - "miyuk (@miyuk172) <enough7531@gmail.com>"
+attributes:
+  check_mode:
+    support: none
+  diff_mode:
+    support: none
 notes:
   - Keys must match the qemu key names listed in
     L(QEMU ui.QKeyCode,https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#enum-QMP-ui.QKeyCode).
@@ -52,6 +57,10 @@ options:
       - Delay in seconds between each key press.
     type: float
     default: 0.0
+extends_documentation_fragment:
+  - community.proxmox.proxmox.actiongroup_proxmox
+  - community.proxmox.proxmox.documentation
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
