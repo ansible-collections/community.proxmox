@@ -59,7 +59,6 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         self.get_vm_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_vm").start()
         self.get_vmid_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_vmid").start()
 
-        qemu_mock = patch("")
     def tearDown(self):
         self.get_vmid_mock.stop()
         self.get_vm_mock.stop()
