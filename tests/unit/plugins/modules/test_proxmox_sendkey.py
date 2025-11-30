@@ -94,7 +94,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         
         result = exc_info.value.args[0]
         assert result["completed_keys"] == keys_send
-        
+
     def test_sendkey_by_string_send(self):
         string_send = "Hello World!"
         args = get_module_args_sendkey(vmid=100, string_send=string_send)
