@@ -91,7 +91,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
             self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
             with pytest.raises(AnsibleExitJson) as exc_info:
                 self.module.main()
-        
+
         result = exc_info.value.args[0]
         assert result["completed_keys"] == keys_send
 
@@ -102,7 +102,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
             self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
             with pytest.raises(AnsibleExitJson) as exc_info:
                 self.module.main()
-        
+
         result = exc_info.value.args[0]
         assert result["completed_keys"] == [
             "shift-h",
