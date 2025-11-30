@@ -134,9 +134,6 @@ def get_ansible_module():
 
     return AnsibleModule(
         argument_spec=module_args,
-        mutually_exclusive=[
-            ("keys_send", "string_send"),
-        ],
         required_together=[
             ("api_token_id", "api_token_secret"),
         ],
