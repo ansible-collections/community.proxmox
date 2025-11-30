@@ -12,7 +12,6 @@ from unittest.mock import patch
 
 import time
 import pytest
-
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_sendkey
@@ -126,7 +125,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
             with self.assertRaises(AnsibleFailJson):
                 self.module.main()
 
-    @patch.object(time.sleep)
+    @patch.object(time, "sleep")
     def test_sleep_key_delay(self, time_sleep_mock):
         keys_send = ["ctrl-alt-delete"]
         args = get_module_args_sendkey(vmid=100, keys_send=keys_send, delay=1.0)
