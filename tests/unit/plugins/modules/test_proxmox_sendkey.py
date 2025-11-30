@@ -29,19 +29,24 @@ def get_module_args_sendkey(
     vmid=None,
     keys_send=None,
     string_send=None,
-    delay=0.0,
+    delay=None,
     **kwargs
 ):
     args = {
         "api_host": "host",
         "api_user": "user",
         "api_password": "password",
-        "name": name,
-        "vmid": vmid,
-        "keys_send": keys_send,
-        "string_send": string_send,
-        "delay": delay,
     }
+    if name:
+        args.update("name", name)
+    if vmid:
+        args.update("vmid", vmid)
+    if keys_send:
+        args.update("keys_send", keys_send)
+    if string_send:
+        args.update("string_send", string_send)
+    if delay:
+        args.update("delay", delay)
     args.update(kwargs)
     return args
 
