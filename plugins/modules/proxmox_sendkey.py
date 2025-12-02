@@ -422,16 +422,17 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         keys = []
         for ch in str(text):
             if ch not in self.CHAR_MAP:
-                raise Exception(f"Unknown key character: {ch}")
+                self.module.fail_json(msg=f"Unknown character: {ch}")
             key = "-".join(self.CHAR_MAP[ch])
             keys.append(key)
         return keys
 
     def validate_keys(self, keys):
         """Validate keys."""
-        for key in keys.split("-"):
-            if key not in self.ALL_KEYS:
-                raise Exception(f"Key is not correct: {key}")
+        for key_combo in keys:
+            for key in key_combo.split("-"):
+                if key not in self.ALL_KEYS:
+                    self.module.fail_json(f"Key is invalid: {key}")
 
     def send_keys(self, vmid, keys_send, delay):
         """Send keys to VM console."""
@@ -458,6 +459,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         if string_send:
             keys_send = self.string_to_keys(string_send)
         self.total_keys = keys_send
+        self.validate_keys(self.total_keys)
 
         self.send_keys(vmid, self.total_keys, dalay)
 
@@ -474,11 +476,7 @@ def main():
     """Main entry point."""
     module = get_ansible_module()
     proxmox = ProxmoxSendkeyAnsible(module)
-
-    try:
-        proxmox.run()
-    except Exception as e:
-        module.fail_json(msg=f"An error occurred: {e}")
+    proxmox.run()
 
 
 if __name__ == "__main__":

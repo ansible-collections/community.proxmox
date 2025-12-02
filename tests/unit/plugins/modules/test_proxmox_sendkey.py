@@ -38,15 +38,15 @@ def get_module_args_sendkey(
         "api_password": "password",
     }
     if name:
-        args.update("name", name)
+        args.update({"name": name})
     if vmid:
-        args.update("vmid", vmid)
+        args.update({"vmid": vmid})
     if keys_send:
-        args.update("keys_send", keys_send)
+        args.update({"keys_send": keys_send})
     if string_send:
-        args.update("string_send", string_send)
+        args.update({"string_send": string_send})
     if delay:
-        args.update("delay", delay)
+        args.update({"delay": delay})
     args.update(kwargs)
     return args
 
@@ -77,37 +77,34 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
                 self.module.main()
 
     def test_sendkey_resolve_vmid(self):
-        args = get_module_args_sendkey(name="existing.vm.local")
-        with set_module_args(args):
-            self.get_vmid_mock.return_value = 100
-            with pytest.raises(AnsibleExitJson) as exc_info:
+        with self.assertRaises(AnsibleExitJson) as exc_info:
+            args = get_module_args_sendkey(name="existing.vm.local", keys_send=["ctrl-alt-delete"])
+            with set_module_args(args):
+                self.get_vmid_mock.return_value = 100
                 self.module.main()
 
         assert self.get_vmid_mock.call_count == 1
-        result = exc_info.value.args[0]
+        result = exc_info.exception.args[0]
         assert result["vmid"] == 100
 
     def test_sendkey_by_keys_send(self):
-        keys_send = ["ctrl-alt-delete"]
-        args = get_module_args_sendkey(vmid=100, keys_send=keys_send)
-        with set_module_args(args):
-            self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
-            with pytest.raises(AnsibleExitJson) as exc_info:
+        with self.assertRaises(AnsibleExitJson) as exc_info:
+            args = get_module_args_sendkey(vmid=100, keys_send=["ctrl-alt-delete"])
+            with set_module_args(args):
+                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
-
-        result = exc_info.value.args[0]
-        assert result["completed_keys"] == keys_send
+        result = exc_info.exception.args[0]
+        assert result["total_keys"] == ["ctrl-alt-delete"]
 
     def test_sendkey_by_string_send(self):
-        string_send = "Hello World!"
-        args = get_module_args_sendkey(vmid=100, string_send=string_send)
-        with set_module_args(args):
-            self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
-            with pytest.raises(AnsibleExitJson) as exc_info:
+        with self.assertRaises(AnsibleExitJson) as exc_info:
+            args = get_module_args_sendkey(vmid=100, string_send="Hello World!")
+            with set_module_args(args):
+                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
 
-        result = exc_info.value.args[0]
-        assert result["completed_keys"] == [
+        result = exc_info.exception.args[0]
+        assert result["total_keys"] == [
             "shift-h",
             "e",
             "l",
@@ -123,20 +120,18 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         ]
 
     def test_fail_when_validate_invalid_keys(self):
-        keys_send = ["invalid"]
-        args = get_module_args_sendkey(vmid=100, keys_send=keys_send)
-        with set_module_args(args):
-            self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
-            with self.assertRaises(AnsibleFailJson):
+        with self.assertRaises(AnsibleFailJson):
+            args = get_module_args_sendkey(vmid=100, keys_send=["invalid"])
+            with set_module_args(args):
+                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
 
     @patch.object(time, "sleep")
     def test_sleep_key_delay(self, time_sleep_mock):
-        keys_send = ["ctrl-alt-delete"]
-        args = get_module_args_sendkey(vmid=100, keys_send=keys_send, delay=1.0)
-        with set_module_args(args):
-            self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
-            with pytest.raises(AnsibleExitJson) as exc_info:
+        with self.assertRaises(AnsibleExitJson) as exc_info:
+            args = get_module_args_sendkey(vmid=100, keys_send=["ctrl-alt-delete"], delay=1.0)
+            with set_module_args(args):
+                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
 
         assert time_sleep_mock.call_count == 1
