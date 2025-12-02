@@ -115,11 +115,11 @@ def fail_json(*args, **kwargs):
 
 def build_arg(node, state, check=False):
     args = {
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.21",
-            "node": node,
-            "state": state
+        "api_user": "root@pam",
+        "api_password": "secret",
+        "api_host": "192.168.1.21",
+        "node": node,
+        "state": state
     }
     if check:
         args["_ansible_check_mode"] = True
