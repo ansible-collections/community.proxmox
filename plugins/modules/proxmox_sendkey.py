@@ -421,8 +421,6 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         """Convert text to key list."""
         keys = []
         for ch in str(text):
-            if ch not in self.CHAR_MAP:
-                self.module.fail_json(msg=f"Unknown character: {ch}")
             key = "-".join(self.CHAR_MAP[ch])
             keys.append(key)
         return keys
