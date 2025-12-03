@@ -298,7 +298,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             else:
                 changed = True
                 if not self.module.check_mode:
-                  upload_cert = True
+                    upload_cert = True
 
             if (not self.module.check_mode) and (upload_cert):
                 try:
@@ -320,12 +320,12 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                         self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
 
         if changed and (restart := self.module.params.get("certificates", {}).get("restart", False)):
-          if not self.module.check_mode:
-              try:
-                  self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
-                  result_certificates += " pveproxy service restarted."
-              except Exception as e:
-                  self.module.warn(f"Failed to restart pveproxy: {str(e)}")
+            if not self.module.check_mode:
+                try:
+                    self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
+                    result_certificates += " pveproxy service restarted."
+                except Exception as e:
+                    self.module.warn(f"Failed to restart pveproxy: {str(e)}")
 
         return changed, result_certificates
 
