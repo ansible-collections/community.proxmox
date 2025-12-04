@@ -319,7 +319,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                         error_msg = str(e)
                         self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
 
-        if changed and (restart := self.module.params.get("certificates", {}).get("restart", False)):
+        restart = self.module.params.get("certificates", {}).get("restart", False)
+        if changed and restart:
             if not self.module.check_mode:
                 try:
                     self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
