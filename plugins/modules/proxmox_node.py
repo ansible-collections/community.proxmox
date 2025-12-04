@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
+# Copyright (c) 2025, Peter Tselios (@icultus) <27899013+itcultus@users.noreply.github.com>
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -14,7 +15,9 @@ version_added: 1.2.0
 short_description: Manage Proxmox VE nodes
 description:
   - Manage the Proxmox VE nodes itself.
-author: Florian Paul Azim Hoberg (@gyptazy)
+author:
+  - Florian Paul Azim Hoberg (@gyptazy)
+  - Peter Tselios (@itcultus)
 attributes:
   check_mode:
     support: full
@@ -57,7 +60,7 @@ options:
         default: false
       force:
         description:
-          - Overwrite existing custom or ACME certificate files.
+          - Overwrite existing custom certificate files.
         type: bool
         default: false
   dns:
@@ -259,11 +262,19 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         force = self.bool_to_int(self.module.params.get("certificates", {}).get("force", False))
         changed = False
         result_certificates = "Unchanged"
+        upload_cert = False
 
         try:
-            current_cert = self.proxmox_api.nodes(node_name).certificates.custom.get()
+            all_certs = self.proxmox_api.nodes(node_name).certificates.info.get()
+            # Filter out default Proxmox certificates (pve-root-ca.pem, pve-ssl.pem)
+            # Keep only custom certificates
+            current_cert = [cert for cert in all_certs if cert.get('filename') not in ['pve-root-ca.pem', 'pve-ssl.pem']]
+            if not current_cert:
+                current_cert = []
+
+            has_custom_cert = len(current_cert) > 0
         except Exception as e:
-            current_cert = self.proxmox_api.nodes(node_name).certificates.info.get()
+            self.module.fail_json(msg=f"Failed to get certificate information: {str(e)}")
 
         if node_certificate_state == "present":
             cert_path = self.module.params.get("certificates", {}).get("cert")
@@ -271,37 +282,51 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             cert = self.read_file(cert_path)
             key = self.read_file(key_path)
             fingerprints_file = self.get_certificate_fingerprints_file(cert)
-            fingerprints_api = self.get_certificate_fingerprints_api(current_cert)
 
-            if all(fp in fingerprints_api for fp in fingerprints_file):
-                changed = False
-                result_certificates = f"Certificate for node '{node_name}' is already present."
+            # Check if custom certificate already exists
+            if has_custom_cert:
+                fingerprints_api = self.get_certificate_fingerprints_api(current_cert)
+
+                # Compare only the leaf certificate (first in chain), not the certificates of the chain
+                if (fingerprints_file and fingerprints_file[0] in fingerprints_api) and not force:
+                    result_certificates = f"Certificate for node '{node_name}' is already present and matches."
+                else:
+                    # Certificate exists but is different, need to upload
+                    upload_cert = True
+                    changed = True
+                    result_certificates = f"Certificate for node '{node_name}' updated."
             else:
-                if not self.module.check_mode:
-                    try:
-                        self.proxmox_api.nodes(node_name).certificates.custom.post(certificates=cert, key=key, force=force)
-                    except Exception as e:
-                        self.module.fail_json(msg="Failed to upload certificate. Certificate is already present. Please use 'force' to overwrite it.")
-                    self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
                 changed = True
-                result_certificates = f"Certificate for node '{node_name}' has been uploaded."
+                if not self.module.check_mode:
+                    upload_cert = True
+
+            if (not self.module.check_mode) and (upload_cert):
+                try:
+                    self.proxmox_api.nodes(node_name).certificates.custom.post(certificates=cert, key=key, force=force)
+                    result_certificates = f"Certificate for node '{node_name}' has been uploaded."
+                except Exception as e:
+                    error_msg = str(e)
+                    self.module.fail_json(msg=f"Failed to upload certificate: {error_msg}")
 
         if node_certificate_state == "absent":
-            custom_cert = True
-            try:
-                custom_cert = self.proxmox_api.nodes(node_name).certificates.custom.get()
-            except Exception as e:
-                custom_cert = False
-
-            if custom_cert:
+            if has_custom_cert:
+                changed = True
                 if not self.module.check_mode:
                     try:
                         self.proxmox_api.nodes(node_name).certificates.custom.delete()
+                        result_certificates = f"Certificate for node '{node_name}' has been removed."
                     except Exception as e:
-                        pass
+                        error_msg = str(e)
+                        self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
+
+        restart = self.module.params.get("certificates", {}).get("restart", False)
+        if changed and restart:
+            if not self.module.check_mode:
+                try:
                     self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
-                changed = True
-                result_certificates = f"Certificate for node '{node_name}' has been removed."
+                    result_certificates += " pveproxy service restarted."
+                except Exception as e:
+                    self.module.warn(f"Failed to restart pveproxy: {str(e)}")
 
         return changed, result_certificates
 
