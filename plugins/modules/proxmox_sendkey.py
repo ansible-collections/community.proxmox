@@ -13,7 +13,7 @@ DOCUMENTATION = r"""
 ---
 module: proxmox_sendkey
 short_description: Send key presses to a Proxmox VM console
-version_added: "1.4.0" # TODO
+version_added: 1.5.0
 description:
   - Uses the Proxmox API to send a sequence of key presses to the console of a VM.
   - Keys can be specified explicitly or derived from a plain text string.
