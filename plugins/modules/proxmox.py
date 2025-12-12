@@ -38,7 +38,7 @@ options:
     type: str
   disk:
     description:
-      - This option was previously described as "hard disk size in GB for instance" however several formats describing a lxc
+      - This option was previously described as "hard disk size in GiB for instance" however several formats describing a lxc
         mount are permitted.
       - Older versions of Proxmox will accept a numeric value for size using the O(storage) parameter to automatically choose
         which storage to allocate from, however new versions enforce the C(<STORAGE>:<SIZE>) syntax.
@@ -425,7 +425,7 @@ EXAMPLES = r"""
     netif:
       net0: "name=eth0,gw=192.168.0.1,ip=192.168.0.2/24,ip6=fe80::1227/64,gw6=fe80::1,bridge=vmbr0,firewall=1,tag=934,mtu=1500"
 
-- name: Create new container with minimal options defining a mount with 8GB
+- name: Create new container with minimal options defining a mount with 8GiB
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
@@ -438,7 +438,7 @@ EXAMPLES = r"""
     mounts:
       mp0: "local:8,mp=/mnt/test/"
 
-- name: Create new container with minimal options defining a mount with 8GB using mount_volumes
+- name: Create new container with minimal options defining a mount with 8GiB using mount_volumes
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02

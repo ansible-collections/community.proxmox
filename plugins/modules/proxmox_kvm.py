@@ -222,7 +222,7 @@ options:
       - Keys allowed are - V(ide[n]) where 0 ≤ n ≤ 3.
       - Values allowed are - V("storage:size,format=value").
       - V(storage) is the storage identifier where to create the disk.
-      - V(size) is the size of the disk in GB.
+      - V(size) is the size of the disk in GiB.
       - V(format) is the drive's backing file's data format. V(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
         Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
         tables 3 to 14) to find out format supported by the provided storage backend.
@@ -370,7 +370,7 @@ options:
       - Keys allowed are - C(sata[n]) where 0 ≤ n ≤ 5.
       - Values allowed are - C("storage:size,format=value").
       - C(storage) is the storage identifier where to create the disk.
-      - C(size) is the size of the disk in GB.
+      - C(size) is the size of the disk in GiB.
       - C(format) is the drive's backing file's data format. C(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
         Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
         tables 3 to 14) to find out format supported by the provided storage backend.
@@ -381,7 +381,7 @@ options:
       - Keys allowed are - C(scsi[n]) where 0 ≤ n ≤ 13.
       - Values allowed are - C("storage:size,format=value").
       - C(storage) is the storage identifier where to create the disk.
-      - C(size) is the size of the disk in GB.
+      - C(size) is the size of the disk in GiB.
       - C(format) is the drive's backing file's data format. C(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
         Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
         tables 3 to 14) to find out format supported by the provided storage backend.
@@ -553,7 +553,7 @@ options:
       - Keys allowed are - V(virtio[n]) where 0 ≤ n ≤ 15.
       - Values allowed are - V(storage:size,format=value).
       - V(storage) is the storage identifier where to create the disk.
-      - V(size) is the size of the disk in GB.
+      - V(size) is the size of the disk in GiB.
       - V(format) is the drive's backing file's data format. V(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
         Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
         tables 3 to 14) to find out format supported by the provided storage backend.
@@ -624,7 +624,7 @@ EXAMPLES = r"""
     cores: 4
     vcpus: 2
 
-- name: Create VM with 1 10GB SATA disk and an EFI disk, with Secure Boot disabled by default
+- name: Create VM with 1 10GiB SATA disk and an EFI disk, with Secure Boot disabled by default
   community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
@@ -640,7 +640,7 @@ EXAMPLES = r"""
       efitype: 4m
       pre_enrolled_keys: false
 
-- name: Create VM with 1 10GB SATA disk and an EFI disk, with Secure Boot enabled by default
+- name: Create VM with 1 10GiB SATA disk and an EFI disk, with Secure Boot enabled by default
   community.proxmox.proxmox_kvm:
     api_user: root@pam
     api_password: secret
