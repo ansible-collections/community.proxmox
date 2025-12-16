@@ -163,6 +163,7 @@ options:
       - Import volume from this existing one.
       - Volume string format.
       - V(<STORAGE>:<VMID>/<FULL_NAME>) or V(<ABSOLUTE_PATH>/<FULL_NAME>).
+      - V(<STORAGE>:import/<FULL_NAME>) for PVE 9.x and later, to use storage's import directory.
       - Attention! Only root can use absolute paths.
       - This parameter is mutually exclusive with O(size).
       - Increase O(timeout) parameter when importing large disk images or using slow storage.
