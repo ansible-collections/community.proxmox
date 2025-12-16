@@ -567,7 +567,7 @@ options:
       - Enables migration of local disks to the next node.
     type: bool
     default: false
- 
+
 seealso:
   - module: community.proxmox.proxmox_vm_info
 extends_documentation_fragment:
