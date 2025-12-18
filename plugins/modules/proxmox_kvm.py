@@ -562,6 +562,12 @@ options:
     description:
       - Creates a virtual hardware watchdog device.
     type: str
+  with_local_disks:
+    description:
+      - Enables migration of local disks to the next node.
+    type: bool
+    default: false
+
 seealso:
   - module: community.proxmox.proxmox_vm_info
 extends_documentation_fragment:
@@ -916,7 +922,7 @@ import time
 from urllib.parse import quote
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible, ansible_to_proxmox_bool)
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.parsing.convert_bool import boolean
@@ -1197,10 +1203,18 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             self.module.fail_json(vmid=vmid, msg="conversion of VM %s to template failed with exception: %s" % (vmid, e))
             return False
 
-    def migrate_vm(self, vm, target_node):
+    def migrate_vm(self, vm, target_node, with_local_disks):
         vmid = vm['vmid']
+        with_local_disks = ansible_to_proxmox_bool(with_local_disks)
+        migration_args = {
+            "with-local-disks": with_local_disks,
+            "vmid": vmid,
+            "node": vm['node'],
+            "target": target_node,
+            "online": 1
+        }
         proxmox_node = self.proxmox_api.nodes(vm['node'])
-        taskid = proxmox_node.qemu(vmid).migrate.post(vmid=vmid, node=vm['node'], target=target_node, online=1)
+        taskid = proxmox_node.qemu(vmid).migrate.post(**migration_args)
         if not self.wait_for_task(vm['node'], taskid):
             self.module.fail_json(msg='Reached timeout while waiting for migrating VM. Last line in task before timeout: %s' %
                                   proxmox_node.tasks(taskid).log.get()[:1])
@@ -1320,6 +1334,7 @@ def main():
         virtio=dict(type='dict'),
         vmid=dict(type='int'),
         watchdog=dict(),
+        with_local_disks=dict(type='bool', default=False)
     )
     module_args.update(kvm_args)
 
@@ -1407,7 +1422,7 @@ def main():
             vm = proxmox.get_vm(vmid)
             vm_node = vm['node']
             if node != vm_node:
-                proxmox.migrate_vm(vm, node)
+                proxmox.migrate_vm(vm, node, module.params['with_local_disks'])
                 module.exit_json(changed=True, vmid=vmid, msg="VM {0} has been migrated from {1} to {2}".format(vmid, vm_node, node))
             else:
                 module.exit_json(changed=False, vmid=vmid, msg="VM {0} is already on {1}".format(vmid, node))
