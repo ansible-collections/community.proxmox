@@ -1,0 +1,2 @@
+minor_changes:
+  - inventory plugin, plugin_utils - replace deprecated ``ansible.module_utils.common._collections_compat`` imports with ``collections.abc`` from the Python standard library (https://github.com/ansible-collections/community.proxmox/issues/241).
