@@ -23,7 +23,7 @@ attributes:
 
 options:
     state:
-        description: create or delete
+        description: Indicate whether the Ceph manager should be present (created if missing) or absent (deleted if it exists).
         required: true
         choices: ['present', 'absent']
         type: str
