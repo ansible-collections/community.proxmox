@@ -63,10 +63,12 @@ EXAMPLES = r"""
 
 RETURN = r"""
 snapshot:
-  description: Returned when snapname is provided and found
+  description: Snapshot information when snapname is provided and found.
+  returned: when snapname is provided and the snapshot exists
   type: dict
 snapshots:
-  description: Returned when snapname is not provided
+  description: List of snapshots when snapname is not provided.
+  returned: when snapname is not provided
   type: list
 """
 
@@ -74,9 +76,11 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
 
+
 class ProxmoxSnapAnsible(ProxmoxAnsible):
     def snapshot(self, vm, vmid):
         return getattr(self.proxmox_api.nodes(vm['node']), vm['type'])(vmid).snapshot
+
 
 def main():
     module_args = proxmox_auth_argument_spec()
@@ -134,6 +138,7 @@ def main():
 
     except Exception as e:
         module.fail_json(msg="Failed to list snapshots: %s" % to_native(e))
+
 
 if __name__ == '__main__':
     main()
