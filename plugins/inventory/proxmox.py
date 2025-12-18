@@ -205,7 +205,7 @@ import re
 from sys import version as python_version
 from urllib.parse import urlencode
 
-from ansible.module_utils.common._collections_compat import MutableMapping
+from collections.abc import MutableMapping
 
 from ansible.errors import AnsibleError
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
