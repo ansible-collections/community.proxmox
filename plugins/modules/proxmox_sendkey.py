@@ -31,16 +31,15 @@ options:
   name:
     description:
       - The unique name of the VM.
-      - You can specify either O(name) or O(vmid) or both of them.
     type: str
   vmid:
     description:
       - The unique ID of the VM.
-      - You can specify either O(vmid) or O(name) or both of them.
+      - Takes precedence over O(name).
     type: int
   keys_send:
     description:
-      - List of keys or key chords to send in order.
+      - List of keys or key sequence to send in order.
       - Each item must follow the qemu key naming format such as
         C(ctrl-alt-delete) or C(ret).
       - You can specify either O(keys_send) or O(string_send) or both of them.
@@ -447,7 +446,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         name = self.params.get("name")
         keys_send = self.params.get("keys_send")
         string_send = self.params.get("string_send")
-        dalay = self.params.get("delay")
+        delay = self.params.get("delay")
 
         # Get vmid from name
         if not vmid:
@@ -459,7 +458,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         self.total_keys = keys_send
         self.validate_keys(self.total_keys)
 
-        self.send_keys(vmid, self.total_keys, dalay)
+        self.send_keys(vmid, self.total_keys, delay)
 
         self.module.exit_json(
             changed=True,
