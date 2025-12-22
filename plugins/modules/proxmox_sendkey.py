@@ -42,14 +42,14 @@ options:
       - List of keys or key sequence to send in order.
       - Each item must follow the qemu key naming format such as
         C(ctrl-alt-delete) or C(ret).
-      - You can specify either O(keys_send) or O(string_send) or both of them.
+      - You can specify either O(keys_send) or O(string_send) of them.
     type: list
     elements: str
   string_send:
     description:
       - Raw string that will be transformed to the corresponding key presses
         before sending.
-      - You can specify either O(string_send) or O(keys_send) or both of them.
+      - You can specify either O(keys_send) or O(string_send) of them.
     type: str
   delay:
     description:
@@ -140,6 +140,9 @@ def get_ansible_module():
             ("keys_send", "string_send"),
             ("vmid", "name"),
             ("api_password", "api_token_id"),
+        ],
+        mutually_exclusive=[
+            ("keys_send", "string_send"),
         ],
         supports_check_mode=False,
     )
