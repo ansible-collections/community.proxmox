@@ -62,6 +62,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         self.get_node_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_node").start()
         self.get_vm_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_vm").start()
         self.get_vmid_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_vmid").start()
+        self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
 
     def tearDown(self):
         self.get_vmid_mock.stop()
@@ -91,7 +92,6 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         with self.assertRaises(AnsibleExitJson) as exc_info:
             args = get_module_args_sendkey(vmid=100, keys_send=["ctrl-alt-delete"])
             with set_module_args(args):
-                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
         result = exc_info.exception.args[0]
         assert result["total_keys"] == ["ctrl-alt-delete"]
@@ -100,7 +100,6 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         with self.assertRaises(AnsibleExitJson) as exc_info:
             args = get_module_args_sendkey(vmid=100, string_send="Hello World!")
             with set_module_args(args):
-                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
 
         result = exc_info.exception.args[0]
@@ -123,7 +122,12 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         with self.assertRaises(AnsibleFailJson):
             args = get_module_args_sendkey(vmid=100, keys_send=["invalid"])
             with set_module_args(args):
-                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
+                self.module.main()
+
+    def test_fail_when_send_invalid_string_char(self):
+        with self.assertRaises(AnsibleFailJson):
+            args = get_module_args_sendkey(vmid=100, string_send="ö")
+            with set_module_args(args):
                 self.module.main()
 
     @patch.object(time, "sleep")
@@ -131,7 +135,6 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         with self.assertRaises(AnsibleExitJson) as exc_info:
             args = get_module_args_sendkey(vmid=100, keys_send=["ctrl-alt-delete"], delay=1.0)
             with set_module_args(args):
-                self.get_vm_mock.return_value.qemu.return_value.sendkey.put.return_value = None
                 self.module.main()
 
         assert time_sleep_mock.call_count == 1

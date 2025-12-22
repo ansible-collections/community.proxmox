@@ -420,7 +420,10 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         """Convert text to key list."""
         keys = []
         for ch in str(text):
-            key = "-".join(self.CHAR_MAP[ch])
+            ch_keys = self.CHAR_MAP.get(ch, None)
+            if ch_keys is None:
+                self.module.fail_json(f"string char is invalid: {ch}")
+            key = "-".join(ch_keys)
             keys.append(key)
         return keys
 
