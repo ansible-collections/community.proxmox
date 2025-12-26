@@ -42,14 +42,15 @@ options:
       - List of keys or key sequence to send in order.
       - Each item must follow the qemu key naming format such as
         C(ctrl-alt-delete) or C(ret).
-      - You can specify either O(keys_send) or O(string_send) of them.
+      - You can specify either O(keys_send) or O(string_send).
     type: list
     elements: str
   string_send:
     description:
       - Raw string that will be transformed to the corresponding key presses
+      - Only ASCII-characters are supported.
         before sending.
-      - You can specify either O(keys_send) or O(string_send) of them.
+      - You can specify either O(keys_send) or O(string_send).
     type: str
   delay:
     description:
@@ -425,7 +426,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         for ch in str(text):
             ch_keys = self.CHAR_MAP.get(ch, None)
             if ch_keys is None:
-                self.module.fail_json(f"string char is invalid: {ch}")
+                self.module.fail_json(f"The character {ch} passed to string_send is not allowed")
             key = "-".join(ch_keys)
             keys.append(key)
         return keys
