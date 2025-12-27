@@ -1,3 +1,0 @@
----
-bugfixes:
-  - proxmox_zone - fix validation logic for VXLAN zones to accept either ``fabric`` or ``peers`` parameter. Previously, only ``fabric`` was accepted, but Proxmox VE also supports creating VXLAN zones with a peer address list (https://github.com/ansible-collections/community.proxmox/issues/216).
