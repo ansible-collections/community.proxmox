@@ -4,6 +4,47 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.5.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Minor Changes
+-------------
+
+- inventory plugin, plugin_utils - replace deprecated ``ansible.module_utils.common._collections_compat`` imports with ``collections.abc`` from the Python standard library (https://github.com/ansible-collections/community.proxmox/issues/241).
+- proxmox - change disk size units to GiB (https://github.com/ansible-collections/community.proxmox/pull/236).
+- proxmox_disk - change disk size units to GiB (https://github.com/ansible-collections/community.proxmox/pull/236).
+- proxmox_kvm - add option to migrate local disks as well (https://github.com/ansible-collections/community.proxmox/pull/240).
+- proxmox_kvm - change disk size units to GiB (https://github.com/ansible-collections/community.proxmox/pull/236).
+- proxmox_node_info - add information on node network interfaces to node information output (https://github.com/ansible-collections/community.proxmox/pull/220).
+- proxmox_node_info - add information on node's PVE version (https://github.com/ansible-collections/community.proxmox/pull/225).
+- proxmox_snap_info - Adds a new module to list snapshots or a specific snapshot for VM or container (https://github.com/ansible-collections/community.proxmox/issues/229).
+- proxmox_storage - add feature of subdirectory in CIFS share. (https://github.com/ansible-collections/community.proxmox/pull/214).
+- proxmox_storage - fix passing nfs_options to API payload (https://github.com/ansible-collections/community.proxmox/issues/203, https://github.com/ansible-collections/community.proxmox/pull/221).
+- proxmox_storage - fixed CIFS authentication by sending username and password parameters to proxmoxer (https://github.com/ansible-collections/community.proxmox/pull/214).
+
+Bugfixes
+--------
+
+- proxmox all - add missing timeout parameter to proxmoxer object creation (https://github.com/ansible-collections/community.proxmox/pull/218).
+- proxmox_ipam_info - fix bug where selecting by vmid did not work (https://github.com/ansible-collections/community.proxmox/pull/211).
+- proxmox_zone - fix validation logic for VXLAN zones to accept either ``fabric`` or ``peers`` parameter. Previously, only ``fabric`` was accepted, but Proxmox VE also supports creating VXLAN zones with a peer address list (https://github.com/ansible-collections/community.proxmox/issues/216).
+- remove wrong api endpoints and error messages from proxmod_node certificate management(https://github.com/ansible-collections/community.proxmox/pull/232).
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_ceph_mds - Add or delete Ceph Mds.
+- community.proxmox.proxmox_ceph_mgr - Add or delete Ceph Manager.
+- community.proxmox.proxmox_ceph_mon - Add or delete Ceph Monitor.
+- community.proxmox.proxmox_sendkey - Send key presses to a Proxmox VM console.
+
 v1.4.0
 ======
 
