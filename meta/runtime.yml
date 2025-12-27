@@ -32,6 +32,7 @@ action_groups:
     - proxmox_node_network_info
     - proxmox_pool
     - proxmox_pool_member
+    - proxmox_sendkey
     - proxmox_snap
     - proxmox_snap_info
     - proxmox_storage
