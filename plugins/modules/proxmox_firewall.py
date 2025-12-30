@@ -597,7 +597,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             if aliases:
                 self.aliases_present(firewall_obj=firewall_obj, level=level, aliases=aliases, update=update)
             if ip_sets:
-                self.ip_set_present(ip_sets=ip_sets, update=update)
+                self.ip_set_present(ip_sets=ip_sets, update=update, firewall_obj=firewall_obj)
         elif state == "absent":
             if self.params.get('pos') is not None:
                 self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get('pos'))
@@ -606,10 +606,10 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             if aliases:
                 self.aliases_absent(firewall_obj=firewall_obj, aliases=aliases)
             if ip_sets:
-                self.ip_set_absent(ip_sets=ip_sets)
+                self.ip_set_absent(ip_sets=ip_sets, firewall_obj=firewall_obj)
 
-    def ip_set_present(self, ip_sets, update):
-        existing_ip_sets = self.get_ip_sets()
+    def ip_set_present(self, ip_sets, update, firewall_obj):
+        existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
 
@@ -617,7 +617,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             for ip_set in ip_sets:
                 ip_set_name = ip_set['name']
                 if ip_set_name not in existing_ip_set_names:
-                    self.proxmox_api.cluster().firewall().ipset().post(
+                    firewall_obj.ipset().post(
                         name=ip_set.get('name'),
                         comment=ip_set.get('comment')
                     )
@@ -637,7 +637,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
                 for cidr in cidrs_to_update:
                     changed = True
-                    proxmoxer_cidr_obj = getattr(self.proxmox_api.cluster().firewall().ipset(ip_set_name), cidr['cidr'])
+                    proxmoxer_cidr_obj = getattr(firewall_obj.ipset(ip_set_name), cidr['cidr'])
                     proxmoxer_cidr_obj.put(
                         cidr=cidr['cidr'],
                         name=ip_set_name,
@@ -647,7 +647,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
                 for cidr in cidrs_to_create:
                     changed = True
-                    self.proxmox_api.cluster().firewall().ipset(ip_set_name).post(
+                    firewall_obj.ipset(ip_set_name).post(
                         cidr=cidr.get('cidr'),
                         nomatch=ansible_to_proxmox_bool(cidr.get('nomatch')),
                         comment=cidr.get('comment')
@@ -660,8 +660,8 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         except Exception as e:
             self.module.fail_json(f"Failed to create/update ipsets - {e}.")
 
-    def ip_set_absent(self, ip_sets):
-        existing_ip_sets = self.get_ip_sets()
+    def ip_set_absent(self, ip_sets, firewall_obj):
+        existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
 
@@ -684,12 +684,12 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 for cidr in cidrs_to_delete:
                     if cidr['cidr'] not in [x['cidr'] for x in existing_ip_set_cidrs]:
                         continue
-                    cidr_obj = getattr(self.proxmox_api.cluster().firewall().ipset(ip_set_name), cidr['cidr'])
+                    cidr_obj = getattr(firewall_obj.ipset(ip_set_name), cidr['cidr'])
                     cidr_obj.delete()
                     changed = True
 
                 if delete_ipset:
-                    self.proxmox_api.cluster().firewall().ipset(ip_set_name).delete()
+                    firewall_obj.ipset(ip_set_name).delete()
 
             self.module.exit_json(changed=changed, msg='Ipsets are absent.')
 
