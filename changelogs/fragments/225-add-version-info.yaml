@@ -1,2 +1,0 @@
-minor_changes:
-  - proxmox_node_info - add information on node's PVE version (https://github.com/ansible-collections/community.proxmox/pull/225).

@@ -1,4 +1,0 @@
----
-minor_changes:
-  - proxmox_storage - fixed CIFS authentication by sending username and password parameters to proxmoxer (https://github.com/ansible-collections/community.proxmox/pull/214).
-  - proxmox_storage - add feature of subdirectory in CIFS share. (https://github.com/ansible-collections/community.proxmox/pull/214).

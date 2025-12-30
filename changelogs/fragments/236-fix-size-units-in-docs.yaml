@@ -1,4 +1,0 @@
-minor_changes:
-  - proxmox - change disk size units to GiB (https://github.com/ansible-collections/community.proxmox/pull/236).
-  - proxmox_disk - change disk size units to GiB (https://github.com/ansible-collections/community.proxmox/pull/236).
-  - proxmox_kvm - change disk size units to GiB (https://github.com/ansible-collections/community.proxmox/pull/236).

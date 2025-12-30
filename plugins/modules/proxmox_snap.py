@@ -327,7 +327,6 @@ def main():
         module.exit_json(changed=False, msg="Vmid could not be fetched for the following action: %s" % state)
 
     vm = proxmox.get_vm(vmid)
-
     if state == 'present':
         try:
             for i in proxmox.snapshot(vm, vmid).get():
