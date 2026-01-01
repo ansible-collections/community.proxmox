@@ -624,8 +624,6 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
-        # import madbg
-        # madbg.set_trace()
         try:
             for ip_set in ip_sets:
                 ip_set_name = ip_set['name']
