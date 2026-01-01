@@ -423,6 +423,7 @@ group:
       test
 """
 
+import ipaddress
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
@@ -589,6 +590,17 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             firewall_obj = self.proxmox_api.cluster().firewall
             rules_obj = firewall_obj().rules
 
+        if ip_sets:
+            # Proxmox calculates the base ip based on the netmask
+            # user input therefore needs use the base ip to match the proxmox data
+            for ipset_item in ip_sets:
+                for cidr in ipset_item["cidrs"]:
+                    # Proxmox uses cidrs, unless its /32, then it is only the ip
+                    if cidr["cidr"].endswith("/32") or cidr["cidr"].endswith("/128"):
+                        cidr["cidr"] = cidr["cidr"].removesuffix("/32").removesuffix("/128")
+                    else:
+                        cidr["cidr"] = str(ipaddress.ip_network(cidr["cidr"], strict=False))
+
         if state == "present":
             if group_conf:
                 self.group_present(group=group, comment=self.params.get('comment'))
@@ -612,7 +624,8 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
-
+        # import madbg
+        # madbg.set_trace()
         try:
             for ip_set in ip_sets:
                 ip_set_name = ip_set['name']
