@@ -1,0 +1,2 @@
+bugfixes:
+  - proxmox_firewall - Enable ipsets on vm level and fix bugs regarding the cidr notation the proxmox api expects (https://github.com/ansible-collections/community.proxmox/pull/248).
