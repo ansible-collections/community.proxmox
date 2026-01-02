@@ -666,7 +666,6 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
-
         try:
             for ip_set in ip_sets:
                 delete_ipset = False
@@ -850,21 +849,25 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         )
 
     def reformat_ipset_cidrs(self, ip_sets):
-        # Proxmox calculates the base ip based on the netmask
-        # user input therefore needs use the base ip to match the proxmox data
-        for ipset_item in ip_sets:
-            for cidr in ipset_item["cidrs"]:
-                try:
-                    # Proxmox uses cidrs, unless its /32, then it is only the ip
-                    if cidr["cidr"].endswith("/32") or cidr["cidr"].endswith("/128"):
-                        cidr["cidr"] = str(ipaddress.ip_address(cidr["cidr"].removesuffix("/32").removesuffix("/128")))
-                    # No netmask, so it should be a valid ipaddress
-                    elif cidr["cidr"].count("/") == 0:
-                        cidr["cidr"] = str(ipaddress.ip_address(cidr["cidr"]))
-                    else:
-                        cidr["cidr"] = str(ipaddress.ip_network(cidr["cidr"], strict=False))
-                except ValueError as e:
-                    self.module.fail_json(f"The passed ipset cidrs are invalid: {e}")
+        """Normalise every CIDR entry in-place so it matches Proxmox format."""
+
+        def _normalise(cidr_entry: str) -> str:
+            """Return Proxmox-compatible string for a single CIDR."""
+            # /32 and /128 → plain address
+            if cidr_entry.endswith(("/32", "/128")):
+                return str(ipaddress.ip_address(cidr_entry.split("/")[0]))
+            # bare address → itself
+            if "/" not in cidr_entry:
+                return str(ipaddress.ip_address(cidr_entry))
+            # real network → compressed network string
+            return str(ipaddress.ip_network(cidr_entry, strict=False))
+
+        try:
+            for ipset in ip_sets:
+                for cidr in ipset.get("cidrs") or []:
+                    cidr["cidr"] = _normalise(cidr["cidr"])
+        except ValueError as exc:
+            self.module.fail_json(msg=f"Invalid CIDR in ipset: {exc}")
 
     def move_rule_to_correct_pos(self, rules_obj, rule):
         ##################################################################################################
