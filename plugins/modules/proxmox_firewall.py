@@ -590,17 +590,6 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             firewall_obj = self.proxmox_api.cluster().firewall
             rules_obj = firewall_obj().rules
 
-        if ip_sets:
-            # Proxmox calculates the base ip based on the netmask
-            # user input therefore needs use the base ip to match the proxmox data
-            for ipset_item in ip_sets:
-                for cidr in ipset_item["cidrs"]:
-                    # Proxmox uses cidrs, unless its /32, then it is only the ip
-                    if cidr["cidr"].endswith("/32") or cidr["cidr"].endswith("/128"):
-                        cidr["cidr"] = cidr["cidr"].removesuffix("/32").removesuffix("/128")
-                    else:
-                        cidr["cidr"] = str(ipaddress.ip_network(cidr["cidr"], strict=False))
-
         if state == "present":
             if group_conf:
                 self.group_present(group=group, comment=self.params.get('comment'))
@@ -621,6 +610,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.ip_set_absent(ip_sets=ip_sets, firewall_obj=firewall_obj)
 
     def ip_set_present(self, ip_sets, update, firewall_obj):
+        self.reformat_ipset_cidrs(ip_sets)
         existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
@@ -672,6 +662,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             self.module.fail_json(f"Failed to create/update ipsets - {e}.")
 
     def ip_set_absent(self, ip_sets, firewall_obj):
+        self.reformat_ipset_cidrs(ip_sets)
         existing_ip_sets = self.get_ip_sets(firewall_obj)
         existing_ip_set_names = [x['name'] for x in existing_ip_sets]
         changed = False
@@ -857,6 +848,23 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         self.module.exit_json(
             changed=True, msg='successfully created/updated firewall rules'
         )
+
+    def reformat_ipset_cidrs(self, ip_sets):
+        # Proxmox calculates the base ip based on the netmask
+        # user input therefore needs use the base ip to match the proxmox data
+        for ipset_item in ip_sets:
+            for cidr in ipset_item["cidrs"]:
+                try:
+                    # Proxmox uses cidrs, unless its /32, then it is only the ip
+                    if cidr["cidr"].endswith("/32") or cidr["cidr"].endswith("/128"):
+                        cidr["cidr"] = str(ipaddress.ip_address(cidr["cidr"].removesuffix("/32").removesuffix("/128")))
+                    # No netmask, so it should be a valid ipaddress
+                    elif cidr["cidr"].count("/") == 0:
+                        cidr["cidr"] = str(ipaddress.ip_address(cidr["cidr"]))
+                    else:
+                        cidr["cidr"] = str(ipaddress.ip_network(cidr["cidr"], strict=False))
+                except ValueError as e:
+                    self.module.fail_json(f"The passed ipset cidrs are invalid: {e}")
 
     def move_rule_to_correct_pos(self, rules_obj, rule):
         ##################################################################################################
