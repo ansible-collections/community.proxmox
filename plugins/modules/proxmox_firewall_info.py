@@ -331,7 +331,7 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
         rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
         groups = self.get_groups()
         aliases = self.get_aliases(firewall_obj=firewall_obj)
-        ip_sets = self.get_ip_sets()
+        ip_sets = self.get_ip_sets(firewall_obj=firewall_obj)
         self.module.exit_json(
             changed=False,
             firewall_rules=rules,
