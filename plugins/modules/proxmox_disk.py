@@ -72,7 +72,7 @@ options:
     description:
       - Desired volume size in GiB to allocate when O(state=present) (specify O(size) without suffix).
       - New (or additional) size of volume when O(state=resized). With the V(+) sign the value is added to the actual size
-        of the volume and without it, the value is taken as an absolute one.
+        of the volume and without it, the value is taken as an absolute one (specify O(size) with suffix V(KMGT)).
     type: str
   bwlimit:
     description:
