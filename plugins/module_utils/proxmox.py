@@ -56,7 +56,7 @@ def proxmox_auth_argument_spec():
                             ),
         api_timeout=dict(type='int',
                      default=5,
-                     fallback=(env_fallback, ['PROXMOX_TIMEOUT'])
+                     fallback=(env_fallback, ['PROXMOX_API_TIMEOUT'])
                      ),
     )
 
