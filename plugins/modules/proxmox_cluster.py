@@ -78,6 +78,7 @@ EXAMPLES = r"""
 
 - name: Join a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
+    state: present
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
