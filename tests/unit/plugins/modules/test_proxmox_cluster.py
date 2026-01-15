@@ -137,7 +137,7 @@ class TestProxmoxCluster(ModuleTestCase):
         result = exc_info.value.args[0]
 
         assert result["changed"] is True
-        assert result["msg"] == "Cluster 'devcluster' would be created (check mode)."
+        assert result["msg"] == "Cluster 'devcluster' would be created."
         assert result["cluster"] == "devcluster"
 
     def test_create(self):
@@ -206,7 +206,7 @@ class TestProxmoxCluster(ModuleTestCase):
         result = exc_info.value.args[0]
 
         assert result["failed"] is True
-        assert result["msg"] == 'Error creating cluster: Node is already part of a different cluster - "devcluster"!'
+        assert result["msg"] == 'Error creating cluster: Node is already part of a different cluster - "devcluster".'
 
     def test_join_check_mode(self):
         mock_obj = self.connect_mock.return_value
@@ -229,7 +229,7 @@ class TestProxmoxCluster(ModuleTestCase):
         result = exc_info.value.args[0]
 
         assert result["changed"] is True
-        assert result["msg"] == "Node would join the cluster (check mode)."
+        assert result["msg"] == "Node would join the cluster."
 
     def test_join(self):
         mock_obj = self.connect_mock.return_value
@@ -295,7 +295,7 @@ class TestProxmoxCluster(ModuleTestCase):
         result = exc_info.value.args[0]
 
         assert result["failed"] is True
-        assert result["msg"] == "Error while joining cluster: Node is already part of a cluster!"
+        assert result["msg"] == "Error while joining cluster: Node is already part of a cluster."
 
 
 @pytest.fixture

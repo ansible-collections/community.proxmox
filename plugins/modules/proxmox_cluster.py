@@ -113,9 +113,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 class ProxmoxClusterAnsible(ProxmoxAnsible):
     def check_is_cluster(self, cluster_status):
-        for d in cluster_status:
-            if d["type"] == "cluster":
-                return True
+        if "cluster" in [cluster_data["type"] for cluster_data in cluster_status]:
+            return True
         return False
 
     def get_cluster_name(self, cluster_status):
@@ -126,7 +125,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
 
     def check_already_in_right_cluster(self, cluster_status, master_ip):
         for d in cluster_status:
-            if ("ip" in d and d["ip"] == master_ip) or ("name" in d and d["name"] == master_ip):
+            if master_ip in (d.get("ip"), d.get("name")):
                 return True
         return False
 
@@ -145,7 +144,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
                 )
             else:
                 self.module.fail_json(
-                    msg='Error creating cluster: Node is already part of a different cluster - "{}"!'.format(self.get_cluster_name(cluster_status))
+                    msg=f'Error creating cluster: Node is already part of a different cluster - "{self.get_cluster_name(cluster_status)}".'
                 )
 
         if self.module.params.get("link0") is not None:
@@ -156,7 +155,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
         if self.module.check_mode:
             self.module.exit_json(
                 changed=True,
-                msg=f"Cluster '{cluster_name}' would be created (check mode).",
+                msg=f"Cluster '{cluster_name}' would be created.",
                 cluster=cluster_name
             )
 
@@ -168,7 +167,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
                 cluster=cluster_name
             )
         except Exception as e:
-            self.module.fail_json(msg="Error while creating cluster: {}".format(str(e)))
+            self.module.fail_json(msg=f"Error while creating cluster: {str(e)}")
 
     def cluster_join(self):
         payload = {}
@@ -193,13 +192,13 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
                 )
 
             self.module.fail_json(
-                msg="Error while joining cluster: Node is already part of a cluster!"
+                msg="Error while joining cluster: Node is already part of a cluster."
             )
 
         if self.module.check_mode:
             self.module.exit_json(
                 changed=True,
-                msg="Node would join the cluster (check mode)."
+                msg="Node would join the cluster."
             )
 
         try:
@@ -208,7 +207,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
 
         except Exception as e:
             self.module.fail_json(
-                msg="Error while joining the cluster: {}".format(str(e))
+                msg=f"Error while joining the cluster: {str(e)}",
             )
 
 
@@ -216,7 +215,7 @@ def validate_cluster_name(module, min_length=1, max_length=15):
     cluster_name = module.params.get("cluster_name")
 
     if not (min_length <= len(cluster_name) <= max_length):
-        module.fail_json(msg="Cluster name must be between {} and {} characters long.".format(min_length, max_length))
+        module.fail_json(msg=f"Cluster name must be between {min_length} and {max_length} characters long.")
 
     if not re.match(r"^[a-zA-Z0-9\-]+$", cluster_name):
         module.fail_json(
