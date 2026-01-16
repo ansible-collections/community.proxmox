@@ -51,8 +51,11 @@ def proxmox_auth_argument_spec():
                               no_log=True,
                               fallback=(env_fallback, ['PROXMOX_TOKEN_SECRET'])
                               ),
+        ca_path=dict(type='str',
+                            fallback=(env_fallback, ['PROXMOX_CA_PATH'])
+                            ),
         validate_certs=dict(type='bool',
-                            default=False,
+                            default=True,
                             fallback=(env_fallback, ['PROXMOX_VALIDATE_CERTS'])
                             ),
     )
@@ -147,7 +150,10 @@ class ProxmoxAnsible(object):
         api_password = self.module.params['api_password']
         api_token_id = self.module.params['api_token_id']
         api_token_secret = self.module.params['api_token_secret']
-        validate_certs = self.module.params['validate_certs']
+        if self.module.params["ca_path"]:
+            validate_certs = self.module.params["ca_path"]
+        else:
+            validate_certs = self.module.params['validate_certs']
 
         if 'timeout' in self.module.params:
             timeout = self.module.params['timeout']
