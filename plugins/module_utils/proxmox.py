@@ -150,7 +150,7 @@ class ProxmoxAnsible(object):
         api_password = self.module.params['api_password']
         api_token_id = self.module.params['api_token_id']
         api_token_secret = self.module.params['api_token_secret']
-        if self.module.params["ca_path"]:
+        if self.module.params["ca_path"] and self.module.params['validate_certs']:
             validate_certs = self.module.params["ca_path"]
         else:
             validate_certs = self.module.params['validate_certs']
