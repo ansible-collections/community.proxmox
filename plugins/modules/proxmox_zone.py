@@ -387,7 +387,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
                 )
             except Exception as e:
                 if self.is_lock_and_rollback_supported:
-                  self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
+                    self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
                 self.module.fail_json(
                     msg=f'Failed to update zone {zone_name} - {e}'
                 )
@@ -397,7 +397,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
                 kwargs['lock-token'] = self.get_global_sdn_lock()
 
                 if not self.is_lock_and_rollback_supported:
-                  del kwargs['lock-token']
+                    del kwargs['lock-token']
                 self.proxmox_api.cluster().sdn().zones().post(**kwargs)
                 self.apply_sdn_changes_and_release_lock(kwargs.get('lock-token'))
                 self.module.exit_json(
@@ -405,7 +405,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
                 )
             except Exception as e:
                 if self.is_lock_and_rollback_supported:
-                  self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
+                    self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
                 self.module.fail_json(
                     msg=f'Failed to create zone {zone_name} - {e}'
                 )
@@ -429,12 +429,12 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             )
         except Exception as e:
             if self.is_lock_and_rollback_supported:
-              self.rollback_sdn_changes_and_release_lock(params['lock-token'])
-              self.module.fail_json(
-                  msg=f'Failed to delete zone {zone_name} {e}. Rolling back all pending changes.'
-              )
+                self.rollback_sdn_changes_and_release_lock(params['lock-token'])
+                self.module.fail_json(
+                    msg=f'Failed to delete zone {zone_name} {e}. Rolling back all pending changes.'
+                )
             else:
-              self.module.fail_json(msg=f'Failed to delete zone {zone_name} {e}.  Rollback not supported.')
+                self.module.fail_json(msg=f'Failed to delete zone {zone_name} {e}.  Rollback not supported.')
 
 
 def main():
