@@ -20,6 +20,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible.module_utils.compat.version import LooseVersion
 
 RAW_ZONES = [
     {
@@ -94,12 +95,14 @@ class TestProxmoxZoneInfoModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
+        self.version_mock = patch.object(proxmox_zone_info.ProxmoxZoneInfoAnsible, "version", return_value=LooseVersion("9.0")).start()
         self.connect_mock.return_value.cluster.return_value.sdn.return_value.zones.return_value.get.return_value = RAW_ZONES
 
     def tearDown(self):
         self.connect_mock.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
+        self.version_mock.stop()
         super(TestProxmoxZoneInfoModule, self).tearDown()
 
     def test_get_zones(self):
