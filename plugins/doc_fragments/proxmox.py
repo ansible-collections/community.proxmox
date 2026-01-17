@@ -44,13 +44,18 @@ options:
       - Specify the token secret.
       - Uses the E(PROXMOX_TOKEN_SECRET) environment variable if not specified.
     type: str
+  ca_path:
+    description:
+      - Path to a local certificate, which will be used to verify tls connections.
+      - Ignored if O(validate_certs=false).
+    type: str
   validate_certs:
     description:
       - If V(false), SSL certificates will not be validated.
       - This should only be used on personally controlled sites using self-signed certificates.
       - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
     type: bool
-    default: false
+    default: true
 requirements: ["proxmoxer >= 2.0", "requests"]
 """
 
