@@ -1,0 +1,2 @@
+major_changes:
+  - proxmox - Add ca_path option to specify a ca-certificate for tls validation (https://github.com/ansible-collections/community.proxmox/pull/256).
