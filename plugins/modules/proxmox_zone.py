@@ -378,13 +378,16 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
                 del kwargs['zone']
                 del kwargs['type']
 
+                if not self.is_lock_and_rollback_supported:
+                    del kwargs['lock-token']
                 self.proxmox_api.cluster().sdn().zones(zone_name).put(**kwargs)
-                self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
+                self.apply_sdn_changes_and_release_lock(kwargs.get('lock-token'))
                 self.module.exit_json(
                     changed=True, zone=zone_name, msg=f'Updated zone - {zone_name}'
                 )
             except Exception as e:
-                self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
+                if self.is_lock_and_rollback_supported:
+                  self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
                 self.module.fail_json(
                     msg=f'Failed to update zone {zone_name} - {e}'
                 )
@@ -393,13 +396,16 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             try:
                 kwargs['lock-token'] = self.get_global_sdn_lock()
 
+                if not self.is_lock_and_rollback_supported:
+                  del kwargs['lock-token']
                 self.proxmox_api.cluster().sdn().zones().post(**kwargs)
-                self.apply_sdn_changes_and_release_lock(kwargs['lock-token'])
+                self.apply_sdn_changes_and_release_lock(kwargs.get('lock-token'))
                 self.module.exit_json(
                     changed=True, zone=zone_name, msg=f'Created new Zone - {zone_name}'
                 )
             except Exception as e:
-                self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
+                if self.is_lock_and_rollback_supported:
+                  self.rollback_sdn_changes_and_release_lock(kwargs['lock-token'])
                 self.module.fail_json(
                     msg=f'Failed to create zone {zone_name} - {e}'
                 )
@@ -414,16 +420,21 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
             )
         try:
             params['lock-token'] = self.get_global_sdn_lock()
+            if not self.is_lock_and_rollback_supported:
+                del params['lock-token']
             self.proxmox_api.cluster().sdn().zones(zone_name).delete(**params)
-            self.apply_sdn_changes_and_release_lock(params['lock-token'])
+            self.apply_sdn_changes_and_release_lock(params.get('lock-token'))
             self.module.exit_json(
                 changed=True, zone=zone_name, msg=f'Successfully deleted zone {zone_name}'
             )
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(params['lock-token'])
-            self.module.fail_json(
-                msg=f'Failed to delete zone {zone_name} {e}. Rolling back all pending changes.'
-            )
+            if self.is_lock_and_rollback_supported:
+              self.rollback_sdn_changes_and_release_lock(params['lock-token'])
+              self.module.fail_json(
+                  msg=f'Failed to delete zone {zone_name} {e}. Rolling back all pending changes.'
+              )
+            else:
+              self.module.fail_json(msg=f'Failed to delete zone {zone_name} {e}.  Rollback not supported.')
 
 
 def main():

@@ -23,12 +23,21 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super(ProxmoxSdnAnsible, self).__init__(module)
         self.module = module
+        pve_major_version = self.version().version[0]
+        self._is_lock_and_rollback_supported = pve_major_version >= 9
+
+    @property
+    def is_lock_and_rollback_supported(self) -> bool:
+        return self._is_lock_and_rollback_supported
 
     def get_global_sdn_lock(self) -> str:
         """Acquire global SDN lock. Needed for any changes under SDN.
 
         :return: lock-token
         """
+        if not self.is_lock_and_rollback_supported:
+            return ""
+
         try:
             return self.proxmox_api.cluster().sdn().lock().post()
         except Exception as e:
@@ -42,17 +51,22 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         :param lock: Global SDN lock token
         :param release_lock: if True release lock after successfully applying changes
         """
-        lock_params = {
-            'lock-token': lock,
-            'release-lock': ansible_to_proxmox_bool(release_lock)
-        }
+        lock_params = {}
+        if self.is_lock_and_rollback_supported:
+            lock_params = {
+                'lock-token': lock,
+                'release-lock': ansible_to_proxmox_bool(release_lock)
+            }
         try:
             self.proxmox_api.cluster().sdn().put(**lock_params)
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock)
-            self.module.fail_json(
-                msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
-            )
+            if self.is_lock_and_rollback_supported:
+                self.rollback_sdn_changes_and_release_lock(lock)
+                self.module.fail_json(
+                    msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
+                )
+            else:
+                self.module.fail_json(msg=f'Failed to apply sdn changes {e}.')
 
     def rollback_sdn_changes_and_release_lock(self, lock: str, release_lock: bool = True) -> None:
         """Rollback all changes  done under a lock token.
