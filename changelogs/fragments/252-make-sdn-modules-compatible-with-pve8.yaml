@@ -1,0 +1,3 @@
+---
+minor_changes:
+    - proxmox_zone, proxmox_vnet, proxmox_subnet - make sdn modules compatible with pve8 (https://github.com/ansible-collections/community.proxmox/pull/254).
