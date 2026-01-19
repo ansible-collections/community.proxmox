@@ -220,7 +220,6 @@ want_proxmox_nodes_ansible_host: true
 
 '''
 
-import itertools
 import re
 from sys import version as python_version
 from urllib.parse import urlencode
@@ -367,30 +366,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def _get_members_per_pool(self, pool):
         ret = self._get_json(f"{self.proxmox_url}/api2/json/pools/{pool}")
         return ret['members']
-
-    def _get_node_ip(self, node):
-        ret = self._get_json(f"{self.proxmox_url}/api2/json/nodes/{node}/network")
-
-        # sort interface by iface name to make selection as stable as possible
-        ret.sort(key=lambda x: x['iface'])
-
-        for iface in ret:
-            try:
-                # only process interfaces adhering to these rules
-                if 'active' not in iface:
-                    self.display.vvv(f"Interface {iface['iface']} on node {node} does not have an active state")
-                    continue
-                if 'address' not in iface:
-                    self.display.vvv(f"Interface {iface['iface']} on node {node} does not have an address")
-                    continue
-                if 'gateway' not in iface:
-                    self.display.vvv(f"Interface {iface['iface']} on node {node} does not have a gateway")
-                    continue
-                self.display.vv(f"Using interface {iface['iface']} on node {node} with address {iface['address']} as node ip for ansible_host")
-                return iface['address']
-            except Exception:
-                continue
-        return None
 
     def _get_lxc_interfaces(self, properties, node, vmid):
         status_key = self._fact('status')
@@ -654,6 +629,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for node in self._get_nodes():
             if not node.get('name'):
                 continue
+
             nodename = node['name']
 
             if not node['type'] == 'node':
@@ -662,6 +638,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_nodes:
                 self.inventory.add_host(nodename)
                 self.inventory.add_child(nodes_group, nodename)
+                # get node IP address
                 if want_proxmox_nodes_ansible_host:
                     self.inventory.set_variable(nodename, 'ansible_host', node['ip'])
 
@@ -672,10 +649,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_nodes:
                 variables = self.inventory.get_host(nodename).get_vars()
                 self._set_composite_vars(self.get_option('compose'), variables, nodename, strict=self.strict)
-
+            
+            # add LXC/Qemu groups for the node
             if not self.exclude_qemu:
                 node_type_group = self._group(f"{nodename}_qemu")
                 self.inventory.add_group(node_type_group)
+
+                # qemu_objects = zip(itertools.repeat('qemu'), )
                 for item in self._get_qemu_per_node(nodename):
                     name = self._handle_item(nodename, 'qemu', item)
                     if name is not None:
@@ -684,6 +664,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_lxc:
                 node_type_group = self._group(f"{nodename}_lxc")
                 self.inventory.add_group(node_type_group)
+
+                # lxc_objects = zip(itertools.repeat('lxc'), )
                 for item in self._get_lxc_per_node(nodename):
                     name = self._handle_item(nodename, 'lxc', item)
                     if name is not None:
