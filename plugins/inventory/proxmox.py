@@ -354,7 +354,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _get_nodes(self):
         return self._get_json(f"{self.proxmox_url}/api2/json/cluster/status")
-        return self._get_json(f"{self.proxmox_url}/api2/json/nodes")
 
     def _get_pools(self):
         return self._get_json(f"{self.proxmox_url}/api2/json/pools")
@@ -655,7 +654,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for node in self._get_nodes():
             if not node.get('name'):
                 continue
-
             nodename = node['name']
 
             if not node['type'] == 'node':
@@ -664,7 +662,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_nodes:
                 self.inventory.add_host(nodename)
                 self.inventory.add_child(nodes_group, nodename)
-                # get node IP address
                 if want_proxmox_nodes_ansible_host:
                     self.inventory.set_variable(nodename, 'ansible_host', node['ip'])
 
@@ -675,13 +672,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_nodes:
                 variables = self.inventory.get_host(nodename).get_vars()
                 self._set_composite_vars(self.get_option('compose'), variables, nodename, strict=self.strict)
-            
-            # add LXC/Qemu groups for the node
+
             if not self.exclude_qemu:
                 node_type_group = self._group(f"{nodename}_qemu")
                 self.inventory.add_group(node_type_group)
-
-                # qemu_objects = zip(itertools.repeat('qemu'), )
                 for item in self._get_qemu_per_node(nodename):
                     name = self._handle_item(nodename, 'qemu', item)
                     if name is not None:
@@ -690,8 +684,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_lxc:
                 node_type_group = self._group(f"{nodename}_lxc")
                 self.inventory.add_group(node_type_group)
-
-                # lxc_objects = zip(itertools.repeat('lxc'), )
                 for item in self._get_lxc_per_node(nodename):
                     name = self._handle_item(nodename, 'lxc', item)
                     if name is not None:
