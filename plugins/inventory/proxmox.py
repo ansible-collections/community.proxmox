@@ -629,7 +629,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for node in self._get_nodes():
             if not node.get('name'):
                 continue
-
             nodename = node['name']
 
             if not node['type'] == 'node':
@@ -648,7 +647,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if not self.exclude_nodes:
                 variables = self.inventory.get_host(nodename).get_vars()
                 self._set_composite_vars(self.get_option('compose'), variables, nodename, strict=self.strict)
-            
+
             # add Qemu VMs for the node
             if not self.exclude_qemu:
                 node_type_group = self._group(f"{nodename}_qemu")
