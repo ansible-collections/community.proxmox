@@ -115,6 +115,14 @@ DOCUMENTATION = """
         description: Exclude proxmox nodes and the nodes-group from the inventory output.
         type: bool
         default: false
+      exclude_lxc:
+        description: Exclude LXC containers from the inventory output.
+        type: bool
+        default: false
+      exclude_qemu:
+        description: Exclude QEMU virtual machines from the inventory output.
+        type: bool
+        default: false
       filters:
         description:
         - A list of Jinja templates that allow filtering hosts.
@@ -210,7 +218,6 @@ want_proxmox_nodes_ansible_host: true
 
 """
 
-import itertools
 import re
 from collections.abc import MutableMapping
 from sys import version as python_version
@@ -341,7 +348,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         return make_unsafe(data)
 
     def _get_nodes(self):
-        return self._get_json(f"{self.proxmox_url}/api2/json/nodes")
+        cluster_status = self._get_json(f"{self.proxmox_url}/api2/json/cluster/status")
+        return [item for item in cluster_status if item["type"] == "node"]
 
     def _get_pools(self):
         return self._get_json(f"{self.proxmox_url}/api2/json/pools")
@@ -355,32 +363,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def _get_members_per_pool(self, pool):
         ret = self._get_json(f"{self.proxmox_url}/api2/json/pools/{pool}")
         return ret["members"]
-
-    def _get_node_ip(self, node):
-        ret = self._get_json(f"{self.proxmox_url}/api2/json/nodes/{node}/network")
-
-        # sort interface by iface name to make selection as stable as possible
-        ret.sort(key=lambda x: x["iface"])
-
-        for iface in ret:
-            try:
-                # only process interfaces adhering to these rules
-                if "active" not in iface:
-                    self.display.vvv(f"Interface {iface['iface']} on node {node} does not have an active state")
-                    continue
-                if "address" not in iface:
-                    self.display.vvv(f"Interface {iface['iface']} on node {node} does not have an address")
-                    continue
-                if "gateway" not in iface:
-                    self.display.vvv(f"Interface {iface['iface']} on node {node} does not have a gateway")
-                    continue
-                self.display.vv(
-                    f"Using interface {iface['iface']} on node {node} with address {iface['address']} as node ip for ansible_host"
-                )
-                return iface["address"]
-            except Exception:
-                continue
-        return None
 
     def _get_lxc_interfaces(self, properties, node, vmid):
         status_key = self._fact("status")
@@ -644,42 +626,41 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         want_proxmox_nodes_ansible_host = self.get_option("want_proxmox_nodes_ansible_host")
 
-        # gather vm's on nodes
+        # gather VMs on nodes
         self._get_auth()
         hosts = []
         for node in self._get_nodes():
-            if not node.get("node"):
-                continue
             if not self.exclude_nodes:
-                self.inventory.add_host(node["node"])
-            if node["type"] == "node" and not self.exclude_nodes:
-                self.inventory.add_child(nodes_group, node["node"])
+                self.inventory.add_host(node["name"])
+                self.inventory.add_child(nodes_group, node["name"])
+                if want_proxmox_nodes_ansible_host:
+                    self.inventory.set_variable(node["name"], "ansible_host", node["ip"])
 
-            if node["status"] == "offline":
+            if not node["online"] == 1:
                 continue
-
-            # get node IP address
-            if want_proxmox_nodes_ansible_host and not self.exclude_nodes:
-                ip = self._get_node_ip(node["node"])
-                self.inventory.set_variable(node["node"], "ansible_host", ip)
 
             # Setting composite variables
             if not self.exclude_nodes:
-                variables = self.inventory.get_host(node["node"]).get_vars()
-                self._set_composite_vars(self.get_option("compose"), variables, node["node"], strict=self.strict)
+                variables = self.inventory.get_host(node["name"]).get_vars()
+                self._set_composite_vars(self.get_option("compose"), variables, node["name"], strict=self.strict)
 
-            # add LXC/Qemu groups for the node
-            for ittype in ("lxc", "qemu"):
-                node_type_group = self._group(f"{node['node']}_{ittype}")
+            # add Qemu VMs for the node
+            if not self.exclude_qemu:
+                node_type_group = self._group(node["name"] + "_qemu")
                 self.inventory.add_group(node_type_group)
+                for item in self._get_qemu_per_node(node["name"]):
+                    name = self._handle_item(node["name"], "qemu", item)
+                    if name is not None:
+                        hosts.append(name)
 
-            # get LXC containers and Qemu VMs for this node
-            lxc_objects = zip(itertools.repeat("lxc"), self._get_lxc_per_node(node["node"]))
-            qemu_objects = zip(itertools.repeat("qemu"), self._get_qemu_per_node(node["node"]))
-            for ittype, item in itertools.chain(lxc_objects, qemu_objects):
-                name = self._handle_item(node["node"], ittype, item)
-                if name is not None:
-                    hosts.append(name)
+            # add LXC VMs for the node
+            if not self.exclude_lxc:
+                node_type_group = self._group(node["name"] + "_lxc")
+                self.inventory.add_group(node_type_group)
+                for item in self._get_lxc_per_node(node["name"]):
+                    name = self._handle_item(node["name"], "lxc", item)
+                    if name is not None:
+                        hosts.append(name)
 
         # gather vm's in pools
         self._populate_pool_groups(hosts)
@@ -710,6 +691,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             raise AnsibleError("You must set want_facts to True if you want to use qemu_extended_statuses.")
         # read rest of options
         self.exclude_nodes = self.get_option("exclude_nodes")
+        self.exclude_lxc = self.get_option("exclude_lxc")
+        self.exclude_qemu = self.get_option("exclude_qemu")
         self.cache_key = self.get_cache_key(path)
         self.use_cache = cache and self.get_option("cache")
         self.update_cache = not cache and self.get_option("cache")
