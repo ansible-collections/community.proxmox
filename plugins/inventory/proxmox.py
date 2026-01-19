@@ -117,6 +117,14 @@ DOCUMENTATION = '''
         description: Exclude proxmox nodes and the nodes-group from the inventory output.
         type: bool
         default: false
+      exclude_lxc:
+        description: Exclude LXC containers from the inventory output.
+        type: bool
+        default: false
+      exclude_qemu:
+        description: Exclude QEMU virtual machines from the inventory output.
+        type: bool
+        default: false
       filters:
         description:
         - A list of Jinja templates that allow filtering hosts.
@@ -345,6 +353,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         return make_unsafe(data)
 
     def _get_nodes(self):
+        return self._get_json(f"{self.proxmox_url}/api2/json/cluster/status")
         return self._get_json(f"{self.proxmox_url}/api2/json/nodes")
 
     def _get_pools(self):
@@ -644,38 +653,49 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self._get_auth()
         hosts = []
         for node in self._get_nodes():
-            if not node.get('node'):
+            if not node.get('name'):
                 continue
+
+            nodename = node['name']
+
+            if not node['type'] == 'node':
+                continue
+
             if not self.exclude_nodes:
-                self.inventory.add_host(node['node'])
-            if node['type'] == 'node' and not self.exclude_nodes:
-                self.inventory.add_child(nodes_group, node['node'])
+                self.inventory.add_host(nodename)
+                self.inventory.add_child(nodes_group, nodename)
+                # get node IP address
+                if want_proxmox_nodes_ansible_host:
+                    self.inventory.set_variable(nodename, 'ansible_host', node['ip'])
 
-            if node['status'] == 'offline':
+            if not node['online'] == 1:
                 continue
-
-            # get node IP address
-            if want_proxmox_nodes_ansible_host and not self.exclude_nodes:
-                ip = self._get_node_ip(node['node'])
-                self.inventory.set_variable(node['node'], 'ansible_host', ip)
 
             # Setting composite variables
             if not self.exclude_nodes:
-                variables = self.inventory.get_host(node['node']).get_vars()
-                self._set_composite_vars(self.get_option('compose'), variables, node['node'], strict=self.strict)
-
+                variables = self.inventory.get_host(nodename).get_vars()
+                self._set_composite_vars(self.get_option('compose'), variables, nodename, strict=self.strict)
+            
             # add LXC/Qemu groups for the node
-            for ittype in ('lxc', 'qemu'):
-                node_type_group = self._group(f"{node['node']}_{ittype}")
+            if not self.exclude_qemu:
+                node_type_group = self._group(f"{nodename}_qemu")
                 self.inventory.add_group(node_type_group)
 
-            # get LXC containers and Qemu VMs for this node
-            lxc_objects = zip(itertools.repeat('lxc'), self._get_lxc_per_node(node['node']))
-            qemu_objects = zip(itertools.repeat('qemu'), self._get_qemu_per_node(node['node']))
-            for ittype, item in itertools.chain(lxc_objects, qemu_objects):
-                name = self._handle_item(node['node'], ittype, item)
-                if name is not None:
-                    hosts.append(name)
+                # qemu_objects = zip(itertools.repeat('qemu'), )
+                for item in self._get_qemu_per_node(nodename):
+                    name = self._handle_item(nodename, 'qemu', item)
+                    if name is not None:
+                        hosts.append(name)
+
+            if not self.exclude_lxc:
+                node_type_group = self._group(f"{nodename}_lxc")
+                self.inventory.add_group(node_type_group)
+
+                # lxc_objects = zip(itertools.repeat('lxc'), )
+                for item in self._get_lxc_per_node(nodename):
+                    name = self._handle_item(nodename, 'lxc', item)
+                    if name is not None:
+                        hosts.append(name)
 
         # gather vm's in pools
         self._populate_pool_groups(hosts)
@@ -707,6 +727,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             raise AnsibleError('You must set want_facts to True if you want to use qemu_extended_statuses.')
         # read rest of options
         self.exclude_nodes = self.get_option('exclude_nodes')
+        self.exclude_lxc = self.get_option('exclude_lxc')
+        self.exclude_qemu = self.get_option('exclude_qemu')
         self.cache_key = self.get_cache_key(path)
         self.use_cache = cache and self.get_option('cache')
         self.update_cache = not cache and self.get_option('cache')
