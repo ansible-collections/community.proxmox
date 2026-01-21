@@ -238,10 +238,7 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
         try:
             root = self.proxmox_api.nodes(node).ceph.osd.get()
             root = root['root']['children'][0]['children']
-            if True not in [any(d.get("id") == str(osdid) for d in host.get('children')) for host in root if host.get('children') is not None]:
-                self.module.fail_json(
-                    msg=f"Osd {osdid} does not exist."
-                )
+            return True in [any(d.get("id") == str(osdid) for d in host.get('children')) for host in root if host.get('children') is not None]
         except Exception as e:
             self.module.fail_json(
                 msg=f"Failure checking osd with exception : {to_native(e)}."
@@ -292,7 +289,6 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
             msg = "Osd added."
         else:
             msg = "Osd would be added."
-
         self.module.exit_json(
             changed=True,
             msg=msg,
@@ -300,91 +296,78 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
 
     def in_osd(self, node, osdid):
         self.check_node(node)
-        self.check_osd(node, osdid)
+        if not self.check_osd(node, osdid):
+            self.module.fail_json(msg=f"Osd {osdid} does not exist.")
         if not self.check_osd_in(node, osdid):
             if not self.module.check_mode:
                 self.proxmox_api(f"nodes/{node}/ceph/osd/{osdid}/in").create()
                 msg = f"In osd {osdid}."
             else:
                 msg = f"Would in osd {osdid}."
-
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
+            self.module.exit_json(changed=True, msg=msg)
         else:
-            self.module.exit_json(
-                changed=False,
-                msg=f"Osd {osdid} already in.",
-            )
+            self.module.exit_json(changed=False, msg=f"Osd {osdid} already in.")
 
     def out_osd(self, node, osdid):
         self.check_node(node)
-        self.check_osd(node, osdid)
+        if not self.check_osd(node, osdid):
+            self.module.fail_json(msg=f"Osd {osdid} does not exist.")
         if self.check_osd_in(node, osdid):
             if not self.module.check_mode:
                 self.proxmox_api.nodes(node).ceph.osd(osdid).out.create()
                 msg = f"Out osd {osdid}."
             else:
                 msg = f"Would out osd {osdid}."
-
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
+            self.module.exit_json(changed=True, msg=msg)
         else:
-            self.module.exit_json(
-                changed=False,
-                msg=f"Osd {osdid} already out.",
-            )
+            self.module.exit_json(changed=False, msg=f"Osd {osdid} already out.")
 
     def scrub_osd(self, node, osdid, deep):
         self.check_node(node)
-        self.check_osd(node, osdid)
+        if not self.check_osd(node, osdid):
+            self.module.fail_json(msg=f"Osd {osdid} does not exist.")
         if self.check_osd_started(node, osdid):
             if not self.module.check_mode:
                 self.proxmox_api.nodes(node).ceph.osd(osdid).scrub.create(deep=deep)
                 msg = f"Scrub Osd {osdid}."
             else:
                 msg = f"Would scrub Osd {osdid}."
-
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
+            self.module.exit_json(changed=True, msg=msg)
         else:
-            self.module.fail_json(
-                msg=f"Osd {osdid} is not up."
-            )
+            self.module.fail_json(msg=f"Osd {osdid} is not up.")
 
     def del_osd(self, node, osdid, cleanup):
         self.check_node(node)
-        self.check_osd(node, osdid)
-        if not self.module.check_mode:
-            self.proxmox_api.nodes(node).ceph.osd(osdid).delete(cleanup=cleanup)
-            msg = f"Osd {osdid} deleted."
+        if not self.check_osd(node, osdid):
+            self.module.exit_json(changed=False, msg=f"Osd {osdid} not present.")
+        if not self.check_osd_in(node, osdid):
+            if not self.check_osd_started(node, osdid):
+                if not self.module.check_mode:
+                    self.proxmox_api.nodes(node).ceph.osd(osdid).delete(cleanup=cleanup)
+                    msg = f"Osd {osdid} deleted."
+                else:
+                    msg = f"Osd {osdid} would be deleted."
+                self.module.exit_json(changed=True, msg=msg)
+            else:
+                self.module.fail_json(
+                    msg=f"Cannot delete osd {osdid} is started.",
+                )
         else:
-            msg = f"Osd {osdid} would be deleted."
-
-        self.module.exit_json(
-            changed=True,
-            msg=msg,
-        )
+            self.module.fail_json(
+                msg=f"Cannot delete osd {osdid} is in.",
+            )
 
     def start_osd(self, node, osdid):
         self.check_node(node)
-        self.check_osd(node, osdid)
+        if not self.check_osd(node, osdid):
+            self.module.fail_json(msg=f"Osd {osdid} does not exist.")
         if not self.check_osd_started(node, osdid):
             if not self.module.check_mode:
                 self.proxmox_api.nodes(node).ceph.start.create(service=f"osd.{osdid}")
                 msg = f"Start Osd {osdid}."
             else:
                 msg = f"Would start Osd {osdid}."
-
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
+            self.module.exit_json(changed=True, msg=msg)
         else:
             self.module.exit_json(
                 changed=False,
@@ -393,18 +376,15 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
 
     def stop_osd(self, node, osdid):
         self.check_node(node)
-        self.check_osd(node, osdid)
+        if not self.check_osd(node, osdid):
+            self.module.fail_json(msg=f"Osd {osdid} does not exist.")
         if self.check_osd_started(node, osdid):
             if not self.module.check_mode:
                 self.proxmox_api.nodes(node).ceph.stop.create(service=f"osd.{osdid}")
                 msg = f"Stop Osd {osdid}."
             else:
                 msg = f"Would stop Osd {osdid}."
-
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
+            self.module.exit_json(changed=True, msg=msg)
         else:
             self.module.exit_json(
                 changed=False,
@@ -413,17 +393,15 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
 
     def restart_osd(self, node, osdid):
         self.check_node(node)
-        self.check_osd(node, osdid)
+        if not self.check_osd(node, osdid):
+            self.module.fail_json(msg=f"Osd {osdid} does not exist.")
         if not self.module.check_mode:
             self.proxmox_api.nodes(node).ceph.restart.create(service=f"osd.{osdid}")
             msg = f"Restart Osd {osdid}."
         else:
             msg = f"Would restart Osd {osdid}."
 
-        self.module.exit_json(
-            changed=True,
-            msg=msg,
-        )
+        self.module.exit_json(changed=True, msg=msg)
 
 
 def get_present_optional_args(args):

@@ -221,9 +221,12 @@ RAW_OSD = {
                     }
                 ],
                 'reweight': -1
-        }]}, 
+            }
+        ]
+    },
     'flags': 'sortbitwise,recovery_deletes,purged_snapdirs,pglog_hardlimit'
 }
+
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json;
@@ -363,3 +366,266 @@ class TestProxmoxCephOsd(ModuleTestCase):
         assert result["changed"] is True
         assert result["msg"] == "Osd added."
 
+    def test_in_osd_not_present(self):
+        args = build_common_arg("srv-proxmox-01", "in", False)
+        args["osdid"] = 2
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["failed"] is True
+        assert result["msg"] == "Osd 2 does not exist."
+
+    def test_in_osd_already_in(self):
+        args = build_common_arg("srv-proxmox-01", "in", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is False
+        assert result["msg"] == "Osd 0 already in."
+
+    def test_in_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-03", "in", True)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Would in osd 1."
+
+    def test_in_osd(self):
+        args = build_common_arg("srv-proxmox-03", "in", False)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "In osd 1."
+
+    def test_out_osd_already_out(self):
+        args = build_common_arg("srv-proxmox-03", "out", False)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is False
+        assert result["msg"] == "Osd 1 already out."
+
+    def test_out_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-01", "out", True)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Would out osd 0."
+
+    def test_out_osd(self):
+        args = build_common_arg("srv-proxmox-01", "out", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Out osd 0."
+
+    def test_scrub_osd_down(self):
+        args = build_common_arg("srv-proxmox-03", "scrub", False)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["failed"] is True
+        assert result["msg"] == "Osd 1 is not up."
+
+    def test_scrub_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-01", "scrub", True)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Would scrub Osd 0."
+
+    def test_scrub_osd(self):
+        args = build_common_arg("srv-proxmox-01", "scrub", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Scrub Osd 0."
+
+    def test_start_osd_already_started(self):
+        args = build_common_arg("srv-proxmox-01", "start", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is False
+        assert result["msg"] == "Osd 0 already started."
+
+    def test_start_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-03", "start", True)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Would start Osd 1."
+
+    def test_start_osd(self):
+        args = build_common_arg("srv-proxmox-03", "start", False)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Start Osd 1."
+
+    def test_stop_osd_already_down(self):
+        args = build_common_arg("srv-proxmox-03", "stop", False)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is False
+        assert result["msg"] == "Osd 1 already stopped."
+
+    def test_stop_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-01", "stop", True)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Would stop Osd 0."
+
+    def test_stop_osd(self):
+        args = build_common_arg("srv-proxmox-01", "stop", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Stop Osd 0."
+
+    def test_restart_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-01", "restart", True)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Would restart Osd 0."
+
+    def test_restart_osd(self):
+        args = build_common_arg("srv-proxmox-01", "restart", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Restart Osd 0."
+
+    def test_del_osd_not_present(self):
+        args = build_common_arg("srv-proxmox-01", "absent", False)
+        args["osdid"] = 2
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is False
+        assert result["msg"] == "Osd 2 not present."
+
+    def test_del_osd_still_in(self):
+        args = build_common_arg("srv-proxmox-01", "absent", False)
+        args["osdid"] = 0
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["failed"] is True
+        assert result["msg"] == "Cannot delete osd 0 is in."
+
+    def test_del_osd_check_mode(self):
+        args = build_common_arg("srv-proxmox-03", "absent", True)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Osd 1 would be deleted."
+
+    def test_del_osd(self):
+        args = build_common_arg("srv-proxmox-03", "absent", False)
+        args["osdid"] = 1
+        with set_module_args(args):
+            with pytest.raises(SystemExit) as exc_info:
+                proxmox_ceph_osd.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["changed"] is True
+        assert result["msg"] == "Osd 1 deleted."
