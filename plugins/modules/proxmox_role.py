@@ -45,7 +45,7 @@ options:
     type: list
     aliases: ["privileges"]
     elements: str
-    required: true
+    required: false
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -95,7 +95,8 @@ def get_proxmox_args():
         state=dict(type="str", choices=[
                    "present", "absent"], default='present', required=False),
         roleid=dict(type="str", aliases=["name"], required=True),
-        privs=dict(type="list", aliases=["privileges"], elements="str"),
+        privs=dict(type="list", aliases=[
+                   "privileges"], elements="str", required=False),
     )
 
 
