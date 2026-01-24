@@ -38,14 +38,12 @@ options:
       - present
       - absent
     default: present
-    required: false
   privs:
     description:
       - List of privileges the role has.
     type: list
     aliases: ["privileges"]
     elements: str
-    required: false
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -86,17 +84,17 @@ msg:
   sample: "Role test successfully created"
 """
 
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec, ProxmoxAnsible)
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
-
 
 def get_proxmox_args():
     return dict(
         state=dict(type="str", choices=[
-                   "present", "absent"], default='present', required=False),
+                   "present", "absent"], default="present"),
         roleid=dict(type="str", aliases=["name"], required=True),
         privs=dict(type="list", aliases=[
-                   "privileges"], elements="str", required=False),
+                   "privileges"], elements="str"),
     )
 
 
@@ -107,8 +105,8 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
-            ('state', 'present', ['roleid', 'privs']),
-            ('state', 'absent', ['roleid'])
+            ("state", "present", ["roleid", "privs"]),
+            ("state", "absent", ["roleid"])
         ],
         required_together=[("api_token_id", "api_token_secret")],
         required_one_of=[("api_password", "api_token_id")],
@@ -126,14 +124,14 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
         state = self.params.get("state")
 
         role_params = {
-            'roleid': self.params.get('roleid'),
-            'privs': self.params.get('privs'),
+            "roleid": self.params.get("roleid"),
+            "privs": self.params.get("privs"),
         }
 
-        if state == 'present':
+        if state == "present":
             self.role_present(role_params=role_params)
-        elif state == 'absent':
-            self.role_absent(role_params['roleid'])
+        elif state == "absent":
+            self.role_absent(role_params["roleid"])
 
     def _get_role(self, roleid):
         try:
@@ -143,7 +141,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
             if "does not exist" in error_str:
                 return None
             self.module.fail_json(
-                msg='Failed to retrieve role "{0}": {1}'.format(
+                msg="Failed to retrieve role {0}: {1}".format(
                     roleid, e)
             )
 
@@ -161,8 +159,8 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
         return sorted(existing_privs) != sorted(desired_privs)
 
     def role_present(self, role_params):
-        roleid = role_params['roleid']
-        desired_privs = role_params['privs'] or []
+        roleid = role_params["roleid"]
+        desired_privs = role_params["privs"] or []
 
         existing_role = self._get_role(roleid)
 
@@ -269,7 +267,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg='An error occurred: {0}'.format(e))
+        module.fail_json(msg="An error occurred: {0}".format(e))
 
 
 if __name__ == "__main__":
