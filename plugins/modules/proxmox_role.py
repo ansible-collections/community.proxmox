@@ -142,7 +142,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
             if "does not exist" in error_str:
                 return None
             self.module.fail_json(
-                msg='Failed to retrieve role "{0}" information from cluster: {1}'.format(
+                msg='Failed to retrieve role "{0}": {1}'.format(
                     roleid, e)
             )
 
@@ -199,7 +199,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 self.module.exit_json(
                     changed=False,
                     roleid=roleid,
-                    msg="Role {0} already exists with correct privileges".format(
+                    msg="Role {0} already exists with desired configuration".format(
                         roleid)
                 )
 
