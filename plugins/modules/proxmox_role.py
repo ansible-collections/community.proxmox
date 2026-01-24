@@ -174,7 +174,6 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                     msg=f"Role {roleid} successfully created"
                 )
             except Exception as e:
-                self.module.warn(f"Failed to create role {roleid}: {e}")
                 self.module.fail_json(
                     changed=False,
                     roleid=roleid,
@@ -208,7 +207,6 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                     msg=f"Role {roleid} successfully updated"
                 )
             except Exception as e:
-                self.module.warn(f"Failed to update role {roleid}: {e}")
                 self.module.fail_json(
                     changed=False,
                     roleid=roleid,
@@ -240,7 +238,6 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 msg=f"Role {roleid} successfully deleted",
             )
         except Exception as e:
-            self.module.warn(f"Failed to delete role {roleid}: {e}")
             self.module.fail_json(
                 changed=False,
                 roleid=roleid,
