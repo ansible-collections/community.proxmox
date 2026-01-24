@@ -12,7 +12,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 module: proxmox_role
 short_description: Role management for Proxmox VE cluster
-version_added: "1.5.0"
+version_added: "1.6.0"
 author:
   - Clément Cruau (@PendaGTP)
 description:
