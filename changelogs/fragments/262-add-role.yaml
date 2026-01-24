@@ -1,2 +1,0 @@
-minor_changes:
-  - proxmox_role - Adds a new module to manage roles (https://github.com/ansible-collections/community.proxmox/pull/262).
