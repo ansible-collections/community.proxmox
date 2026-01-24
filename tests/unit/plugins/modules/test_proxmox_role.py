@@ -23,16 +23,19 @@ import ansible_collections.community.proxmox.plugins.module_utils.proxmox as pro
 
 ROLE_ID = "role-test"
 
+
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
     if "changed" not in kwargs:
         kwargs["changed"] = False
     raise SystemExit(kwargs)
 
+
 def fail_json(*args, **kwargs):
     """function to patch over fail_json; package return data into an exception"""
     kwargs["failed"] = True
     raise SystemExit(kwargs)
+
 
 def get_module_args(roleid, privs=None, state="present"):
     return {
@@ -44,6 +47,7 @@ def get_module_args(roleid, privs=None, state="present"):
         "state": state,
     }
 
+
 class TestProxmoxRoleModule(ModuleTestCase):
     def setUp(self):
         super().setUp()
@@ -51,7 +55,8 @@ class TestProxmoxRoleModule(ModuleTestCase):
         self.module = proxmox_role
         self.fail_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.fail_json",
                                        new=Mock(side_effect=fail_json))
-        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
+        self.exit_json_patcher = patch(
+            "ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
         self.connect_mock = patch(
