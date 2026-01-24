@@ -103,10 +103,6 @@ def get_ansible_module():
 
     return AnsibleModule(
         argument_spec=module_args,
-        required_if=[
-            ("state", "present", ["roleid", "privs"]),
-            ("state", "absent", ["roleid"])
-        ],
         required_together=[("api_token_id", "api_token_secret")],
         required_one_of=[("api_password", "api_token_id")],
         supports_check_mode=True
