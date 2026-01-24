@@ -93,8 +93,7 @@ def get_proxmox_args():
         state=dict(type="str", choices=[
                    "present", "absent"], default="present"),
         roleid=dict(type="str", aliases=["name"], required=True),
-        privs=dict(type="list", aliases=[
-                   "privileges"], elements="str"),
+        privs=dict(type="list", aliases=["privileges"], elements="str"),
     )
 
 
@@ -140,10 +139,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
             error_str = str(e).lower()
             if "does not exist" in error_str:
                 return None
-            self.module.fail_json(
-                msg="Failed to retrieve role {0}: {1}".format(
-                    roleid, e)
-            )
+            self.module.fail_json(msg=f"Failed to retrieve role {roleid}: {e}")
 
     def _privs_to_string(self, privs_list):
         if not privs_list:
@@ -169,7 +165,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 self.module.exit_json(
                     changed=True,
                     roleid=roleid,
-                    msg="Role {0} would be created".format(roleid)
+                    msg=f"Role {roleid} would be created"
                 )
 
             try:
@@ -179,15 +175,14 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 self.module.exit_json(
                     changed=True,
                     roleid=roleid,
-                    msg="Role {0} successfully created".format(roleid)
+                    msg=f"Role {roleid} successfully created"
                 )
             except Exception as e:
-                self.module.warn(
-                    "Failed to create role {0}: {1}".format(roleid, e))
+                self.module.warn(f"Failed to create role {roleid}: {e}")
                 self.module.fail_json(
                     changed=False,
                     roleid=roleid,
-                    msg="Failed to create role {0}: {1}".format(roleid, e)
+                    msg=f"Failed to create role {roleid}: {e}"
                 )
         else:
             existing_privs = self._role_privs_to_list(existing_role)
@@ -198,15 +193,14 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 self.module.exit_json(
                     changed=False,
                     roleid=roleid,
-                    msg="Role {0} already exists with desired configuration".format(
-                        roleid)
+                    msg=f"Role {roleid} already exists with desired configuration"
                 )
 
             if self.module.check_mode:
                 self.module.exit_json(
                     changed=True,
                     roleid=roleid,
-                    msg="Role {0} would be updated".format(roleid)
+                    msg=f"Role {roleid} would be updated"
                 )
 
             try:
@@ -215,15 +209,14 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 self.module.exit_json(
                     changed=True,
                     roleid=roleid,
-                    msg="Role {0} successfully updated".format(roleid)
+                    msg=f"Role {roleid} successfully updated"
                 )
             except Exception as e:
-                self.module.warn(
-                    "Failed to update role {0}: {1}".format(roleid, e))
+                self.module.warn(f"Failed to update role {roleid}: {e}")
                 self.module.fail_json(
                     changed=False,
                     roleid=roleid,
-                    msg="Failed to update role {0}: {1}".format(roleid, e)
+                    msg=f"Failed to update role {roleid}: {e}"
                 )
 
     def role_absent(self, roleid):
@@ -233,14 +226,14 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
             self.module.exit_json(
                 changed=False,
                 roleid=roleid,
-                msg="Role {0} does not exist".format(roleid)
+                msg=f"Role {roleid} does not exist"
             )
 
         if self.module.check_mode:
             self.module.exit_json(
                 changed=True,
                 roleid=roleid,
-                msg="Role {0} would be deleted".format(roleid)
+                msg=f"Role {roleid} would be deleted"
             )
 
         try:
@@ -248,15 +241,14 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
             self.module.exit_json(
                 changed=True,
                 roleid=roleid,
-                msg="Role {0} successfully deleted".format(roleid)
+                msg=f"Role {roleid} successfully deleted",
             )
         except Exception as e:
-            self.module.warn(
-                "Failed to delete role {0}: {1}".format(roleid, e))
+            self.module.warn(f"Failed to delete role {roleid}: {e}")
             self.module.fail_json(
                 changed=False,
                 roleid=roleid,
-                msg="Failed to delete role {0}: {1}".format(roleid, e)
+                msg=f"Failed to delete role {roleid}: {e}"
             )
 
 
@@ -267,7 +259,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg="An error occurred: {0}".format(e))
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
