@@ -92,7 +92,7 @@ class TestProxmoxRoleModule(ModuleTestCase):
         self.mock_get_role.return_value = {}
         result = self._run_module(get_module_args(roleid=ROLE_ID))
         assert result["changed"] is False
-        assert result["msg"] == f"Role {ROLE_ID} already exists with correct privileges"
+        assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = {}
@@ -134,7 +134,7 @@ class TestProxmoxRoleModule(ModuleTestCase):
             self._check_mode_args(roleid=ROLE_ID)
         )
         assert result["changed"] is False
-        assert result["msg"] == f"Role {ROLE_ID} already exists with correct privileges"
+        assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = {}
