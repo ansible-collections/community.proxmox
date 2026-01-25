@@ -148,6 +148,50 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 
+def get_proxmox_args():
+    return dict(
+        hostname=dict(),
+        vmid=dict(),
+        state=dict(default='present', choices=[
+                   'present', 'absent', 'rollback']),
+        force=dict(type='bool', default=False),
+        unbind=dict(type='bool', default=False),
+        vmstate=dict(type='bool', default=False),
+        description=dict(),
+        timeout=dict(type='int', default=30),
+        snapname=dict(default='ansible_snap'),
+        retention=dict(type='int', default=0),
+    )
+
+
+def get_ansible_module():
+    module_args = proxmox_auth_argument_spec()
+    module_args.update(get_proxmox_args())
+
+    return AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+        required_if=[
+            ('unbind', True, ['api_password']),
+        ],
+    )
+
+
+def validate_module_args(module):
+    # Validate unbind authentication requirements.
+    # Mountpoint configuration operations require root@pam with password authentication.
+    # API tokens are not supported for mountpoint operations, even for root@pam.
+    # Without proper authentication, the operation would fail after mountpoints are removed,
+    # leaving the container in a misconfigured state without its mountpoints.
+    unbind = module.params.get('unbind', False)
+    if unbind is True:
+        api_user = module.params.get('api_user')
+        api_password = module.params.get('api_password')
+        if api_user != 'root@pam' or not api_password:
+            module.fail_json(
+                msg="`unbind=True` is only supported with `api_user=root@pam` and `api_password`")
+
+
 class ProxmoxSnapAnsible(ProxmoxAnsible):
     def snapshot(self, vm, vmid):
         return getattr(self.proxmox_api.nodes(vm["node"]), vm["type"])(vmid).snapshot
@@ -224,16 +268,6 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
         if vm["type"] == "lxc":
             if unbind is True:
-                # check if credentials will work
-                # WARN: it is crucial this check runs here!
-                # The correct permissions are required only to reconfig mounts.
-                # Not checking now would allow to remove the configuration BUT
-                # fail later, leaving the container in a misconfigured state.
-                if self.module.params["api_user"] != "root@pam" or not self.module.params["api_password"]:
-                    self.module.fail_json(
-                        msg="`unbind=True` requires authentication as `root@pam` with `api_password`, API tokens are not supported."
-                    )
-                    return False
                 mountpoints = self._container_mp_get(vm, vmid)
                 vmstatus = self.vmstatus(vm, vmid).current().get()["status"]
                 if mountpoints:
@@ -297,22 +331,8 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    snap_args = dict(
-        vmid=dict(required=False),
-        hostname=dict(),
-        timeout=dict(type="int", default=30),
-        state=dict(default="present", choices=["present", "absent", "rollback"]),
-        description=dict(type="str"),
-        snapname=dict(type="str", default="ansible_snap"),
-        force=dict(type="bool", default=False),
-        unbind=dict(type="bool", default=False),
-        vmstate=dict(type="bool", default=False),
-        retention=dict(type="int", default=0),
-    )
-    module_args.update(snap_args)
-
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+    module = get_ansible_module()
+    validate_module_args(module)
 
     proxmox = ProxmoxSnapAnsible(module)
 
