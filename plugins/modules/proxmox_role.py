@@ -90,9 +90,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=[
-                   "present", "absent"], default="present"),
-        roleid=dict(type="str", aliases=["name"], required=True),
+        state=dict(choices=["present", "absent"], default="present"),
+        roleid=dict(aliases=["name"], required=True),
         privs=dict(type="list", aliases=["privileges"], elements="str"),
     )
 
@@ -103,8 +102,6 @@ def get_ansible_module():
 
     return AnsibleModule(
         argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("api_password", "api_token_id")],
         supports_check_mode=True
     )
 
