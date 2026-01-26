@@ -88,6 +88,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible)
 from ansible.module_utils.basic import AnsibleModule
 
+
 def get_proxmox_args():
     return dict(
         state=dict(choices=["present", "absent"], default="present"),
