@@ -163,15 +163,15 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
                 msg=f'Failed to retrieve firewall security groups: {e}'
             )
 
-    def get_ip_sets(self):
+    def get_ip_sets(self, firewall_obj):
         """Get ipsets for firewall.
 
         :return: dict of ip_set name and cidr
         """
         try:
-            ip_sets = self.proxmox_api.cluster().firewall().ipset().get()
+            ip_sets = firewall_obj.ipset().get()
             for ip_set in ip_sets:
-                ip_set_obj = getattr(self.proxmox_api.cluster().firewall().ipset(), ip_set['name'])
+                ip_set_obj = firewall_obj.ipset(ip_set['name'])
                 cidrs = ip_set_obj.get()
                 for cidr in cidrs:
                     cidr['nomatch'] = proxmox_to_ansible_bool(cidr.get('nomatch'))
