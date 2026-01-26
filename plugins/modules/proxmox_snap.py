@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+import time
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -140,11 +141,10 @@ EXAMPLES = r"""
 
 RETURN = r"""#"""
 
-import time
-
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec, ProxmoxAnsible)
 from ansible.module_utils.common.text.converters import to_native
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible.module_utils.basic import AnsibleModule
 
 
 def get_proxmox_args():
@@ -188,7 +188,8 @@ def validate_params(params):
         api_user = params.get('api_user')
         api_password = params.get('api_password')
         if api_user != 'root@pam' or not api_password:
-            raise Exception("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
+            raise Exception(
+                "Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
 
 
 class ProxmoxSnapAnsible(ProxmoxAnsible):
@@ -266,10 +267,13 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
                 mountpoints = self._container_mp_get(vm, vmid)
                 vmstatus = self.vmstatus(vm, vmid).current().get()['status']
                 if mountpoints:
-                    self._container_mp_disable(vm, vmid, timeout, unbind, mountpoints, vmstatus)
-            taskid = self.snapshot(vm, vmid).post(snapname=snapname, description=description)
+                    self._container_mp_disable(
+                        vm, vmid, timeout, unbind, mountpoints, vmstatus)
+            taskid = self.snapshot(vm, vmid).post(
+                snapname=snapname, description=description)
         else:
-            taskid = self.snapshot(vm, vmid).post(snapname=snapname, description=description, vmstate=int(vmstate))
+            taskid = self.snapshot(vm, vmid).post(
+                snapname=snapname, description=description, vmstate=int(vmstate))
 
         while timeout >= 0:
             if self.api_task_ok(vm['node'], taskid):
@@ -281,7 +285,8 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             time.sleep(1)
             timeout -= 1
         if vm['type'] == 'lxc' and unbind is True and mountpoints:
-            self._container_mp_restore(vm, vmid, timeout, unbind, mountpoints, vmstatus)
+            self._container_mp_restore(
+                vm, vmid, timeout, unbind, mountpoints, vmstatus)
 
         self.snapshot_retention(vm, vmid, retention)
         return timeout > 0
@@ -327,7 +332,6 @@ def main():
     except Exception as e:
         module.fail_json(msg=f"Module parameters validation error: {str(e)}")
 
-
     proxmox = ProxmoxSnapAnsible(module)
 
     state = module.params['state']
@@ -345,23 +349,28 @@ def main():
     if not vmid and hostname:
         vmid = proxmox.get_vmid(hostname)
     elif not vmid:
-        module.exit_json(changed=False, msg="Vmid could not be fetched for the following action: %s" % state)
+        module.exit_json(
+            changed=False, msg="Vmid could not be fetched for the following action: %s" % state)
 
     vm = proxmox.get_vm(vmid)
     if state == 'present':
         try:
             for i in proxmox.snapshot(vm, vmid).get():
                 if i['name'] == snapname:
-                    module.exit_json(changed=False, msg="Snapshot %s is already present" % snapname)
+                    module.exit_json(
+                        changed=False, msg="Snapshot %s is already present" % snapname)
 
             if proxmox.snapshot_create(vm, vmid, timeout, snapname, description, vmstate, unbind, retention):
                 if module.check_mode:
-                    module.exit_json(changed=False, msg="Snapshot %s would be created" % snapname)
+                    module.exit_json(
+                        changed=False, msg="Snapshot %s would be created" % snapname)
                 else:
-                    module.exit_json(changed=True, msg="Snapshot %s created" % snapname)
+                    module.exit_json(
+                        changed=True, msg="Snapshot %s created" % snapname)
 
         except Exception as e:
-            module.fail_json(msg="Creating snapshot %s of VM %s failed with exception: %s" % (snapname, vmid, to_native(e)))
+            module.fail_json(msg="Creating snapshot %s of VM %s failed with exception: %s" % (
+                snapname, vmid, to_native(e)))
 
     elif state == 'absent':
         try:
@@ -373,16 +382,20 @@ def main():
                     continue
 
             if not snap_exist:
-                module.exit_json(changed=False, msg="Snapshot %s does not exist" % snapname)
+                module.exit_json(
+                    changed=False, msg="Snapshot %s does not exist" % snapname)
             else:
                 if proxmox.snapshot_remove(vm, vmid, timeout, snapname, force):
                     if module.check_mode:
-                        module.exit_json(changed=False, msg="Snapshot %s would be removed" % snapname)
+                        module.exit_json(
+                            changed=False, msg="Snapshot %s would be removed" % snapname)
                     else:
-                        module.exit_json(changed=True, msg="Snapshot %s removed" % snapname)
+                        module.exit_json(
+                            changed=True, msg="Snapshot %s removed" % snapname)
 
         except Exception as e:
-            module.fail_json(msg="Removing snapshot %s of VM %s failed with exception: %s" % (snapname, vmid, to_native(e)))
+            module.fail_json(msg="Removing snapshot %s of VM %s failed with exception: %s" % (
+                snapname, vmid, to_native(e)))
     elif state == 'rollback':
         try:
             snap_exist = False
@@ -393,15 +406,19 @@ def main():
                     continue
 
             if not snap_exist:
-                module.exit_json(changed=False, msg="Snapshot %s does not exist" % snapname)
+                module.exit_json(
+                    changed=False, msg="Snapshot %s does not exist" % snapname)
             if proxmox.snapshot_rollback(vm, vmid, timeout, snapname):
                 if module.check_mode:
-                    module.exit_json(changed=True, msg="Snapshot %s would be rolled back" % snapname)
+                    module.exit_json(
+                        changed=True, msg="Snapshot %s would be rolled back" % snapname)
                 else:
-                    module.exit_json(changed=True, msg="Snapshot %s rolled back" % snapname)
+                    module.exit_json(
+                        changed=True, msg="Snapshot %s rolled back" % snapname)
 
         except Exception as e:
-            module.fail_json(msg="Rollback of snapshot %s of VM %s failed with exception: %s" % (snapname, vmid, to_native(e)))
+            module.fail_json(msg="Rollback of snapshot %s of VM %s failed with exception: %s" % (
+                snapname, vmid, to_native(e)))
 
 
 if __name__ == '__main__':
