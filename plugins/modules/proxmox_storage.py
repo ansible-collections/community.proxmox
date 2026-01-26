@@ -208,6 +208,10 @@ options:
           - The name of the ZFS pool to use.
         type: str
         required: false
+      sparse:
+        description:
+            - Use ZFS thin-provisioning.
+        type: bool
   content:
     description:
       - The desired content that should be used with this storage type.
@@ -278,6 +282,19 @@ EXAMPLES = r"""
     state: absent
     name: net-nfsshare01
     type: nfs
+- name: Add ZFS storage to Proxmox VE Cluster
+  community.proxmox.proxmox_storage:
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: password123
+    validate_certs: false
+    state: present
+    name: zfspool-storage
+    type: zfspool
+    content: ["rootdir", "images"]
+    zfspool_options:
+      pool: rpool/data
+      sparse: true
 """
 
 RETURN = r"""
@@ -410,12 +427,16 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                     payload["fingerprint"] = fingerprint
 
         if storage_type == "zfspool":
-            zfspool_options = self.module.params.get(f"{storage_type}_options", {})
-            pool = zfspool_options.get("pool")
+            zfspool_options = self.module.params.get(f'{storage_type}_options', {})
+
+            pool = zfspool_options.get('pool')
             if not all([pool]):
                 self.module.fail_json(msg="ZFS storage requires 'pool' parameter.")
             else:
-                payload["pool"] = pool
+                payload['pool'] = pool
+            
+            payload['sparse'] = 1 if zfspool_options.get('sparse') else 0
+            
 
         # Check Mode validation
         if self.module.check_mode:
@@ -495,62 +516,52 @@ def main():
     module_args = proxmox_auth_argument_spec()
 
     storage_args = dict(
-        nodes=dict(
-            type="list",
-            elements="str",
-        ),
-        name=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"]),
-        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
-        dir_options=dict(type="dict", options={"path": dict(type="str")}),
-        cephfs_options=dict(
-            type="dict",
-            options={
-                "monhost": dict(type="list", elements="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "path": dict(type="str", default="/"),
-                "subdir": dict(
-                    type="str",
-                ),
-                "fs_name": dict(
-                    type="str",
-                ),
-                "client_keyring": dict(type="str", no_log=True),
-            },
-        ),
-        cifs_options=dict(
-            type="dict",
-            options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "share": dict(type="str"),
-                "domain": dict(type="str"),
-                "smb_version": dict(type="str"),
-                "subdir": dict(
-                    type="str",
-                ),
-            },
-        ),
-        nfs_options=dict(
-            type="dict", options={"server": dict(type="str"), "export": dict(type="str"), "options": dict(type="str")}
-        ),
-        iscsi_options=dict(type="dict", options={"portal": dict(type="str"), "target": dict(type="str")}),
-        pbs_options=dict(
-            type="dict",
-            options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "datastore": dict(type="str"),
-                "fingerprint": dict(type="str"),
-            },
-        ),
-        zfspool_options=dict(type="dict", options={"pool": dict(type="str")}),
-        content=dict(
-            type="list", elements="str", choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
-        ),
+        nodes=dict(type='list', elements='str',),
+        name=dict(type='str', required=True),
+        state=dict(choices=['present', 'absent']),
+        type=dict(choices=['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool'], required=True),
+        dir_options=dict(type='dict', options={
+            'path': dict(type='str')
+        }),
+        cephfs_options=dict(type='dict', options={
+            'monhost': dict(type='list', elements='str'),
+            'username': dict(type='str'),
+            'password': dict(type='str', no_log=True),
+            'path': dict(type='str', default='/'),
+            'subdir': dict(type='str',),
+            'fs_name': dict(type='str',),
+            'client_keyring': dict(type='str', no_log=True)
+        }),
+        cifs_options=dict(type='dict', options={
+            'server': dict(type='str'),
+            'username': dict(type='str'),
+            'password': dict(type='str', no_log=True),
+            'share': dict(type='str'),
+            'domain': dict(type='str'),
+            'smb_version': dict(type='str'),
+            'subdir': dict(type='str',)
+        }),
+        nfs_options=dict(type='dict', options={
+            'server': dict(type='str'),
+            'export': dict(type='str'),
+            'options': dict(type='str')
+        }),
+        iscsi_options=dict(type='dict', options={
+            'portal': dict(type='str'),
+            'target': dict(type='str')
+        }),
+        pbs_options=dict(type='dict', options={
+            'server': dict(type='str'),
+            'username': dict(type='str'),
+            'password': dict(type='str', no_log=True),
+            'datastore': dict(type='str'),
+            'fingerprint': dict(type='str')
+        }),
+        zfspool_options=dict(type='dict', options={
+            'pool': dict(type='str'),
+            'sparse': dict(type='bool'),
+        }),
+        content=dict(type='list', elements='str', choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]),
     )
 
     module_args.update(storage_args)
