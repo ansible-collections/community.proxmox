@@ -315,14 +315,15 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
         # Validate required parameters based on storage type
         if storage_type == "cephfs":
-            cephfs_options = self.module.params.get(f"{storage_type}_options", {})
-            monhost = cephfs_options.get("monhost", "")
-            username = cephfs_options.get("username")
-            password = cephfs_options.get("password")
-            path = cephfs_options.get("path", "/")
-            subdir = cephfs_options.get("subdir", None)
-            client_keyring = cephfs_options.get("client_keyring")
-            fs_name = cephfs_options.get("fs_name")
+            cephfs_options = self.module.params.get(
+                f'{storage_type}_options', {})
+            monhost = cephfs_options.get('monhost', '')
+            username = cephfs_options.get('username')
+            password = cephfs_options.get('password')
+            path = cephfs_options.get('path', '/')
+            subdir = cephfs_options.get('subdir', None)
+            client_keyring = cephfs_options.get('client_keyring')
+            fs_name = cephfs_options.get('fs_name')
 
             if not monhost == "":
                 payload["monhost"] = monhost
@@ -338,14 +339,15 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload["fs_name"] = fs_name
 
         if storage_type == "cifs":
-            cifs_options = self.module.params.get(f"{storage_type}_options", {})
-            server = cifs_options.get("server")
-            share = cifs_options.get("share")
-            username = cifs_options.get("username")
-            password = cifs_options.get("password")
-            smb_version = cifs_options.get("smb_version")
-            domain = cifs_options.get("domain")
-            subdir = cifs_options.get("subdir")
+            cifs_options = self.module.params.get(
+                f'{storage_type}_options', {})
+            server = cifs_options.get('server')
+            share = cifs_options.get('share')
+            username = cifs_options.get('username')
+            password = cifs_options.get('password')
+            smb_version = cifs_options.get('smb_version')
+            domain = cifs_options.get('domain')
+            subdir = cifs_options.get('subdir')
 
             if username:
                 payload["username"] = username
@@ -407,7 +409,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             try:
                 existing_storages = self.proxmox_api.storage.get()
             except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+                self.module.fail_json(
+                    msg=f"Failed to retrieve storage list: {e}")
 
             for storage in existing_storages:
                 if storage.get("storage") == storage_name:
@@ -432,7 +435,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 changed = False
                 result = f"Storage '{storage_name}' already present."
             else:
-                self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
+                self.module.fail_json(
+                    msg=f"Failed to create storage: {error_msg}")
 
         return changed, result
 
@@ -446,16 +450,19 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             try:
                 existing_storages = self.proxmox_api.storage.get()
             except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+                self.module.fail_json(
+                    msg=f"Failed to retrieve storage list: {e}")
 
             for storage in existing_storages:
                 if storage.get("storage") == storage_name:
                     changed = True
-                    result = {"changed": changed, "msg": f"Storage '{storage_name}' would be deleted."}
+                    result = {"changed": changed,
+                              "msg": f"Storage '{storage_name}' would be deleted."}
                     self.module.exit_json(**result)
 
             changed = False
-            result = {"changed": changed, "msg": f"Storage '{storage_name}' does not exist."}
+            result = {"changed": changed,
+                      "msg": f"Storage '{storage_name}' does not exist."}
             self.module.exit_json(**result)
 
         # Remove storage
@@ -471,7 +478,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             result = f"Storage '{storage_name}' removed successfully."
 
         except Exception as e:
-            self.module.fail_json(msg=f"Failed to delete storage '{storage_name}': {e}")
+            self.module.fail_json(
+                msg=f"Failed to delete storage '{storage_name}': {e}")
 
         return changed, result
 
@@ -487,7 +495,8 @@ def validate_storage_type_options(storage_type, options):
         server = options.get("server")
         share = options.get("share")
         if not all([server, share]):
-            raise Exception("CIFS storage requires 'server' and 'share' options.")
+            raise Exception(
+                "CIFS storage requires 'server' and 'share' options.")
 
     elif storage_type == "dir":
         path = options.get("path")
@@ -513,13 +522,15 @@ def validate_storage_type_options(storage_type, options):
         password = options.get("password")
         datastore = options.get("datastore")
         if not all([server, username, password, datastore]):
-            raise Exception("PBS storage requires 'server', 'username', 'password' and 'datastore' options.")
+            raise Exception(
+                "PBS storage requires 'server', 'username', 'password' and 'datastore' options.")
 
     elif storage_type == "zfspool":
         pool = options.get("pool")
         content = options.get("content")
         if not all([pool, content]):
-            raise Exception("ZFS storage requires 'pool' and 'content' options.")
+            raise Exception(
+                "ZFS storage requires 'pool' and 'content' options.")
 
 
 def main():
