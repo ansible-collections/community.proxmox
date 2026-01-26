@@ -215,14 +215,12 @@ options:
     choices: ['any', '2', '1024']
   ide:
     description:
-      - A hash/dictionary of volume used as IDE hard disk or CD-ROM. O(ide='{"key":"value", "key":"value"}').
-      - Keys allowed are - V(ide[n]) where 0 ≤ n ≤ 3.
-      - Values allowed are - V("storage:size,format=value").
-      - V(storage) is the storage identifier where to create the disk.
-      - V(size) is the size of the disk in GiB.
-      - V(format) is the drive's backing file's data format. V(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
-        Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
-        tables 3 to 14) to find out format supported by the provided storage backend.
+      - A hash/dictionary of volume used as IDE hard disk or CD-ROM.
+      - Keys must be C(ide[n]) where 0 ≤ n ≤ 3.
+      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
+      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "ide[n]:") at
+        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
     type: dict
   ipconfig:
     description:
@@ -363,25 +361,21 @@ options:
     version_added: 1.0.0
   sata:
     description:
-      - A hash/dictionary of volume used as sata hard disk or CD-ROM. O(sata='{"key":"value", "key":"value"}').
-      - Keys allowed are - C(sata[n]) where 0 ≤ n ≤ 5.
-      - Values allowed are - C("storage:size,format=value").
-      - C(storage) is the storage identifier where to create the disk.
-      - C(size) is the size of the disk in GiB.
-      - C(format) is the drive's backing file's data format. C(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
-        Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
-        tables 3 to 14) to find out format supported by the provided storage backend.
+      - A hash/dictionary of volume used as SATA hard disk or CD-ROM.
+      - Keys must be C(sata[n]) where 0 ≤ n ≤ 5.
+      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
+      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:") at
+        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
     type: dict
   scsi:
     description:
-      - A hash/dictionary of volume used as SCSI hard disk or CD-ROM. O(scsi='{"key":"value", "key":"value"}').
-      - Keys allowed are - C(scsi[n]) where 0 ≤ n ≤ 13.
-      - Values allowed are - C("storage:size,format=value").
-      - C(storage) is the storage identifier where to create the disk.
-      - C(size) is the size of the disk in GiB.
-      - C(format) is the drive's backing file's data format. C(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
-        Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
-        tables 3 to 14) to find out format supported by the provided storage backend.
+      - A hash/dictionary of volume used as SCSI hard disk or CD-ROM.
+      - Keys must be C(scsi[n]) where 0 ≤ n ≤ 30.
+      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
+      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:") at
+        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
     type: dict
   scsihw:
     description:
@@ -546,14 +540,12 @@ options:
     type: str
   virtio:
     description:
-      - A hash/dictionary of volume used as VIRTIO hard disk. O(virtio='{"key":"value", "key":"value"}').
-      - Keys allowed are - V(virtio[n]) where 0 ≤ n ≤ 15.
-      - Values allowed are - V(storage:size,format=value).
-      - V(storage) is the storage identifier where to create the disk.
-      - V(size) is the size of the disk in GiB.
-      - V(format) is the drive's backing file's data format. V(qcow2|raw|subvol). Please refer to the Proxmox VE Administrator
-        Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version,
-        tables 3 to 14) to find out format supported by the provided storage backend.
+      - A hash/dictionary of volume used as VIRTIO hard disk or CD-ROM.
+      - Keys must be C(virtio[n]) where 0 ≤ n ≤ 15.
+      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
+      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:") at
+        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
     type: dict
   watchdog:
     description:
@@ -567,6 +559,10 @@ options:
 
 seealso:
   - module: community.proxmox.proxmox_vm_info
+  - name: Proxmox VE QEMU/KVM Virtual Machines documentation
+    description: Proxmox VE QEMU/KVM Virtual Machines documentation.
+    link: "https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines"
+
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
