@@ -177,19 +177,19 @@ def get_ansible_module():
     )
 
 
-def validate_module_args(module):
+def validate_params(params):
+
     # Validate unbind authentication requirements.
     # Mountpoint configuration operations require root@pam with password authentication.
     # API tokens are not supported for mountpoint operations, even for root@pam.
     # Without proper authentication, the operation would fail after mountpoints are removed,
     # leaving the container in a misconfigured state without its mountpoints.
-    unbind = module.params.get('unbind', False)
+    unbind = params.get('unbind', False)
     if unbind is True:
-        api_user = module.params.get('api_user')
-        api_password = module.params.get('api_password')
+        api_user = params.get('api_user')
+        api_password = params.get('api_password')
         if api_user != 'root@pam' or not api_password:
-            module.fail_json(
-                msg="`unbind=True` is only supported with `api_user=root@pam` and `api_password`")
+            raise Exception("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
 
 
 class ProxmoxSnapAnsible(ProxmoxAnsible):
@@ -332,7 +332,12 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
 def main():
     module = get_ansible_module()
-    validate_module_args(module)
+
+    try:
+        validate_params(module.params)
+    except Exception as e:
+        module.fail_json(msg=f"Module parameters validation error: {str(e)}")
+
 
     proxmox = ProxmoxSnapAnsible(module)
 
