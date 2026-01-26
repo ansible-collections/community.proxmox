@@ -28,7 +28,7 @@ options:
     default: false
   interface:
     description:
-      - Name of the interface, should be V(net[n]) where C(1 ≤ n ≤ 31).
+      - Name of the interface, should be V(net[n]) where C(0 ≤ n ≤ 31).
     type: str
     required: true
   link_down:
