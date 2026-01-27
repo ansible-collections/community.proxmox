@@ -223,7 +223,7 @@ options:
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
       - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "ide[n]:") at
-        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
+        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   ipconfig:
     description:
@@ -369,7 +369,7 @@ options:
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
       - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:") at
-        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
+        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   scsi:
     description:
@@ -378,7 +378,7 @@ options:
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
       - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:") at
-        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
+        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   scsihw:
     description:
@@ -548,7 +548,7 @@ options:
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
       - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:") at
-        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
+        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   watchdog:
     description:
@@ -564,7 +564,7 @@ seealso:
   - module: community.proxmox.proxmox_vm_info
   - name: Proxmox VE QEMU/KVM Virtual Machines documentation
     description: Proxmox VE QEMU/KVM Virtual Machines documentation.
-    link: "https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines"
+    link: "https://pve.proxmox.com/pve-docs/chapter-qm.html"
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
