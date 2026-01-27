@@ -46,16 +46,16 @@ options:
     type: str
   ca_path:
     description:
-      - Path to a local certificate, which will be used to verify tls connections.
+      - Path to a local certificate, which will be used to verify TLS connections.
       - Ignored if O(validate_certs=false).
-    type: str
+    type: path
   validate_certs:
     description:
       - If V(false), SSL certificates will not be validated.
       - This should only be used on personally controlled sites using self-signed certificates.
       - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
     type: bool
-    default: true
+    default: false
 requirements: ["proxmoxer >= 2.0", "requests"]
 """
 
