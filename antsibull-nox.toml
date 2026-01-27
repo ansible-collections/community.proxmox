@@ -11,12 +11,11 @@
 [sessions]
 
 [sessions.lint]
-run_isort = true
 run_ruff_check = true
 ruff_check_config = "ruff.toml"
 run_ruff_format = true
 ruff_format_config = "ruff.toml"
-isort_config = ".isort.cfg"
+run_isort = false
 run_black = false
 run_flake8 = false
 run_pylint = false
