@@ -292,17 +292,13 @@ options:
     elements: str
   net:
     description:
-      - A hash/dictionary of network interfaces for the VM. O(net='{"key":"value", "key":"value"}').
-      - Keys allowed are - C(net[n]) where 0 ≤ n ≤ N.
-      - Values allowed are - C("model="XX:XX:XX:XX:XX:XX",bridge="value",rate="value",tag="value",firewall="1|0",trunks="vlanid"").
-      - Model is one of C(e1000 e1000-82540em e1000-82544gc e1000-82545em i82551 i82557b i82559er ne2k_isa ne2k_pci pcnet
-        rtl8139 virtio vmxnet3).
-      - C(XX:XX:XX:XX:XX:XX) should be an unique MAC address. This is automatically generated if not specified.
-      - The C(bridge) parameter can be used to automatically add the interface to a bridge device. The Proxmox VE standard
-        bridge is called 'vmbr0'.
-      - Option C(rate) is used to limit traffic bandwidth from and to this interface. It is specified as floating point number,
-        unit is 'Megabytes per second'.
-      - If you specify no bridge, we create a kvm 'user' (NATed) network device, which provides DHCP and DNS services.
+      - A hash/dictionary of network interfaces for the VM.
+      - Keys must be C(net[n]) where 0 ≤ n ≤ N.
+      - Values are strings containing comma-separated options in the format V([model=]<enum>[,option=value]...)
+      - Examples: V("virtio,bridge=vmbr0") for a basic interface, or V("virtio,bridge=vmbr0,firewall=1,rate=200,tag=10") for a rate-limited VLAN interface with firewall enabled.
+      - V(macaddr=XX:XX:XX:XX:XX:XX) must be a unique MAC address. If not specified, a unique MAC address is automatically generated.
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "net[n]:") at
+        U(https://pve.proxmox.com/wiki/Qemu/KVM_Virtual_Machines#qm_options).
     type: dict
   newid:
     description:
