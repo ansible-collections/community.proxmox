@@ -49,6 +49,11 @@ options:
       - Path to a local certificate, which will be used to verify TLS connections.
       - Ignored if O(validate_certs=false).
     type: path
+  api_timeout:
+    description:
+      - Time limit for requests towards the Proxmox api.
+    type: int
+    default: 5
   validate_certs:
     description:
       - If V(false), SSL certificates will not be validated.

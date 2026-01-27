@@ -209,17 +209,24 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
                 del vnet_params['type']
 
                 try:
+                    if not self.is_lock_and_rollback_supported:
+                        del vnet_params['lock-token']
                     self.proxmox_api.cluster().sdn().vnets(vnet_name).put(**vnet_params)
-                    self.apply_sdn_changes_and_release_lock(vnet_params['lock-token'])
+                    self.apply_sdn_changes_and_release_lock(vnet_params.get('lock-token'))
                     self.module.exit_json(
                         changed=True, vnet=vnet_name, msg=f'updated vnet {vnet_name}'
                     )
                 except Exception as e:
                     self.module.warn(f'Failed to update vnet - {e}')
-                    self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
-                    self.module.fail_json(
-                        msg=f'Failed to update vnet - {e}. Rolling back all changes.'
-                    )
+                    if self.is_lock_and_rollback_supported:
+                        self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
+                        self.module.fail_json(
+                            msg=f'Failed to update vnet - {e}. Rolling back all changes.'
+                        )
+                    else:
+                        self.module.fail_json(
+                            msg=f'Failed to update vnet - {e}. Rollback not supported.'
+                        )
             else:
                 self.module.fail_json(
                     msg=f'vnet {vnet_name} needs to be updated but update is false.'
@@ -227,17 +234,25 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
         elif len(vnet_to_create) > 0:
             try:
                 vnet_params['lock-token'] = self.get_global_sdn_lock()
+                if not self.is_lock_and_rollback_supported:
+                    del vnet_params['lock-token']
+                self.module.warn(f"{vnet_params}")
                 self.proxmox_api.cluster().sdn().vnets().post(**vnet_params)
-                self.apply_sdn_changes_and_release_lock(vnet_params['lock-token'])
+                self.apply_sdn_changes_and_release_lock(vnet_params.get('lock-token'))
                 self.module.exit_json(
                     changed=True, vnet=vnet_name, msg=f'Create new vnet {vnet_name}'
                 )
             except Exception as e:
                 self.module.warn(f'Failed to create vnet - {e}')
-                self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
-                self.module.fail_json(
-                    msg=f'Failed to create vnet - {e}. Rolling back all changes.'
-                )
+                if self.is_lock_and_rollback_supported:
+                    self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
+                    self.module.fail_json(
+                        msg=f'Failed to create vnet - {e}. Rolling back all changes.'
+                    )
+                else:
+                    self.module.fail_json(
+                        msg=f'Failed to create vnet - {e}. Rollback not supported.'
+                    )
         else:
             self.module.exit_json(
                 changed=False,
@@ -257,18 +272,25 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
                 'vnet': vnet_name,
                 'lock-token': self.get_global_sdn_lock()
             }
+            if not self.is_lock_and_rollback_supported:
+                del vnet_params['lock-token']
             try:
                 self.proxmox_api.cluster().sdn().vnets(vnet_name).delete(**vnet_params)
-                self.apply_sdn_changes_and_release_lock(vnet_params['lock-token'])
+                self.apply_sdn_changes_and_release_lock(vnet_params.get('lock-token'))
                 self.module.exit_json(
                     changed=True, vnet=vnet_name, msg=f'Deleted vnet {vnet_name}'
                 )
             except Exception as e:
                 self.module.warn(f'Failed to update vnet - {e}')
-                self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
-                self.module.fail_json(
-                    msg=f'Failed to delete vnet. Rolling back all changes - {e}'
-                )
+                if self.is_lock_and_rollback_supported:
+                    self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
+                    self.module.fail_json(
+                        msg=f'Failed to delete vnet. Rolling back all changes - {e}'
+                    )
+                else:
+                    self.module.fail_json(
+                        msg=f'Failed to delete vnet. Rollback not supported - {e}'
+                    )
 
 
 def main():

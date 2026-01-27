@@ -10,7 +10,6 @@ __metaclass__ = type
 import traceback
 from time import sleep
 
-PROXMOXER_DEFAULT_TIMEOUT = 5
 PROXMOXER_IMP_ERR = None
 try:
     from proxmoxer import ProxmoxAPI
@@ -53,6 +52,10 @@ def proxmox_auth_argument_spec():
                               ),
         ca_path=dict(type='str',fallback=(env_fallback, ['PROXMOX_CA_PATH'])),
         validate_certs=dict(type='bool',fallback=(env_fallback, ['PROXMOX_VALIDATE_CERTS'])),
+        api_timeout=dict(type='int',
+                         default=5,
+                         fallback=(env_fallback, ['PROXMOX_API_TIMEOUT'])
+                         ),
     )
 
 
@@ -157,11 +160,8 @@ class ProxmoxAnsible(object):
             validate_certs = self.module.params["ca_path"]
         else:
             validate_certs = self.module.params['validate_certs']
-
-        if 'timeout' in self.module.params:
-            timeout = self.module.params['timeout']
-        else:
-            timeout = PROXMOXER_DEFAULT_TIMEOUT
+        validate_certs = self.module.params['validate_certs']
+        api_timeout = self.module.params['api_timeout']
         auth_args = {'user': api_user}
 
         if api_port:
@@ -174,7 +174,7 @@ class ProxmoxAnsible(object):
             auth_args['token_value'] = api_token_secret
 
         try:
-            return ProxmoxAPI(api_host, timeout=timeout, verify_ssl=validate_certs, **auth_args)
+            return ProxmoxAPI(api_host, timeout=api_timeout, verify_ssl=validate_certs, **auth_args)
         except Exception as e:
             self.module.fail_json(msg='%s' % e, exception=traceback.format_exc())
 

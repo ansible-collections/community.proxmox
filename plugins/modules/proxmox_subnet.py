@@ -342,16 +342,23 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
                     del subnet_params['type']
                     del subnet_params['subnet']
 
+                    if not self.is_lock_and_rollback_supported:
+                        del subnet_params['lock-token']
                     subnet.put(**subnet_params)
-                    self.apply_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
+                    self.apply_sdn_changes_and_release_lock(lock=subnet_params.get('lock-token'))
                     self.module.exit_json(
                         changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
                     )
                 except Exception as e:
-                    self.rollback_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
-                    self.module.fail_json(
-                        msg=f'Failed to update subnet. Rolling back all changes : {e}'
-                    )
+                    if self.is_lock_and_rollback_supported:
+                        self.rollback_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
+                        self.module.fail_json(
+                            msg=f'Failed to update subnet. Rolling back all changes : {e}'
+                        )
+                    else:
+                        self.module.fail_json(
+                            msg=f'Failed to update subnet. Rollback not supported : {e}'
+                        )
             else:
                 self.module.fail_json(
                     msg=f"Subnet {subnet_id} needs to be updated but update is false."
@@ -373,19 +380,28 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
 
             # Check if subnet already present
             if subnet_id in [x['subnet'] for x in existing_subnets]:
+                if not self.is_lock_and_rollback_supported:
+                    del subnet_params['lock-token']
                 self.update_subnet(**subnet_params)
             else:
                 subnet_params['lock-token'] = self.get_global_sdn_lock()
+                if not self.is_lock_and_rollback_supported:
+                    del subnet_params['lock-token']
                 self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets().post(**subnet_params)
-                self.apply_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
+                self.apply_sdn_changes_and_release_lock(lock=subnet_params.get('lock-token'))
                 self.module.exit_json(
                     changed=True, subnet=subnet_id, msg=f'Created new subnet {subnet_cidr}'
                 )
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
-            self.module.fail_json(
-                msg=f'Failed to create subnet. Rolling back all changes : {e}'
-            )
+            if self.is_lock_and_rollback_supported:
+                self.rollback_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
+                self.module.fail_json(
+                    msg=f'Failed to create subnet. Rolling back all changes : {e}'
+                )
+            else:
+                self.module.fail_json(
+                    msg=f'Failed to create subnet. Rollback not supported : {e}'
+                )
 
     def subnet_absent(self, **subnet_params):
         vnet_name = subnet_params['vnet']
@@ -402,8 +418,10 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
             # Check if subnet already present
             if subnet_id in [x['subnet'] for x in existing_subnets]:
                 params['lock-token'] = self.get_global_sdn_lock()
+                if not self.is_lock_and_rollback_supported:
+                    del params['lock-token']
                 self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets(subnet_id).delete(**params)
-                self.apply_sdn_changes_and_release_lock(lock=params['lock-token'])
+                self.apply_sdn_changes_and_release_lock(lock=params.get('lock-token'))
                 self.module.exit_json(
                     changed=True, subnet=subnet_id, msg=f'Deleted subnet {subnet_id}'
                 )
@@ -412,10 +430,15 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
                     changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already not present.'
                 )
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock=params['lock-token'])
-            self.module.fail_json(
-                msg=f'Failed to delete subnet. Rolling back all changes. : {e}'
-            )
+            if self.is_lock_and_rollback_supported:
+                self.rollback_sdn_changes_and_release_lock(lock=params['lock-token'])
+                self.module.fail_json(
+                    msg=f'Failed to delete subnet. Rolling back all changes. : {e}'
+                )
+            else:
+                self.module.fail_json(
+                    msg=f'Failed to delete subnet. Rollback not supported. : {e}'
+                )
 
 
 def main():
