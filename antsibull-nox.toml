@@ -22,6 +22,12 @@ run_pylint = false
 run_yamllint = false
 run_mypy = false
 
+[vcs]
+vcs = "git"
+development_branch = "main"
+
+[sessions]
+
 [sessions.docs_check]
 validate_collection_refs="all"
 
