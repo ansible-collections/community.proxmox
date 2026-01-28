@@ -315,7 +315,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
         # Validate required parameters based on storage type
         if storage_type == "cephfs":
-            cephfs_options = self.module.params.get(f'{storage_type}_options', {})
+            cephfs_options = self.module.params.get(
+                f'{storage_type}_options', {})
             monhost = cephfs_options.get('monhost', '')
             username = cephfs_options.get('username')
             password = cephfs_options.get('password')
@@ -338,7 +339,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload['fs_name'] = fs_name
 
         if storage_type == "cifs":
-            cifs_options = self.module.params.get(f'{storage_type}_options', {})
+            cifs_options = self.module.params.get(
+                f'{storage_type}_options', {})
             server = cifs_options.get('server')
             share = cifs_options.get('share')
             username = cifs_options.get('username')
@@ -358,42 +360,31 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             if subdir:
                 payload['subdir'] = subdir
 
-            if not all([server, share]):
-                self.module.fail_json(msg="CIFS storage requires 'server' and 'share' parameters.")
-            else:
-                payload['server'] = server
-                payload['share'] = share
+            payload['server'] = server
+            payload['share'] = share
 
         if storage_type == "dir":
             dir_options = self.module.params.get(f'{storage_type}_options', {})
             path = dir_options.get('path')
-            if not all([path]):
-                self.module.fail_json(msg="Directory storage requires 'path' parameter.")
-            else:
-                payload['path'] = path
+            payload['path'] = path
 
         if storage_type == "iscsi":
-            iscsi_options = self.module.params.get(f'{storage_type}_options', {})
+            iscsi_options = self.module.params.get(
+                f'{storage_type}_options', {})
             portal = iscsi_options.get('portal')
             target = iscsi_options.get('target')
-            if not all([portal, target]):
-                self.module.fail_json(msg="iSCSI storage requires 'portal' and 'target' parameters.")
-            else:
-                payload['portal'] = portal
-                payload['target'] = target
+            payload['portal'] = portal
+            payload['target'] = target
 
         if storage_type == "nfs":
             nfs_options = self.module.params.get(f'{storage_type}_options', {})
             server = nfs_options.get('server')
             export = nfs_options.get('export')
             options = nfs_options.get('options')
-            if not all([server, export]):
-                self.module.fail_json(msg="NFS storage requires 'server' and 'export' parameters.")
-            else:
-                payload['server'] = server
-                payload['export'] = export
-                if options:
-                    payload['options'] = options
+            payload['server'] = server
+            payload['export'] = export
+            if options:
+                payload['options'] = options
 
         if storage_type == "pbs":
             pbs_options = self.module.params.get(f'{storage_type}_options', {})
@@ -402,30 +393,26 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             password = pbs_options.get('password')
             datastore = pbs_options.get('datastore')
             fingerprint = pbs_options.get('fingerprint')
-            if not all([server, datastore, username, password]):
-                self.module.fail_json(msg="PBS storage requires 'server', 'username', 'password' and 'datastore' parameters.")
-            else:
-                payload['server'] = server
-                payload['username'] = username
-                payload['password'] = password
-                payload['datastore'] = datastore
-                if fingerprint:
-                    payload['fingerprint'] = fingerprint
+            payload['server'] = server
+            payload['username'] = username
+            payload['password'] = password
+            payload['datastore'] = datastore
+            if fingerprint:
+                payload['fingerprint'] = fingerprint
 
         if storage_type == "zfspool":
-            zfspool_options = self.module.params.get(f'{storage_type}_options', {})
+            zfspool_options = self.module.params.get(
+                f'{storage_type}_options', {})
             pool = zfspool_options.get('pool')
-            if not all([pool]):
-                self.module.fail_json(msg="ZFS storage requires 'pool' parameter.")
-            else:
-                payload['pool'] = pool
+            payload['pool'] = pool
 
         # Check Mode validation
         if self.module.check_mode:
             try:
                 existing_storages = self.proxmox_api.storage.get()
             except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+                self.module.fail_json(
+                    msg=f"Failed to retrieve storage list: {e}")
 
             for storage in existing_storages:
                 if storage.get("storage") == storage_name:
@@ -450,7 +437,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 changed = False
                 result = f"Storage '{storage_name}' already present."
             else:
-                self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
+                self.module.fail_json(
+                    msg=f"Failed to create storage: {error_msg}")
 
         return changed, result
 
@@ -464,16 +452,19 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             try:
                 existing_storages = self.proxmox_api.storage.get()
             except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+                self.module.fail_json(
+                    msg=f"Failed to retrieve storage list: {e}")
 
             for storage in existing_storages:
                 if storage.get("storage") == storage_name:
                     changed = True
-                    result = {"changed": changed, "msg": f"Storage '{storage_name}' would be deleted."}
+                    result = {"changed": changed,
+                              "msg": f"Storage '{storage_name}' would be deleted."}
                     self.module.exit_json(**result)
 
             changed = False
-            result = {"changed": changed, "msg": f"Storage '{storage_name}' does not exist."}
+            result = {"changed": changed,
+                      "msg": f"Storage '{storage_name}' does not exist."}
             self.module.exit_json(**result)
 
         # Remove storage
@@ -489,9 +480,62 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             result = f"Storage '{storage_name}' removed successfully."
 
         except Exception as e:
-            self.module.fail_json(msg=f"Failed to delete storage '{storage_name}': {e}")
+            self.module.fail_json(
+                msg=f"Failed to delete storage '{storage_name}': {e}")
 
         return changed, result
+
+
+def validate_storage_type_options(storage_type, options):
+
+    if storage_type == 'cephfs':
+        content = options.get('content')
+        if not all([content]):
+            raise Exception("CephFS storage requires 'content' option.")
+
+    elif storage_type == 'cifs':
+        server = options.get('server')
+        share = options.get('share')
+        if not all([server, share]):
+            raise Exception(
+                "CIFS storage requires 'server' and 'share' options.")
+
+    elif storage_type == 'dir':
+        path = options.get('path')
+        content = options.get('content')
+        if not all([path, content]):
+            raise Exception(
+                "Directory storage requires 'path' and 'content' options.")
+
+    elif storage_type == 'iscsi':
+        portal = options.get('portal')
+        target = options.get('target')
+        if not all([portal, target]):
+            raise Exception(
+                "iSCSI storage requires 'portal' and 'target' options.")
+
+    elif storage_type == 'nfs':
+        server = options.get('server')
+        export = options.get('export')
+        if not all([server, export]):
+            raise Exception(
+                "NFS storage requires 'server' and 'export' options.")
+
+    elif storage_type == 'pbs':
+        server = options.get('server')
+        username = options.get('username')
+        password = options.get('password')
+        datastore = options.get('datastore')
+        if not all([server, username, password, datastore]):
+            raise Exception(
+                "PBS storage requires 'server', 'username', 'password' and 'datastore' options.")
+
+    elif storage_type == 'zfspool':
+        pool = options.get('pool')
+        content = options.get('content')
+        if not all([pool, content]):
+            raise Exception(
+                "ZFS storage requires 'pool' and 'content' options.")
 
 
 def main():
@@ -501,7 +545,8 @@ def main():
         nodes=dict(type='list', elements='str',),
         name=dict(type='str', required=True),
         state=dict(choices=['present', 'absent']),
-        type=dict(choices=['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool'], required=True),
+        type=dict(choices=['cephfs', 'cifs', 'dir', 'iscsi',
+                  'nfs', 'pbs', 'zfspool'], required=True),
         dir_options=dict(type='dict', options={
             'path': dict(type='str')
         }),
@@ -542,7 +587,8 @@ def main():
         zfspool_options=dict(type='dict', options={
             'pool': dict(type='str')
         }),
-        content=dict(type='list', elements='str', choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]),
+        content=dict(type='list', elements='str', choices=[
+                     "images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]),
     )
 
     module_args.update(storage_args)
@@ -562,6 +608,15 @@ def main():
 
     # Actions
     if module.params.get("state") == "present":
+        storage_type = module.params.get('type')
+        options_key = f'{storage_type}_options'
+        options = module.params.get(options_key) or {}
+
+        try:
+            validate_storage_type_options(storage_type, options)
+        except Exception as e:
+            module.fail_json(msg=f"Storage validation error: {str(e)}")
+
         changed, function_result = proxmox.add_storage()
         result = {"changed": changed, "msg": function_result}
 
