@@ -26,7 +26,7 @@ def dir_storage_args():
         "dir_options": {
             "path": "/dir",
         },
-        "content": ["images"]
+        "content": ["images"],
     }
 
 
@@ -47,9 +47,9 @@ def pbs_storage_args():
             "username": "backup@pbs",
             "password": "secret",
             "datastore": "backup01",
-            "fingerprint": "FA:KE:FI:NG:ER:PR:IN:T0:01"
+            "fingerprint": "FA:KE:FI:NG:ER:PR:IN:T0:01",
         },
-        "content": ["backup"]
+        "content": ["backup"],
     }
 
 
@@ -65,11 +65,8 @@ def nfs_storage_args():
         "state": "present",
         "name": "nfs-share",
         "type": "nfs",
-        "nfs_options": {
-            "server": "10.10.10.10",
-            "export": "/mnt/nfs"
-        },
-        "content": ["images"]
+        "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
+        "content": ["images"],
     }
 
 
@@ -88,16 +85,13 @@ def zfspool_storage_args():
         "zfspool_options": {
             "pool": "mypool",
         },
-        "content": ["images"]
+        "content": ["images"],
     }
 
 
 @pytest.fixture
 def existing_storages():
-    return [
-        {"storage": "existing-storage"},
-        {"storage": "nfs-share"}
-    ]
+    return [{"storage": "existing-storage"}, {"storage": "nfs-share"}]
 
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)
@@ -269,9 +263,9 @@ def test_add_cephfs_storage(mock_api, mock_init):
             "path": "/",
             "subdir": "mydata",
             "client_keyring": "AQ==",
-            "fs_name": "mycephfs"
+            "fs_name": "mycephfs",
         },
-        "content": ["images", "rootdir"]
+        "content": ["images", "rootdir"],
     }
 
     module = MagicMock(spec=AnsibleModule)
@@ -331,7 +325,7 @@ def test_add_dir_missing_required_path(mock_api, mock_init):
         "name": "dir-storage",
         "type": "dir",
         "dir_options": {},  # Missing 'path' parameter
-        "content": ["images"]
+        "content": ["images"],
     }
 
     module = MagicMock(spec=AnsibleModule)
@@ -367,7 +361,7 @@ def test_add_zfspool_missing_required_pool(mock_api, mock_init):
         "name": "zfspool-storage",
         "type": "zfspool",
         "zfspool_options": {},  # Missing 'pool' parameter
-        "content": ["images"]
+        "content": ["images"],
     }
 
     module = MagicMock(spec=AnsibleModule)
