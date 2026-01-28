@@ -50,10 +50,8 @@ def proxmox_auth_argument_spec():
                               no_log=True,
                               fallback=(env_fallback, ['PROXMOX_TOKEN_SECRET'])
                               ),
-        validate_certs=dict(type='bool',
-                            default=False,
-                            fallback=(env_fallback, ['PROXMOX_VALIDATE_CERTS'])
-                            ),
+        ca_path=dict(type='str',fallback=(env_fallback, ['PROXMOX_CA_PATH'])),
+        validate_certs=dict(type='bool',fallback=(env_fallback, ['PROXMOX_VALIDATE_CERTS'])),
         api_timeout=dict(type='int',
                          default=5,
                          fallback=(env_fallback, ['PROXMOX_API_TIMEOUT'])
@@ -150,6 +148,18 @@ class ProxmoxAnsible(object):
         api_password = self.module.params['api_password']
         api_token_id = self.module.params['api_token_id']
         api_token_secret = self.module.params['api_token_secret']
+        if self.module.params['validate_certs'] is None:
+            self.module.deprecate("The connection setting `validate_certs` was not provided and "
+                                  "defaults to true. This default will change to `false` in"
+                                  "in community.proxmox 2.0.0.",
+                                  version="2.0.0",
+                                  collection_name="community.proxmox",
+                                  )
+            self.module.params['validate_certs'] = False
+        if self.module.params["ca_path"] and self.module.params['validate_certs']:
+            validate_certs = self.module.params["ca_path"]
+        else:
+            validate_certs = self.module.params['validate_certs']
         validate_certs = self.module.params['validate_certs']
         api_timeout = self.module.params['api_timeout']
         auth_args = {'user': api_user}
