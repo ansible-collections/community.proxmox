@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from unittest.mock import patch
+from unittest.mock import (patch, MagicMock)
 
 import pytest
 
@@ -21,6 +21,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible.module_utils.compat.version import LooseVersion
 
 RAW_FIREWALL_RULES = [
     {
@@ -174,22 +175,28 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         self.connect_mock.return_value.cluster.resources.get.return_value = (
             RAW_CLUSTER_RESOURCES
         )
+        self.version_mock = patch.object(proxmox_firewall_info.ProxmoxFirewallInfoAnsible, "version", return_value=LooseVersion("9.0")).start()
 
-        mock_cluster_fw = self.connect_mock.return_value.cluster.return_value.firewall.return_value
+        mock_cluster = self.connect_mock.return_value.cluster.return_value.firewall
+        # return the mock object as return value to enable passing it on as firewall_obj
+        mock_cluster.return_value = mock_cluster
+        mock_cluster.rules.return_value.get.return_value = RAW_FIREWALL_RULES
+        mock_cluster.groups.return_value.get.return_value = RAW_GROUPS
+        # while rules and groups are currently accessed with their full paths,
+        # ipset output needs to change if it  receives an argument
+        mock_cluster.ipset.side_effect = lambda name=None: MagicMock(
+            get=MagicMock(return_value=RAW_IPSET_CIDR if name else RAW_IPSET)
+        )
+        mock_cluster.aliases.return_value.get.return_value = RAW_ALIASES
+
         mock_vm100_fw = self.connect_mock.return_value.nodes.return_value.return_value.return_value.firewall.return_value
-
-        mock_cluster_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
-        mock_cluster_fw.groups.return_value.get.return_value = RAW_GROUPS
-        mock_cluster_fw.aliases.return_value.get.return_value = RAW_ALIASES
-        mock_cluster_fw.ipset.return_value.test_ipset.get.return_value = RAW_IPSET_CIDR
-        mock_cluster_fw.ipset.return_value.get.return_value = RAW_IPSET
-
         mock_vm100_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         mock_vm100_fw.aliases.return_value.get.return_value = RAW_ALIASES
 
     def tearDown(self):
         self.connect_mock.stop()
         self.mock_module_helper.stop()
+        self.version_mock.stop()
         super(TestProxmoxFirewallModule, self).tearDown()
 
     def test_cluster_level_info(self):
