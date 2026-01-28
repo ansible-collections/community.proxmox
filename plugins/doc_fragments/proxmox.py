@@ -44,6 +44,11 @@ options:
       - Specify the token secret.
       - Uses the E(PROXMOX_TOKEN_SECRET) environment variable if not specified.
     type: str
+  api_timeout:
+    description:
+      - Time limit for requests towards the Proxmox api.
+    type: int
+    default: 5
   validate_certs:
     description:
       - If V(false), SSL certificates will not be validated.

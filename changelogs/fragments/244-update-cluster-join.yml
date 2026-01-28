@@ -1,0 +1,2 @@
+bugfixes:
+  - "proxmox_cluster - make cluster join idempotent (https://github.com/ansible-collections/community.proxmox/pull/244)."

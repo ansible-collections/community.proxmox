@@ -93,6 +93,13 @@ DOCUMENTATION = '''
             but its actual state will be paused. See O(qemu_extended_statuses) for how to retrieve the real status.
         default: false
         type: bool
+      want_post_filter_facts:
+        description:
+        - Whether to collect facts after host filtering (in contrast to pull all facts of all hosts before filtering as with O(want_facts) set to V(true)).
+        - This can be useful if you want to filter hosts based on some limited available criteria but still want to have access to all facts after filtering.
+        - When O(want_facts) is set to V(true) facts are collected before filtering and this parameter is ignored.
+        type: bool
+        default: false
       qemu_extended_statuses:
         description:
           - Requires O(want_facts) to be set to V(true) to function. This will allow you to differentiate between C(paused) and C(prelaunch)
@@ -111,7 +118,12 @@ DOCUMENTATION = '''
         type: bool
         default: false
       filters:
-        description: A list of Jinja templates that allow filtering hosts.
+        description:
+        - A list of Jinja templates that allow filtering hosts.
+        - If strict mode is enabled, any error during host filter compositing will lead to an AnsibleError being raised, otherwise the host will be ignored.
+        - Facts collected when O(want_facts) is set to V(true) can be used in the filters.
+        - When O(want_facts) is set to V(false) full facts are not available and filters can only used on a limited set of facts
+          proxmox_vmid, proxmox_name, proxmox_status, proxmox_vmtype, proxmox_tags.
         type: list
         elements: str
         default: []
@@ -500,6 +512,14 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         snapshots = [snapshot['name'] for snapshot in ret if snapshot['name'] != 'current']
         properties[self._fact('snapshots')] = snapshots
 
+    def _get_guest_facts(self, properties, node, vmid, ittype, name):
+        self._get_vm_status(properties, node, vmid, ittype, name)
+        self._get_vm_config(properties, node, vmid, ittype, name)
+        self._get_vm_snapshots(properties, node, vmid, ittype, name)
+
+        if ittype == 'lxc':
+            self._get_lxc_interfaces(properties, node, vmid)
+
     def to_safe(self, word):
         '''Converts 'bad' characters in a string to underscores so they can be used as Ansible groups
         #> ProxmoxInventory.to_safe("foo-bar baz")
@@ -549,25 +569,30 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             return None
 
         properties = dict()
-        name, vmid = item['name'], item['vmid']
+        name, vmid, status = item['name'], item['vmid'], item['status']
 
         properties[self._fact('node')] = node
         properties[self._fact('vmid')] = vmid
         properties[self._fact('vmtype')] = ittype
+        properties[self._fact('name')] = name
+        properties[self._fact('status')] = status
+
+        if tags := item.get('tags'):
+            properties[self._fact('tags')] = tags
 
         # get status, config and snapshots if want_facts == True
         want_facts = self.get_option('want_facts')
         if want_facts:
-            self._get_vm_status(properties, node, vmid, ittype, name)
-            self._get_vm_config(properties, node, vmid, ittype, name)
-            self._get_vm_snapshots(properties, node, vmid, ittype, name)
-
-            if ittype == 'lxc':
-                self._get_lxc_interfaces(properties, node, vmid)
+            self._get_guest_facts(properties, node, vmid, ittype, name)
 
         # ensure the host satisfies filters
         if not self._can_add_host(name, properties):
             return None
+
+        # get status, config and snapshots if we want_post_filter_facts only
+        want_post_filter_facts = self.get_option('want_post_filter_facts')
+        if not want_facts and want_post_filter_facts:
+            self._get_guest_facts(properties, node, vmid, ittype, name)
 
         # add the host to the inventory
         self._add_host(name, properties)
@@ -689,6 +714,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.group_prefix = self.get_option('group_prefix')
         self.facts_prefix = self.get_option('facts_prefix')
         self.strict = self.get_option('strict')
+        self.want_post_filter_facts = self.get_option('want_post_filter_facts')
 
         # actually populate inventory
         self._results = {}
