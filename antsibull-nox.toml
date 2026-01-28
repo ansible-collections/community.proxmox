@@ -10,6 +10,18 @@
 
 [sessions]
 
+[sessions.lint]
+run_ruff_check = true
+ruff_check_config = "ruff.toml"
+run_ruff_format = true
+ruff_format_config = "ruff.toml"
+run_isort = false
+run_black = false
+run_flake8 = false
+run_pylint = false
+run_yamllint = false
+run_mypy = false
+
 [sessions.docs_check]
 validate_collection_refs="all"
 
@@ -20,6 +32,7 @@ run_no_unwanted_files = true
 no_unwanted_files_module_extensions = [".py"]
 no_unwanted_files_yaml_extensions = [".yml"]
 run_action_groups = true
+run_no_trailing_whitespace = true
 
 [[sessions.extra_checks.action_groups_config]]
 name = "proxmox"
