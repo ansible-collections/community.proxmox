@@ -26,6 +26,8 @@ jobs:
           persist-credentials: false
       - name: Run nox
         uses: ansible-community/antsibull-nox@main
+        with:
+          change-detection: true
 
   ansible-test:
     uses: ansible-community/antsibull-nox/.github/workflows/reusable-nox-matrix.yml@main
