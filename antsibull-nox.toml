@@ -27,7 +27,6 @@ ruff_autofix_select = [
     "I",
     "RUF022",
 ]
-run_ruff_check = true
 run_isort = false
 run_black = false
 run_flake8 = false
