@@ -8,7 +8,7 @@ include = ["tests/**/*.py", "plugins/**/*.py"]
 [lint]
 # https://docs.astral.sh/ruff/rules/
 
-select = ["A", "B", "E", "D", "F", "FA", "FLY", "UP", "SIM", "I", "RUF022", "PL"]
+select = ["A", "B", "D", "DOC", "E", "F", "FA", "FLY", "UP", "SIM", "I", "RUF022", "PL"]
 ignore = [
     # Better keep ignored (for now)
     "F811",  # Redefinition of unused `xxx` (happens a lot for fixtures in unit tests)
