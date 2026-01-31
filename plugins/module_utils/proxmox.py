@@ -150,12 +150,14 @@ class ProxmoxAnsible(object):
         api_token_secret = self.module.params['api_token_secret']
         if self.module.params['validate_certs'] is None:
             self.module.deprecate("The connection setting `validate_certs` was not provided and "
-                                  "defaults to true. This default will change to `false` in"
+                                  "defaults to `false`. This default will change to `true` in"
                                   "in community.proxmox 2.0.0.",
                                   version="2.0.0",
                                   collection_name="community.proxmox",
                                   )
             self.module.params['validate_certs'] = False
+        # Only push the cert path as a string to proxmoxer, if validation is required
+        # verify_ssl supports True, False or Path as values
         if self.module.params["ca_path"] and self.module.params['validate_certs']:
             validate_certs = self.module.params["ca_path"]
         else:
