@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) Ansible project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -56,7 +55,7 @@ options:
     default: 5
   validate_certs:
     description:
-      - Validate the TLS certificates used for the connection to the Proxmox VE API.  
+      - Validate the TLS certificates used for the connection to the Proxmox VE API.
       - Currently defaults to V(false) and changes default to V(true) with community.proxmox 2.0.0.
       - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
     type: bool
