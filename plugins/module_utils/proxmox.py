@@ -50,7 +50,7 @@ def proxmox_auth_argument_spec():
                               no_log=True,
                               fallback=(env_fallback, ['PROXMOX_TOKEN_SECRET'])
                               ),
-        ca_path=dict(type='str',fallback=(env_fallback, ['PROXMOX_CA_PATH'])),
+        ca_path=dict(type='path',fallback=(env_fallback, ['PROXMOX_CA_PATH'])),
         validate_certs=dict(type='bool',fallback=(env_fallback, ['PROXMOX_VALIDATE_CERTS'])),
         api_timeout=dict(type='int',
                          default=5,
