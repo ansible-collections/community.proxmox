@@ -3,11 +3,12 @@
 # SPDX-FileCopyrightText: 2025 Felix Fontein <felix@fontein.de>
 
 line-length = 120
+include = ["tests/**/*.py", "plugins/**/*.py"]
 
 [lint]
 # https://docs.astral.sh/ruff/rules/
 
-select = ["A", "B", "E", "D", "F", "FA", "FLY", "UP", "SIM", "I", "RUF022", "PL"]
+select = ["A", "B", "D", "DOC", "E", "F", "FA", "FLY", "UP", "SIM", "I", "RUF022", "PL"]
 ignore = [
     # Better keep ignored (for now)
     "F811",  # Redefinition of unused `xxx` (happens a lot for fixtures in unit tests)
@@ -18,22 +19,9 @@ ignore = [
     "SIM105",  # suppressible-exception
     "SIM108",  # if-else-block-instead-of-if-exp
     "D100", # Missing docstring in public module
-    # To fix later:
-#    "B905",  # zip-without-explicit-strict - needs Python 3.10+
-#    "UP045",  # Use `X | None` for type annotations - needs Python 3.10+
-    # To fix:
-#    "B026",  # star-arg-unpacking-after-keyword-arg
-#    "SIM102",  # collapsible-if
-#    "SIM114",  # if-with-same-arms
-#    "SIM115",  # open-file-with-context-handler
-#    "SIM116",  # if-else-block-instead-of-dict-lookup
-#    "SIM117",  # multiple-with-statements
-#    "SIM118",  # in-dict-keys
-#    "SIM210",  # if-expr-with-true-false
-#    "SIM401",  # if-else-block-instead-of-dict-get
-#    "A001",  # builtin-variable-shadowing
-#    "A002",  # builtin-argument-shadowing
-#    "A004",  # builtin-import-shadowing
+    "D107", # undocumented-public-init
+    "D203", # incorrect-blank-line-before-class, mutually exclusive to D211
+    "D212", # multi-line-summary-first-line, mutually exclusive to D213
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -43,12 +31,36 @@ unfixable = []
 # Allow unused variables when underscore-prefixed or starting with dummy
 dummy-variable-rgx = "^(_|dummy).*$"
 
+
+[lint.per-file-ignores]
+# Don't require docstrings
+"tests/*" = ["D","DOC"]
+"plugins/connection/*" = ["D","DOC"]
+"plugins/modules/*" = ["D","DOC"]
+"plugins/inventory/*" = ["D","DOC"]
+"plugins/plugin/*" = ["D","DOC"]
+
+[lint.pydocstyle]
+# force users to include their variables in docstrings to improve editor support
+ignore-var-parameters = false 
+# quite similar to the yaml we already use as ansible documentation
+convention = "google" 
+
+
+[lint.isort]
+# The resulting order is: stdlib, third-party, e.g. ansible, first-party, e.g. ansible_collections.community.proxmox.*, local 
+known-first-party = [
+    "ansible_collections.community.proxmox",
+]
+known-third-party = [
+    "ansible_collections.community.internal_test_tools",
+] 
+
 [lint.pycodestyle]
 max-line-length = 160
 
 [format]
 # https://docs.astral.sh/ruff/formatter/#configuration
-
 # Like Black, use double quotes for strings.
 quote-style = "double"
 
@@ -64,10 +76,4 @@ line-ending = "lf"
 # reStructuredText code/literal blocks and doctests are all supported.
 docstring-code-format = false
 
-[lint.isort]
-known-first-party = [
-    "ansible_collections.community.general",
-]
-known-third-party = [
-    "ansible_collections.community.internal_test_tools",
-]
+
