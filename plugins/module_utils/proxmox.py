@@ -52,9 +52,7 @@ def proxmox_to_ansible_bool(value):  # noqa: SIM210
     Returns:
         bool: True if value = `1`, False for everything else including non-integers.
     """
-    if isinstance(value, int) and value == 1:
-        return True
-    return False
+    bool(isinstance(value, int) and value == 1)
 
 
 def ansible_to_proxmox_bool(value):
@@ -76,8 +74,9 @@ def ansible_to_proxmox_bool(value):
 def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
     """
     Compare two lists of dicts.
+
     Use case - for firewall rules we will be getting a list of rules from user.
-    We want to filter out which rules needs to be updated and which rules are completely new and needs to be created
+    We want to filter out which rules needs to be updated and which rules are completely new and needs to be created.
 
     Args:
         existing_list(list): Existing values example - list of existing rules
@@ -88,10 +87,9 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
             In case of firewall rules we want to ignore `['digest', 'ipversion']`.
 
     Returns:
-         tuple(list, list): 2 lists: 1st is the list of items which are completely new and needs to be created
-            2nd is a list of items which needs to be updated
+         tuple[list, list]: 2 lists: 1st is the list of items which are completely new and needs to be created
+            2nd is a list of items which needs to be updated.
     """
-
     if params_to_ignore is None:
         params_to_ignore = list()
     items_to_update = []
@@ -230,7 +228,7 @@ class ProxmoxAnsible:
 
     def get_vmid(self, name, ignore_missing=False, choose_first_if_multiple=False):
         """
-        Searches the PVE vms for a vms with the given name.
+        Searches the PVE VMs for a VM with the given name.
 
         Args:
             name(str): The name to filter the api output to.
@@ -256,6 +254,17 @@ class ProxmoxAnsible:
         return vms[0]
 
     def get_vm(self, vmid, ignore_missing=False):
+        """
+        Retrieve VM information based on the given VMID.
+
+        Args:
+            vmid(int): VMID to query.
+            ignore_missing: Skip failing the task if no VM was found.
+
+        Returns:
+            dict | None: VM attributes or None, if no VM was found.
+
+        """
         try:
             vms = [vm for vm in self.proxmox_api.cluster.resources.get(type="vm") if vm["vmid"] == int(vmid)]
         except Exception as e:
@@ -270,6 +279,17 @@ class ProxmoxAnsible:
             self.module.fail_json(msg=f"VM with vmid {vmid} does not exist in cluster")
 
     def api_task_ok(self, node, taskid):
+        """
+        Verify the success of a finished task.
+
+        Args:
+            node(str): Node, which task log should be queried.
+            taskid(str): Unique task identifier.
+
+        Returns:
+            bool: Task status.
+
+        """
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
             exitstatus = to_native(status.get("exitstatus") or "")
@@ -278,7 +298,17 @@ class ProxmoxAnsible:
             self.module.fail_json(msg=f"Unable to retrieve API task ID from node {node}: {e}")
 
     def api_task_failed(self, node, taskid):
-        """Explicitly check if the task stops but exits with a failed status"""
+        """
+        Verify the failure of a finished task.
+
+        Args:
+            node(str): Node, which task log should be queried.
+            taskid(str): Unique task identifier.
+
+        Returns:
+            bool: Task status.
+
+        """
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
             return status["status"] == "stopped" and status["exitstatus"] != "OK"
@@ -286,12 +316,16 @@ class ProxmoxAnsible:
             self.module.fail_json(msg=f"Unable to retrieve API task ID from node {node}: {e}")
 
     def api_task_complete(self, node_name, task_id, timeout):
-        """Wait until the task stops or times out.
+        """
+        Wait until the task stops or times out.
 
-        :param node_name: Proxmox node name where the task is running.
-        :param task_id: ID of the running task.
-        :param timeout: Timeout in seconds to wait for the task to complete.
-        :return: Task completion status (True/False) and ``exitstatus`` message when status=False.
+        Args:
+            node_name(str): Proxmox node name where the task is running.
+            task_id(str): ID of the running task.
+            timeout(int): Timeout in seconds to wait for the task to complete.
+
+        Returns:
+            tuple[bool, str]: Task completion status and `exitstatus` message when status=False.
         """
         status = {}
         while timeout:
@@ -312,28 +346,48 @@ class ProxmoxAnsible:
                 sleep(1)
 
     def get_pool(self, poolid):
-        """Retrieve pool information.
+        """
+        Retrieve pool information.
 
-        :param poolid: str - name of the pool
-        :return: dict - pool information
+        Args:
+            poolid(str): Name of the pool.
+
+        Returns:
+            dict: Pool information.
         """
         try:
             return self.proxmox_api.pools(poolid).get()
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve pool {poolid} information: {e}")
 
-    def get_storages(self, type):
-        """Retrieve storages information.
+    def get_storages(self, storagetype):
+        """
+        Retrieve storages information.
 
-        :param type: str, optional - type of storages
-        :return: list of dicts - array of storages
+        Args:
+            storagetype(str): Type of storages to filter to.
+
+        Returns:
+            list[dict]: List of configured storages.
         """
         try:
-            return self.proxmox_api.storage.get(type=type)
+            return self.proxmox_api.storage.get(type=storagetype)
         except Exception as e:
-            self.module.fail_json(msg=f"Unable to retrieve storages information with type {type}: {e}")
+            self.module.fail_json(msg=f"Unable to retrieve storages information with type {storagetype}: {e}")
 
     def get_storage_content(self, node, storage, content=None, vmid=None):
+        """
+        Retrieve a list of storage contents.
+
+        Args:
+            storage(str): Storage to check.
+            node(str): Node to query.
+            content(str): Limit the file list to the following content type.
+            vmid(int): Limit the file list to this vmid.
+
+        Returns:
+            list[dict]: List of configured files.
+        """
         try:
             return self.proxmox_api.nodes(node).storage(storage).content().get(content=content, vmid=vmid)
         except Exception as e:
