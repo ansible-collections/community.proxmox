@@ -353,30 +353,30 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             if subdir:
                 payload["subdir"] = subdir
 
-            payload['server'] = server
-            payload['share'] = share
+            payload["server"] = server
+            payload["share"] = share
 
         if storage_type == "dir":
             dir_options = self.module.params.get(f'{storage_type}_options', {})
             path = dir_options.get('path')
-            payload['path'] = path
+            payload["path"] = path
 
         if storage_type == "iscsi":
             iscsi_options = self.module.params.get(f'{storage_type}_options', {})
             portal = iscsi_options.get('portal')
             target = iscsi_options.get('target')
-            payload['portal'] = portal
-            payload['target'] = target
+            payload["portal"] = portal
+            payload["target"] = target
 
         if storage_type == "nfs":
             nfs_options = self.module.params.get(f'{storage_type}_options', {})
             server = nfs_options.get('server')
             export = nfs_options.get('export')
             options = nfs_options.get('options')
-            payload['server'] = server
-            payload['export'] = export
+            payload["server"] = server
+            payload["export"] = export
             if options:
-                payload['options'] = options
+                payload["options"] = options
 
         if storage_type == "pbs":
             pbs_options = self.module.params.get(f'{storage_type}_options', {})
@@ -385,17 +385,17 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             password = pbs_options.get('password')
             datastore = pbs_options.get('datastore')
             fingerprint = pbs_options.get('fingerprint')
-            payload['server'] = server
-            payload['username'] = username
-            payload['password'] = password
-            payload['datastore'] = datastore
+            payload["server"] = server
+            payload["username"] = username
+            payload["password"] = password
+            payload["datastore"] = datastore
             if fingerprint:
-                payload['fingerprint'] = fingerprint
+                payload["fingerprint"] = fingerprint
 
         if storage_type == "zfspool":
             zfspool_options = self.module.params.get(f'{storage_type}_options', {})
             pool = zfspool_options.get('pool')
-            payload['pool'] = pool
+            payload["pool"] = pool
 
         # Check Mode validation
         if self.module.check_mode:
@@ -472,47 +472,46 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
 
 def validate_storage_type_options(storage_type, options):
+    if storage_type == "cephfs":
+        content = options.get("content")
+        if not all([content]):
+            raise Exception("CephFS storage requires 'content' option.")
 
-    if storage_type == 'cephfs':
-      content = options.get('content')
-      if not all([content]):
-          raise Exception("CephFS storage requires 'content' option.")
-
-    elif storage_type == 'cifs':
-        server = options.get('server')
-        share = options.get('share')
+    elif storage_type == "cifs":
+        server = options.get("server")
+        share = options.get("share")
         if not all([server, share]):
             raise Exception("CIFS storage requires 'server' and 'share' options.")
 
-    elif storage_type == 'dir':
-      path = options.get('path')
-      content = options.get('content')
-      if not all([path, content]):
-          raise Exception("Directory storage requires 'path' and 'content' options.")
+    elif storage_type == "dir":
+        path = options.get("path")
+        content = options.get("content")
+        if not all([path, content]):
+            raise Exception("Directory storage requires 'path' and 'content' options.")
 
-    elif storage_type == 'iscsi':
-      portal = options.get('portal')
-      target = options.get('target')
-      if not all([portal, target]):
-          raise Exception("iSCSI storage requires 'portal' and 'target' options.")
+    elif storage_type == "iscsi":
+        portal = options.get("portal")
+        target = options.get("target")
+        if not all([portal, target]):
+            raise Exception("iSCSI storage requires 'portal' and 'target' options.")
 
-    elif storage_type == 'nfs':
-      server = options.get('server')
-      export = options.get('export')
-      if not all([server, export]):
-          raise Exception("NFS storage requires 'server' and 'export' options.")
+    elif storage_type == "nfs":
+        server = options.get("server")
+        export = options.get("export")
+        if not all([server, export]):
+            raise Exception("NFS storage requires 'server' and 'export' options.")
 
-    elif storage_type == 'pbs':
-        server = options.get('server')
-        username = options.get('username')
-        password = options.get('password')
-        datastore = options.get('datastore')
+    elif storage_type == "pbs":
+        server = options.get("server")
+        username = options.get("username")
+        password = options.get("password")
+        datastore = options.get("datastore")
         if not all([server, username, password, datastore]):
             raise Exception("PBS storage requires 'server', 'username', 'password' and 'datastore' options.")
 
-    elif storage_type == 'zfspool':
-        pool = options.get('pool')
-        content = options.get('content')
+    elif storage_type == "zfspool":
+        pool = options.get("pool")
+        content = options.get("content")
         if not all([pool, content]):
             raise Exception("ZFS storage requires 'pool' and 'content' options.")
 
