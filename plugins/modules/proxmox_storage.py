@@ -477,6 +477,10 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
 
 def validate_storage_type_options(storage_type, options):
+    if storage_type == "cephfs":
+        content = options.get("content")
+        if not all([content]):
+            raise Exception("CephFS storage requires 'content' option.")
 
     if storage_type == "cephfs":
         content = options.get("content")
