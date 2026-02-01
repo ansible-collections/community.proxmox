@@ -53,18 +53,16 @@ class TestProxmoxRoleModule(ModuleTestCase):
         super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_role
-        self.fail_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.fail_json",
-                                       new=Mock(side_effect=fail_json))
-        self.exit_json_patcher = patch(
-            "ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
+        self.fail_json_patcher = patch(
+            "ansible.module_utils.basic.AnsibleModule.fail_json", new=Mock(side_effect=fail_json)
+        )
+        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect"
         ).start()
-        self.mock_get_role = patch.object(
-            proxmox_role.ProxmoxRoleAnsible, "_get_role"
-        ).start()
+        self.mock_get_role = patch.object(proxmox_role.ProxmoxRoleAnsible, "_get_role").start()
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -96,68 +94,52 @@ class TestProxmoxRoleModule(ModuleTestCase):
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = {}
-        result = self._run_module(
-            get_module_args(roleid=ROLE_ID, privs=["VM.Console"])
-        )
+        result = self._run_module(get_module_args(roleid=ROLE_ID, privs=["VM.Console"]))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} successfully updated"
         assert result["roleid"] == ROLE_ID
 
     def test_role_absent(self):
         self.mock_get_role.return_value = {}
-        result = self._run_module(
-            get_module_args(roleid=ROLE_ID, state="absent")
-        )
+        result = self._run_module(get_module_args(roleid=ROLE_ID, state="absent"))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} successfully deleted"
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = None
-        result = self._run_module(
-            get_module_args(roleid=ROLE_ID, state="absent")
-        )
+        result = self._run_module(get_module_args(roleid=ROLE_ID, state="absent"))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} does not exist"
         assert result["roleid"] == ROLE_ID
 
     def test_role_present_check_mode(self):
         self.mock_get_role.return_value = None
-        result = self._run_module(
-            self._check_mode_args(roleid=ROLE_ID)
-        )
+        result = self._run_module(self._check_mode_args(roleid=ROLE_ID))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} would be created"
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = {}
-        result = self._run_module(
-            self._check_mode_args(roleid=ROLE_ID)
-        )
+        result = self._run_module(self._check_mode_args(roleid=ROLE_ID))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = {}
-        result = self._run_module(
-            self._check_mode_args(roleid=ROLE_ID, privs=["VM.Console"])
-        )
+        result = self._run_module(self._check_mode_args(roleid=ROLE_ID, privs=["VM.Console"]))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} would be updated"
         assert result["roleid"] == ROLE_ID
 
     def test_role_absent_check_mode(self):
         self.mock_get_role.return_value = {}
-        result = self._run_module(
-            self._check_mode_args(roleid=ROLE_ID, state="absent")
-        )
+        result = self._run_module(self._check_mode_args(roleid=ROLE_ID, state="absent"))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} would be deleted"
         assert result["roleid"] == ROLE_ID
 
         self.mock_get_role.return_value = None
-        result = self._run_module(
-            self._check_mode_args(roleid=ROLE_ID, state="absent")
-        )
+        result = self._run_module(self._check_mode_args(roleid=ROLE_ID, state="absent"))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} does not exist"
         assert result["roleid"] == ROLE_ID

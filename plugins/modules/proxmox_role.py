@@ -5,7 +5,7 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
@@ -85,7 +85,9 @@ msg:
 """
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -101,14 +103,10 @@ def get_ansible_module():
     module_args = proxmox_auth_argument_spec()
     module_args.update(get_proxmox_args())
 
-    return AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    return AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
 
 class ProxmoxRoleAnsible(ProxmoxAnsible):
-
     def __init__(self, module):
         super(ProxmoxRoleAnsible, self).__init__(module)
         self.params = module.params
@@ -156,77 +154,41 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
 
         if existing_role is None:
             if self.module.check_mode:
-                self.module.exit_json(
-                    changed=True,
-                    roleid=roleid,
-                    msg=f"Role {roleid} would be created"
-                )
+                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} would be created")
 
             try:
                 privs_string = self._privs_to_string(desired_privs)
-                self.proxmox_api.access.roles.post(
-                    roleid=roleid, privs=privs_string)
-                self.module.exit_json(
-                    changed=True,
-                    roleid=roleid,
-                    msg=f"Role {roleid} successfully created"
-                )
+                self.proxmox_api.access.roles.post(roleid=roleid, privs=privs_string)
+                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} successfully created")
             except Exception as e:
-                self.module.fail_json(
-                    changed=False,
-                    roleid=roleid,
-                    msg=f"Failed to create role {roleid}: {e}"
-                )
+                self.module.fail_json(changed=False, roleid=roleid, msg=f"Failed to create role {roleid}: {e}")
         else:
             existing_privs = self._role_privs_to_list(existing_role)
-            needs_update = self._privs_need_update(
-                existing_privs, desired_privs)
+            needs_update = self._privs_need_update(existing_privs, desired_privs)
 
             if not needs_update:
                 self.module.exit_json(
-                    changed=False,
-                    roleid=roleid,
-                    msg=f"Role {roleid} already exists with desired configuration"
+                    changed=False, roleid=roleid, msg=f"Role {roleid} already exists with desired configuration"
                 )
 
             if self.module.check_mode:
-                self.module.exit_json(
-                    changed=True,
-                    roleid=roleid,
-                    msg=f"Role {roleid} would be updated"
-                )
+                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} would be updated")
 
             try:
                 privs_string = self._privs_to_string(desired_privs)
                 self.proxmox_api.access.roles(roleid).put(privs=privs_string)
-                self.module.exit_json(
-                    changed=True,
-                    roleid=roleid,
-                    msg=f"Role {roleid} successfully updated"
-                )
+                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} successfully updated")
             except Exception as e:
-                self.module.fail_json(
-                    changed=False,
-                    roleid=roleid,
-                    msg=f"Failed to update role {roleid}: {e}"
-                )
+                self.module.fail_json(changed=False, roleid=roleid, msg=f"Failed to update role {roleid}: {e}")
 
     def role_absent(self, roleid):
         existing_role = self._get_role(roleid)
 
         if existing_role is None:
-            self.module.exit_json(
-                changed=False,
-                roleid=roleid,
-                msg=f"Role {roleid} does not exist"
-            )
+            self.module.exit_json(changed=False, roleid=roleid, msg=f"Role {roleid} does not exist")
 
         if self.module.check_mode:
-            self.module.exit_json(
-                changed=True,
-                roleid=roleid,
-                msg=f"Role {roleid} would be deleted"
-            )
+            self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} would be deleted")
 
         try:
             self.proxmox_api.access.roles(roleid).delete()
@@ -236,11 +198,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
                 msg=f"Role {roleid} successfully deleted",
             )
         except Exception as e:
-            self.module.fail_json(
-                changed=False,
-                roleid=roleid,
-                msg=f"Failed to delete role {roleid}: {e}"
-            )
+            self.module.fail_json(changed=False, roleid=roleid, msg=f"Failed to delete role {roleid}: {e}")
 
 
 def main():
