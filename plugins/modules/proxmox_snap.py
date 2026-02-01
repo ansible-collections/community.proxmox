@@ -152,15 +152,14 @@ def get_proxmox_args():
     return dict(
         hostname=dict(),
         vmid=dict(),
-        state=dict(default='present', choices=[
-                   'present', 'absent', 'rollback']),
-        force=dict(type='bool', default=False),
-        unbind=dict(type='bool', default=False),
-        vmstate=dict(type='bool', default=False),
+        state=dict(default="present", choices=["present", "absent", "rollback"]),
+        force=dict(type="bool", default=False),
+        unbind=dict(type="bool", default=False),
+        vmstate=dict(type="bool", default=False),
         description=dict(),
-        timeout=dict(type='int', default=30),
-        snapname=dict(default='ansible_snap'),
-        retention=dict(type='int', default=0),
+        timeout=dict(type="int", default=30),
+        snapname=dict(default="ansible_snap"),
+        retention=dict(type="int", default=0),
     )
 
 
@@ -172,23 +171,22 @@ def get_ansible_module():
         argument_spec=module_args,
         supports_check_mode=True,
         required_if=[
-            ('unbind', True, ['api_password']),
+            ("unbind", True, ["api_password"]),
         ],
     )
 
 
 def validate_params(params):
-
     # Validate unbind authentication requirements.
     # Mountpoint configuration operations require root@pam with password authentication.
     # API tokens are not supported for mountpoint operations, even for root@pam.
     # Without proper authentication, the operation would fail after mountpoints are removed,
     # leaving the container in a misconfigured state without its mountpoints.
-    unbind = params.get('unbind', False)
+    unbind = params.get("unbind", False)
     if unbind is True:
-        api_user = params.get('api_user')
-        api_password = params.get('api_password')
-        if api_user != 'root@pam' or not api_password:
+        api_user = params.get("api_user")
+        api_password = params.get("api_password")
+        if api_user != "root@pam" or not api_password:
             raise Exception("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
 
 
@@ -337,7 +335,6 @@ def main():
         validate_params(module.params)
     except Exception as e:
         module.fail_json(msg=f"Module parameters validation error: {str(e)}")
-
 
     proxmox = ProxmoxSnapAnsible(module)
 
