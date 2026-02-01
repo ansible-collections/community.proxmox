@@ -165,9 +165,6 @@ options:
       - When used with O(state=stopped), attempts a graceful shutdown
         and if the VM is still running after O(timeout), it will be forcefully powered off.
       - When used with O(state=restarted), performs reset (power off and on) and not a graceful reboot.
-      - When used with O(state=stopped), attempts a graceful shutdown
-        and if the VM is still running after O(timeout), it will be forcefully powered off.
-        And finally perfoms the delete.
     type: bool
   format:
     description:
@@ -493,8 +490,8 @@ options:
   timeout:
     description:
       - Timeout in seconds for operations.
-      - If the timeout is reach with O(state=stopped) and O(force=True), the VM will be forcefully powered off.
-      - If the timeout is reach with O(state=stopped) and O(force=False), the task will fail.
+      - If the timeout is reached with O(state=stopped) and O(force=True), the VM will be forcefully powered off.
+      - If the timeout is reached with O(state=stopped) and O(force=False), the task will fail.
     type: int
     default: 30
   tpmstate0:
