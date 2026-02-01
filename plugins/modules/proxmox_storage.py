@@ -437,9 +437,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 self.module.fail_json(msg="ZFS storage requires 'pool' parameter.")
             else:
                 payload['pool'] = pool
-            
-            payload['sparse'] = 1 if zfspool_options.get('sparse') else 0
-            
+
+            payload["sparse"] = 1 if zfspool_options.get("sparse") else 0
 
         # Check Mode validation
         if self.module.check_mode:
@@ -560,10 +559,13 @@ def main():
             'datastore': dict(type='str'),
             'fingerprint': dict(type='str')
         }),
-        zfspool_options=dict(type='dict', options={
-            'pool': dict(type='str'),
-            'sparse': dict(type='bool'),
-        }),
+        zfspool_options=dict(
+            type="dict",
+            options={
+                "pool": dict(type="str"),
+                "sparse": dict(type="bool"),
+            },
+        ),
         content=dict(type='list', elements='str', choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]),
     )
 
