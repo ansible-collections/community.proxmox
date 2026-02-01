@@ -192,7 +192,7 @@ class ProxmoxAnsible:
             auth_args["token_value"] = api_token_secret
 
         if api_otp:
-            auth_args['otp'] = api_otp
+            auth_args["otp"] = api_otp
         try:
             return ProxmoxAPI(api_host, timeout=api_timeout, verify_ssl=validate_certs, **auth_args)
         except Exception as e:
