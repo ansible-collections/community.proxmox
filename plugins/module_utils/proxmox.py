@@ -52,7 +52,7 @@ def proxmox_to_ansible_bool(value):  # noqa: SIM210
     Returns:
         bool: True if value = `1`, False for everything else including non-integers.
     """
-    bool(isinstance(value, int) and value == 1)
+    return bool(isinstance(value, int) and value == 1)
 
 
 def ansible_to_proxmox_bool(value):
