@@ -33,13 +33,8 @@ dummy-variable-rgx = "^(_|dummy).*$"
 
 
 [lint.per-file-ignores]
-# Don't require docstrings
-"tests/*" = ["D"]
-"plugins/connection/*" = ["D"]
-"plugins/modules/*" = ["D"]
-"plugins/inventory/*" = ["D"]
-"plugins/plugin/*" = ["D"]
-"plugins/doc_fragments/*" = ["D"]
+# Only require docstrings for shared utils
+"!plugins/*_utils/*.py" = ["D"]
 
 [lint.pydocstyle]
 # force users to include their variables in docstrings to improve editor support
