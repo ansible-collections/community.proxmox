@@ -7,6 +7,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -109,7 +110,11 @@ RETURN = """
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible, HAS_PROXMOXER, PROXMOXER_IMP_ERR)
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+    HAS_PROXMOXER,
+    PROXMOXER_IMP_ERR,
+)
 
 
 class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
@@ -137,7 +142,7 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
     def get_vms_list(self):
         """Retrieve the list of all virtual machines in the cluster."""
         try:
-            vms = self.proxmox_api.cluster.resources.get(type='vm')
+            vms = self.proxmox_api.cluster.resources.get(type="vm")
         except Exception as e:
             self.module.fail_json(msg="Getting vms info from cluster failed: %s" % e)
         return vms
@@ -145,8 +150,8 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
     def get_vmid_from_vmname(self, vmname):
         """Convert vm name to vm ID."""
         vmInfo = self.get_vms_list()
-        vms = [vm for vm in vmInfo if vm['name'] == vmname]
-        return (vms[0]['vmid'])
+        vms = [vm for vm in vmInfo if vm["name"] == vmname]
+        return vms[0]["vmid"]
 
     def ensure_backup_present(self, vm_id, backup_id):
         """Add vmid to backup job."""
@@ -155,9 +160,9 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
         """If backup_job_info is a list, get the first item (assuming there's only one backup job returned)."""
         if isinstance(backup_job_info, list):
             backup_job_info = backup_job_info[0]
-        vmids = backup_job_info['vmid'].split(',')
+        vmids = backup_job_info["vmid"].split(",")
         if str(vm_id) not in vmids:
-            updated_backup_vmids = backup_job_info['vmid'] + ',' + str(vm_id)
+            updated_backup_vmids = backup_job_info["vmid"] + "," + str(vm_id)
             self.update_backup_job_vmid(backup_id, updated_backup_vmids)
             return True
         else:
@@ -165,82 +170,82 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
 
     def ensure_backup_absent(self, vm_id, backup_id):
         """Delete vmid from backup job."""
-        if backup_id is not None and backup_id != '':
+        if backup_id is not None and backup_id != "":
             backup_job_info = self.get_backup_job_info(backup_id)
             if isinstance(backup_job_info, list):
                 backup_job_info = backup_job_info[0]
-            vmids = backup_job_info['vmid'].split(',')
+            vmids = backup_job_info["vmid"].split(",")
             if str(vm_id) in vmids:
                 if len(vmids) > 1:
                     vmids.remove(str(vm_id))
-                    new_vmids = ','.join(map(str, vmids))
-                    self.update_backup_job_vmid(backup_job_info['id'], new_vmids)
+                    new_vmids = ",".join(map(str, vmids))
+                    self.update_backup_job_vmid(backup_job_info["id"], new_vmids)
                     return True
                 else:
-                    self.module.fail_json(msg="No more than one vmid is assigned to %s. You just can remove job." % backup_job_info['id'])
+                    self.module.fail_json(
+                        msg="No more than one vmid is assigned to %s. You just can remove job." % backup_job_info["id"]
+                    )
             return False
         else:
             list_backup_jobs_vm_deleted = []
             list_backups = self.list_backup_schedules()
             for backup_job in list_backups:
-                vmids = list(backup_job['vmid'].split(','))
+                vmids = list(backup_job["vmid"].split(","))
                 if str(vm_id) in vmids:
                     if len(vmids) > 1:
                         vmids.remove(str(vm_id))
-                        new_vmids = ','.join(map(str, vmids))
-                        self.update_backup_job_vmid(backup_job['id'], new_vmids)
-                        list_backup_jobs_vm_deleted.append(backup_job['id'])
+                        new_vmids = ",".join(map(str, vmids))
+                        self.update_backup_job_vmid(backup_job["id"], new_vmids)
+                        list_backup_jobs_vm_deleted.append(backup_job["id"])
                     else:
-                        self.module.fail_json(msg="No more than one vmid is assigned to %s. You just can remove job." % backup_job['id'])
+                        self.module.fail_json(
+                            msg="No more than one vmid is assigned to %s. You just can remove job." % backup_job["id"]
+                        )
             return len(list_backup_jobs_vm_deleted) > 0
 
 
 def main():
     args = proxmox_auth_argument_spec()
     backup_schedule_args = dict(
-        vm_name=dict(type='str'),
-        vm_id=dict(type='str'),
-        backup_id=dict(type='str'),
-        state=dict(choices=['present', 'absent'], required=True)
+        vm_name=dict(type="str"),
+        vm_id=dict(type="str"),
+        backup_id=dict(type="str"),
+        state=dict(choices=["present", "absent"], required=True),
     )
     args.update(backup_schedule_args)
 
-    module = AnsibleModule(
-        argument_spec=args,
-        mutually_exclusive=[('vm_id', 'vm_name')],
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=args, mutually_exclusive=[("vm_id", "vm_name")], supports_check_mode=True)
 
-    result = dict(changed=False, message='')
+    result = dict(changed=False, message="")
 
     # Check if proxmoxer exist
     if not HAS_PROXMOXER:
-        module.fail_json(msg=missing_required_lib('proxmoxer'), exception=PROXMOXER_IMP_ERR)
+        module.fail_json(msg=missing_required_lib("proxmoxer"), exception=PROXMOXER_IMP_ERR)
 
     # Start to connect to proxmox to get backup data
     proxmox = ProxmoxSetVMBackupAnsible(module)
-    vm_name = module.params['vm_name']
-    vm_id = module.params['vm_id']
-    backup_id = module.params['backup_id']
-    state = module.params['state']
+    vm_name = module.params["vm_name"]
+    vm_id = module.params["vm_id"]
+    backup_id = module.params["backup_id"]
+    state = module.params["state"]
 
     if vm_name:
         vm_id = proxmox.get_vmid_from_vmname(vm_name)
 
-    if state == 'present':
+    if state == "present":
         backup_schedule = proxmox.ensure_backup_present(vm_id, backup_id)
 
-    if state == 'absent':
+    if state == "absent":
         backup_schedule = proxmox.ensure_backup_absent(vm_id, backup_id)
 
     if backup_schedule:
-        result['changed'] = True
-        result['message'] = 'The backup schedule has been changed successfully.'
+        result["changed"] = True
+        result["message"] = "The backup schedule has been changed successfully."
     else:
-        result['message'] = 'The backup schedule did not change anything.'
+        result["message"] = "The backup schedule did not change anything."
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

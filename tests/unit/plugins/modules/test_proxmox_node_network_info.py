@@ -133,9 +133,7 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
         mock_nodes.get.return_value = [{"node": "pve"}]
 
         mock_network_obj.get.side_effect = lambda type=None: [
-            interface
-            for interface in RAW_NETWORK_OUTPUT
-            if type is None or interface["type"] == type
+            interface for interface in RAW_NETWORK_OUTPUT if type is None or interface["type"] == type
         ]
 
     def tearDown(self):
@@ -180,13 +178,9 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_filter_by_iface_type(self):
         """Test filtering by interface type."""
-        mock_network_obj = (
-            self.connect_mock.return_value.nodes.return_value.network.return_value
-        )
+        mock_network_obj = self.connect_mock.return_value.nodes.return_value.network.return_value
         mock_network_obj.get.side_effect = lambda type=None: [
-            interface
-            for interface in RAW_NETWORK_OUTPUT
-            if type is None or interface["type"] == type
+            interface for interface in RAW_NETWORK_OUTPUT if type is None or interface["type"] == type
         ]
 
         with pytest.raises(AnsibleExitJson) as exc_info:
@@ -294,16 +288,11 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "check_changes cannot be used with iface or iface_type parameters"
-            in result["msg"]
-        )
+        assert "check_changes cannot be used with iface or iface_type parameters" in result["msg"]
 
     def test_node_not_found(self):
         """Test error handling when node doesn't exist."""
-        with patch.object(
-            self.module.ProxmoxNodeNetworkInfoAnsible, "get_node", return_value=None
-        ):
+        with patch.object(self.module.ProxmoxNodeNetworkInfoAnsible, "get_node", return_value=None):
             with pytest.raises(AnsibleFailJson) as exc_info:
                 with set_module_args(
                     {
@@ -316,9 +305,7 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
                     self.module.main()
 
             result = exc_info.value.args[0]
-            assert (
-                "Node 'nonexistent' not found in the Proxmox cluster" in result["msg"]
-            )
+            assert "Node 'nonexistent' not found in the Proxmox cluster" in result["msg"]
 
     def test_boolean_conversion(self):
         """Test that boolean values are properly converted."""
@@ -344,9 +331,7 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
     def test_node_not_specified(self):
         """Test error handling when node parameter is not specified."""
         with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(
-                {"api_host": "host", "api_user": "user", "api_password": "password"}
-            ):
+            with set_module_args({"api_host": "host", "api_user": "user", "api_password": "password"}):
                 self.module.main()
 
         result = exc_info.value.args[0]

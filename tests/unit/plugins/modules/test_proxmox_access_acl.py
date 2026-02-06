@@ -24,13 +24,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.proxmox.plugins.modules import proxmox_access_acl
 
-ACE = {
-    "path": "/vms/100",
-    "propagate": 1,
-    "roleid": "PVEVMUser",
-    "type": "user",
-    "ugid": "a01mako@pam"
-}
+ACE = {"path": "/vms/100", "propagate": 1, "roleid": "PVEVMUser", "type": "user", "ugid": "a01mako@pam"}
 
 API = {
     "api_user": "root@pam",
@@ -74,7 +68,7 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["failed"] is True
-        assert result["missing_parameters"] == frozenset({'ugid', 'type'})
+        assert result["missing_parameters"] == frozenset({"ugid", "type"})
         assert result["changed"] is False, result
         assert self.mock_get.call_count == 0
         assert self.mock_put.call_count == 0
@@ -97,15 +91,7 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
         assert self.mock_put.call_count == 0
 
     def test_module_present_missing(self):
-
-        with set_module_args(
-            {
-                **API,
-                "state": "present",
-                **ACE,
-                "path": "/vms/101"
-            }
-        ):
+        with set_module_args({**API, "state": "present", **ACE, "path": "/vms/101"}):
             with pytest.raises(AnsibleExitJson) as exc_info:
                 proxmox_access_acl.main()
 
@@ -133,14 +119,7 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
         assert self.mock_put.call_count == 1
 
     def test_module_absent_missing(self):
-        with set_module_args(
-            {
-                **API,
-                "state": "absent",
-                **ACE,
-                "path": "/vms/101"
-            }
-        ):
+        with set_module_args({**API, "state": "absent", **ACE, "path": "/vms/101"}):
             with pytest.raises(AnsibleExitJson) as exc_info:
                 proxmox_access_acl.main()
 

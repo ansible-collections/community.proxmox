@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import time
 import pytest
+
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_sendkey
@@ -24,14 +25,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
 )
 
 
-def get_module_args_sendkey(
-    name=None,
-    vmid=None,
-    keys_send=None,
-    string_send=None,
-    delay=None,
-    **kwargs
-):
+def get_module_args_sendkey(name=None, vmid=None, keys_send=None, string_send=None, delay=None, **kwargs):
     args = {
         "api_host": "host",
         "api_user": "user",

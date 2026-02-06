@@ -168,14 +168,14 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().resources().get(type="vm")
         except Exception as e:
-            self.module.fail_json(
-                msg="Failed to retrieve VMs information from cluster resources: %s" % e
-            )
+            self.module.fail_json(msg="Failed to retrieve VMs information from cluster resources: %s" % e)
 
     def get_vms_from_nodes(self, cluster_machines, type, vmid=None, name=None, node=None, config=None, network=False):
         # Leave in dict only machines that user wants to know about
         filtered_vms = {
-            vm: info for vm, info in cluster_machines.items() if not (
+            vm: info
+            for vm, info in cluster_machines.items()
+            if not (
                 type != info["type"]
                 or (node and info.get("node") != node)
                 or (vmid and int(info.get("vmid", -1)) != vmid)
@@ -203,7 +203,9 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
                         desired_vm["config"] = call_vm_getter(this_vm_id).config().get(current=config_type)
                     if network:
                         if type == "qemu":
-                            desired_vm["network"] = call_vm_getter(this_vm_id).agent("network-get-interfaces").get()['result']
+                            desired_vm["network"] = (
+                                call_vm_getter(this_vm_id).agent("network-get-interfaces").get()["result"]
+                            )
                         elif type == "lxc":
                             desired_vm["network"] = call_vm_getter(this_vm_id).interfaces.get()
 
@@ -226,15 +228,10 @@ def main():
     module_args = proxmox_auth_argument_spec()
     vm_info_args = dict(
         node=dict(type="str", required=False),
-        type=dict(
-            type="str", choices=["lxc", "qemu", "all"], default="all", required=False
-        ),
+        type=dict(type="str", choices=["lxc", "qemu", "all"], default="all", required=False),
         vmid=dict(type="int", required=False),
         name=dict(type="str", required=False),
-        config=dict(
-            type="str", choices=["none", "current", "pending"],
-            default="none", required=False
-        ),
+        config=dict(type="str", choices=["none", "current", "pending"], default="none", required=False),
         network=dict(type="bool", default=False, required=False),
     )
     module_args.update(vm_info_args)

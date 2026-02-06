@@ -24,103 +24,97 @@ proxmoxer = pytest.importorskip("proxmoxer")
 
 RAW_RESOURCES_NODES = [
     {
-        'maxdisk': 15517192192,
-        'maxmem': 2063962112,
-        'disk': 3952242688,
-        'mem': 1556987904,
-        'type': 'node',
-        'cpu': 0.00688637481554353,
-        'level': '',
-        'status': 'online',
-        'id': 'node/srv-proxmox-02',
-        'uptime': 697,
-        'cgroup-mode': 2,
-        'maxcpu': 4,
-        'node': 'srv-proxmox-02'
+        "maxdisk": 15517192192,
+        "maxmem": 2063962112,
+        "disk": 3952242688,
+        "mem": 1556987904,
+        "type": "node",
+        "cpu": 0.00688637481554353,
+        "level": "",
+        "status": "online",
+        "id": "node/srv-proxmox-02",
+        "uptime": 697,
+        "cgroup-mode": 2,
+        "maxcpu": 4,
+        "node": "srv-proxmox-02",
     },
     {
-        'maxmem': 2063958016,
-        'maxdisk': 15517192192,
-        'level': '',
-        'cpu': 0.0118168389955687,
-        'type': 'node',
-        'mem': 1854046208,
-        'disk': 3955453952,
-        'uptime': 697,
-        'id': 'node/srv-proxmox-01',
-        'status': 'online',
-        'node': 'srv-proxmox-01',
-        'maxcpu': 4,
-        'cgroup-mode': 2
+        "maxmem": 2063958016,
+        "maxdisk": 15517192192,
+        "level": "",
+        "cpu": 0.0118168389955687,
+        "type": "node",
+        "mem": 1854046208,
+        "disk": 3955453952,
+        "uptime": 697,
+        "id": "node/srv-proxmox-01",
+        "status": "online",
+        "node": "srv-proxmox-01",
+        "maxcpu": 4,
+        "cgroup-mode": 2,
     },
     {
-        'level': '',
-        'type': 'node',
-        'cpu': 0.00760922925871379,
-        'disk': 3907559424,
-        'mem': 1550610432,
-        'maxdisk': 15517192192,
-        'maxmem': 2063953920,
-        'maxcpu': 4,
-        'node': 'srv-proxmox-03',
-        'cgroup-mode': 2,
-        'uptime': 697,
-        'id': 'node/srv-proxmox-03',
-        'status': 'online'
-    }
+        "level": "",
+        "type": "node",
+        "cpu": 0.00760922925871379,
+        "disk": 3907559424,
+        "mem": 1550610432,
+        "maxdisk": 15517192192,
+        "maxmem": 2063953920,
+        "maxcpu": 4,
+        "node": "srv-proxmox-03",
+        "cgroup-mode": 2,
+        "uptime": 697,
+        "id": "node/srv-proxmox-03",
+        "status": "online",
+    },
 ]
 
 RAW_MGR = [
     {
-        'ceph_version_short': '19.2.3',
-        'ceph_version': 'ceph version 19.2.3 \
+        "ceph_version_short": "19.2.3",
+        "ceph_version": "ceph version 19.2.3 \
                         (2f03f1cd83e5d40cdf1393cb64a662a8e8bb07c6) \
-                        squid (stable)',
-        'addr': '192.168.1.21',
-        'service': 1,
-        'direxists': 1,
-        'state': 'active',
-        'host': 'srv-proxmox-01',
-        'name': 'srv-proxmox-01'
+                        squid (stable)",
+        "addr": "192.168.1.21",
+        "service": 1,
+        "direxists": 1,
+        "state": "active",
+        "host": "srv-proxmox-01",
+        "name": "srv-proxmox-01",
     },
     {
-        'ceph_version_short': '19.2.3',
-        'ceph_version': 'ceph version 19.2.3 \
+        "ceph_version_short": "19.2.3",
+        "ceph_version": "ceph version 19.2.3 \
                         (2f03f1cd83e5d40cdf1393cb64a662a8e8bb07c6) \
-                        squid (stable)',
-        'addr': '192.168.1.22',
-        'service': 1,
-        'direxists': 1,
-        'host': 'srv-proxmox-02',
-        'state': 'standby',
-        'name': 'srv-proxmox-02'
-    }
+                        squid (stable)",
+        "addr": "192.168.1.22",
+        "service": 1,
+        "direxists": 1,
+        "host": "srv-proxmox-02",
+        "state": "standby",
+        "name": "srv-proxmox-02",
+    },
 ]
 
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json;
-        package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    package return data into an exception"""
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json;
-        package return data into an exception"""
-    kwargs['failed'] = True
+    package return data into an exception"""
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
 def build_arg(node, state, check=False):
-    args = {
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "api_host": "192.168.1.21",
-        "node": node,
-        "state": state
-    }
+    args = {"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21", "node": node, "state": state}
     if check:
         args["_ansible_check_mode"] = True
     return args
@@ -133,12 +127,9 @@ class TestProxmoxCephMgr(ModuleTestCase):
         self.module = proxmox_ceph_mgr
 
         self.fail_json_patcher = patch(
-            'ansible.module_utils.basic.AnsibleModule.fail_json',
-            new=Mock(side_effect=fail_json)
+            "ansible.module_utils.basic.AnsibleModule.fail_json", new=Mock(side_effect=fail_json)
         )
-        self.exit_json_patcher = patch(
-            'ansible.module_utils.basic.AnsibleModule.exit_json',
-            new=exit_json)
+        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
 
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
@@ -148,12 +139,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
         ).start()
 
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.resources.get.return_value = (
-            RAW_RESOURCES_NODES
-        )
-        mock_obj.nodes.return_value.ceph.mgr.get.return_value = (
-            RAW_MGR
-        )
+        mock_obj.cluster.resources.get.return_value = RAW_RESOURCES_NODES
+        mock_obj.nodes.return_value.ceph.mgr.get.return_value = RAW_MGR
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -162,13 +149,7 @@ class TestProxmoxCephMgr(ModuleTestCase):
         super(TestProxmoxCephMgr, self).tearDown()
 
     def test_proxmox_ceph_missing_argument(self):
-        with set_module_args(
-            {
-                "api_user": "root@pam",
-                "api_password": "secret",
-                "api_host": "192.168.1.21"
-            }
-        ):
+        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_ceph_mgr.main()
 

@@ -43,7 +43,7 @@ RESOURCE_LIST = [
         "id": "qemu/100",
         "template": 0,
         "vmid": 100,
-        "type": "qemu"
+        "type": "qemu",
     },
     {
         "uptime": 0,
@@ -63,7 +63,7 @@ RESOURCE_LIST = [
         "id": "qemu/101",
         "template": 0,
         "vmid": 101,
-        "type": "qemu"
+        "type": "qemu",
     },
     {
         "uptime": 0,
@@ -83,8 +83,8 @@ RESOURCE_LIST = [
         "id": "qemu/102",
         "template": 0,
         "vmid": 102,
-        "type": "qemu"
-    }
+        "type": "qemu",
+    },
 ]
 BACKUP_JOBS = [
     {
@@ -97,7 +97,7 @@ BACKUP_JOBS = [
         "mailnotification": "always",
         "schedule": "06,18:30",
         "mode": "snapshot",
-        "notes-template": "guestname"
+        "notes-template": "guestname",
     },
     {
         "schedule": "sat 15:00",
@@ -110,7 +110,7 @@ BACKUP_JOBS = [
         "vmid": "100,101,102",
         "storage": "local",
         "id": "backup-70025700-2302",
-    }
+    },
 ]
 
 EXPECTED_BACKUP_OUTPUT = [
@@ -123,7 +123,7 @@ EXPECTED_BACKUP_OUTPUT = [
         "schedule": "06,18:30",
         "storage": "local",
         "vm_name": "test01",
-        "vmid": "100"
+        "vmid": "100",
     },
     {
         "bktype": "vzdump",
@@ -134,7 +134,7 @@ EXPECTED_BACKUP_OUTPUT = [
         "schedule": "sat 15:00",
         "storage": "local",
         "vm_name": "test01",
-        "vmid": "100"
+        "vmid": "100",
     },
     {
         "bktype": "vzdump",
@@ -145,7 +145,7 @@ EXPECTED_BACKUP_OUTPUT = [
         "schedule": "sat 15:00",
         "storage": "local",
         "vm_name": "test02",
-        "vmid": "101"
+        "vmid": "101",
     },
     {
         "bktype": "vzdump",
@@ -156,8 +156,8 @@ EXPECTED_BACKUP_OUTPUT = [
         "schedule": "sat 15:00",
         "storage": "local",
         "vm_name": "test03",
-        "vmid": "102"
-    }
+        "vmid": "102",
+    },
 ]
 EXPECTED_BACKUP_JOBS_OUTPUT = [
     {
@@ -170,7 +170,7 @@ EXPECTED_BACKUP_JOBS_OUTPUT = [
         "schedule": "06,18:30",
         "storage": "local",
         "type": "vzdump",
-        "vmid": "100"
+        "vmid": "100",
     },
     {
         "enabled": 1,
@@ -182,8 +182,8 @@ EXPECTED_BACKUP_JOBS_OUTPUT = [
         "schedule": "sat 15:00",
         "storage": "local",
         "type": "vzdump",
-        "vmid": "100,101,102"
-    }
+        "vmid": "100,101,102",
+    },
 ]
 
 
@@ -195,12 +195,8 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.connect_mock.return_value.cluster.resources.get.return_value = (
-            RESOURCE_LIST
-        )
-        self.connect_mock.return_value.cluster.backup.get.return_value = (
-            BACKUP_JOBS
-        )
+        self.connect_mock.return_value.cluster.resources.get.return_value = RESOURCE_LIST
+        self.connect_mock.return_value.cluster.backup.get.return_value = BACKUP_JOBS
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -216,11 +212,7 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
 
     def test_get_all_backups_information(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret'
-            }):
+            with set_module_args({"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret"}):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -228,16 +220,11 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
 
     def test_get_specific_backup_information_by_vmname(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
-            vmname = 'test01'
-            expected_output = [
-                backup for backup in EXPECTED_BACKUP_OUTPUT if backup["vm_name"] == vmname
-            ]
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_name': vmname
-            }):
+            vmname = "test01"
+            expected_output = [backup for backup in EXPECTED_BACKUP_OUTPUT if backup["vm_name"] == vmname]
+            with set_module_args(
+                {"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret", "vm_name": vmname}
+            ):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -247,15 +234,10 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
     def test_get_specific_backup_information_by_vmid(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
             vmid = "101"
-            expected_output = [
-                backup for backup in EXPECTED_BACKUP_OUTPUT if backup["vmid"] == vmid
-            ]
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_id': vmid
-            }):
+            expected_output = [backup for backup in EXPECTED_BACKUP_OUTPUT if backup["vmid"] == vmid]
+            with set_module_args(
+                {"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret", "vm_id": vmid}
+            ):
                 self.module.main()
         result = exc_info.value.args[0]
         assert result["backup_info"] == expected_output
@@ -264,12 +246,14 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
     def test_get_specific_backup_information_by_backupjobs(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
             backupjobs = True
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'backup_jobs': backupjobs
-            }):
+            with set_module_args(
+                {
+                    "api_host": "proxmoxhost",
+                    "api_user": "root@pam",
+                    "api_password": "supersecret",
+                    "backup_jobs": backupjobs,
+                }
+            ):
                 self.module.main()
 
         result = exc_info.value.args[0]

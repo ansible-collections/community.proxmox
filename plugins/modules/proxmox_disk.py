@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -439,8 +440,10 @@ msg:
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec,
-                                                                                ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 from re import compile, match, sub
 
 
@@ -458,7 +461,7 @@ def disk_conf_str_to_dict(config_string):
     :return: Dictionary with volume option divided into parts ('volume_name', 'storage_name', 'volume') \n
         and other options as key:value.
     """
-    config = config_string.split(',')
+    config = config_string.split(",")
 
     # When empty CD-ROM drive present, the volume part of config string is "none".
     storage_volume = config.pop(0)
@@ -470,18 +473,18 @@ def disk_conf_str_to_dict(config_string):
             size=None,
         )
     else:
-        storage_volume = storage_volume.split(':')
+        storage_volume = storage_volume.split(":")
         storage_name = storage_volume[0]
         volume_name = storage_volume[1]
         config_current = dict(
-            volume='%s:%s' % (storage_name, volume_name),
+            volume="%s:%s" % (storage_name, volume_name),
             storage_name=storage_name,
             volume_name=volume_name,
         )
 
     config.sort()
     for option in config:
-        k, v = option.split('=')
+        k, v = option.split("=")
         config_current[k] = v
 
     return config_current
@@ -489,19 +492,51 @@ def disk_conf_str_to_dict(config_string):
 
 class ProxmoxDiskAnsible(ProxmoxAnsible):
     create_update_fields = [
-        'aio', 'backup', 'bps_max_length', 'bps_rd_max_length', 'bps_wr_max_length',
-        'cache', 'cyls', 'detect_zeroes', 'discard', 'format', 'heads', 'import_from', 'iops', 'iops_max',
-        'iops_max_length', 'iops_rd', 'iops_rd_max', 'iops_rd_max_length', 'iops_wr', 'iops_wr_max',
-        'iops_wr_max_length', 'iothread', 'mbps', 'mbps_max', 'mbps_rd', 'mbps_rd_max', 'mbps_wr', 'mbps_wr_max',
-        'media', 'queues', 'replicate', 'rerror', 'ro', 'scsiblock', 'secs', 'serial', 'shared', 'snapshot',
-        'ssd', 'trans', 'werror', 'wwn'
+        "aio",
+        "backup",
+        "bps_max_length",
+        "bps_rd_max_length",
+        "bps_wr_max_length",
+        "cache",
+        "cyls",
+        "detect_zeroes",
+        "discard",
+        "format",
+        "heads",
+        "import_from",
+        "iops",
+        "iops_max",
+        "iops_max_length",
+        "iops_rd",
+        "iops_rd_max",
+        "iops_rd_max_length",
+        "iops_wr",
+        "iops_wr_max",
+        "iops_wr_max_length",
+        "iothread",
+        "mbps",
+        "mbps_max",
+        "mbps_rd",
+        "mbps_rd_max",
+        "mbps_wr",
+        "mbps_wr_max",
+        "media",
+        "queues",
+        "replicate",
+        "rerror",
+        "ro",
+        "scsiblock",
+        "secs",
+        "serial",
+        "shared",
+        "snapshot",
+        "ssd",
+        "trans",
+        "werror",
+        "wwn",
     ]
     supported_bus_num_ranges = dict(
-        ide=range(0, 4),
-        scsi=range(0, 31),
-        sata=range(0, 6),
-        virtio=range(0, 16),
-        unused=range(0, 256)
+        ide=range(0, 4), scsi=range(0, 31), sata=range(0, 6), virtio=range(0, 16), unused=range(0, 256)
     )
 
     def get_create_attributes(self):
@@ -528,17 +563,17 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         :return: (bool, string) Whether the task was successful or not
             and the message to return to Ansible.
         """
-        create = self.module.params['create']
-        if create == 'disabled' and disk not in vm_config:
+        create = self.module.params["create"]
+        if create == "disabled" and disk not in vm_config:
             # NOOP
             return False, "Disk %s not found in VM %s and creation was disabled in parameters." % (disk, vmid)
 
         timeout_str = "Reached timeout. Last line in task before timeout: %s"
-        if (create == 'regular' and disk not in vm_config) or (create == 'forced'):
+        if (create == "regular" and disk not in vm_config) or (create == "forced"):
             # CREATE
             playbook_config = self.get_create_attributes()
-            import_string = playbook_config.pop('import_from', None)
-            iso_image = self.module.params.get('iso_image', None)
+            import_string = playbook_config.pop("import_from", None)
+            iso_image = self.module.params.get("iso_image", None)
 
             if import_string:
                 # When 'import_from' option is present in task options.
@@ -559,19 +594,19 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
                 timeout_str = "Reached timeout while creating VM disk. Last line in task before timeout: %s"
 
             for k, v in playbook_config.items():
-                config_str += ',%s=%s' % (k, v)
+                config_str += ",%s=%s" % (k, v)
 
             disk_config_to_apply = {self.module.params["disk"]: config_str}
 
-        if create in ['disabled', 'regular'] and disk in vm_config:
+        if create in ["disabled", "regular"] and disk in vm_config:
             # UPDATE
             ok_str = "Disk %s updated in VM %s"
-            iso_image = self.module.params.get('iso_image', None)
+            iso_image = self.module.params.get("iso_image", None)
 
             proxmox_config = disk_conf_str_to_dict(vm_config[disk])
             # 'import_from' fails on disk updates
             playbook_config = self.get_create_attributes()
-            playbook_config.pop('import_from', None)
+            playbook_config.pop("import_from", None)
 
             # Begin composing configuration string
             if iso_image is not None:
@@ -580,14 +615,14 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
                 config_str = proxmox_config["volume"]
             # Append all mandatory fields from playbook_config
             for k, v in playbook_config.items():
-                config_str += ',%s=%s' % (k, v)
+                config_str += ",%s=%s" % (k, v)
 
             # Append to playbook_config fields which are constants for disk images
-            for option in ['size', 'storage_name', 'volume', 'volume_name']:
+            for option in ["size", "storage_name", "volume", "volume_name"]:
                 playbook_config.update({option: proxmox_config[option]})
             # CD-ROM is special disk device and its disk image is subject to change
             if iso_image is not None:
-                playbook_config['volume'] = iso_image
+                playbook_config["volume"] = iso_image
             # Values in params are numbers, but strings are needed to compare with disk_config
             playbook_config = {k: str(v) for k, v in playbook_config.items()}
 
@@ -597,15 +632,15 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
             disk_config_to_apply = {self.module.params["disk"]: config_str}
 
-        current_task_id = self.proxmox_api.nodes(vm['node']).qemu(vmid).config.post(**disk_config_to_apply)
-        task_success, fail_reason = self.api_task_complete(vm['node'], current_task_id, self.module.params['timeout'])
+        current_task_id = self.proxmox_api.nodes(vm["node"]).qemu(vmid).config.post(**disk_config_to_apply)
+        task_success, fail_reason = self.api_task_complete(vm["node"], current_task_id, self.module.params["timeout"])
 
         if task_success:
             return True, ok_str % (disk, vmid)
         else:
             if fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
                 self.module.fail_json(
-                    msg=timeout_str % self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]
+                    msg=timeout_str % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
                 )
             else:
                 self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
@@ -624,33 +659,33 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         disk_storage = disk_config["storage_name"]
 
         params = dict()
-        params['disk'] = disk
-        params['vmid'] = vmid
-        params['bwlimit'] = self.module.params['bwlimit']
-        params['storage'] = self.module.params['target_storage']
-        params['target-disk'] = self.module.params['target_disk']
-        params['target-vmid'] = self.module.params['target_vmid']
-        params['format'] = self.module.params['format']
-        params['delete'] = 1 if self.module.params.get('delete_moved', False) else 0
+        params["disk"] = disk
+        params["vmid"] = vmid
+        params["bwlimit"] = self.module.params["bwlimit"]
+        params["storage"] = self.module.params["target_storage"]
+        params["target-disk"] = self.module.params["target_disk"]
+        params["target-vmid"] = self.module.params["target_vmid"]
+        params["format"] = self.module.params["format"]
+        params["delete"] = 1 if self.module.params.get("delete_moved", False) else 0
         # Remove not defined args
         params = {k: v for k, v in params.items() if v is not None}
 
-        if params.get('storage', False):
+        if params.get("storage", False):
             # Check if the disk is already in the target storage.
             disk_config = disk_conf_str_to_dict(vm_config[disk])
-            if params['storage'] == disk_config['storage_name']:
+            if params["storage"] == disk_config["storage_name"]:
                 return False, "Disk %s already at %s storage" % (disk, disk_storage)
 
-        current_task_id = self.proxmox_api.nodes(vm['node']).qemu(vmid).move_disk.post(**params)
-        task_success, fail_reason = self.api_task_complete(vm['node'], current_task_id, self.module.params['timeout'])
+        current_task_id = self.proxmox_api.nodes(vm["node"]).qemu(vmid).move_disk.post(**params)
+        task_success, fail_reason = self.api_task_complete(vm["node"], current_task_id, self.module.params["timeout"])
 
         if task_success:
             return True, "Disk %s moved from VM %s storage %s" % (disk, vmid, disk_storage)
         else:
             if fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
                 self.module.fail_json(
-                    msg='Reached timeout while waiting for moving VM disk. Last line in task before timeout: %s' %
-                        self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]
+                    msg="Reached timeout while waiting for moving VM disk. Last line in task before timeout: %s"
+                    % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
                 )
             else:
                 self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
@@ -665,32 +700,34 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         :return: (Bool, string) Whether the task was successful or not
             and the message to return to Ansible.
         """
-        size = self.module.params['size']
-        if not match(r'^\+?\d+(\.\d+)?[KMGT]?$', size):
+        size = self.module.params["size"]
+        if not match(r"^\+?\d+(\.\d+)?[KMGT]?$", size):
             self.module.fail_json(msg="Unrecognized size pattern for disk %s: %s" % (disk, size))
         disk_config = disk_conf_str_to_dict(vm_config[disk])
-        actual_size = disk_config['size']
+        actual_size = disk_config["size"]
         if size == actual_size:
             return False, "Disk %s is already %s size" % (disk, size)
 
         # Resize disk API endpoint has changed at v8.0: PUT method become async.
         version = self.version()
-        pve_major_version = 3 if version < LooseVersion('4.0') else version.version[0]
+        pve_major_version = 3 if version < LooseVersion("4.0") else version.version[0]
         if pve_major_version >= 8:
-            current_task_id = self.proxmox_api.nodes(vm['node']).qemu(vmid).resize.set(disk=disk, size=size)
-            task_success, fail_reason = self.api_task_complete(vm['node'], current_task_id, self.module.params['timeout'])
+            current_task_id = self.proxmox_api.nodes(vm["node"]).qemu(vmid).resize.set(disk=disk, size=size)
+            task_success, fail_reason = self.api_task_complete(
+                vm["node"], current_task_id, self.module.params["timeout"]
+            )
             if task_success:
                 return True, "Disk %s resized in VM %s" % (disk, vmid)
             else:
                 if fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
                     self.module.fail_json(
-                        msg="Reached timeout while resizing disk. Last line in task before timeout: %s" %
-                            self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]
+                        msg="Reached timeout while resizing disk. Last line in task before timeout: %s"
+                        % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
                     )
                 else:
                     self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
         else:
-            self.proxmox_api.nodes(vm['node']).qemu(vmid).resize.set(disk=disk, size=size)
+            self.proxmox_api.nodes(vm["node"]).qemu(vmid).resize.set(disk=disk, size=size)
             return True, "Disk %s resized in VM %s" % (disk, vmid)
 
 
@@ -698,177 +735,174 @@ def main():
     module_args = proxmox_auth_argument_spec()
     disk_args = dict(
         # Proxmox native parameters
-        aio=dict(type='str', choices=['native', 'threads', 'io_uring']),
-        backup=dict(type='bool'),
-        bps_max_length=dict(type='int'),
-        bps_rd_max_length=dict(type='int'),
-        bps_wr_max_length=dict(type='int'),
-        cache=dict(type='str', choices=['none', 'writethrough', 'writeback', 'unsafe', 'directsync']),
-        cyls=dict(type='int'),
-        detect_zeroes=dict(type='bool'),
-        discard=dict(type='str', choices=['ignore', 'on']),
-        format=dict(type='str', choices=['raw', 'cow', 'qcow', 'qed', 'qcow2', 'vmdk', 'cloop']),
-        heads=dict(type='int'),
-        import_from=dict(type='str'),
-        iops=dict(type='int'),
-        iops_max=dict(type='int'),
-        iops_max_length=dict(type='int'),
-        iops_rd=dict(type='int'),
-        iops_rd_max=dict(type='int'),
-        iops_rd_max_length=dict(type='int'),
-        iops_wr=dict(type='int'),
-        iops_wr_max=dict(type='int'),
-        iops_wr_max_length=dict(type='int'),
-        iothread=dict(type='bool'),
-        iso_image=dict(type='str'),
-        mbps=dict(type='float'),
-        mbps_max=dict(type='float'),
-        mbps_rd=dict(type='float'),
-        mbps_rd_max=dict(type='float'),
-        mbps_wr=dict(type='float'),
-        mbps_wr_max=dict(type='float'),
-        media=dict(type='str', choices=['cdrom', 'disk']),
-        queues=dict(type='int'),
-        replicate=dict(type='bool'),
-        rerror=dict(type='str', choices=['ignore', 'report', 'stop']),
-        ro=dict(type='bool'),
-        scsiblock=dict(type='bool'),
-        secs=dict(type='int'),
-        serial=dict(type='str'),
-        shared=dict(type='bool'),
-        snapshot=dict(type='bool'),
-        ssd=dict(type='bool'),
-        trans=dict(type='str', choices=['auto', 'lba', 'none']),
-        werror=dict(type='str', choices=['enospc', 'ignore', 'report', 'stop']),
-        wwn=dict(type='str'),
-
+        aio=dict(type="str", choices=["native", "threads", "io_uring"]),
+        backup=dict(type="bool"),
+        bps_max_length=dict(type="int"),
+        bps_rd_max_length=dict(type="int"),
+        bps_wr_max_length=dict(type="int"),
+        cache=dict(type="str", choices=["none", "writethrough", "writeback", "unsafe", "directsync"]),
+        cyls=dict(type="int"),
+        detect_zeroes=dict(type="bool"),
+        discard=dict(type="str", choices=["ignore", "on"]),
+        format=dict(type="str", choices=["raw", "cow", "qcow", "qed", "qcow2", "vmdk", "cloop"]),
+        heads=dict(type="int"),
+        import_from=dict(type="str"),
+        iops=dict(type="int"),
+        iops_max=dict(type="int"),
+        iops_max_length=dict(type="int"),
+        iops_rd=dict(type="int"),
+        iops_rd_max=dict(type="int"),
+        iops_rd_max_length=dict(type="int"),
+        iops_wr=dict(type="int"),
+        iops_wr_max=dict(type="int"),
+        iops_wr_max_length=dict(type="int"),
+        iothread=dict(type="bool"),
+        iso_image=dict(type="str"),
+        mbps=dict(type="float"),
+        mbps_max=dict(type="float"),
+        mbps_rd=dict(type="float"),
+        mbps_rd_max=dict(type="float"),
+        mbps_wr=dict(type="float"),
+        mbps_wr_max=dict(type="float"),
+        media=dict(type="str", choices=["cdrom", "disk"]),
+        queues=dict(type="int"),
+        replicate=dict(type="bool"),
+        rerror=dict(type="str", choices=["ignore", "report", "stop"]),
+        ro=dict(type="bool"),
+        scsiblock=dict(type="bool"),
+        secs=dict(type="int"),
+        serial=dict(type="str"),
+        shared=dict(type="bool"),
+        snapshot=dict(type="bool"),
+        ssd=dict(type="bool"),
+        trans=dict(type="str", choices=["auto", "lba", "none"]),
+        werror=dict(type="str", choices=["enospc", "ignore", "report", "stop"]),
+        wwn=dict(type="str"),
         # Disk moving relates parameters
-        bwlimit=dict(type='int'),
-        target_storage=dict(type='str'),
-        target_disk=dict(type='str'),
-        target_vmid=dict(type='int'),
-        delete_moved=dict(type='bool'),
-        timeout=dict(type='int', default='600'),
-
+        bwlimit=dict(type="int"),
+        target_storage=dict(type="str"),
+        target_disk=dict(type="str"),
+        target_vmid=dict(type="int"),
+        delete_moved=dict(type="bool"),
+        timeout=dict(type="int", default="600"),
         # Module related parameters
-        name=dict(type='str'),
-        vmid=dict(type='int'),
-        disk=dict(type='str', required=True),
-        storage=dict(type='str'),
-        size=dict(type='str'),
-        state=dict(type='str', choices=['present', 'resized', 'detached', 'moved', 'absent'],
-                   default='present'),
-        create=dict(type='str', choices=['disabled', 'regular', 'forced'], default='regular'),
+        name=dict(type="str"),
+        vmid=dict(type="int"),
+        disk=dict(type="str", required=True),
+        storage=dict(type="str"),
+        size=dict(type="str"),
+        state=dict(type="str", choices=["present", "resized", "detached", "moved", "absent"], default="present"),
+        create=dict(type="str", choices=["disabled", "regular", "forced"], default="regular"),
     )
 
     module_args.update(disk_args)
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_together=[('api_token_id', 'api_token_secret')],
-        required_one_of=[('name', 'vmid'), ('api_password', 'api_token_id')],
+        required_together=[("api_token_id", "api_token_secret")],
+        required_one_of=[("name", "vmid"), ("api_password", "api_token_id")],
         required_if=[
-            ('create', 'forced', ['storage']),
-            ('state', 'resized', ['size']),
+            ("create", "forced", ["storage"]),
+            ("state", "resized", ["size"]),
         ],
         required_by={
-            'target_disk': 'target_vmid',
-            'mbps_max': 'mbps',
-            'mbps_rd_max': 'mbps_rd',
-            'mbps_wr_max': 'mbps_wr',
-            'bps_max_length': 'mbps_max',
-            'bps_rd_max_length': 'mbps_rd_max',
-            'bps_wr_max_length': 'mbps_wr_max',
-            'iops_max': 'iops',
-            'iops_rd_max': 'iops_rd',
-            'iops_wr_max': 'iops_wr',
-            'iops_max_length': 'iops_max',
-            'iops_rd_max_length': 'iops_rd_max',
-            'iops_wr_max_length': 'iops_wr_max',
-            'iso_image': 'media',
+            "target_disk": "target_vmid",
+            "mbps_max": "mbps",
+            "mbps_rd_max": "mbps_rd",
+            "mbps_wr_max": "mbps_wr",
+            "bps_max_length": "mbps_max",
+            "bps_rd_max_length": "mbps_rd_max",
+            "bps_wr_max_length": "mbps_wr_max",
+            "iops_max": "iops",
+            "iops_rd_max": "iops_rd",
+            "iops_wr_max": "iops_wr",
+            "iops_max_length": "iops_max",
+            "iops_rd_max_length": "iops_rd_max",
+            "iops_wr_max_length": "iops_wr_max",
+            "iso_image": "media",
         },
         supports_check_mode=False,
         mutually_exclusive=[
-            ('target_vmid', 'target_storage'),
-            ('mbps', 'mbps_rd'),
-            ('mbps', 'mbps_wr'),
-            ('iops', 'iops_rd'),
-            ('iops', 'iops_wr'),
-            ('import_from', 'size'),
-        ]
+            ("target_vmid", "target_storage"),
+            ("mbps", "mbps_rd"),
+            ("mbps", "mbps_wr"),
+            ("iops", "iops_rd"),
+            ("iops", "iops_wr"),
+            ("import_from", "size"),
+        ],
     )
 
     proxmox = ProxmoxDiskAnsible(module)
 
-    disk = module.params['disk']
+    disk = module.params["disk"]
     # Verify disk name has appropriate name
-    disk_regex = compile(r'^([a-z]+)([0-9]+)$')
-    disk_bus = sub(disk_regex, r'\1', disk)
-    disk_number = int(sub(disk_regex, r'\2', disk))
+    disk_regex = compile(r"^([a-z]+)([0-9]+)$")
+    disk_bus = sub(disk_regex, r"\1", disk)
+    disk_number = int(sub(disk_regex, r"\2", disk))
     if disk_bus not in proxmox.supported_bus_num_ranges:
-        proxmox.module.fail_json(msg='Unsupported disk bus: %s' % disk_bus)
+        proxmox.module.fail_json(msg="Unsupported disk bus: %s" % disk_bus)
     elif disk_number not in proxmox.supported_bus_num_ranges[disk_bus]:
         bus_range = proxmox.supported_bus_num_ranges[disk_bus]
-        proxmox.module.fail_json(msg='Disk %s number not in range %s..%s ' % (disk, bus_range[0], bus_range[-1]))
+        proxmox.module.fail_json(msg="Disk %s number not in range %s..%s " % (disk, bus_range[0], bus_range[-1]))
 
-    name = module.params['name']
-    state = module.params['state']
-    vmid = module.params['vmid'] or proxmox.get_vmid(name)
+    name = module.params["name"]
+    state = module.params["state"]
+    vmid = module.params["vmid"] or proxmox.get_vmid(name)
 
     # Ensure VM id exists and retrieve its config
     vm = None
     vm_config = None
     try:
         vm = proxmox.get_vm(vmid)
-        vm_config = proxmox.proxmox_api.nodes(vm['node']).qemu(vmid).config.get()
+        vm_config = proxmox.proxmox_api.nodes(vm["node"]).qemu(vmid).config.get()
     except Exception as e:
-        proxmox.module.fail_json(msg='Getting information for VM %s failed with exception: %s' % (vmid, str(e)))
+        proxmox.module.fail_json(msg="Getting information for VM %s failed with exception: %s" % (vmid, str(e)))
 
     # Do not try to perform actions on missing disk
-    if disk not in vm_config and state in ['resized', 'moved']:
-        module.fail_json(vmid=vmid, msg='Unable to process missing disk %s in VM %s' % (disk, vmid))
+    if disk not in vm_config and state in ["resized", "moved"]:
+        module.fail_json(vmid=vmid, msg="Unable to process missing disk %s in VM %s" % (disk, vmid))
 
-    if state == 'present':
+    if state == "present":
         try:
             changed, message = proxmox.create_disk(disk, vmid, vm, vm_config)
             module.exit_json(changed=changed, vmid=vmid, msg=message)
         except Exception as e:
-            module.fail_json(vmid=vmid, msg='Unable to create/update disk %s in VM %s: %s' % (disk, vmid, str(e)))
+            module.fail_json(vmid=vmid, msg="Unable to create/update disk %s in VM %s: %s" % (disk, vmid, str(e)))
 
-    elif state == 'detached':
+    elif state == "detached":
         try:
-            if disk_bus == 'unused':
-                module.exit_json(changed=False, vmid=vmid, msg='Disk %s already detached in VM %s' % (disk, vmid))
+            if disk_bus == "unused":
+                module.exit_json(changed=False, vmid=vmid, msg="Disk %s already detached in VM %s" % (disk, vmid))
             if disk not in vm_config:
                 module.exit_json(changed=False, vmid=vmid, msg="Disk %s not present in VM %s config" % (disk, vmid))
-            proxmox.proxmox_api.nodes(vm['node']).qemu(vmid).unlink.put(idlist=disk, force=0)
+            proxmox.proxmox_api.nodes(vm["node"]).qemu(vmid).unlink.put(idlist=disk, force=0)
             module.exit_json(changed=True, vmid=vmid, msg="Disk %s detached from VM %s" % (disk, vmid))
         except Exception as e:
             module.fail_json(msg="Failed to detach disk %s from VM %s with exception: %s" % (disk, vmid, str(e)))
 
-    elif state == 'moved':
+    elif state == "moved":
         try:
             changed, message = proxmox.move_disk(disk, vmid, vm, vm_config)
             module.exit_json(changed=changed, vmid=vmid, msg=message)
         except Exception as e:
             module.fail_json(msg="Failed to move disk %s in VM %s with exception: %s" % (disk, vmid, str(e)))
 
-    elif state == 'resized':
+    elif state == "resized":
         try:
             changed, message = proxmox.resize_disk(disk, vmid, vm, vm_config)
             module.exit_json(changed=changed, vmid=vmid, msg=message)
         except Exception as e:
             module.fail_json(msg="Failed to resize disk %s in VM %s with exception: %s" % (disk, vmid, str(e)))
 
-    elif state == 'absent':
+    elif state == "absent":
         try:
             if disk not in vm_config:
                 module.exit_json(changed=False, vmid=vmid, msg="Disk %s is already absent in VM %s" % (disk, vmid))
-            proxmox.proxmox_api.nodes(vm['node']).qemu(vmid).unlink.put(idlist=disk, force=1)
+            proxmox.proxmox_api.nodes(vm["node"]).qemu(vmid).unlink.put(idlist=disk, force=1)
             module.exit_json(changed=True, vmid=vmid, msg="Disk %s removed from VM %s" % (disk, vmid))
         except Exception as e:
-            module.fail_json(vmid=vmid, msg='Unable to remove disk %s from VM %s: %s' % (disk, vmid, str(e)))
+            module.fail_json(vmid=vmid, msg="Unable to remove disk %s from VM %s: %s" % (disk, vmid, str(e)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

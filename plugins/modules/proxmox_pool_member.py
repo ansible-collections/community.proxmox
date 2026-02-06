@@ -4,7 +4,8 @@
 # Copyright (c) 2023, Sergei Antipov (UnderGreen) <greendayonfire@gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -108,11 +109,13 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 
 
 class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
-
     def pool_members(self, poolid):
         vms = []
         storage = []
@@ -136,8 +139,13 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 if member not in [storage["storage"] for storage in storages]:
                     self.module.fail_json(msg="Storage {0} doesn't exist in the cluster".format(member))
                 if member in current_storage_members:
-                    self.module.exit_json(changed=False, poolid=poolid, member=member,
-                                          diff=diff, msg="Member {0} is already part of the pool {1}".format(member, poolid))
+                    self.module.exit_json(
+                        changed=False,
+                        poolid=poolid,
+                        member=member,
+                        diff=diff,
+                        msg="Member {0} is already part of the pool {1}".format(member, poolid),
+                    )
 
                 all_members_after.append(member)
                 if self.module.check_mode:
@@ -152,8 +160,13 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                     vmid = self.get_vmid(member)
 
                 if vmid in current_vms_members:
-                    self.module.exit_json(changed=False, poolid=poolid, member=member,
-                                          diff=diff, msg="VM {0} is already part of the pool {1}".format(member, poolid))
+                    self.module.exit_json(
+                        changed=False,
+                        poolid=poolid,
+                        member=member,
+                        diff=diff,
+                        msg="VM {0} is already part of the pool {1}".format(member, poolid),
+                    )
 
                 all_members_after.append(member)
 
@@ -172,8 +185,13 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
         try:
             if member_type == "storage":
                 if member not in current_storage_members:
-                    self.module.exit_json(changed=False, poolid=poolid, member=member,
-                                          diff=diff, msg="Member {0} is not part of the pool {1}".format(member, poolid))
+                    self.module.exit_json(
+                        changed=False,
+                        poolid=poolid,
+                        member=member,
+                        diff=diff,
+                        msg="Member {0} is not part of the pool {1}".format(member, poolid),
+                    )
 
                 all_members_after.remove(member)
                 if self.module.check_mode:
@@ -188,8 +206,13 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                     vmid = self.get_vmid(member)
 
                 if vmid not in current_vms_members:
-                    self.module.exit_json(changed=False, poolid=poolid, member=member,
-                                          diff=diff, msg="VM {0} is not part of the pool {1}".format(member, poolid))
+                    self.module.exit_json(
+                        changed=False,
+                        poolid=poolid,
+                        member=member,
+                        diff=diff,
+                        msg="VM {0} is not part of the pool {1}".format(member, poolid),
+                    )
 
                 all_members_after.remove(vmid)
 
@@ -197,7 +220,9 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                     self.proxmox_api.pools(poolid).put(vms=[vmid], delete=1)
                 return diff
         except Exception as e:
-            self.module.fail_json(msg="Failed to delete a member ({0}) from the pool {1}: {2}".format(member, poolid, e))
+            self.module.fail_json(
+                msg="Failed to delete a member ({0}) from the pool {1}: {2}".format(member, poolid, e)
+            )
 
 
 def main():
@@ -215,7 +240,7 @@ def main():
         argument_spec=module_args,
         required_together=[("api_token_id", "api_token_secret")],
         required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True
+        supports_check_mode=True,
     )
 
     poolid = module.params["poolid"]
@@ -227,10 +252,22 @@ def main():
 
     if state == "present":
         diff = proxmox.add_pool_member(poolid, member, member_type)
-        module.exit_json(changed=True, poolid=poolid, member=member, diff=diff, msg="New member {0} added to the pool {1}".format(member, poolid))
+        module.exit_json(
+            changed=True,
+            poolid=poolid,
+            member=member,
+            diff=diff,
+            msg="New member {0} added to the pool {1}".format(member, poolid),
+        )
     else:
         diff = proxmox.delete_pool_member(poolid, member, member_type)
-        module.exit_json(changed=True, poolid=poolid, member=member, diff=diff, msg="Member {0} deleted from the pool {1}".format(member, poolid))
+        module.exit_json(
+            changed=True,
+            poolid=poolid,
+            member=member,
+            diff=diff,
+            msg="Member {0} deleted from the pool {1}".format(member, poolid),
+        )
 
 
 if __name__ == "__main__":

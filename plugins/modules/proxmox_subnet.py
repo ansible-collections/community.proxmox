@@ -153,34 +153,30 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn impo
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
     ansible_to_proxmox_bool,
-    compare_list_of_dicts
-
+    compare_list_of_dicts,
 )
 
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent"], default='present', required=False),
+        state=dict(type="str", choices=["present", "absent"], default="present", required=False),
         update=dict(type="bool", default=True),
         subnet=dict(type="str", required=True),
         vnet=dict(type="str", required=True),
         zone=dict(type="str", required=False),
         dhcp_dns_server=dict(type="str", required=False),
-        dhcp_range_update_mode=dict(type='str', choices=['append', 'overwrite'], default='append'),
+        dhcp_range_update_mode=dict(type="str", choices=["append", "overwrite"], default="append"),
         dhcp_range=dict(
-            type='list',
-            elements='dict',
+            type="list",
+            elements="dict",
             required=False,
-            options=dict(
-                start=dict(type='str', required=True),
-                end=dict(type='str', required=True)
-            )
+            options=dict(start=dict(type="str", required=True), end=dict(type="str", required=True)),
         ),
-        dnszoneprefix=dict(type='str', required=False),
-        gateway=dict(type='str', required=False),
+        dnszoneprefix=dict(type="str", required=False),
+        gateway=dict(type="str", required=False),
         lock_token=dict(type="str", required=False, no_log=False),
-        snat=dict(type='bool', default=False, required=False),
-        delete=dict(type="str", required=False)
+        snat=dict(type="bool", default=False, required=False),
+        delete=dict(type="str", required=False),
     )
 
 
@@ -191,9 +187,9 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
-            ('state', 'present', ['subnet', 'vnet', 'zone']),
-            ('state', 'absent', ['zone', 'vnet', 'subnet']),
-        ]
+            ("state", "present", ["subnet", "vnet", "zone"]),
+            ("state", "absent", ["zone", "vnet", "subnet"]),
+        ],
     )
 
 
@@ -202,8 +198,8 @@ def get_dhcp_range(dhcp_range=None):
         return None
 
     def extract(item):
-        start = item.get('start-address') or item.get('start')
-        end = item.get('end-address') or item.get('end')
+        start = item.get("start-address") or item.get("start")
+        end = item.get("end-address") or item.get("end")
         return f"start-address={start},end-address={end}"
 
     return [extract(x) for x in dhcp_range]
@@ -211,7 +207,7 @@ def get_dhcp_range(dhcp_range=None):
 
 def compare_dhcp_ranges(existing_ranges, new_ranges):
     def to_tuple(r):
-        return int(IPv4Address(r['start-address'])), int(IPv4Address(r['end-address']))
+        return int(IPv4Address(r["start-address"])), int(IPv4Address(r["end-address"]))
 
     existing_intervals = [to_tuple(r) for r in existing_ranges]
 
@@ -222,7 +218,7 @@ def compare_dhcp_ranges(existing_ranges, new_ranges):
         tuple_dhcp_range = to_tuple(dhcp_range)
         if tuple_dhcp_range not in existing_intervals:
             new_dhcp_ranges.append(dhcp_range)
-        for (start, end) in existing_intervals:
+        for start, end in existing_intervals:
             if not (tuple_dhcp_range[1] < start or tuple_dhcp_range[0] > end):
                 if tuple_dhcp_range != (start, end):
                     partial_overlap = True
@@ -239,42 +235,42 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         update = self.params.get("update")
 
         subnet_params = {
-            'subnet': self.params.get('subnet'),
-            'type': 'subnet',
-            'vnet': self.params.get('vnet'),
-            'dhcp-dns-server': self.params.get('dhcp_dns_server'),
-            'dhcp-range': get_dhcp_range(dhcp_range=self.params.get('dhcp_range')),
-            'dnszoneprefix': self.params.get('dnszoneprefix'),
-            'gateway': self.params.get('gateway'),
-            'lock-token': None,
-            'snat': ansible_to_proxmox_bool(self.params.get('snat'))
+            "subnet": self.params.get("subnet"),
+            "type": "subnet",
+            "vnet": self.params.get("vnet"),
+            "dhcp-dns-server": self.params.get("dhcp_dns_server"),
+            "dhcp-range": get_dhcp_range(dhcp_range=self.params.get("dhcp_range")),
+            "dnszoneprefix": self.params.get("dnszoneprefix"),
+            "gateway": self.params.get("gateway"),
+            "lock-token": None,
+            "snat": ansible_to_proxmox_bool(self.params.get("snat")),
         }
 
-        if state == 'present':
+        if state == "present":
             self.subnet_present(**subnet_params)
-        elif state == 'absent':
+        elif state == "absent":
             self.subnet_absent(**subnet_params)
 
     def get_subnets(self, vnet_name):
         try:
             return self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets().get()
         except Exception as e:
-            self.module.fail_json(f'Failed to retrieve subnets {e}')
+            self.module.fail_json(f"Failed to retrieve subnets {e}")
 
     def update_subnet(self, **subnet_params):
         new_subnet = copy.deepcopy(subnet_params)
         subnet_id = f"{self.params['zone']}-{new_subnet['subnet'].replace('/', '-')}"
-        vnet_name = new_subnet['vnet']
-        dhcp_range_update_mode = self.params.get('dhcp_range_update_mode')
+        vnet_name = new_subnet["vnet"]
+        dhcp_range_update_mode = self.params.get("dhcp_range_update_mode")
 
-        new_subnet['cidr'] = new_subnet['subnet']
-        new_subnet['network'] = new_subnet['subnet'].split('/')[0]
-        new_subnet['mask'] = new_subnet['subnet'].split('/')[1]
-        new_subnet['zone'] = self.params.get('zone')
-        new_subnet['id'] = subnet_id
-        new_subnet['subnet'] = subnet_id
+        new_subnet["cidr"] = new_subnet["subnet"]
+        new_subnet["network"] = new_subnet["subnet"].split("/")[0]
+        new_subnet["mask"] = new_subnet["subnet"].split("/")[1]
+        new_subnet["zone"] = self.params.get("zone")
+        new_subnet["id"] = subnet_id
+        new_subnet["subnet"] = subnet_id
 
-        subnet_params['delete'] = self.params.get('delete')
+        subnet_params["delete"] = self.params.get("delete")
 
         existing_subnets = self.get_subnets(vnet_name)
 
@@ -282,163 +278,131 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         x, subnet_update = compare_list_of_dicts(
             existing_list=existing_subnets,
             new_list=[new_subnet],
-            uid='id',
-            params_to_ignore=['digest', 'dhcp-range', 'lock-token']
+            uid="id",
+            params_to_ignore=["digest", "dhcp-range", "lock-token"],
         )
 
-        existing_subnet = [x for x in existing_subnets if x['subnet'] == subnet_id][0]
+        existing_subnet = [x for x in existing_subnets if x["subnet"] == subnet_id][0]
 
         # Check dhcp-range
         update_dhcp = False
-        if self.params.get('dhcp_range'):
+        if self.params.get("dhcp_range"):
             new_dhcp_range = [
-                {'start-address': d.get('start'), 'end-address': d.get('end')}
-                for d in self.params.get('dhcp_range')
+                {"start-address": d.get("start"), "end-address": d.get("end")} for d in self.params.get("dhcp_range")
             ]
             new_dhcp, partial_overlap = compare_dhcp_ranges(
-                existing_ranges=existing_subnet['dhcp-range'],
-                new_ranges=new_dhcp_range
+                existing_ranges=existing_subnet["dhcp-range"], new_ranges=new_dhcp_range
             )
 
-            if dhcp_range_update_mode == 'append':
+            if dhcp_range_update_mode == "append":
                 if partial_overlap:
-                    self.module.fail_json(
-                        msg="There are partially overlapping DHCP ranges. this is not allowed."
-                    )
+                    self.module.fail_json(msg="There are partially overlapping DHCP ranges. this is not allowed.")
 
                 if len(new_dhcp) > 0:
                     update_dhcp = True
-                    new_dhcp.extend(existing_subnet['dhcp-range'])  # By Default API overwrites DHCP Range
-                    subnet_params['dhcp-range'] = get_dhcp_range(new_dhcp)
+                    new_dhcp.extend(existing_subnet["dhcp-range"])  # By Default API overwrites DHCP Range
+                    subnet_params["dhcp-range"] = get_dhcp_range(new_dhcp)
 
-            elif dhcp_range_update_mode == 'overwrite' and new_dhcp:
+            elif dhcp_range_update_mode == "overwrite" and new_dhcp:
                 update_dhcp = True
 
-        elif not self.params.get('dhcp_range') and existing_subnet['dhcp-range']:
-            if dhcp_range_update_mode == 'append':
+        elif not self.params.get("dhcp_range") and existing_subnet["dhcp-range"]:
+            if dhcp_range_update_mode == "append":
                 self.module.warn(
                     "dhcp_range_update_mode is set to append, but you didn't provide any DHCP ranges for the subnet. "
                     "Existing ranges will be ignored."
                 )
 
-            elif dhcp_range_update_mode == 'overwrite':
+            elif dhcp_range_update_mode == "overwrite":
                 update_dhcp = True
                 self.module.warn(
                     "dhcp_range_update_mode is set to overwrite, but no DHCP ranges were provided for the subnet. "
                     "All existing DHCP ranges will be deleted."
                 )
-                if self.params.get('delete'):
-                    subnet_params['delete'] = f"{subnet_params['delete']},dhcp-range"
+                if self.params.get("delete"):
+                    subnet_params["delete"] = f"{subnet_params['delete']},dhcp-range"
                 else:
-                    subnet_params['delete'] = "dhcp-range"
+                    subnet_params["delete"] = "dhcp-range"
 
         if subnet_update or update_dhcp:
             self.module.warn(f"{subnet_params}, {update_dhcp}")
-            if self.params.get('update'):
+            if self.params.get("update"):
                 try:
-                    subnet_params['lock-token'] = self.get_global_sdn_lock()
+                    subnet_params["lock-token"] = self.get_global_sdn_lock()
                     subnet = getattr(self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets(), subnet_id)
-                    subnet_params['digest'] = subnet.get()['digest']
-                    del subnet_params['type']
-                    del subnet_params['subnet']
+                    subnet_params["digest"] = subnet.get()["digest"]
+                    del subnet_params["type"]
+                    del subnet_params["subnet"]
 
                     if not self.is_lock_and_rollback_supported:
-                        del subnet_params['lock-token']
+                        del subnet_params["lock-token"]
                     subnet.put(**subnet_params)
-                    self.apply_sdn_changes_and_release_lock(lock=subnet_params.get('lock-token'))
-                    self.module.exit_json(
-                        changed=True, subnet=subnet_id, msg=f'Updated subnet {subnet_id}'
-                    )
+                    self.apply_sdn_changes_and_release_lock(lock=subnet_params.get("lock-token"))
+                    self.module.exit_json(changed=True, subnet=subnet_id, msg=f"Updated subnet {subnet_id}")
                 except Exception as e:
                     if self.is_lock_and_rollback_supported:
-                        self.rollback_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
-                        self.module.fail_json(
-                            msg=f'Failed to update subnet. Rolling back all changes : {e}'
-                        )
+                        self.rollback_sdn_changes_and_release_lock(lock=subnet_params["lock-token"])
+                        self.module.fail_json(msg=f"Failed to update subnet. Rolling back all changes : {e}")
                     else:
-                        self.module.fail_json(
-                            msg=f'Failed to update subnet. Rollback not supported : {e}'
-                        )
+                        self.module.fail_json(msg=f"Failed to update subnet. Rollback not supported : {e}")
             else:
-                self.module.fail_json(
-                    msg=f"Subnet {subnet_id} needs to be updated but update is false."
-                )
+                self.module.fail_json(msg=f"Subnet {subnet_id} needs to be updated but update is false.")
         else:
             self.module.exit_json(
-                changed=False,
-                subnet=subnet_id,
-                msg=f'subnet {subnet_id} is already present with correct parameters.'
+                changed=False, subnet=subnet_id, msg=f"subnet {subnet_id} is already present with correct parameters."
             )
 
     def subnet_present(self, **subnet_params):
-        vnet_name = subnet_params['vnet']
-        subnet_cidr = subnet_params['subnet']
+        vnet_name = subnet_params["vnet"]
+        subnet_cidr = subnet_params["subnet"]
         subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
         try:
             existing_subnets = self.get_subnets(vnet_name)
 
             # Check if subnet already present
-            if subnet_id in [x['subnet'] for x in existing_subnets]:
+            if subnet_id in [x["subnet"] for x in existing_subnets]:
                 if not self.is_lock_and_rollback_supported:
-                    del subnet_params['lock-token']
+                    del subnet_params["lock-token"]
                 self.update_subnet(**subnet_params)
             else:
-                subnet_params['lock-token'] = self.get_global_sdn_lock()
+                subnet_params["lock-token"] = self.get_global_sdn_lock()
                 if not self.is_lock_and_rollback_supported:
-                    del subnet_params['lock-token']
+                    del subnet_params["lock-token"]
                 self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets().post(**subnet_params)
-                self.apply_sdn_changes_and_release_lock(lock=subnet_params.get('lock-token'))
-                self.module.exit_json(
-                    changed=True, subnet=subnet_id, msg=f'Created new subnet {subnet_cidr}'
-                )
+                self.apply_sdn_changes_and_release_lock(lock=subnet_params.get("lock-token"))
+                self.module.exit_json(changed=True, subnet=subnet_id, msg=f"Created new subnet {subnet_cidr}")
         except Exception as e:
             if self.is_lock_and_rollback_supported:
-                self.rollback_sdn_changes_and_release_lock(lock=subnet_params['lock-token'])
-                self.module.fail_json(
-                    msg=f'Failed to create subnet. Rolling back all changes : {e}'
-                )
+                self.rollback_sdn_changes_and_release_lock(lock=subnet_params["lock-token"])
+                self.module.fail_json(msg=f"Failed to create subnet. Rolling back all changes : {e}")
             else:
-                self.module.fail_json(
-                    msg=f'Failed to create subnet. Rollback not supported : {e}'
-                )
+                self.module.fail_json(msg=f"Failed to create subnet. Rollback not supported : {e}")
 
     def subnet_absent(self, **subnet_params):
-        vnet_name = subnet_params['vnet']
+        vnet_name = subnet_params["vnet"]
         subnet_id = f"{self.params['zone']}-{subnet_params['subnet'].replace('/', '-')}"
 
-        params = {
-            'subnet': subnet_id,
-            'vnet': vnet_name,
-            'lock-token': None
-        }
+        params = {"subnet": subnet_id, "vnet": vnet_name, "lock-token": None}
 
         existing_subnets = self.get_subnets(vnet_name)
         try:
             # Check if subnet already present
-            if subnet_id in [x['subnet'] for x in existing_subnets]:
-                params['lock-token'] = self.get_global_sdn_lock()
+            if subnet_id in [x["subnet"] for x in existing_subnets]:
+                params["lock-token"] = self.get_global_sdn_lock()
                 if not self.is_lock_and_rollback_supported:
-                    del params['lock-token']
+                    del params["lock-token"]
                 self.proxmox_api.cluster().sdn().vnets(vnet_name).subnets(subnet_id).delete(**params)
-                self.apply_sdn_changes_and_release_lock(lock=params.get('lock-token'))
-                self.module.exit_json(
-                    changed=True, subnet=subnet_id, msg=f'Deleted subnet {subnet_id}'
-                )
+                self.apply_sdn_changes_and_release_lock(lock=params.get("lock-token"))
+                self.module.exit_json(changed=True, subnet=subnet_id, msg=f"Deleted subnet {subnet_id}")
             else:
-                self.module.exit_json(
-                    changed=False, subnet=subnet_id, msg=f'subnet {subnet_id} already not present.'
-                )
+                self.module.exit_json(changed=False, subnet=subnet_id, msg=f"subnet {subnet_id} already not present.")
         except Exception as e:
             if self.is_lock_and_rollback_supported:
-                self.rollback_sdn_changes_and_release_lock(lock=params['lock-token'])
-                self.module.fail_json(
-                    msg=f'Failed to delete subnet. Rolling back all changes. : {e}'
-                )
+                self.rollback_sdn_changes_and_release_lock(lock=params["lock-token"])
+                self.module.fail_json(msg=f"Failed to delete subnet. Rolling back all changes. : {e}")
             else:
-                self.module.fail_json(
-                    msg=f'Failed to delete subnet. Rollback not supported. : {e}'
-                )
+                self.module.fail_json(msg=f"Failed to delete subnet. Rollback not supported. : {e}")
 
 
 def main():
@@ -448,7 +412,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

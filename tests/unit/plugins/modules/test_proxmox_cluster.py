@@ -21,71 +21,64 @@ proxmoxer = pytest.importorskip("proxmoxer")
 
 SINGLE_NODE = [
     {
-        'level': '',
-        'online': 1,
-        'nodeid': 0,
-        'ip': '192.168.1.2',
-        'name': 'pve',
-        'id': 'node/pve',
-        'type': 'node',
-        'local': 1
+        "level": "",
+        "online": 1,
+        "nodeid": 0,
+        "ip": "192.168.1.2",
+        "name": "pve",
+        "id": "node/pve",
+        "type": "node",
+        "local": 1,
     }
 ]
 
 CLUSTER = [
+    {"nodes": 3, "id": "cluster", "version": 3, "quorate": 1, "name": "devcluster", "type": "cluster"},
     {
-        'nodes': 3,
-        'id': 'cluster',
-        'version': 3,
-        'quorate': 1,
-        'name': 'devcluster',
-        'type': 'cluster'
+        "id": "node/srv-proxmox-03",
+        "online": 1,
+        "ip": "192.168.1.23",
+        "name": "srv-proxmox-03",
+        "level": "",
+        "type": "node",
+        "local": 1,
+        "nodeid": 3,
     },
     {
-        'id': 'node/srv-proxmox-03',
-        'online': 1,
-        'ip': '192.168.1.23',
-        'name': 'srv-proxmox-03',
-        'level': '',
-        'type': 'node',
-        'local': 1,
-        'nodeid': 3
+        "nodeid": 1,
+        "type": "node",
+        "local": 0,
+        "level": "",
+        "name": "srv-proxmox-01",
+        "ip": "192.168.1.21",
+        "online": 1,
+        "id": "node/srv-proxmox-01",
     },
     {
-        'nodeid': 1,
-        'type': 'node',
-        'local': 0,
-        'level': '',
-        'name': 'srv-proxmox-01',
-        'ip': '192.168.1.21',
-        'online': 1,
-        'id': 'node/srv-proxmox-01'
+        "nodeid": 2,
+        "type": "node",
+        "local": 0,
+        "name": "srv-proxmox-02",
+        "level": "",
+        "online": 1,
+        "ip": "192.168.1.22",
+        "id": "node/srv-proxmox-02",
     },
-    {
-        'nodeid': 2,
-        'type': 'node',
-        'local': 0,
-        'name': 'srv-proxmox-02',
-        'level': '',
-        'online': 1,
-        'ip': '192.168.1.22',
-        'id': 'node/srv-proxmox-02'
-    }
 ]
 
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json;
-        package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    package return data into an exception"""
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json;
-        package return data into an exception"""
-    kwargs['failed'] = True
+    package return data into an exception"""
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
@@ -96,12 +89,9 @@ class TestProxmoxCluster(ModuleTestCase):
         self.module = proxmox_cluster
 
         self.fail_json_patcher = patch(
-            'ansible.module_utils.basic.AnsibleModule.fail_json',
-            new=Mock(side_effect=fail_json)
+            "ansible.module_utils.basic.AnsibleModule.fail_json", new=Mock(side_effect=fail_json)
         )
-        self.exit_json_patcher = patch(
-            'ansible.module_utils.basic.AnsibleModule.exit_json',
-            new=exit_json)
+        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
 
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
@@ -118,19 +108,19 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_create_check_mode(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            SINGLE_NODE
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.21",
-            "link0": "192.192.168.21",
-            "link1": "10.10.2.1",
-            "cluster_name": "devcluster",
-            "state": "present",
-            "_ansible_check_mode": True
-        }):
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "link0": "192.192.168.21",
+                "link1": "10.10.2.1",
+                "cluster_name": "devcluster",
+                "state": "present",
+                "_ansible_check_mode": True,
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -142,18 +132,18 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_create(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            SINGLE_NODE
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.21",
-            "link0": "192.192.168.21",
-            "link1": "10.10.2.1",
-            "cluster_name": "devcluster",
-            "state": "present",
-        }):
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "link0": "192.192.168.21",
+                "link1": "10.10.2.1",
+                "cluster_name": "devcluster",
+                "state": "present",
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -165,18 +155,18 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_create_idempotent(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            CLUSTER
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.21",
-            "link0": "192.192.168.21",
-            "link1": "10.10.2.1",
-            "cluster_name": "devcluster",
-            "state": "present",
-        }):
+        mock_obj.cluster.status.get.return_value = CLUSTER
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "link0": "192.192.168.21",
+                "link1": "10.10.2.1",
+                "cluster_name": "devcluster",
+                "state": "present",
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -188,18 +178,18 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_create_fail(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            CLUSTER
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.21",
-            "link0": "192.192.168.21",
-            "link1": "10.10.2.1",
-            "cluster_name": "devcluster2",
-            "state": "present",
-        }):
+        mock_obj.cluster.status.get.return_value = CLUSTER
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "link0": "192.192.168.21",
+                "link1": "10.10.2.1",
+                "cluster_name": "devcluster2",
+                "state": "present",
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -210,19 +200,19 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_join_check_mode(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            SINGLE_NODE
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.22",
-            "master_api_password": "secret",
-            "master_ip": "192.168.1.21",
-            "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
-            "state": "present",
-            "_ansible_check_mode": True
-        }):
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.22",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.21",
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "state": "present",
+                "_ansible_check_mode": True,
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -233,18 +223,18 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_join(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            SINGLE_NODE
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.22",
-            "master_api_password": "secret",
-            "master_ip": "192.168.1.21",
-            "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
-            "state": "present",
-        }):
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.22",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.21",
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "state": "present",
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -255,18 +245,18 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_join_idempotent(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            CLUSTER
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.22",
-            "master_api_password": "secret",
-            "master_ip": "192.168.1.21",
-            "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
-            "state": "present",
-        }):
+        mock_obj.cluster.status.get.return_value = CLUSTER
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.22",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.21",
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "state": "present",
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -277,18 +267,18 @@ class TestProxmoxCluster(ModuleTestCase):
 
     def test_join_failed(self):
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.status.get.return_value = (
-            CLUSTER
-        )
-        with set_module_args({
-            "api_user": "root@pam",
-            "api_password": "secret",
-            "api_host": "192.168.1.22",
-            "master_api_password": "secret",
-            "master_ip": "192.168.1.10",
-            "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
-            "state": "present",
-        }):
+        mock_obj.cluster.status.get.return_value = CLUSTER
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.22",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.10",
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "state": "present",
+            }
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_cluster.main()
 
@@ -307,7 +297,7 @@ def module_args_join():
         "state": "present",
         "master_ip": "10.10.10.75",
         "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
-        "cluster_name": "devcluster"
+        "cluster_name": "devcluster",
     }
 
 
@@ -350,9 +340,7 @@ def test_cluster_join(mock_api, mock_init, module_args_join):
     assert result["msg"] == "Node joined the cluster."
 
     mock_api_instance.cluster.config.join.post.assert_called_once_with(
-        hostname="10.10.10.75",
-        fingerprint=module_args_join["fingerprint"],
-        password="secret"
+        hostname="10.10.10.75", fingerprint=module_args_join["fingerprint"], password="secret"
     )
 
 

@@ -7,7 +7,8 @@
 # Proxmox Tasks module unit tests.
 # The API responses used in these tests were recorded from PVE version 6.4-8
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 import json
@@ -15,14 +16,14 @@ from unittest.mock import patch
 
 import pytest
 
-proxmoxer = pytest.importorskip('proxmoxer')
+proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_tasks_info
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import set_module_args
 
-NODE = 'node01'
-TASK_UPID = 'UPID:iaclab-01-01:000029DD:1599528B:6108F068:srvreload:networking:root@pam:'
+NODE = "node01"
+TASK_UPID = "UPID:iaclab-01-01:000029DD:1599528B:6108F068:srvreload:networking:root@pam:"
 TASKS = [
     {
         "endtime": 1629092710,
@@ -34,7 +35,7 @@ TASKS = [
         "status": "OK",
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:00000DD3:1C419D88:6119FB65:srvreload:networking:root@pam:",
-        "user": "root@pam"
+        "user": "root@pam",
     },
     {
         "endtime": 1627975785,
@@ -46,7 +47,7 @@ TASKS = [
         "status": "command 'ifreload -a' failed: exit code 1",
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:000029DD:1599528B:6108F068:srvreload:networking:root@pam:",
-        "user": "root@pam"
+        "user": "root@pam",
     },
     {
         "endtime": 1627975503,
@@ -58,8 +59,8 @@ TASKS = [
         "status": "OK",
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:00001A7A:1598E4A4:6108EF4F:srvreload:networking:root@pam:",
-        "user": "root@pam"
-    }
+        "user": "root@pam",
+    },
 ]
 EXPECTED_TASKS = [
     {
@@ -73,7 +74,7 @@ EXPECTED_TASKS = [
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:00000DD3:1C419D88:6119FB65:srvreload:networking:root@pam:",
         "user": "root@pam",
-        "failed": False
+        "failed": False,
     },
     {
         "endtime": 1627975785,
@@ -86,7 +87,7 @@ EXPECTED_TASKS = [
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:000029DD:1599528B:6108F068:srvreload:networking:root@pam:",
         "user": "root@pam",
-        "failed": True
+        "failed": True,
     },
     {
         "endtime": 1627975503,
@@ -99,8 +100,8 @@ EXPECTED_TASKS = [
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:00001A7A:1598E4A4:6108EF4F:srvreload:networking:root@pam:",
         "user": "root@pam",
-        "failed": False
-    }
+        "failed": False,
+    },
 ]
 
 EXPECTED_SINGLE_TASK = [
@@ -115,19 +116,19 @@ EXPECTED_SINGLE_TASK = [
         "type": "srvreload",
         "upid": "UPID:iaclab-01-01:000029DD:1599528B:6108F068:srvreload:networking:root@pam:",
         "user": "root@pam",
-        "failed": True
+        "failed": True,
     },
 ]
 
 
-@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
 def test_without_required_parameters(connect_mock, capfd, mocker):
     with set_module_args({}):
         with pytest.raises(SystemExit):
             proxmox_tasks_info.main()
     out, err = capfd.readouterr()
     assert not err
-    assert json.loads(out)['failed']
+    assert json.loads(out)["failed"]
 
 
 def mock_api_tasks_response(mocker):
@@ -138,14 +139,11 @@ def mock_api_tasks_response(mocker):
     return m
 
 
-@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
 def test_get_tasks(connect_mock, capfd, mocker):
-    with set_module_args({
-        'api_host': 'proxmoxhost',
-        'api_user': 'root@pam',
-        'api_password': 'supersecret',
-        'node': NODE
-    }):
+    with set_module_args(
+        {"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret", "node": NODE}
+    ):
         connect_mock.side_effect = lambda: mock_api_tasks_response(mocker)
         proxmox_utils.HAS_PROXMOXER = True
 
@@ -153,19 +151,21 @@ def test_get_tasks(connect_mock, capfd, mocker):
             proxmox_tasks_info.main()
     out, err = capfd.readouterr()
     assert not err
-    assert len(json.loads(out)['proxmox_tasks']) != 0
-    assert not json.loads(out)['changed']
+    assert len(json.loads(out)["proxmox_tasks"]) != 0
+    assert not json.loads(out)["changed"]
 
 
-@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
 def test_get_single_task(connect_mock, capfd, mocker):
-    with set_module_args({
-        'api_host': 'proxmoxhost',
-        'api_user': 'root@pam',
-        'api_password': 'supersecret',
-        'node': NODE,
-        'task': TASK_UPID
-    }):
+    with set_module_args(
+        {
+            "api_host": "proxmoxhost",
+            "api_user": "root@pam",
+            "api_password": "supersecret",
+            "node": NODE,
+            "task": TASK_UPID,
+        }
+    ):
         connect_mock.side_effect = lambda: mock_api_tasks_response(mocker)
         proxmox_utils.HAS_PROXMOXER = True
 
@@ -173,20 +173,22 @@ def test_get_single_task(connect_mock, capfd, mocker):
             proxmox_tasks_info.main()
     out, err = capfd.readouterr()
     assert not err
-    assert len(json.loads(out)['proxmox_tasks']) == 1
+    assert len(json.loads(out)["proxmox_tasks"]) == 1
     assert json.loads(out)
-    assert not json.loads(out)['changed']
+    assert not json.loads(out)["changed"]
 
 
-@patch('ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect')
+@patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
 def test_get_non_existent_task(connect_mock, capfd, mocker):
-    with set_module_args({
-        'api_host': 'proxmoxhost',
-        'api_user': 'root@pam',
-        'api_password': 'supersecret',
-        'node': NODE,
-        'task': 'UPID:nonexistent'
-    }):
+    with set_module_args(
+        {
+            "api_host": "proxmoxhost",
+            "api_user": "root@pam",
+            "api_password": "supersecret",
+            "node": NODE,
+            "task": "UPID:nonexistent",
+        }
+    ):
         connect_mock.side_effect = lambda: mock_api_tasks_response(mocker)
         proxmox_utils.HAS_PROXMOXER = True
 
@@ -194,8 +196,7 @@ def test_get_non_existent_task(connect_mock, capfd, mocker):
             proxmox_tasks_info.main()
     out, err = capfd.readouterr()
     assert not err
-    assert json.loads(out)['failed']
-    assert 'proxmox_tasks' not in json.loads(out)
-    assert not json.loads(out)['changed']
-    assert json.loads(
-        out)['msg'] == 'Task: UPID:nonexistent does not exist on node: node01.'
+    assert json.loads(out)["failed"]
+    assert "proxmox_tasks" not in json.loads(out)
+    assert not json.loads(out)["changed"]
+    assert json.loads(out)["msg"] == "Task: UPID:nonexistent does not exist on node: node01."

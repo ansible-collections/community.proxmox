@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
@@ -79,7 +80,9 @@ proxmox_domains:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 
 
 class ProxmoxDomainInfoAnsible(ProxmoxAnsible):
@@ -88,7 +91,7 @@ class ProxmoxDomainInfoAnsible(ProxmoxAnsible):
             domain = self.proxmox_api.access.domains.get(realm)
         except Exception:
             self.module.fail_json(msg="Domain '%s' does not exist" % realm)
-        domain['realm'] = realm
+        domain["realm"] = realm
         return domain
 
     def get_domains(self):
@@ -98,7 +101,7 @@ class ProxmoxDomainInfoAnsible(ProxmoxAnsible):
 
 def proxmox_domain_info_argument_spec():
     return dict(
-        domain=dict(type='str', aliases=['realm', 'name']),
+        domain=dict(type="str", aliases=["realm", "name"]),
     )
 
 
@@ -109,25 +112,23 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
-        supports_check_mode=True
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
+        supports_check_mode=True,
     )
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     proxmox = ProxmoxDomainInfoAnsible(module)
-    domain = module.params['domain']
+    domain = module.params["domain"]
 
     if domain:
         domains = [proxmox.get_domain(realm=domain)]
     else:
         domains = proxmox.get_domains()
-    result['proxmox_domains'] = domains
+    result["proxmox_domains"] = domains
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

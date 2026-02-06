@@ -34,18 +34,10 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.mock_get = patch.object(
-            proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "get"
-        ).start()
-        self.mock_post = patch.object(
-            proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "_post"
-        ).start()
-        self.mock_put = patch.object(
-            proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "_put"
-        ).start()
-        self.mock_delete = patch.object(
-            proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "_delete"
-        ).start()
+        self.mock_get = patch.object(proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "get").start()
+        self.mock_post = patch.object(proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "_post").start()
+        self.mock_put = patch.object(proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "_put").start()
+        self.mock_delete = patch.object(proxmox_cluster_ha_rules.ProxmoxClusterHARuleAnsible, "_delete").start()
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -161,7 +153,15 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
     def test_update_ha_rule_idempotence(self):
         self.mock_get.side_effect = [
-            [{"rule": "my-rule", "nodes": "pve02:20,pve01:10", "resources": "vm:101,vm:100", "type": "node-affinity", "comment": "new comment"}]
+            [
+                {
+                    "rule": "my-rule",
+                    "nodes": "pve02:20,pve01:10",
+                    "resources": "vm:101,vm:100",
+                    "type": "node-affinity",
+                    "comment": "new comment",
+                }
+            ]
         ]
 
         module_params = {
@@ -302,7 +302,15 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
     def test_update_ha_rule(self):
         self.mock_get.side_effect = [
-            [{"rule": "my-rule", "resources": "vm:100,vm:101", "type": "node-affinity", "comment": "old comment", "nodes": "pve01:10,pve02:20"}]
+            [
+                {
+                    "rule": "my-rule",
+                    "resources": "vm:100,vm:101",
+                    "type": "node-affinity",
+                    "comment": "old comment",
+                    "nodes": "pve01:10,pve02:20",
+                }
+            ]
         ]
 
         module_params = {
@@ -328,12 +336,26 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         assert self.mock_delete.call_count == 0
         self.mock_put.assert_called_once_with(
             "my-rule",
-            {"comment": "new comment", "nodes": "pve01:10,pve02:20", "resources": "vm:100,vm:101", "rule": "my-rule", "type": "node-affinity"},
+            {
+                "comment": "new comment",
+                "nodes": "pve01:10,pve02:20",
+                "resources": "vm:100,vm:101",
+                "rule": "my-rule",
+                "type": "node-affinity",
+            },
         )
 
     def test_update_ha_rule_no_change(self):
         self.mock_get.side_effect = [
-            [{"rule": "my-rule", "nodes": "pve01:10,pve02:20", "resources": "vm:100,vm:101", "type": "node-affinity", "comment": "new comment"}]
+            [
+                {
+                    "rule": "my-rule",
+                    "nodes": "pve01:10,pve02:20",
+                    "resources": "vm:100,vm:101",
+                    "type": "node-affinity",
+                    "comment": "new comment",
+                }
+            ]
         ]
 
         module_params = {

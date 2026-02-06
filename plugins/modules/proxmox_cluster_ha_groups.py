@@ -4,11 +4,11 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Markus Kötter <koetter@cispa.de>
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: proxmox_cluster_ha_groups
 
@@ -69,9 +69,9 @@ extends_documentation_fragment:
   - community.proxmox.attributes
 author:
     - Markus Kötter (@commonism)
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Create HA group
   community.proxmox.proxmox_cluster_ha_groups:
     api_host: "{{ ansible_host }}"
@@ -93,14 +93,16 @@ EXAMPLES = r'''
 
     state: "absent"
     name: ha0
-'''
+"""
 
-RETURN = r'''#'''
+RETURN = r"""#"""
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec,
-                                                                                ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 
 
 class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
@@ -122,22 +124,20 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
             "comment": comment,
             "nodes": ",".join(nodes),
             "nofailback": int(nofailback),
-            "restricted": int(restricted)
+            "restricted": int(restricted),
         }
 
         for group in groups:
             if group["group"] != name:
                 continue
 
-            group["nodes"] = sorted(
-                group.get("nodes", "").split(",")
-            )
+            group["nodes"] = sorted(group.get("nodes", "").split(","))
 
             if (
                 group.get("comment", ""),
                 group.get("nodes", ""),
                 bool(group.get("nofailback", 0)),
-                bool(group.get("restricted", 0))
+                bool(group.get("restricted", 0)),
             ) == (comment, nodes, nofailback, restricted):
                 return False
             else:
@@ -161,12 +161,12 @@ def run_module():
     module_args = proxmox_auth_argument_spec()
 
     acl_args = dict(
-        state=dict(choices=['present', 'absent'], required=True),
-        name=dict(type='str', required=True),
-        comment=dict(type='str', required=False),
-        nodes=dict(type='list', elements='str', required=False),
-        nofailback=dict(type='bool', default=False),
-        restricted=dict(type='bool', default=False),
+        state=dict(choices=["present", "absent"], required=True),
+        name=dict(type="str", required=True),
+        comment=dict(type="str", required=False),
+        nodes=dict(type="list", elements="str", required=False),
+        nofailback=dict(type="bool", default=False),
+        restricted=dict(type="bool", default=False),
     )
 
     module_args.update(acl_args)
@@ -175,18 +175,15 @@ def run_module():
         changed=False,
     )
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=False
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
     proxmox = ProxmoxClusterHAGroupsAnsible(module)
 
-    name = module.params['name']
-    comment = module.params['comment']
-    nodes = sorted(module.params['nodes'])
-    nofailback = module.params['nofailback']
-    restricted = module.params['restricted']
+    name = module.params["name"]
+    comment = module.params["comment"]
+    nodes = sorted(module.params["nodes"])
+    nofailback = module.params["nofailback"]
+    restricted = module.params["restricted"]
     try:
         groups = proxmox._get()
 
@@ -195,7 +192,7 @@ def run_module():
         else:
             changed = proxmox.delete(groups, name)
 
-        result['changed'] = changed
+        result["changed"] = changed
     except Exception as e:
         module.fail_json(msg=str(e), **result)
 
@@ -206,5 +203,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -25,27 +25,27 @@ from ansible.module_utils.compat.version import LooseVersion
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json; package return data into an exception"""
-    kwargs['failed'] = True
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
-def get_module_args_zone(zone, vnet, state='present', update=True, alias=None):
+def get_module_args_zone(zone, vnet, state="present", update=True, alias=None):
     return {
-        'api_host': 'host',
-        'api_user': 'user',
-        'api_password': 'password',
-        'zone': zone,
-        'state': state,
-        'update': update,
-        'vnet': vnet,
-        'alias': alias
+        "api_host": "host",
+        "api_user": "user",
+        "api_password": "password",
+        "zone": zone,
+        "state": state,
+        "update": update,
+        "vnet": vnet,
+        "alias": alias,
     }
 
 
@@ -56,14 +56,9 @@ RAW_VNETS = [
         "zone": "ans1",
         "alias": "test1",
         "digest": "79ee852ce6fd2cc12c047363e7059a761fe68a8c",
-        "isolate-ports": 1
+        "isolate-ports": 1,
     },
-    {
-        "type": "vnet",
-        "zone": "test1",
-        "digest": "79ee852ce6fd2cc12c047363e7059a761fe68a8c",
-        "vnet": "test2"
-    }
+    {"type": "vnet", "zone": "test1", "digest": "79ee852ce6fd2cc12c047363e7059a761fe68a8c", "vnet": "test2"},
 ]
 
 
@@ -72,17 +67,22 @@ class TestProxmoxVnetModule(ModuleTestCase):
         super(TestProxmoxVnetModule, self).setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_vnet
-        self.fail_json_patcher = patch('ansible.module_utils.basic.AnsibleModule.fail_json',
-                                       new=Mock(side_effect=fail_json))
-        self.exit_json_patcher = patch('ansible.module_utils.basic.AnsibleModule.exit_json', new=exit_json)
+        self.fail_json_patcher = patch(
+            "ansible.module_utils.basic.AnsibleModule.fail_json", new=Mock(side_effect=fail_json)
+        )
+        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
 
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.version_mock = patch.object(proxmox_vnet.ProxmoxVnetAnsible, "version", return_value=LooseVersion("9.0")).start()
-        self.connect_mock.return_value.cluster.return_value.sdn.return_value.vnets.return_value.get.return_value = RAW_VNETS.copy()
+        self.version_mock = patch.object(
+            proxmox_vnet.ProxmoxVnetAnsible, "version", return_value=LooseVersion("9.0")
+        ).start()
+        self.connect_mock.return_value.cluster.return_value.sdn.return_value.vnets.return_value.get.return_value = (
+            RAW_VNETS.copy()
+        )
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -94,36 +94,36 @@ class TestProxmoxVnetModule(ModuleTestCase):
     def test_vnet_present(self):
         # Create new Vnet
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone='ztest', vnet='vtest')):
+            with set_module_args(get_module_args_zone(zone="ztest", vnet="vtest")):
                 self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Create new vnet vtest"
-        assert result['vnet'] == 'vtest'
+        assert result["vnet"] == "vtest"
 
         # Update the vnet
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone='test1', vnet='test2', alias='test', update=True)):
+            with set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=True)):
                 self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "updated vnet test2"
-        assert result['vnet'] == 'test2'
+        assert result["vnet"] == "test2"
 
         # Vnet needs to be updated but update=False
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone='test1', vnet='test2', alias='test', update=False)):
+            with set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=False)):
                 self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
         assert result["failed"] is True
-        assert result["msg"] == 'vnet test2 needs to be updated but update is false.'
+        assert result["msg"] == "vnet test2 needs to be updated but update is false."
 
     def test_zone_absent(self):
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone='test1', vnet='test2', state='absent')):
+            with set_module_args(get_module_args_zone(zone="test1", vnet="test2", state="absent")):
                 self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Deleted vnet test2"
-        assert result['vnet'] == 'test2'
+        assert result["vnet"] == "test2"

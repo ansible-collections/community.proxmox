@@ -18,16 +18,16 @@ from ansible.module_utils.compat.version import LooseVersion
 def test_mount_formatting(mock_api, *_):
     """Test the process_mount_keys method correctly formats mounts."""
     lxc_ansible = proxmox.ProxmoxLxcAnsible(MagicMock(spec=AnsibleModule))
-    mount_volumes = [{
-        'host_path': '/mnt/dir',
-        'mountpoint': 'mnt/dir',
-        'id': 'mp0',
-        'storage': None,
-        'volume': None,
-        'size': None,
-        'options': None,
-    }]
-    mounts = lxc_ansible.process_mount_keys(
-        100, "my-node", None, mount_volumes
-    )
-    assert mounts == {'mp0': '/mnt/dir,mp=mnt/dir'}
+    mount_volumes = [
+        {
+            "host_path": "/mnt/dir",
+            "mountpoint": "mnt/dir",
+            "id": "mp0",
+            "storage": None,
+            "volume": None,
+            "size": None,
+            "options": None,
+        }
+    ]
+    mounts = lxc_ansible.process_mount_keys(100, "my-node", None, mount_volumes)
+    assert mounts == {"mp0": "/mnt/dir,mp=mnt/dir"}

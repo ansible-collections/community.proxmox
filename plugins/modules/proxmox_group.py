@@ -5,7 +5,8 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -77,11 +78,13 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 
 
 class ProxmoxGroupAnsible(ProxmoxAnsible):
-
     def is_group_existing(self, groupid):
         """Check whether group already exist
 
@@ -91,7 +94,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         try:
             groups = self.proxmox_api.access.groups.get()
             for group in groups:
-                if group['groupid'] == groupid:
+                if group["groupid"] == groupid:
                     return True
             return False
         except Exception as e:
@@ -147,7 +150,7 @@ def main():
         argument_spec=module_args,
         required_together=[("api_token_id", "api_token_secret")],
         required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True
+        supports_check_mode=True,
     )
 
     groupid = module.params["groupid"]

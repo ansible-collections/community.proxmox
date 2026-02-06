@@ -290,9 +290,7 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
 
                 # fetch the new rule and update the diff
                 rules = self.get()
-                diff["after"] = next(
-                    (item for item in rules if item.get("rule") == name), {}
-                )
+                diff["after"] = next((item for item in rules if item.get("rule") == name), {})
             else:
                 diff["after"] = payload
 

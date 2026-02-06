@@ -70,9 +70,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
         mock_nodes.get.return_value = [{"node": "pve"}]
 
         mock_network_obj.get.side_effect = lambda type=None: [
-            interface
-            for interface in EXISTING_NETWORK_OUTPUT
-            if type is None or interface["type"] == type
+            interface for interface in EXISTING_NETWORK_OUTPUT if type is None or interface["type"] == type
         ]
 
     def tearDown(self):
@@ -81,9 +79,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
 
     def test_invalid_node(self):
         """Test invalid node."""
-        with patch.object(
-            self.module.ProxmoxNetworkManager, "get_node", return_value=None
-        ):
+        with patch.object(self.module.ProxmoxNetworkManager, "get_node", return_value=None):
             with pytest.raises(AnsibleFailJson) as exc_info:
                 with set_module_args(
                     {
@@ -115,10 +111,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "value of state must be one of: present, absent, apply, revert"
-            in result["msg"]
-        )
+        assert "value of state must be one of: present, absent, apply, revert" in result["msg"]
 
     def test_create_interface_all_types_minimum_params(self):
         """Test creating interface for all if_types with minimum params."""
@@ -247,10 +240,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                     self.module.main()
 
             result = exc_info.value.args[0]
-            assert (
-                "Cannot create interface 'nonexistent_eth' of type 'eth'"
-                in result["msg"]
-            )
+            assert "Cannot create interface 'nonexistent_eth' of type 'eth'" in result["msg"]
 
     def test_create_eth_interface_existing(self):
         """Test creating eth interface with existing interface name."""
@@ -266,9 +256,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             return_value=existing_config,
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "update_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "update_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -302,9 +290,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             return_value=existing_config,
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "delete_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "delete_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -344,9 +330,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, all_params_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -450,9 +434,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, all_params_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -670,10 +652,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "Interface name 'invalid_bond' for type 'bond' must follow format 'bondX'"
-            in result["msg"]
-        )
+        assert "Interface name 'invalid_bond' for type 'bond' must follow format 'bondX'" in result["msg"]
 
     def test_create_bond_lacp_balance_slb_mode(self):
         """Test creating bond with 'lacp-balance-slb' mode which is only valid for ovsbond."""
@@ -737,10 +716,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "bond_primary must be included in slaves for active-backup mode"
-            in result["msg"]
-        )
+        assert "bond_primary must be included in slaves for active-backup mode" in result["msg"]
 
     def test_create_bond_active_backup_primary_in_slaves(self):
         """Test creating bond with 'active-backup' mode and mention bond_primary and include it in slaves."""
@@ -757,9 +733,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, created_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -799,10 +773,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "bond_xmit_hash_policy is required for balance-xor and 802.3ad modes"
-            in result["msg"]
-        )
+        assert "bond_xmit_hash_policy is required for balance-xor and 802.3ad modes" in result["msg"]
 
     def test_create_bond_balance_xor_invalid_hash_policy(self):
         """Test creating bond with 'balance-xor' mode and mention invalid bond_xmit_hash_policy."""
@@ -823,10 +794,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "value of bond_xmit_hash_policy must be one of: layer2, layer2+3, layer3+4"
-            in result["msg"]
-        )
+        assert "value of bond_xmit_hash_policy must be one of: layer2, layer2+3, layer3+4" in result["msg"]
 
     def test_create_bond_balance_xor_valid_hash_policy(self):
         """Test creating bond with 'balance-xor' mode and mention valid bond_xmit_hash_policy."""
@@ -843,9 +811,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, created_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -886,10 +852,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "bond_primary should not be defined if bond_mode is not active-backup"
-            in result["msg"]
-        )
+        assert "bond_primary should not be defined if bond_mode is not active-backup" in result["msg"]
 
     def test_create_bond_balance_rr_mode(self):
         """Test creating bond with 'balance-rr' mode."""
@@ -905,9 +868,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, created_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -964,9 +925,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "VLAN interface name 'vlan.10' must follow format 'vlanXY'" in result["msg"]
-        )
+        assert "VLAN interface name 'vlan.10' must follow format 'vlanXY'" in result["msg"]
 
     def test_create_vlan_interface_eth10_name(self):
         """Test creating vlan interface with eth10 name."""
@@ -984,9 +943,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "VLAN interface name 'eth10' must follow format 'vlanXY'" in result["msg"]
-        )
+        assert "VLAN interface name 'eth10' must follow format 'vlanXY'" in result["msg"]
 
     def test_create_vlan_interface_vlan10_name_no_raw_device(self):
         """Test creating vlan interface with vlan10 name and don't mention vlan_raw_device."""
@@ -1004,10 +961,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "vlan_raw_device is required for VLAN interface 'vlan10' in vlanXY format"
-            in result["msg"]
-        )
+        assert "vlan_raw_device is required for VLAN interface 'vlan10' in vlanXY format" in result["msg"]
 
     def test_create_vlan_interface_vlan10_name_with_raw_device(self):
         """Test creating vlan interface with vlan10 name and mention vlan_raw_device."""
@@ -1022,9 +976,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, created_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -1056,9 +1008,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, created_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -1184,10 +1134,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "Interface name 'invalid_ovsbond' for type 'OVSBond' must follow format 'bondX'"
-            in result["msg"]
-        )
+        assert "Interface name 'invalid_ovsbond' for type 'OVSBond' must follow format 'bondX'" in result["msg"]
 
     def test_create_ovsbond_with_autostart(self):
         """Test creating ovsbond with AutoStart."""
@@ -1209,10 +1156,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
                 self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "Parameters autostart are not valid for interface type 'OVSBond'"
-            in result["msg"]
-        )
+        assert "Parameters autostart are not valid for interface type 'OVSBond'" in result["msg"]
 
     def test_create_valid_ovsbond(self):
         """Test creating a valid ovsbond."""
@@ -1231,9 +1175,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[None, created_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "create_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "create_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -1280,9 +1222,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             side_effect=[existing_config, updated_config],
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "update_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "update_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -1322,9 +1262,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_interface_config",
             return_value=existing_config,
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "delete_interface", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "delete_interface", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -1362,9 +1300,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             "get_network_changes",
             return_value=mock_pending_changes,
         ):
-            with patch.object(
-                self.module.ProxmoxNetworkManager, "apply_network", return_value=True
-            ):
+            with patch.object(self.module.ProxmoxNetworkManager, "apply_network", return_value=True):
                 with pytest.raises(AnsibleExitJson) as exc_info:
                     with set_module_args(
                         {
@@ -1406,9 +1342,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
 
     def test_revert_network_changes(self):
         """Test reverting staged network changes."""
-        with patch.object(
-            self.module.ProxmoxNetworkManager, "revert_network", return_value=True
-        ):
+        with patch.object(self.module.ProxmoxNetworkManager, "revert_network", return_value=True):
             with pytest.raises(AnsibleExitJson) as exc_info:
                 with set_module_args(
                     {
@@ -1427,9 +1361,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
 
     def test_revert_network_no_pending_changes(self):
         """Test reverting when there are no pending changes."""
-        with patch.object(
-            self.module.ProxmoxNetworkManager, "revert_network", return_value=False
-        ):
+        with patch.object(self.module.ProxmoxNetworkManager, "revert_network", return_value=False):
             with pytest.raises(AnsibleExitJson) as exc_info:
                 with set_module_args(
                     {
@@ -1712,9 +1644,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
             # Verify conversion from API format to Ansible format
             for interface in result:
                 assert "iface" in interface
-                assert (
-                    "iface_type" in interface
-                )  # API 'type' becomes 'iface_type' in Ansible format
+                assert "iface_type" in interface  # API 'type' becomes 'iface_type' in Ansible format
 
     def test_validate_params_direct_call(self):
         """Test the validate_params method directly."""

@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -82,9 +83,7 @@ class ProxmoxCephMonAnsible(ProxmoxAnsible):
         nodes = self.proxmox_api.cluster.resources.get(type="node")
         nodes = [item["node"] for item in nodes]
         if node not in nodes:
-            self.module.fail_json(
-                msg="Node %s does not exist in the cluster" % node
-            )
+            self.module.fail_json(msg="Node %s does not exist in the cluster" % node)
 
     def check_monitors(self, node):
         monitors = self.proxmox_api.nodes(node).ceph.mon.get()
@@ -96,11 +95,7 @@ class ProxmoxCephMonAnsible(ProxmoxAnsible):
     def add_mon(self, monitor):
         self.check_node(monitor)
         if self.check_monitors(monitor):
-            self.module.exit_json(
-                changed=False,
-                msg="Monitor already exists",
-                monitor=monitor
-            )
+            self.module.exit_json(changed=False, msg="Monitor already exists", monitor=monitor)
         else:
             if not self.module.check_mode:
                 self.proxmox_api.nodes(monitor).ceph.mon(monitor).create()
@@ -108,11 +103,7 @@ class ProxmoxCephMonAnsible(ProxmoxAnsible):
             else:
                 msg = f"Monitor {monitor} would be added"
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-                monitor=monitor
-            )
+            self.module.exit_json(changed=True, msg=msg, monitor=monitor)
 
     def del_mon(self, monitor):
         self.check_node(monitor)
@@ -123,24 +114,16 @@ class ProxmoxCephMonAnsible(ProxmoxAnsible):
             else:
                 msg = f"Monitor {monitor} would be deleted"
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-                monitor=monitor
-            )
+            self.module.exit_json(changed=True, msg=msg, monitor=monitor)
         else:
-            self.module.exit_json(
-                changed=False,
-                msg="Monitor not present",
-                monitor=monitor
-            )
+            self.module.exit_json(changed=False, msg="Monitor not present", monitor=monitor)
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
     monitor_args = dict(
-        node=dict(type='str', required=True),
-        state=dict(choices=['present', 'absent'], required=True),
+        node=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"], required=True),
     )
 
     module_args.update(monitor_args)
@@ -153,23 +136,19 @@ def main():
     )
 
     proxmox = ProxmoxCephMonAnsible(module)
-    state = module.params['state']
+    state = module.params["state"]
 
-    if state == 'present':
+    if state == "present":
         try:
-            proxmox.add_mon(module.params['node'])
+            proxmox.add_mon(module.params["node"])
         except Exception as e:
-            module.fail_json(
-                msg="Adding monitor failed with exception: %s" % to_native(e)
-            )
+            module.fail_json(msg="Adding monitor failed with exception: %s" % to_native(e))
 
-    elif state == 'absent':
+    elif state == "absent":
         try:
-            proxmox.del_mon(module.params['node'])
+            proxmox.del_mon(module.params["node"])
         except Exception as e:
-            module.fail_json(
-                msg="Deleting monitor failed with exception: %s" % to_native(e)
-            )
+            module.fail_json(msg="Deleting monitor failed with exception: %s" % to_native(e))
 
 
 if __name__ == "__main__":

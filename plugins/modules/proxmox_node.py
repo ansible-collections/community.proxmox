@@ -7,6 +7,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -167,7 +168,9 @@ import hashlib
 import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
+    proxmox_auth_argument_spec,
+    ProxmoxAnsible,
+)
 
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
@@ -186,18 +189,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
     def read_file(self, file_path):
         try:
-            with open(file_path, 'r') as file_handler:
+            with open(file_path, "r") as file_handler:
                 file_content = file_handler.read()
                 return file_content
         except Exception as e:
             self.module.fail_json(msg=f"Failed to read certificate or key file: {e}")
 
-    def get_certificate_fingerprints_file(self, pem_data, hash_alg='sha256'):
-        certs = re.findall(
-            r"-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----",
-            pem_data,
-            re.DOTALL
-        )
+    def get_certificate_fingerprints_file(self, pem_data, hash_alg="sha256"):
+        certs = re.findall(r"-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", pem_data, re.DOTALL)
 
         fingerprints = []
         for cert_body in certs:
@@ -206,7 +205,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             digest = getattr(hashlib, hash_alg)(der).hexdigest()
             # Format the fingerprint as uppercase hex pairs separated by colons to match Proxmox's output
             # e.g., "A1:B2:C3:D4:E5:F6:G7:H8:I9:J0:K1:L2:M3:N4:O5:P6:Q7:R8:S9:T0"
-            formatted = ":".join(digest[i:i + 2].upper() for i in range(0, len(digest), 2))
+            formatted = ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
             fingerprints.append(formatted)
         return fingerprints
 
@@ -268,7 +267,9 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             all_certs = self.proxmox_api.nodes(node_name).certificates.info.get()
             # Filter out default Proxmox certificates (pve-root-ca.pem, pve-ssl.pem)
             # Keep only custom certificates
-            current_cert = [cert for cert in all_certs if cert.get('filename') not in ['pve-root-ca.pem', 'pve-ssl.pem']]
+            current_cert = [
+                cert for cert in all_certs if cert.get("filename") not in ["pve-root-ca.pem", "pve-ssl.pem"]
+            ]
             if not current_cert:
                 current_cert = []
 
@@ -342,13 +343,13 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
         dns_config = {}
         if dns1:
-            dns_config['dns1'] = dns1
+            dns_config["dns1"] = dns1
         if dns2:
-            dns_config['dns2'] = dns2
+            dns_config["dns2"] = dns2
         if dns3:
-            dns_config['dns3'] = dns3
+            dns_config["dns3"] = dns3
         if search:
-            dns_config['search'] = search
+            dns_config["search"] = search
 
         if self.dicts_differ(dns_config_current, dns_config):
             if not self.module.check_mode:
@@ -393,42 +394,42 @@ def main():
     module_args = proxmox_auth_argument_spec()
 
     node_args = dict(
-        node_name=dict(type='str', required=True),
-        power_state=dict(choices=['online', 'offline']),
+        node_name=dict(type="str", required=True),
+        power_state=dict(choices=["online", "offline"]),
         certificates=dict(
-            type='dict',
+            type="dict",
             options=dict(
-                cert=dict(type='str', required=False, no_log=True),
-                key=dict(type='str', required=False, no_log=True),
-                state=dict(type='str', required=False, choices=['present', 'absent']),
-                restart=dict(type='bool', default=False, required=False),
-                force=dict(type='bool', default=False, required=False),
-            )
+                cert=dict(type="str", required=False, no_log=True),
+                key=dict(type="str", required=False, no_log=True),
+                state=dict(type="str", required=False, choices=["present", "absent"]),
+                restart=dict(type="bool", default=False, required=False),
+                force=dict(type="bool", default=False, required=False),
+            ),
         ),
         dns=dict(
-            type='dict',
+            type="dict",
             options=dict(
-                dns1=dict(type='str', default=None, required=False),
-                dns2=dict(type='str', default=None, required=False),
-                dns3=dict(type='str', default=None, required=False),
-                search=dict(type='str', required=True),
-            )
+                dns1=dict(type="str", default=None, required=False),
+                dns2=dict(type="str", default=None, required=False),
+                dns3=dict(type="str", default=None, required=False),
+                search=dict(type="str", required=True),
+            ),
         ),
         subscription=dict(
-            type='dict',
+            type="dict",
             options=dict(
-                state=dict(type='str', required=False, choices=['present', 'absent']),
-                key=dict(type='str', default=None, required=False, no_log=True),
-            )
-        )
+                state=dict(type="str", required=False, choices=["present", "absent"]),
+                key=dict(type="str", default=None, required=False, no_log=True),
+            ),
+        ),
     )
 
     module_args.update(node_args)
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
         supports_check_mode=True,
     )
 
@@ -463,5 +464,5 @@ def main():
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

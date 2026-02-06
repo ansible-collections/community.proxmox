@@ -32,13 +32,9 @@ class TestProxmoxKvmModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect"
         ).start()
-        self.get_node_mock = patch.object(
-            proxmox_utils.ProxmoxAnsible, "get_node"
-        ).start()
+        self.get_node_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_node").start()
         self.get_vm_mock = patch.object(proxmox_utils.ProxmoxAnsible, "get_vm").start()
-        self.create_vm_mock = patch.object(
-            proxmox_kvm.ProxmoxKvmAnsible, "create_vm"
-        ).start()
+        self.create_vm_mock = patch.object(proxmox_kvm.ProxmoxKvmAnsible, "create_vm").start()
 
     def tearDown(self):
         self.create_vm_mock.stop()
@@ -125,9 +121,7 @@ class TestProxmoxKvmModule(ModuleTestCase):
             }
         ):
             self.get_vm_mock.return_value = None
-            with patch.multiple(
-                proxmox_utils.ProxmoxAnsible, get_vmid=DEFAULT, get_nextvmid=DEFAULT
-            ) as utils_mock:
+            with patch.multiple(proxmox_utils.ProxmoxAnsible, get_vmid=DEFAULT, get_nextvmid=DEFAULT) as utils_mock:
                 utils_mock["get_vmid"].return_value = None
                 utils_mock["get_nextvmid"].return_value = 101
                 with pytest.raises(AnsibleExitJson) as exc_info:
@@ -140,21 +134,9 @@ class TestProxmoxKvmModule(ModuleTestCase):
         assert result["msg"] == "VM existing.vm.local with vmid 101 deployed"
 
     def test_parse_mac(self):
-        assert (
-            proxmox_kvm.parse_mac("virtio=00:11:22:AA:BB:CC,bridge=vmbr0,firewall=1")
-            == "00:11:22:AA:BB:CC"
-        )
+        assert proxmox_kvm.parse_mac("virtio=00:11:22:AA:BB:CC,bridge=vmbr0,firewall=1") == "00:11:22:AA:BB:CC"
 
     def test_parse_dev(self):
-        assert (
-            proxmox_kvm.parse_dev("local-lvm:vm-1000-disk-0,format=qcow2")
-            == "local-lvm:vm-1000-disk-0"
-        )
-        assert (
-            proxmox_kvm.parse_dev("local-lvm:vm-101-disk-1,size=8G")
-            == "local-lvm:vm-101-disk-1"
-        )
-        assert (
-            proxmox_kvm.parse_dev("local-zfs:vm-1001-disk-0")
-            == "local-zfs:vm-1001-disk-0"
-        )
+        assert proxmox_kvm.parse_dev("local-lvm:vm-1000-disk-0,format=qcow2") == "local-lvm:vm-1000-disk-0"
+        assert proxmox_kvm.parse_dev("local-lvm:vm-101-disk-1,size=8G") == "local-lvm:vm-101-disk-1"
+        assert proxmox_kvm.parse_dev("local-zfs:vm-1001-disk-0") == "local-zfs:vm-1001-disk-0"

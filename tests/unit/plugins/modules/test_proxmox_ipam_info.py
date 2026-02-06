@@ -23,20 +23,8 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 
 RAW_IPAM_STATUS = [
-    {
-        "subnet": "10.10.1.0/24",
-        "vnet": "test2",
-        "zone": "test1",
-        "ip": "10.10.1.0",
-        "gateway": 1
-    },
-    {
-        "ip": "10.10.0.1",
-        "gateway": 1,
-        "vnet": "test2",
-        "subnet": "10.10.0.0/24",
-        "zone": "test1"
-    },
+    {"subnet": "10.10.1.0/24", "vnet": "test2", "zone": "test1", "ip": "10.10.1.0", "gateway": 1},
+    {"ip": "10.10.0.1", "gateway": 1, "vnet": "test2", "subnet": "10.10.0.0/24", "zone": "test1"},
     {
         "zone": "test1",
         "vnet": "test2",
@@ -44,7 +32,7 @@ RAW_IPAM_STATUS = [
         "mac": "BC:24:11:F3:B1:81",
         "vmid": 102,
         "hostname": "ns3.proxmox.pc",
-        "ip": "10.10.0.8"
+        "ip": "10.10.0.8",
     },
     {
         "subnet": "10.10.0.0/24",
@@ -53,7 +41,7 @@ RAW_IPAM_STATUS = [
         "ip": "10.10.0.7",
         "hostname": "ns4.proxmox.pc",
         "vmid": 103,
-        "mac": "BC:24:11:D5:CD:82"
+        "mac": "BC:24:11:D5:CD:82",
     },
     {
         "ip": "10.10.0.5",
@@ -62,25 +50,13 @@ RAW_IPAM_STATUS = [
         "vmid": 101,
         "subnet": "10.10.0.0/24",
         "vnet": "test2",
-        "zone": "test1"
-    }
+        "zone": "test1",
+    },
 ]
 
 RAW_IPAM_STATUS_PVE8 = [
-    {
-        "subnet": "10.10.1.0/24",
-        "vnet": "test2",
-        "zone": "test1",
-        "ip": "10.10.1.0",
-        "gateway": 1
-    },
-    {
-        "ip": "10.10.0.1",
-        "gateway": 1,
-        "vnet": "test2",
-        "subnet": "10.10.0.0/24",
-        "zone": "test1"
-    },
+    {"subnet": "10.10.1.0/24", "vnet": "test2", "zone": "test1", "ip": "10.10.1.0", "gateway": 1},
+    {"ip": "10.10.0.1", "gateway": 1, "vnet": "test2", "subnet": "10.10.0.0/24", "zone": "test1"},
     {
         "zone": "test1",
         "vnet": "test2",
@@ -88,7 +64,7 @@ RAW_IPAM_STATUS_PVE8 = [
         "mac": "BC:24:11:F3:B1:81",
         "vmid": "102",
         "hostname": "ns3.proxmox.pc",
-        "ip": "10.10.0.8"
+        "ip": "10.10.0.8",
     },
     {
         "subnet": "10.10.0.0/24",
@@ -97,7 +73,7 @@ RAW_IPAM_STATUS_PVE8 = [
         "ip": "10.10.0.7",
         "hostname": "ns4.proxmox.pc",
         "vmid": "103",
-        "mac": "BC:24:11:D5:CD:82"
+        "mac": "BC:24:11:D5:CD:82",
     },
     {
         "ip": "10.10.0.5",
@@ -106,40 +82,28 @@ RAW_IPAM_STATUS_PVE8 = [
         "vmid": "101",
         "subnet": "10.10.0.0/24",
         "vnet": "test2",
-        "zone": "test1"
-    }
+        "zone": "test1",
+    },
 ]
 
-RAW_IPAM = [
-    {
-        "ipam": "pve",
-        "type": "pve",
-        "digest": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-    }
-]
+RAW_IPAM = [{"ipam": "pve", "type": "pve", "digest": "da39a3ee5e6b4b0d3255bfef95601890afd80709"}]
 
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json; package return data into an exception"""
-    kwargs['failed'] = True
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
 def get_module_args(ipam=None, vmid=None):
-    return {
-        'api_host': 'host',
-        'api_user': 'user',
-        'api_password': 'password',
-        'ipam': ipam,
-        'vmid': vmid
-    }
+    return {"api_host": "host", "api_user": "user", "api_password": "password", "ipam": ipam, "vmid": vmid}
 
 
 class TestProxmoxIpamInfoModule(ModuleTestCase):
@@ -147,9 +111,7 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
         super(TestProxmoxIpamInfoModule, self).setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_ipam_info
-        self.mock_module_helper = patch.multiple(basic.AnsibleModule,
-                                                 exit_json=exit_json,
-                                                 fail_json=fail_json)
+        self.mock_module_helper = patch.multiple(basic.AnsibleModule, exit_json=exit_json, fail_json=fail_json)
         self.mock_module_helper.start()
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
@@ -171,11 +133,11 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
-        assert result["ipams"] == {'pve': RAW_IPAM_STATUS}
+        assert result["ipams"] == {"pve": RAW_IPAM_STATUS}
 
     def test_get_all_ipam_pve_status(self):
         with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(ipam='pve')):
+            with set_module_args(get_module_args(ipam="pve")):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -189,15 +151,17 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
-        assert result["ips"] == [{
-            "zone": "test1",
-            "vnet": "test2",
-            "subnet": "10.10.0.0/24",
-            "mac": "BC:24:11:F3:B1:81",
-            "vmid": 102,
-            "hostname": "ns3.proxmox.pc",
-            "ip": "10.10.0.8"
-        }]
+        assert result["ips"] == [
+            {
+                "zone": "test1",
+                "vnet": "test2",
+                "subnet": "10.10.0.0/24",
+                "mac": "BC:24:11:F3:B1:81",
+                "vmid": 102,
+                "hostname": "ns3.proxmox.pc",
+                "ip": "10.10.0.8",
+            }
+        ]
 
     def test_get_ip_by_vmid_pve8(self):
         self.mock_ipam.pve.return_value.status.return_value.get.return_value = RAW_IPAM_STATUS_PVE8
@@ -209,12 +173,14 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
-        assert result["ips"] == [{
-            "zone": "test1",
-            "vnet": "test2",
-            "subnet": "10.10.0.0/24",
-            "mac": "BC:24:11:F3:B1:81",
-            "vmid": "102",
-            "hostname": "ns3.proxmox.pc",
-            "ip": "10.10.0.8"
-        }]
+        assert result["ips"] == [
+            {
+                "zone": "test1",
+                "vnet": "test2",
+                "subnet": "10.10.0.0/24",
+                "mac": "BC:24:11:F3:B1:81",
+                "vmid": "102",
+                "hostname": "ns3.proxmox.pc",
+                "ip": "10.10.0.8",
+            }
+        ]

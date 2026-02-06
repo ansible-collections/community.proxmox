@@ -22,27 +22,16 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 
 RAW_VNETS = [
-    {
-        "digest": "1c0fb7bcd93d4c8cc9c444a91b9064ee34e5c786",
-        "type": "vnet",
-        "vnet": "lab",
-        "zone": "lab",
-        "tag": 100
-    },
+    {"digest": "1c0fb7bcd93d4c8cc9c444a91b9064ee34e5c786", "type": "vnet", "vnet": "lab", "zone": "lab", "tag": 100},
     {
         "zone": "ans1",
         "type": "vnet",
         "vnet": "test",
         "isolate-ports": 1,
         "digest": "1c0fb7bcd93d4c8cc9c444a91b9064ee34e5c786",
-        "alias": "test1"
+        "alias": "test1",
     },
-    {
-        "zone": "test1",
-        "vnet": "test2",
-        "type": "vnet",
-        "digest": "1c0fb7bcd93d4c8cc9c444a91b9064ee34e5c786"
-    }
+    {"zone": "test1", "vnet": "test2", "type": "vnet", "digest": "1c0fb7bcd93d4c8cc9c444a91b9064ee34e5c786"},
 ]
 
 LAB_SUBNETS = [
@@ -57,7 +46,7 @@ LAB_SUBNETS = [
         "digest": "3ad95a6415851300419c14a62fcc0890b9095b88",
         "subnet": "lab-10.10.100.0-24",
         "type": "subnet",
-        "id": "lab-10.10.100.0-24"
+        "id": "lab-10.10.100.0-24",
     }
 ]
 
@@ -67,14 +56,8 @@ TEST_SUBNETS = [
         "cidr": "10.10.2.0/24",
         "snat": 1,
         "dhcp-range": [
-            {
-                "end-address": "10.10.2.15",
-                "start-address": "10.10.2.5"
-            },
-            {
-                "start-address": "10.10.2.20",
-                "end-address": "10.10.2.40"
-            }
+            {"end-address": "10.10.2.15", "start-address": "10.10.2.5"},
+            {"start-address": "10.10.2.20", "end-address": "10.10.2.40"},
         ],
         "zone": "ans1",
         "mask": "24",
@@ -82,7 +65,7 @@ TEST_SUBNETS = [
         "subnet": "ans1-10.10.2.0-24",
         "vnet": "test",
         "type": "subnet",
-        "id": "ans1-10.10.2.0-24"
+        "id": "ans1-10.10.2.0-24",
     }
 ]
 
@@ -90,12 +73,7 @@ TEST2_SUBNETS = [
     {
         "network": "10.10.0.0",
         "cidr": "10.10.0.0/24",
-        "dhcp-range": [
-            {
-                "end-address": "10.10.0.50",
-                "start-address": "10.10.0.5"
-            }
-        ],
+        "dhcp-range": [{"end-address": "10.10.0.50", "start-address": "10.10.0.5"}],
         "zone": "test1",
         "mask": "24",
         "digest": "3ad95a6415851300419c14a62fcc0890b9095b88",
@@ -103,16 +81,11 @@ TEST2_SUBNETS = [
         "type": "subnet",
         "vnet": "test2",
         "id": "test1-10.10.0.0-24",
-        "gateway": "10.10.0.1"
+        "gateway": "10.10.0.1",
     },
     {
         "zone": "test1",
-        "dhcp-range": [
-            {
-                "end-address": "10.10.1.50",
-                "start-address": "10.10.1.5"
-            }
-        ],
+        "dhcp-range": [{"end-address": "10.10.1.50", "start-address": "10.10.1.5"}],
         "cidr": "10.10.1.0/24",
         "network": "10.10.1.0",
         "digest": "3ad95a6415851300419c14a62fcc0890b9095b88",
@@ -121,8 +94,8 @@ TEST2_SUBNETS = [
         "type": "subnet",
         "vnet": "test2",
         "subnet": "test1-10.10.1.0-24",
-        "gateway": "10.10.1.0"
-    }
+        "gateway": "10.10.1.0",
+    },
 ]
 
 LAB_FIREWALL = []
@@ -137,7 +110,7 @@ TEST_FIREWALL = [
         "type": "forward",
         "dest": "+sdn/test2-gateway",
         "log": "nolog",
-        "pos": 0
+        "pos": 0,
     },
     {
         "action": "ACCEPT",
@@ -146,31 +119,26 @@ TEST_FIREWALL = [
         "enable": 1,
         "pos": 1,
         "log": "nolog",
-        "type": "forward"
-    }
+        "type": "forward",
+    },
 ]
 
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json; package return data into an exception"""
-    kwargs['failed'] = True
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
 def get_module_args(vnet=None):
-    return {
-        'api_host': 'host',
-        'api_user': 'user',
-        'api_password': 'password',
-        'vnet': vnet
-    }
+    return {"api_host": "host", "api_user": "user", "api_password": "password", "vnet": vnet}
 
 
 class TestProxmoxVnetInfoModule(ModuleTestCase):
@@ -178,9 +146,10 @@ class TestProxmoxVnetInfoModule(ModuleTestCase):
         super(TestProxmoxVnetInfoModule, self).setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_vnet_info
-        self.fail_json_patcher = patch('ansible.module_utils.basic.AnsibleModule.fail_json',
-                                       new=Mock(side_effect=fail_json))
-        self.exit_json_patcher = patch('ansible.module_utils.basic.AnsibleModule.exit_json', new=exit_json)
+        self.fail_json_patcher = patch(
+            "ansible.module_utils.basic.AnsibleModule.fail_json", new=Mock(side_effect=fail_json)
+        )
+        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
 
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
@@ -214,10 +183,10 @@ class TestProxmoxVnetInfoModule(ModuleTestCase):
         for idx, vnet in enumerate(RAW_VNETS):
             subnet_var = f"{vnet['vnet'].upper()}_SUBNETS"
             firewall_var = f"{vnet['vnet'].upper()}_FIREWALL"
-            full_vnet_information[idx]['subnets'] = globals()[subnet_var]
-            full_vnet_information[idx]['firewall_rules'] = globals()[firewall_var]
+            full_vnet_information[idx]["subnets"] = globals()[subnet_var]
+            full_vnet_information[idx]["firewall_rules"] = globals()[firewall_var]
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
-        assert result["msg"] == 'Successfully retrieved vnet info'
+        assert result["msg"] == "Successfully retrieved vnet info"
         assert result["vnets"] == RAW_VNETS

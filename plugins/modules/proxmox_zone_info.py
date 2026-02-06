@@ -105,9 +105,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import p
 
 
 def get_proxmox_args():
-    return dict(
-        type=dict(type='str', choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"], required=False)
-    )
+    return dict(type=dict(type="str", choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"], required=False))
 
 
 def get_ansible_module():
@@ -125,12 +123,8 @@ class ProxmoxZoneInfoAnsible(ProxmoxSdnAnsible):
         self.params = module.params
 
     def run(self):
-        zones = self.get_zones(
-            zone_type=self.params.get('type')
-        )
-        self.module.exit_json(
-            changed=False, zones=zones, msg="Successfully retrieved zone info."
-        )
+        zones = self.get_zones(zone_type=self.params.get("type"))
+        self.module.exit_json(changed=False, zones=zones, msg="Successfully retrieved zone info.")
 
 
 def main():
@@ -140,7 +134,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

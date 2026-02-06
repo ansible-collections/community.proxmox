@@ -13,7 +13,7 @@ from unittest.mock import patch, Mock
 
 import pytest
 
-proxmoxer = pytest.importorskip('proxmoxer')
+proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.proxmox.plugins.modules import proxmox_template
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
@@ -50,7 +50,7 @@ class TestProxmoxTemplateModule(ModuleTestCase):
                 "api_password": "password",
                 "node": "pve",
                 "src": "/tmp/mock.iso",
-                "content_type": "iso"
+                "content_type": "iso",
             }
         ):
             with pytest.raises(AnsibleFailJson) as exc_info:

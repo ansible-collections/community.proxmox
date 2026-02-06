@@ -406,7 +406,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
         "}": ["shift", "bracket_right"],
         "|": ["shift", "backslash"],
         ":": ["shift", "semicolon"],
-        "\"": ["shift", "apostrophe"],
+        '"': ["shift", "apostrophe"],
         "<": ["shift", "comma"],
         ">": ["shift", "dot"],
         "?": ["shift", "slash"],

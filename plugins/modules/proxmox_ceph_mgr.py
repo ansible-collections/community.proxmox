@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -82,9 +83,7 @@ class ProxmoxCephMgrAnsible(ProxmoxAnsible):
         nodes = self.proxmox_api.cluster.resources.get(type="node")
         nodes = [item["node"] for item in nodes]
         if node not in nodes:
-            self.module.fail_json(
-                msg="Node %s does not exist in the cluster" % node
-            )
+            self.module.fail_json(msg="Node %s does not exist in the cluster" % node)
 
     def check_managers(self, node):
         managers = self.proxmox_api.nodes(node).ceph.mgr.get()
@@ -96,11 +95,7 @@ class ProxmoxCephMgrAnsible(ProxmoxAnsible):
     def add_mgr(self, manager):
         self.check_node(manager)
         if self.check_managers(manager):
-            self.module.exit_json(
-                changed=False,
-                msg="Manager already exists",
-                manager=manager
-            )
+            self.module.exit_json(changed=False, msg="Manager already exists", manager=manager)
         else:
             if not self.module.check_mode:
                 self.proxmox_api.nodes(manager).ceph.mgr(manager).create()
@@ -108,11 +103,7 @@ class ProxmoxCephMgrAnsible(ProxmoxAnsible):
             else:
                 msg = f"Manager {manager} would be added"
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-                manager=manager
-            )
+            self.module.exit_json(changed=True, msg=msg, manager=manager)
 
     def del_mgr(self, manager):
         self.check_node(manager)
@@ -123,24 +114,16 @@ class ProxmoxCephMgrAnsible(ProxmoxAnsible):
             else:
                 msg = f"Manager {manager} would be deleted"
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-                manager=manager
-            )
+            self.module.exit_json(changed=True, msg=msg, manager=manager)
         else:
-            self.module.exit_json(
-                changed=False,
-                msg="Manager not present",
-                manager=manager
-            )
+            self.module.exit_json(changed=False, msg="Manager not present", manager=manager)
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
     manager_args = dict(
-        node=dict(type='str', required=True),
-        state=dict(choices=['present', 'absent'], required=True),
+        node=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"], required=True),
     )
 
     module_args.update(manager_args)
@@ -153,23 +136,19 @@ def main():
     )
 
     proxmox = ProxmoxCephMgrAnsible(module)
-    state = module.params['state']
+    state = module.params["state"]
 
-    if state == 'present':
+    if state == "present":
         try:
-            proxmox.add_mgr(module.params['node'])
+            proxmox.add_mgr(module.params["node"])
         except Exception as e:
-            module.fail_json(
-                msg="Adding manager failed with exception: %s" % to_native(e)
-            )
+            module.fail_json(msg="Adding manager failed with exception: %s" % to_native(e))
 
-    elif state == 'absent':
+    elif state == "absent":
         try:
-            proxmox.del_mgr(module.params['node'])
+            proxmox.del_mgr(module.params["node"])
         except Exception as e:
-            module.fail_json(
-                msg="Deleting manager failed with exception: %s" % to_native(e)
-            )
+            module.fail_json(msg="Deleting manager failed with exception: %s" % to_native(e))
 
 
 if __name__ == "__main__":

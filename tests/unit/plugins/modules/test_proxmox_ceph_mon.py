@@ -24,107 +24,101 @@ proxmoxer = pytest.importorskip("proxmoxer")
 
 RAW_RESOURCES_NODES = [
     {
-        'maxdisk': 15517192192,
-        'maxmem': 2063962112,
-        'disk': 3952242688,
-        'mem': 1556987904,
-        'type': 'node',
-        'cpu': 0.00688637481554353,
-        'level': '',
-        'status': 'online',
-        'id': 'node/srv-proxmox-02',
-        'uptime': 697,
-        'cgroup-mode': 2,
-        'maxcpu': 4,
-        'node': 'srv-proxmox-02'
+        "maxdisk": 15517192192,
+        "maxmem": 2063962112,
+        "disk": 3952242688,
+        "mem": 1556987904,
+        "type": "node",
+        "cpu": 0.00688637481554353,
+        "level": "",
+        "status": "online",
+        "id": "node/srv-proxmox-02",
+        "uptime": 697,
+        "cgroup-mode": 2,
+        "maxcpu": 4,
+        "node": "srv-proxmox-02",
     },
     {
-        'maxmem': 2063958016,
-        'maxdisk': 15517192192,
-        'level': '',
-        'cpu': 0.0118168389955687,
-        'type': 'node',
-        'mem': 1854046208,
-        'disk': 3955453952,
-        'uptime': 697,
-        'id': 'node/srv-proxmox-01',
-        'status': 'online',
-        'node': 'srv-proxmox-01',
-        'maxcpu': 4,
-        'cgroup-mode': 2
+        "maxmem": 2063958016,
+        "maxdisk": 15517192192,
+        "level": "",
+        "cpu": 0.0118168389955687,
+        "type": "node",
+        "mem": 1854046208,
+        "disk": 3955453952,
+        "uptime": 697,
+        "id": "node/srv-proxmox-01",
+        "status": "online",
+        "node": "srv-proxmox-01",
+        "maxcpu": 4,
+        "cgroup-mode": 2,
     },
     {
-        'level': '',
-        'type': 'node',
-        'cpu': 0.00760922925871379,
-        'disk': 3907559424,
-        'mem': 1550610432,
-        'maxdisk': 15517192192,
-        'maxmem': 2063953920,
-        'maxcpu': 4,
-        'node': 'srv-proxmox-03',
-        'cgroup-mode': 2,
-        'uptime': 697,
-        'id': 'node/srv-proxmox-03',
-        'status': 'online'
-    }
+        "level": "",
+        "type": "node",
+        "cpu": 0.00760922925871379,
+        "disk": 3907559424,
+        "mem": 1550610432,
+        "maxdisk": 15517192192,
+        "maxmem": 2063953920,
+        "maxcpu": 4,
+        "node": "srv-proxmox-03",
+        "cgroup-mode": 2,
+        "uptime": 697,
+        "id": "node/srv-proxmox-03",
+        "status": "online",
+    },
 ]
 
 RAW_MON = [
     {
-        'service': 1,
-        'rank': 0,
-        'ceph_version_short': '19.2.3',
-        'ceph_version': 'ceph version 19.2.3 \
+        "service": 1,
+        "rank": 0,
+        "ceph_version_short": "19.2.3",
+        "ceph_version": "ceph version 19.2.3 \
                         (2f03f1cd83e5d40cdf1393cb64a662a8e8bb07c6) \
-                        squid (stable)',
-        'addr': '192.168.1.21:6789/0',
-        'quorum': 1,
-        'name': 'srv-proxmox-01',
-        'state': 'running',
-        'host': 'srv-proxmox-01',
-        'direxists': 1
+                        squid (stable)",
+        "addr": "192.168.1.21:6789/0",
+        "quorum": 1,
+        "name": "srv-proxmox-01",
+        "state": "running",
+        "host": "srv-proxmox-01",
+        "direxists": 1,
     },
     {
-        'ceph_version': 'ceph version 19.2.3 \
+        "ceph_version": "ceph version 19.2.3 \
                         (2f03f1cd83e5d40cdf1393cb64a662a8e8bb07c6) \
-                        squid (stable)',
-        'addr': '192.168.1.22:6789/0',
-        'ceph_version_short': '19.2.3',
-        'rank': 1,
-        'service': 1,
-        'direxists': 1,
-        'host': 'srv-proxmox-02',
-        'state': 'running',
-        'name': 'srv-proxmox-02',
-        'quorum': 1
-    }
+                        squid (stable)",
+        "addr": "192.168.1.22:6789/0",
+        "ceph_version_short": "19.2.3",
+        "rank": 1,
+        "service": 1,
+        "direxists": 1,
+        "host": "srv-proxmox-02",
+        "state": "running",
+        "name": "srv-proxmox-02",
+        "quorum": 1,
+    },
 ]
 
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json;
-        package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    package return data into an exception"""
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json;
-        package return data into an exception"""
-    kwargs['failed'] = True
+    package return data into an exception"""
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
 def build_arg(node, state, check=False):
-    args = {
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "api_host": "192.168.1.21",
-        "node": node,
-        "state": state
-    }
+    args = {"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21", "node": node, "state": state}
     if check:
         args["_ansible_check_mode"] = True
     return args
@@ -137,12 +131,9 @@ class TestProxmoxCephMon(ModuleTestCase):
         self.module = proxmox_ceph_mon
 
         self.fail_json_patcher = patch(
-            'ansible.module_utils.basic.AnsibleModule.fail_json',
-            new=Mock(side_effect=fail_json)
+            "ansible.module_utils.basic.AnsibleModule.fail_json", new=Mock(side_effect=fail_json)
         )
-        self.exit_json_patcher = patch(
-            'ansible.module_utils.basic.AnsibleModule.exit_json',
-            new=exit_json)
+        self.exit_json_patcher = patch("ansible.module_utils.basic.AnsibleModule.exit_json", new=exit_json)
 
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
@@ -152,12 +143,8 @@ class TestProxmoxCephMon(ModuleTestCase):
         ).start()
 
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.resources.get.return_value = (
-            RAW_RESOURCES_NODES
-        )
-        mock_obj.nodes.return_value.ceph.mon.get.return_value = (
-            RAW_MON
-        )
+        mock_obj.cluster.resources.get.return_value = RAW_RESOURCES_NODES
+        mock_obj.nodes.return_value.ceph.mon.get.return_value = RAW_MON
 
     def tearDown(self):
         self.connect_mock.stop()
@@ -166,13 +153,7 @@ class TestProxmoxCephMon(ModuleTestCase):
         super(TestProxmoxCephMon, self).tearDown()
 
     def test_proxmox_ceph_missing_argument(self):
-        with set_module_args(
-            {
-                "api_user": "root@pam",
-                "api_password": "secret",
-                "api_host": "192.168.1.21"
-            }
-        ):
+        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}):
             with pytest.raises(SystemExit) as exc_info:
                 proxmox_ceph_mon.main()
 
