@@ -77,34 +77,42 @@ proxmox_groups:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.models.paths import AccessGroupsGetResponse, AccessGroupsGroupidGetResponse
 
 
 class ProxmoxGroupInfoAnsible(ProxmoxAnsible):
     def get_group(self, groupid):
         try:
-            group = self.proxmox_api.access.groups.get(groupid)
+            data = self.proxmox_api.access.groups.get(groupid)
+            response = AccessGroupsGroupidGetResponse.model_validate(data)
+            group = response.data
         except Exception:
             self.module.fail_json(msg="Group '%s' does not exist" % groupid)
-        group['groupid'] = groupid
+        group.groupid = groupid
         return ProxmoxGroup(group)
 
     def get_groups(self):
-        groups = self.proxmox_api.access.groups.get()
-        return [ProxmoxGroup(group) for group in groups]
+        data = self.proxmox_api.access.groups.get()
+        response = AccessGroupsGetResponse.model_validate(data)
+        return [ProxmoxGroup(group) for group in response.root]
 
+from pydantic import BaseModel
 
 class ProxmoxGroup:
     def __init__(self, group):
         self.group = dict()
         # Data representation is not the same depending on API calls
-        for k, v in group.items():
-            if k == 'users' and isinstance(v, str):
-                self.group['users'] = v.split(',')
-            elif k == 'members':
-                self.group['users'] = group['members']
-            else:
-                self.group[k] = v
-
+        if isinstance(group, BaseModel):
+            for k in group.model_fields_set:
+                v = getattr(group, k)
+                if k == 'users' and isinstance(v, str):
+                    self.group['users'] = v.split(',')
+                elif k == 'members':
+                    self.group['users'] = group['members']
+                else:
+                    self.group[k] = v
+        else:
+            raise ValueError(group)
 
 def proxmox_group_info_argument_spec():
     return dict(

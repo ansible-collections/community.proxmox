@@ -78,7 +78,7 @@ msg:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
-
+from ansible_collections.community.proxmox.plugins.module_utils.models.paths import PoolsGetResponse
 
 class ProxmoxPoolAnsible(ProxmoxAnsible):
 
@@ -89,9 +89,10 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         :return: bool - is pool exists?
         """
         try:
-            pools = self.proxmox_api.pools.get()
-            for pool in pools:
-                if pool['poolid'] == poolid:
+            data = self.proxmox_api.pools.get()
+            response = PoolsGetResponse.model_validate(data)
+            for pool in response.root:
+                if pool.poolid == poolid:
                     return True
             return False
         except Exception as e:
