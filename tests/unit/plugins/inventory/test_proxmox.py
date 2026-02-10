@@ -38,26 +38,30 @@ def get_auth():
 # NOTE: when updating/adding replies to this function,
 # be sure to only add only the _contents_ of the 'data' dict in the API reply
 def get_json(url, ignore_errors=None):
-    if url == "https://localhost:8006/api2/json/nodes":
+    if url == "https://localhost:8006/api2/json/cluster/status":
         # _get_nodes
         return [{"type": "node",
-                 "cpu": 0.01,
-                 "maxdisk": 500,
-                 "mem": 500,
-                 "node": "testnode",
+                 "name": "testnode",
                  "id": "node/testnode",
-                 "maxcpu": 1,
-                 "status": "online",
-                 "ssl_fingerprint": "xx",
-                 "disk": 1000,
-                 "maxmem": 1000,
-                 "uptime": 10000,
+                 "online": 1,
+                 "local": 1,
+                 "nodeid": 1,
+                 "ip": "10.0.10.1",
                  "level": ""},
                 {"type": "node",
-                 "node": "testnode2",
+                 "name": "testnode2",
                  "id": "node/testnode2",
-                 "status": "offline",
-                 "ssl_fingerprint": "yy"}]
+                 "online": 0,
+                 "local": 0,
+                 "nodeid": 2,
+                 "ip": "10.0.10.2",
+                 "level": ""},
+                {"type": "cluster",
+                 "quorate": 1,
+                 "name": "testcluster",
+                 "version": 24,
+                 "id": "cluster",
+                 "nodes": 2}]
     elif url == "https://localhost:8006/api2/json/pools":
         # _get_pools
         return [{"poolid": "test"}]
@@ -647,6 +651,8 @@ def test_populate(inventory, mocker):
     inventory.facts_prefix = 'proxmox_'
     inventory.strict = False
     inventory.exclude_nodes = False
+    inventory.exclude_qemu = False
+    inventory.exclude_lxc = False
 
     opts = {
         'group_prefix': 'proxmox_',
@@ -654,7 +660,9 @@ def test_populate(inventory, mocker):
         'want_facts': True,
         'want_proxmox_nodes_ansible_host': True,
         'qemu_extended_statuses': True,
-        'exclude_nodes': False
+        'exclude_nodes': False,
+        'exclude_qemu': False,
+        'exclude_lxc': False
     }
 
     # bypass authentication and API fetch calls
@@ -726,6 +734,8 @@ def test_populate_missing_qemu_extended_groups(inventory, mocker):
     inventory.facts_prefix = 'proxmox_'
     inventory.strict = False
     inventory.exclude_nodes = False
+    inventory.exclude_qemu = False
+    inventory.exclude_lxc = False
 
     opts = {
         'group_prefix': 'proxmox_',
@@ -733,7 +743,9 @@ def test_populate_missing_qemu_extended_groups(inventory, mocker):
         'want_facts': True,
         'want_proxmox_nodes_ansible_host': True,
         'qemu_extended_statuses': False,
-        'exclude_nodes': False
+        'exclude_nodes': False,
+        'exclude_qemu': False,
+        'exclude_lxc': False
     }
 
     # bypass authentication and API fetch calls
