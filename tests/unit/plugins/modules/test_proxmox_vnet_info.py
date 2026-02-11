@@ -8,18 +8,19 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_vnet_info
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_vnet_info
 
 RAW_VNETS = [
     {"digest": "1c0fb7bcd93d4c8cc9c444a91b9064ee34e5c786", "type": "vnet", "vnet": "lab", "zone": "lab", "tag": 100},

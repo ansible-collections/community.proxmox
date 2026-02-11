@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
-
 DOCUMENTATION = """
     name: proxmox
     short_description: Proxmox inventory source
@@ -214,15 +213,14 @@ want_proxmox_nodes_ansible_host: true
 
 import itertools
 import re
+from collections.abc import MutableMapping
 from sys import version as python_version
 from urllib.parse import urlencode
 
-from collections.abc import MutableMapping
-
 from ansible.errors import AnsibleError
-from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
-from ansible.utils.display import Display
 from ansible.module_utils.ansible_release import __version__ as ansible_version
+from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
+from ansible.utils.display import Display
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 from ansible_collections.community.proxmox.plugins.plugin_utils.unsafe import make_unsafe

@@ -9,12 +9,11 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import fcntl
 import os
 import stat
-import time
-import fcntl
 import sys
-
+import time
 from contextlib import contextmanager
 
 

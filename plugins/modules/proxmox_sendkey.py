@@ -112,6 +112,7 @@ completed_keys_num:
 import time
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     proxmox_auth_argument_spec,

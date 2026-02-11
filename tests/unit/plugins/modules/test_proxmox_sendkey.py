@@ -8,21 +8,22 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import time
 from unittest.mock import patch
 
-import time
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_sendkey
-import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
-    AnsibleFailJson,
     AnsibleExitJson,
+    AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
 )
+
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_sendkey
 
 
 def get_module_args_sendkey(name=None, vmid=None, keys_send=None, string_send=None, delay=None, **kwargs):

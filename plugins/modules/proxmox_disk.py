@@ -437,14 +437,15 @@ msg:
   sample: "Disk scsi3 created in VM 101"
 """
 
+from re import compile, match, sub
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ProxmoxAnsible,
+    proxmox_auth_argument_spec,
 )
-from re import compile, match, sub
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
 
 def disk_conf_str_to_dict(config_string):

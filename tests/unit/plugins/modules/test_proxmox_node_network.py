@@ -9,18 +9,20 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from unittest.mock import patch
+
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_node_network
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_node_network
 
 # Mock API response for existing network interfaces
 EXISTING_NETWORK_OUTPUT = [

@@ -10,6 +10,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
@@ -18,7 +19,6 @@ mandatory_py_version = pytest.mark.skipif(
     reason="The proxmoxer dependency requires python2.7 or higher",
 )
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_backup_schedule
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
@@ -26,7 +26,9 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_backup_schedule
 
 RESOURCE_LIST = [
     {

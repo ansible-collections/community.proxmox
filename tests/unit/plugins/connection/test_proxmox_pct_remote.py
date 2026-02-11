@@ -4,23 +4,23 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import annotations, absolute_import, division, print_function
+from __future__ import absolute_import, annotations, division, print_function
 
 __metaclass__ = type
 
 import os
-import pytest
+from io import StringIO
+from pathlib import Path
+from unittest.mock import MagicMock, mock_open, patch
 
-from ansible_collections.community.proxmox.plugins.connection.proxmox_pct_remote import authenticity_msg, MyAddPolicy
-from ansible_collections.community.proxmox.plugins.module_utils._filelock import FileLock, LockTimeout
-from ansible.errors import AnsibleError, AnsibleAuthenticationFailure, AnsibleConnectionFailure
+import pytest
+from ansible.errors import AnsibleAuthenticationFailure, AnsibleConnectionFailure, AnsibleError
 from ansible.module_utils.common.text.converters import to_bytes
 from ansible.playbook.play_context import PlayContext
 from ansible.plugins.loader import connection_loader
-from io import StringIO
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
 
+from ansible_collections.community.proxmox.plugins.connection.proxmox_pct_remote import MyAddPolicy, authenticity_msg
+from ansible_collections.community.proxmox.plugins.module_utils._filelock import FileLock, LockTimeout
 
 paramiko = pytest.importorskip("paramiko")
 

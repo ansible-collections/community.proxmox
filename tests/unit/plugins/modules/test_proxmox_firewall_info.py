@@ -8,20 +8,21 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible.module_utils import basic
-from ansible_collections.community.proxmox.plugins.modules import proxmox_firewall_info
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
-from ansible.module_utils.compat.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.modules import proxmox_firewall_info
 
 RAW_FIREWALL_RULES = [
     {

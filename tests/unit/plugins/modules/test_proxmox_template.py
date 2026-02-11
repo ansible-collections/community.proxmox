@@ -9,19 +9,20 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import os
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_template
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_template
 
 
 class TestProxmoxTemplateModule(ModuleTestCase):

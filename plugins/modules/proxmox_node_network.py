@@ -580,19 +580,19 @@ diff:
 
 
 import re
-from ipaddress import ip_address, ip_interface
 import traceback
+from ipaddress import ip_address, ip_interface
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 from ansible.module_utils.common.yaml import yaml_dump
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_to_ansible_bool,
     proxmox_auth_argument_spec,
+    proxmox_to_ansible_bool,
 )
-
 
 # Single source of truth for all parameter definitions
 PARAMETER_DEFINITIONS = {

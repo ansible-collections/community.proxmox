@@ -4,18 +4,19 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytest
-from unittest.mock import MagicMock, patch, Mock
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
-from ansible_collections.community.proxmox.plugins.modules.proxmox_cluster import validate_cluster_name
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
+from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster
+from ansible_collections.community.proxmox.plugins.modules.proxmox_cluster import validate_cluster_name
 
 proxmoxer = pytest.importorskip("proxmoxer")
 

@@ -922,15 +922,15 @@ import re
 import time
 from urllib.parse import quote
 
-from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
-    ProxmoxAnsible,
-    ansible_to_proxmox_bool,
-)
-
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.parsing.convert_bool import boolean
+
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    ansible_to_proxmox_bool,
+    proxmox_auth_argument_spec,
+)
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
 
 def parse_mac(netstr):

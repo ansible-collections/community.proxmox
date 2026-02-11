@@ -8,12 +8,12 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from typing import List, Dict
+from typing import Dict, List
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
     ansible_to_proxmox_bool,
     proxmox_to_ansible_bool,
-    ProxmoxAnsible,
 )
 
 

@@ -15,12 +15,13 @@ import pytest
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible.module_utils import basic
-from ansible_collections.community.proxmox.plugins.modules import proxmox_ipam_info
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_ipam_info
 
 RAW_IPAM_STATUS = [
     {"subnet": "10.10.1.0/24", "vnet": "test2", "zone": "test1", "ip": "10.10.1.0", "gateway": 1},

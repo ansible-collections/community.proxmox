@@ -7,14 +7,15 @@ from __future__ import absolute_import, division, print_function
 
 from unittest.mock import patch
 
-import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
-from ansible_collections.community.proxmox.plugins.modules import proxmox_backup
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,
-    set_module_args,
     ModuleTestCase,
+    set_module_args,
 )
+
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_backup
 
 __metaclass__ = type
 

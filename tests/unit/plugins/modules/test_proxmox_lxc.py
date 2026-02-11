@@ -5,10 +5,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import MagicMock, patch
+
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.modules import proxmox
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
 from ansible.module_utils.compat.version import LooseVersion
+
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
+from ansible_collections.community.proxmox.plugins.modules import proxmox
 
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)

@@ -8,14 +8,15 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
-from unittest.mock import MagicMock as MagicMike, patch
+from unittest.mock import MagicMock as MagicMike
+from unittest.mock import patch
 
 import pytest
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,
-    set_module_args,
     ModuleTestCase,
+    set_module_args,
 )
 
 # Skip tests if proxmoxer is not available
@@ -23,8 +24,8 @@ proxmoxer = pytest.importorskip("proxmoxer")
 
 # Handle different import paths for different test environments
 try:
-    from ansible_collections.community.proxmox.plugins.modules import proxmox_user
     import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+    from ansible_collections.community.proxmox.plugins.modules import proxmox_user
 except ImportError:
     sys.path.insert(0, "plugins/modules")
     import proxmox_user

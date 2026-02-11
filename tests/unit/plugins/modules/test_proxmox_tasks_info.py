@@ -18,9 +18,10 @@ import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_tasks_info
-import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import set_module_args
+
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_tasks_info
 
 NODE = "node01"
 TASK_UPID = "UPID:iaclab-01-01:000029DD:1599528B:6108F068:srvreload:networking:root@pam:"

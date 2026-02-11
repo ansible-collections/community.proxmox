@@ -15,10 +15,10 @@ import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster_join_info
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import set_module_args
-import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster_join_info
 
 JOIN_INFO = {
     "config_digest": "111418c98000acfda99059d29cd89123583020a0",

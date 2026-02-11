@@ -4,11 +4,13 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.modules import proxmox_node
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
+from ansible_collections.community.proxmox.plugins.modules import proxmox_node
 
 
 @pytest.fixture
