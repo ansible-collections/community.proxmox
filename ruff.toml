@@ -3,7 +3,6 @@
 # SPDX-FileCopyrightText: 2025 Felix Fontein <felix@fontein.de>
 
 line-length = 120
-include = ["tests/**/*.py", "plugins/**/*.py"]
 
 [lint]
 # https://docs.astral.sh/ruff/rules/
@@ -33,13 +32,8 @@ dummy-variable-rgx = "^(_|dummy).*$"
 
 
 [lint.per-file-ignores]
-# Don't require docstrings
-"tests/*" = ["D"]
-"plugins/connection/*" = ["D"]
-"plugins/modules/*" = ["D"]
-"plugins/inventory/*" = ["D"]
-"plugins/plugin/*" = ["D"]
-"plugins/doc_fragments/*" = ["D"]
+# Only require docstrings for shared utils
+"!**/*_utils/*.py" = ["D"]
 
 [lint.pydocstyle]
 # force users to include their variables in docstrings to improve editor support
