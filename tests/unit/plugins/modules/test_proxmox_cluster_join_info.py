@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 #
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 import json
 from unittest.mock import patch
@@ -55,9 +52,8 @@ JOIN_INFO = {
 
 @patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
 def test_without_required_parameters(connect_mock, capfd):
-    with set_module_args({}):
-        with pytest.raises(SystemExit):
-            proxmox_cluster_join_info.main()
+    with set_module_args({}), pytest.raises(SystemExit):
+        proxmox_cluster_join_info.main()
     out, err = capfd.readouterr()
     assert not err
     assert json.loads(out)["failed"]

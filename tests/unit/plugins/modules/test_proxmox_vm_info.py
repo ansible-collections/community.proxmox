@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2023, Sergei Antipov <greendayonfire at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import patch
 
@@ -441,44 +438,39 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         super(TestProxmoxVmInfoModule, self).tearDown()
 
     def test_module_fail_when_required_args_missing(self):
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args({}):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "missing required arguments: api_host, api_user"
 
     def test_get_lxc_vms_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(get_module_args(type="lxc")):
-                expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["type"] == "lxc"]
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(type="lxc")):
+            expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["type"] == "lxc"]
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["proxmox_vms"] == expected_output
 
     def test_get_qemu_vms_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(get_module_args(type="qemu")):
-                expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["type"] == "qemu"]
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(type="qemu")):
+            expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["type"] == "qemu"]
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
 
     def test_get_all_vms_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(get_module_args()):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args()):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == EXPECTED_VMS_OUTPUT
 
     def test_vmid_is_converted_to_int(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(get_module_args(type="lxc")):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(type="lxc")):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert isinstance(result["proxmox_vms"][0]["vmid"], int)
@@ -600,42 +592,38 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         assert result["proxmox_vms"] == []
 
     def test_module_fail_when_qemu_request_fails(self):
-        self.connect_mock.return_value.nodes.return_value.qemu.return_value.get.side_effect = IOError(
+        self.connect_mock.return_value.nodes.return_value.qemu.return_value.get.side_effect = OSError(
             "Some mocked connection error."
         )
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(get_module_args(type="qemu")):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(type="qemu")):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert "Failed to retrieve QEMU VMs information:" in result["msg"]
 
     def test_module_fail_when_lxc_request_fails(self):
-        self.connect_mock.return_value.nodes.return_value.lxc.return_value.get.side_effect = IOError(
+        self.connect_mock.return_value.nodes.return_value.lxc.return_value.get.side_effect = OSError(
             "Some mocked connection error."
         )
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(get_module_args(type="lxc")):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(type="lxc")):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert "Failed to retrieve LXC VMs information:" in result["msg"]
 
     def test_module_fail_when_cluster_resources_request_fails(self):
-        self.connect_mock.return_value.cluster.return_value.resources.return_value.get.side_effect = IOError(
+        self.connect_mock.return_value.cluster.return_value.resources.return_value.get.side_effect = OSError(
             "Some mocked connection error."
         )
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(get_module_args()):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args()):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert "Failed to retrieve VMs information from cluster resources:" in result["msg"]
 
     def test_module_fail_when_node_does_not_exist(self):
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(get_module_args(type="all", node="NODE3")):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(type="all", node="NODE3")):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "Node NODE3 doesn't exist in PVE cluster"
@@ -643,11 +631,10 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
     def test_call_to_get_vmid_is_not_used_when_vmid_provided(self):
         with patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible.get_vmid"
-        ) as get_vmid_mock:
-            with pytest.raises(AnsibleExitJson):
-                vmid = 100
-                with set_module_args(get_module_args(type="all", vmid=vmid, name="something")):
-                    self.module.main()
+        ) as get_vmid_mock, pytest.raises(AnsibleExitJson):
+            vmid = 100
+            with set_module_args(get_module_args(type="all", vmid=vmid, name="something")):
+                self.module.main()
 
         assert get_vmid_mock.call_count == 0
 

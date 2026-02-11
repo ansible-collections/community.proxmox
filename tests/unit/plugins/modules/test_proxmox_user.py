@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Kevin Quick <kevin@overwrite.io>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 import sys
 from unittest.mock import MagicMock as MagicMike
@@ -77,9 +74,8 @@ class TestProxmoxUserModule(ModuleTestCase):
 
     def test_module_fail_when_required_args_missing(self):
         """Test module fails with missing required arguments"""
-        with set_module_args({}):
-            with pytest.raises(AnsibleFailJson):
-                proxmox_user.main()
+        with set_module_args({}), pytest.raises(AnsibleFailJson):
+            proxmox_user.main()
 
     def test_user_creation_check_mode(self):
         """Test user creation in check mode"""
@@ -87,14 +83,13 @@ class TestProxmoxUserModule(ModuleTestCase):
             userid="testuser@pam", comment="Test User", state="present", _ansible_check_mode=True
         )
 
-        with set_module_args(module_args):
-            with patch.object(proxmox_user.ProxmoxUserAnsible, "is_user_existing", return_value=False):
-                with pytest.raises(AnsibleExitJson) as exc_info:
-                    proxmox_user.main()
+        with set_module_args(module_args), patch.object(proxmox_user.ProxmoxUserAnsible, "is_user_existing", return_value=False):
+            with pytest.raises(AnsibleExitJson) as exc_info:
+                proxmox_user.main()
 
-                result = exc_info.value.args[0]
-                assert result["changed"] is True
-                assert "check mode" in result["msg"]
+            result = exc_info.value.args[0]
+            assert result["changed"] is True
+            assert "check mode" in result["msg"]
 
     def test_user_update_no_changes_needed(self):
         """Test user update when no changes needed"""

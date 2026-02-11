@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, teslamania <nicolas.vial@protonmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -283,9 +280,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_add_osd_node_not_present(self):
         args = build_common_arg("srv-proxmox-04", "present", False)
         args["dev"] = "/dev/sdb"
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -295,9 +291,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_add_osd_disk_not_exist(self):
         args = build_common_arg("srv-proxmox-01", "present", False)
         args["dev"] = "/dev/sdd"
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -307,9 +302,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_add_osd_disk_already_used(self):
         args = build_common_arg("srv-proxmox-01", "present", False)
         args["dev"] = "/dev/sda"
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -319,9 +313,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_add_osd_disk_already_osd(self):
         args = build_common_arg("srv-proxmox-01", "present", False)
         args["dev"] = "/dev/sdc"
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -331,9 +324,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_add_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-01", "present", True)
         args["dev"] = "/dev/sdb"
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -343,9 +335,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_add_osd(self):
         args = build_common_arg("srv-proxmox-01", "present", False)
         args["dev"] = "/dev/sdb"
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -355,9 +346,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_in_osd_not_present(self):
         args = build_common_arg("srv-proxmox-01", "in", False)
         args["osdid"] = 2
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -367,9 +357,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_in_osd_already_in(self):
         args = build_common_arg("srv-proxmox-01", "in", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -379,9 +368,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_in_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-03", "in", True)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -391,9 +379,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_in_osd(self):
         args = build_common_arg("srv-proxmox-03", "in", False)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -403,9 +390,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_out_osd_already_out(self):
         args = build_common_arg("srv-proxmox-03", "out", False)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -415,9 +401,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_out_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-01", "out", True)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -427,9 +412,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_out_osd(self):
         args = build_common_arg("srv-proxmox-01", "out", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -439,9 +423,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_scrub_osd_down(self):
         args = build_common_arg("srv-proxmox-03", "scrub", False)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -451,9 +434,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_scrub_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-01", "scrub", True)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -463,9 +445,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_scrub_osd(self):
         args = build_common_arg("srv-proxmox-01", "scrub", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -475,9 +456,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_start_osd_already_started(self):
         args = build_common_arg("srv-proxmox-01", "start", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -487,9 +467,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_start_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-03", "start", True)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -499,9 +478,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_start_osd(self):
         args = build_common_arg("srv-proxmox-03", "start", False)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -511,9 +489,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_stop_osd_already_down(self):
         args = build_common_arg("srv-proxmox-03", "stop", False)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -523,9 +500,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_stop_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-01", "stop", True)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -535,9 +511,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_stop_osd(self):
         args = build_common_arg("srv-proxmox-01", "stop", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -547,9 +522,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_restart_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-01", "restart", True)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -559,9 +533,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_restart_osd(self):
         args = build_common_arg("srv-proxmox-01", "restart", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -571,9 +544,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_del_osd_not_present(self):
         args = build_common_arg("srv-proxmox-01", "absent", False)
         args["osdid"] = 2
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -583,9 +555,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_del_osd_still_in(self):
         args = build_common_arg("srv-proxmox-01", "absent", False)
         args["osdid"] = 0
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -595,9 +566,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_del_osd_check_mode(self):
         args = build_common_arg("srv-proxmox-03", "absent", True)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 
@@ -607,9 +577,8 @@ class TestProxmoxCephOsd(ModuleTestCase):
     def test_del_osd(self):
         args = build_common_arg("srv-proxmox-03", "absent", False)
         args["osdid"] = 1
-        with set_module_args(args):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_osd.main()
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_osd.main()
 
         result = exc_info.value.args[0]
 

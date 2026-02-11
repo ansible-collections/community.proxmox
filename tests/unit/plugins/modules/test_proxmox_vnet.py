@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -94,36 +91,32 @@ class TestProxmoxVnetModule(ModuleTestCase):
 
     def test_vnet_present(self):
         # Create new Vnet
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone="ztest", vnet="vtest")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="ztest", vnet="vtest")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Create new vnet vtest"
         assert result["vnet"] == "vtest"
 
         # Update the vnet
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=True)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=True)):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "updated vnet test2"
         assert result["vnet"] == "test2"
 
         # Vnet needs to be updated but update=False
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=False)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=False)):
+            self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
         assert result["failed"] is True
         assert result["msg"] == "vnet test2 needs to be updated but update is false."
 
     def test_zone_absent(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone="test1", vnet="test2", state="absent")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="test1", vnet="test2", state="absent")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Deleted vnet test2"

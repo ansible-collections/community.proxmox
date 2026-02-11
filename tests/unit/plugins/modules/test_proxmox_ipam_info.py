@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import patch
 
@@ -128,27 +125,24 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
         super(TestProxmoxIpamInfoModule, self).tearDown()
 
     def test_get_all_ipam_status(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(ipam=None)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(ipam=None)):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["ipams"] == {"pve": RAW_IPAM_STATUS}
 
     def test_get_all_ipam_pve_status(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(ipam="pve")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(ipam="pve")):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["ipams"] == RAW_IPAM_STATUS
 
     def test_get_ip_by_vmid(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(vmid=102)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vmid=102)):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is False
@@ -168,9 +162,8 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
         self.mock_ipam.pve.return_value.status.return_value.get.return_value = RAW_IPAM_STATUS_PVE8
         self.mock_ipam.status.return_value.get.return_value = RAW_IPAM_STATUS_PVE8
 
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(vmid=102)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vmid=102)):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is False

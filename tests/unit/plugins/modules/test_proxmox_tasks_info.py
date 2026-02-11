@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2021, Andreas Botzner (@paginabianca) <andreas at botzner dot com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -7,9 +6,7 @@
 # Proxmox Tasks module unit tests.
 # The API responses used in these tests were recorded from PVE version 6.4-8
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 import json
 from unittest.mock import patch
@@ -124,9 +121,8 @@ EXPECTED_SINGLE_TASK = [
 
 @patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
 def test_without_required_parameters(connect_mock, capfd, mocker):
-    with set_module_args({}):
-        with pytest.raises(SystemExit):
-            proxmox_tasks_info.main()
+    with set_module_args({}), pytest.raises(SystemExit):
+        proxmox_tasks_info.main()
     out, err = capfd.readouterr()
     assert not err
     assert json.loads(out)["failed"]

@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -100,9 +97,8 @@ class TestProxmoxSubnetModule(ModuleTestCase):
 
     def test_subnet_create(self):
         # Create new Zone
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(vnet="new_vnet", subnet="10.10.10.0/24", zone="test_zone")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="new_vnet", subnet="10.10.10.0/24", zone="test_zone")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Created new subnet 10.10.10.0/24"
@@ -110,59 +106,54 @@ class TestProxmoxSubnetModule(ModuleTestCase):
 
     def test_subnet_update(self):
         # Normal subnet param (snat) differ
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", snat=1)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", snat=1)):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Updated subnet ans1-10.10.2.0-24"
         assert result["subnet"] == "ans1-10.10.2.0-24"
 
         # No update needed
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["msg"] == "subnet ans1-10.10.2.0-24 is already present with correct parameters."
         assert result["subnet"] == "ans1-10.10.2.0-24"
 
         # New dhcp_range
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                get_module_args(
-                    vnet="test",
-                    subnet="10.10.2.0/24",
-                    zone="ans1",
-                    dhcp_range=[{"start": "10.10.2.150", "end": "10.10.2.200"}],
-                )
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args(
+                vnet="test",
+                subnet="10.10.2.0/24",
+                zone="ans1",
+                dhcp_range=[{"start": "10.10.2.150", "end": "10.10.2.200"}],
+            )
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Updated subnet ans1-10.10.2.0-24"
         assert result["subnet"] == "ans1-10.10.2.0-24"
 
         # dhcp_range is partially overlapping and mode is append
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                get_module_args(
-                    vnet="test",
-                    subnet="10.10.2.0/24",
-                    zone="ans1",
-                    dhcp_range=[{"start": "10.10.2.10", "end": "10.10.2.20"}],
-                )
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args(
+                vnet="test",
+                subnet="10.10.2.0/24",
+                zone="ans1",
+                dhcp_range=[{"start": "10.10.2.10", "end": "10.10.2.20"}],
+            )
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
         assert result["failed"] is True
         assert result["msg"] == "There are partially overlapping DHCP ranges. this is not allowed."
 
     def test_subnet_absent(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", state="absent")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", state="absent")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Deleted subnet ans1-10.10.2.0-24"

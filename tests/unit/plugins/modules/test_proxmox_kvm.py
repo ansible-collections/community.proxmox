@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2021, Ansible Project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import DEFAULT, patch
 
@@ -45,9 +42,8 @@ class TestProxmoxKvmModule(ModuleTestCase):
         super(TestProxmoxKvmModule, self).tearDown()
 
     def test_module_fail_when_required_args_missing(self):
-        with self.assertRaises(AnsibleFailJson):
-            with set_module_args({}):
-                self.module.main()
+        with self.assertRaises(AnsibleFailJson), set_module_args({}):
+            self.module.main()
 
     def test_module_exits_unchaged_when_provided_vmid_exists(self):
         with set_module_args(
@@ -98,14 +94,13 @@ class TestProxmoxKvmModule(ModuleTestCase):
                 "name": "existing.vm.local",
                 "node": "pve",
             }
-        ):
-            with patch.object(proxmox_utils.ProxmoxAnsible, "get_vmid") as get_vmid_mock:
-                get_vmid_mock.return_value = {
-                    "vmid": 100,
-                    "name": "existing.vm.local",
-                }
-                with pytest.raises(AnsibleExitJson) as exc_info:
-                    self.module.main()
+        ), patch.object(proxmox_utils.ProxmoxAnsible, "get_vmid") as get_vmid_mock:
+            get_vmid_mock.return_value = {
+                "vmid": 100,
+                "name": "existing.vm.local",
+            }
+            with pytest.raises(AnsibleExitJson) as exc_info:
+                self.module.main()
 
         assert get_vmid_mock.call_count == 1
         result = exc_info.value.args[0]

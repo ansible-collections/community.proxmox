@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2021, Lammert Hellinga (@Kogelvis) <lammert@hellinga.it>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_nic
@@ -195,7 +192,7 @@ class ProxmoxNicAnsible(ProxmoxAnsible):
             current_mac = config_current[current_model]
 
             # build nic config string
-            config_provided = "{0}={1}".format(model, current_mac)
+            config_provided = f"{model}={current_mac}"
         else:
             config_provided = model
 
@@ -215,9 +212,7 @@ class ProxmoxNicAnsible(ProxmoxAnsible):
             config_provided += ",mtu={0}".format(kwargs["mtu"])
             if model != "virtio":
                 self.module.warn(
-                    "Ignoring MTU for nic {0} on VM with vmid {1}, model should be set to 'virtio': ".format(
-                        interface, vmid
-                    )
+                    f"Ignoring MTU for nic {interface} on VM with vmid {vmid}, model should be set to 'virtio': "
                 )
 
         if kwargs["queues"]:
@@ -330,26 +325,26 @@ def main():
                 trunks=module.params["trunks"],
             ):
                 module.exit_json(
-                    changed=True, vmid=vmid, msg="Nic {0} updated on VM with vmid {1}".format(interface, vmid)
+                    changed=True, vmid=vmid, msg=f"Nic {interface} updated on VM with vmid {vmid}"
                 )
             else:
-                module.exit_json(vmid=vmid, msg="Nic {0} unchanged on VM with vmid {1}".format(interface, vmid))
+                module.exit_json(vmid=vmid, msg=f"Nic {interface} unchanged on VM with vmid {vmid}")
         except Exception as e:
             module.fail_json(
-                vmid=vmid, msg="Unable to change nic {0} on VM with vmid {1}: ".format(interface, vmid) + str(e)
+                vmid=vmid, msg=f"Unable to change nic {interface} on VM with vmid {vmid}: " + str(e)
             )
 
     elif state == "absent":
         try:
             if proxmox.delete_nic(vmid, interface):
                 module.exit_json(
-                    changed=True, vmid=vmid, msg="Nic {0} deleted on VM with vmid {1}".format(interface, vmid)
+                    changed=True, vmid=vmid, msg=f"Nic {interface} deleted on VM with vmid {vmid}"
                 )
             else:
-                module.exit_json(vmid=vmid, msg="Nic {0} does not exist on VM with vmid {1}".format(interface, vmid))
+                module.exit_json(vmid=vmid, msg=f"Nic {interface} does not exist on VM with vmid {vmid}")
         except Exception as e:
             module.fail_json(
-                vmid=vmid, msg="Unable to delete nic {0} on VM with vmid {1}: ".format(interface, vmid) + str(e)
+                vmid=vmid, msg=f"Unable to delete nic {interface} on VM with vmid {vmid}: " + str(e)
             )
 
 

@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016, Abdoul Bah (@helldorado) <bahabdoul at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_kvm
@@ -1010,7 +1007,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         valid_clone_params = ["format", "full", "pool", "snapname", "storage", "target"]
         clone_params = {}
         # Default args for vm. Note: -args option is for experts only. It allows you to pass arbitrary arguments to kvm.
-        vm_args = "-serial unix:/var/run/qemu-server/{0}.serial,server,nowait".format(vmid)
+        vm_args = f"-serial unix:/var/run/qemu-server/{vmid}.serial,server,nowait"
 
         proxmox_node = self.proxmox_api.nodes(node)
 
@@ -1069,7 +1066,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
 
         # Check that the bios option is set to ovmf if the efidisk0 option is present
         if "efidisk0" in kwargs:
-            if ("bios" not in kwargs) or ("ovmf" != kwargs["bios"]):
+            if ("bios" not in kwargs) or (kwargs["bios"] != "ovmf"):
                 self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
 
         # Flatten efidisk0 option to a string so that it is a string which is what Proxmoxer and the API expect
@@ -1084,7 +1081,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             # Join other elements from the dict as key=value using commas as separator, replacing any underscore in key
             # by hyphens (needed for pre_enrolled_keys to pre-enrolled-keys)
             efidisk0_str += ",".join(
-                [hyphen_re.sub("-", k) + "=" + str(v) for k, v in kwargs["efidisk0"].items() if "storage" != k]
+                [hyphen_re.sub("-", k) + "=" + str(v) for k, v in kwargs["efidisk0"].items() if k != "storage"]
             )
             kwargs["efidisk0"] = efidisk0_str
 
@@ -1447,9 +1444,7 @@ def main():
                     vmid = proxmox.get_nextvmid()
                 except Exception:
                     module.fail_json(
-                        msg="Can't get the next vmid for VM {0} automatically. Ensure your cluster state is good".format(
-                            name
-                        )
+                        msg=f"Can't get the next vmid for VM {name} automatically. Ensure your cluster state is good"
                     )
         else:
             clone_target = clone or name
@@ -1462,9 +1457,7 @@ def main():
                 newid = proxmox.get_nextvmid()
             except Exception:
                 module.fail_json(
-                    msg="Can't get the next vmid for VM {0} automatically. Ensure your cluster state is good".format(
-                        name
-                    )
+                    msg=f"Can't get the next vmid for VM {name} automatically. Ensure your cluster state is good"
                 )
 
         # Ensure source VM name exists when cloning
@@ -1482,25 +1475,23 @@ def main():
         try:
             proxmox.settings(vmid, node, delete=delete)
             module.exit_json(
-                changed=True, vmid=vmid, msg="Settings has deleted on VM {0} with vmid {1}".format(name, vmid)
+                changed=True, vmid=vmid, msg=f"Settings has deleted on VM {name} with vmid {vmid}"
             )
         except Exception as e:
             module.fail_json(
-                vmid=vmid, msg="Unable to delete settings on VM {0} with vmid {1}: ".format(name, vmid) + str(e)
+                vmid=vmid, msg=f"Unable to delete settings on VM {name} with vmid {vmid}: " + str(e)
             )
 
     if revert is not None:
         try:
             proxmox.settings(vmid, node, revert=revert)
             module.exit_json(
-                changed=True, vmid=vmid, msg="Settings has reverted on VM {0} with vmid {1}".format(name, vmid)
+                changed=True, vmid=vmid, msg=f"Settings has reverted on VM {name} with vmid {vmid}"
             )
         except Exception as e:
             module.fail_json(
                 vmid=vmid,
-                msg="Unable to revert settings on VM {0} with vmid {1}: Maybe is not a pending task...   ".format(
-                    name, vmid
-                )
+                msg=f"Unable to revert settings on VM {name} with vmid {vmid}: Maybe is not a pending task...   "
                 + str(e),
             )
 
@@ -1511,13 +1502,13 @@ def main():
             if node != vm_node:
                 proxmox.migrate_vm(vm, node, module.params["with_local_disks"])
                 module.exit_json(
-                    changed=True, vmid=vmid, msg="VM {0} has been migrated from {1} to {2}".format(vmid, vm_node, node)
+                    changed=True, vmid=vmid, msg=f"VM {vmid} has been migrated from {vm_node} to {node}"
                 )
             else:
-                module.exit_json(changed=False, vmid=vmid, msg="VM {0} is already on {1}".format(vmid, node))
+                module.exit_json(changed=False, vmid=vmid, msg=f"VM {vmid} is already on {node}")
         except Exception as e:
             module.fail_json(
-                vmid=vmid, msg="Unable to migrate VM {0} from {1} to {2}: {3}".format(vmid, vm_node, node, e)
+                vmid=vmid, msg=f"Unable to migrate VM {vmid} from {vm_node} to {node}: {e}"
             )
 
     if state == "present":
@@ -1625,9 +1616,9 @@ def main():
                 )
         except Exception as e:
             if update:
-                module.fail_json(vmid=vmid, msg="Unable to update vm {0} with vmid {1}=".format(name, vmid) + str(e))
+                module.fail_json(vmid=vmid, msg=f"Unable to update vm {name} with vmid {vmid}=" + str(e))
             elif clone is not None:
-                module.fail_json(vmid=vmid, msg="Unable to clone vm {0} from vmid {1}=".format(name, vmid) + str(e))
+                module.fail_json(vmid=vmid, msg=f"Unable to clone vm {name} from vmid {vmid}=" + str(e))
             else:
                 module.fail_json(
                     vmid=vmid, msg="creation of qemu VM %s with vmid %s failed with exception=%s" % (name, vmid, e)

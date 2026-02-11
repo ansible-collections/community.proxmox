@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, aleskxyz <aleskxyz@gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_node_network
@@ -911,9 +908,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
 
         param_type = param_def["type"]
 
-        if param_type == "str" and value == "":
-            return None
-        elif param_type == "int" and value == -1:
+        if param_type == "str" and value == "" or param_type == "int" and value == -1:
             return None
         else:
             return value
@@ -1054,11 +1049,10 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         if iface.startswith("vlan"):
             if not self.params.get("vlan_raw_device"):
                 errors.append(f"vlan_raw_device is required for VLAN interface '{iface}' in vlanXY format")
-        else:
-            if self.params.get("vlan_raw_device") is not None:
-                errors.append(
-                    f"vlan_raw_device should not be specified for VLAN interface '{iface}' in iface_name.vlan_id format"
-                )
+        elif self.params.get("vlan_raw_device") is not None:
+            errors.append(
+                f"vlan_raw_device should not be specified for VLAN interface '{iface}' in iface_name.vlan_id format"
+            )
 
         return errors
 
@@ -1612,9 +1606,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                     current_value_normalized = self.normalize_comment(current_value)
                     if current_value_normalized != desired_value:
                         return True
-                else:
-                    if str(current_value) != str(desired_value):
-                        return True
+                elif str(current_value) != str(desired_value):
+                    return True
 
         return False
 

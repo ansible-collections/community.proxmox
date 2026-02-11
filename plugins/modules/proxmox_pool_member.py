@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2023, Sergei Antipov (UnderGreen) <greendayonfire@gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_pool_member
@@ -138,14 +135,14 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
             if member_type == "storage":
                 storages = self.get_storages(type=None)
                 if member not in [storage["storage"] for storage in storages]:
-                    self.module.fail_json(msg="Storage {0} doesn't exist in the cluster".format(member))
+                    self.module.fail_json(msg=f"Storage {member} doesn't exist in the cluster")
                 if member in current_storage_members:
                     self.module.exit_json(
                         changed=False,
                         poolid=poolid,
                         member=member,
                         diff=diff,
-                        msg="Member {0} is already part of the pool {1}".format(member, poolid),
+                        msg=f"Member {member} is already part of the pool {poolid}",
                     )
 
                 all_members_after.append(member)
@@ -166,7 +163,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                         poolid=poolid,
                         member=member,
                         diff=diff,
-                        msg="VM {0} is already part of the pool {1}".format(member, poolid),
+                        msg=f"VM {member} is already part of the pool {poolid}",
                     )
 
                 all_members_after.append(member)
@@ -175,7 +172,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                     self.proxmox_api.pools(poolid).put(vms=[vmid])
                 return diff
         except Exception as e:
-            self.module.fail_json(msg="Failed to add a new member ({0}) to the pool {1}: {2}".format(member, poolid, e))
+            self.module.fail_json(msg=f"Failed to add a new member ({member}) to the pool {poolid}: {e}")
 
     def delete_pool_member(self, poolid, member, member_type):
         current_vms_members, current_storage_members = self.pool_members(poolid)
@@ -191,7 +188,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                         poolid=poolid,
                         member=member,
                         diff=diff,
-                        msg="Member {0} is not part of the pool {1}".format(member, poolid),
+                        msg=f"Member {member} is not part of the pool {poolid}",
                     )
 
                 all_members_after.remove(member)
@@ -212,7 +209,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                         poolid=poolid,
                         member=member,
                         diff=diff,
-                        msg="VM {0} is not part of the pool {1}".format(member, poolid),
+                        msg=f"VM {member} is not part of the pool {poolid}",
                     )
 
                 all_members_after.remove(vmid)
@@ -222,7 +219,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 return diff
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to delete a member ({0}) from the pool {1}: {2}".format(member, poolid, e)
+                msg=f"Failed to delete a member ({member}) from the pool {poolid}: {e}"
             )
 
 
@@ -258,7 +255,7 @@ def main():
             poolid=poolid,
             member=member,
             diff=diff,
-            msg="New member {0} added to the pool {1}".format(member, poolid),
+            msg=f"New member {member} added to the pool {poolid}",
         )
     else:
         diff = proxmox.delete_pool_member(poolid, member, member_type)
@@ -267,7 +264,7 @@ def main():
             poolid=poolid,
             member=member,
             diff=diff,
-            msg="Member {0} deleted from the pool {1}".format(member, poolid),
+            msg=f"Member {member} deleted from the pool {poolid}",
         )
 
 

@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2020, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_snap
@@ -366,12 +363,11 @@ def main():
 
             if not snap_exist:
                 module.exit_json(changed=False, msg="Snapshot %s does not exist" % snapname)
-            else:
-                if proxmox.snapshot_remove(vm, vmid, timeout, snapname, force):
-                    if module.check_mode:
-                        module.exit_json(changed=False, msg="Snapshot %s would be removed" % snapname)
-                    else:
-                        module.exit_json(changed=True, msg="Snapshot %s removed" % snapname)
+            elif proxmox.snapshot_remove(vm, vmid, timeout, snapname, force):
+                if module.check_mode:
+                    module.exit_json(changed=False, msg="Snapshot %s would be removed" % snapname)
+                else:
+                    module.exit_json(changed=True, msg="Snapshot %s removed" % snapname)
 
         except Exception as e:
             module.fail_json(

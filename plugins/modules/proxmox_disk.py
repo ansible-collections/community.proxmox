@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022, Castor Sky (@castorsky) <csky57@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_disk
@@ -638,13 +635,12 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
         if task_success:
             return True, ok_str % (disk, vmid)
+        elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
+            self.module.fail_json(
+                msg=timeout_str % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
+            )
         else:
-            if fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
-                self.module.fail_json(
-                    msg=timeout_str % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
-                )
-            else:
-                self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
+            self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
 
     def move_disk(self, disk, vmid, vm, vm_config):
         """Call the `move_disk` API function that moves the disk to another storage and wait for the result.
@@ -682,14 +678,13 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
         if task_success:
             return True, "Disk %s moved from VM %s storage %s" % (disk, vmid, disk_storage)
+        elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
+            self.module.fail_json(
+                msg="Reached timeout while waiting for moving VM disk. Last line in task before timeout: %s"
+                % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
+            )
         else:
-            if fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
-                self.module.fail_json(
-                    msg="Reached timeout while waiting for moving VM disk. Last line in task before timeout: %s"
-                    % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
-                )
-            else:
-                self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
+            self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
 
     def resize_disk(self, disk, vmid, vm, vm_config):
         """Call the `resize` API function to change the disk size and wait for the result.
@@ -719,14 +714,13 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
             )
             if task_success:
                 return True, "Disk %s resized in VM %s" % (disk, vmid)
+            elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
+                self.module.fail_json(
+                    msg="Reached timeout while resizing disk. Last line in task before timeout: %s"
+                    % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
+                )
             else:
-                if fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
-                    self.module.fail_json(
-                        msg="Reached timeout while resizing disk. Last line in task before timeout: %s"
-                        % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
-                    )
-                else:
-                    self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
+                self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
         else:
             self.proxmox_api.nodes(vm["node"]).qemu(vmid).resize.set(disk=disk, size=size)
             return True, "Disk %s resized in VM %s" % (disk, vmid)

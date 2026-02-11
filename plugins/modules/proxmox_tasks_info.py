@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2021, Andreas Botzner (@paginabianca) <andreas at botzner dot com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 
 DOCUMENTATION = r"""
@@ -199,7 +196,7 @@ def main():
         result["proxmox_tasks"] = [task.info for task in tasks]
         module.exit_json(**result)
     else:
-        result["msg"] = "Task: {0} does not exist on node: {1}.".format(upid, node)
+        result["msg"] = f"Task: {upid} does not exist on node: {node}."
         module.fail_json(**result)
 
 

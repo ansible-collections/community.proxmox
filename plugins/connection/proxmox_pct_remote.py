@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Derived from ansible/plugins/connection/paramiko_ssh.py (c) 2012, Michael DeHaan <michael.dehaan@gmail.com>
 # Copyright (c) 2024 Nils Stein (@mietzen) <github.nstein@mailbox.org>
 # Copyright (c) 2024 Ansible Project
@@ -563,7 +562,7 @@ class Connection(ConnectionBase):
                 try:
                     ssh.load_system_host_keys(ssh_known_hosts)
                     break
-                except IOError:
+                except OSError:
                     pass  # file was not found, but not required to function
                 except paramiko.hostkeys.InvalidHostKey as e:
                     raise AnsibleConnectionFailure(f"Invalid host key: {to_text(e.line)}")

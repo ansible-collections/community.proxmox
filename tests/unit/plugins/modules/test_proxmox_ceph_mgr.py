@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, teslamania <nicolas.vial@protonmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -150,9 +147,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
         super(TestProxmoxCephMgr, self).tearDown()
 
     def test_proxmox_ceph_missing_argument(self):
-        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
         msg = "missing required arguments: node, state"
@@ -162,9 +158,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_add_mgr_check_mode(self):
         manager = "srv-proxmox-03"
-        with set_module_args(build_arg(manager, "present", True)):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "present", True)), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -174,9 +169,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_add_mgr(self):
         manager = "srv-proxmox-03"
-        with set_module_args(build_arg(manager, "present")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "present")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -186,9 +180,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_add_mgr_not_exist(self):
         manager = "srv-proxmox-04"
-        with set_module_args(build_arg(manager, "present")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "present")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -197,9 +190,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_add_mgr_already_mgr(self):
         manager = "srv-proxmox-02"
-        with set_module_args(build_arg(manager, "present")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "present")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -209,9 +201,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_del_mgr_check_mode(self):
         manager = "srv-proxmox-02"
-        with set_module_args(build_arg(manager, "absent", True)):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "absent", True)), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -221,9 +212,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_del_mgr(self):
         manager = "srv-proxmox-02"
-        with set_module_args(build_arg(manager, "absent")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "absent")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -233,9 +223,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_del_mgr_not_exist(self):
         manager = "srv-proxmox-04"
-        with set_module_args(build_arg(manager, "absent")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "absent")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 
@@ -244,9 +233,8 @@ class TestProxmoxCephMgr(ModuleTestCase):
 
     def test_del_mgr_already_not_mgr(self):
         manager = "srv-proxmox-03"
-        with set_module_args(build_arg(manager, "absent")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mgr.main()
+        with set_module_args(build_arg(manager, "absent")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
 

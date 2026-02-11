@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2025, Reto Kupferschmid (@rekup) <kupferschmid@puzzle.ch>
 #
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
 from unittest.mock import patch
 
+import pytest
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,
@@ -19,10 +18,6 @@ import ansible_collections.community.proxmox.plugins.module_utils.proxmox as pro
 from ansible_collections.community.proxmox.plugins.modules import (
     proxmox_cluster_ha_rules,
 )
-
-__metaclass__ = type
-
-import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
@@ -58,9 +53,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         return {**auth_params, **params}
 
     def test_proxmox_cluster_ha_rules_without_argument(self):
-        with set_module_args({}):
-            with pytest.raises(AnsibleFailJson):
-                proxmox_cluster_ha_rules.main()
+        with set_module_args({}), pytest.raises(AnsibleFailJson):
+            proxmox_cluster_ha_rules.main()
 
     # affinity param is required for new rules of type resource-affinity
     def test_create_ha_rule_nodes_missing_resource(self):
@@ -71,9 +65,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "resource-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleFailJson):
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleFailJson):
+            proxmox_cluster_ha_rules.main()
 
     # node param is required for new rules of type node-affinity
     def test_create_ha_rule_nodes_missing_node(self):
@@ -85,9 +78,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "node-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleFailJson):
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleFailJson):
+            proxmox_cluster_ha_rules.main()
 
     def test_create_ha_rule_check(self):
         self.mock_get.side_effect = lambda: []
@@ -103,9 +95,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "_ansible_check_mode": True,
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -131,9 +122,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "node-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -174,9 +164,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "node-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -202,9 +191,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "resource-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -239,9 +227,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "node-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -278,9 +265,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "strict": True,
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -323,9 +309,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "node-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -368,9 +353,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "type": "node-affinity",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -389,9 +373,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "_ansible_check_mode": True,
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -409,9 +392,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "state": "absent",
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -440,9 +422,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "strict": True,
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleFailJson):
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleFailJson):
+            proxmox_cluster_ha_rules.main()
 
     def test_update_ha_rule_change_type_force_check(self):
         self.mock_get.side_effect = [
@@ -465,9 +446,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "_ansible_check_mode": True,
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 
@@ -498,9 +478,8 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             "strict": True,
         }
 
-        with set_module_args(self.build_module_params(module_params)):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_cluster_ha_rules.main()
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
 
         result = exc_info.value.args[0]
 

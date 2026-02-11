@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_cluster_join_info
@@ -138,7 +135,7 @@ class ProxmoxClusterJoinInfoAnsible(ProxmoxAnsible):
         except proxmoxer.core.ResourceException:
             self.module.fail_json(msg="Node is not part of a cluster and does not have any join information.")
         except Exception as e:
-            self.module.fail_json(msg="Error obtaining cluster join information: {}".format(str(e)))
+            self.module.fail_json(msg=f"Error obtaining cluster join information: {str(e)}")
 
 
 def proxmox_cluster_join_info_argument_spec():

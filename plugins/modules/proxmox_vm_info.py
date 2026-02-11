@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2023, Sergei Antipov <greendayonfire at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_vm_info
@@ -191,7 +188,7 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
             vms_from_this_node = call_vm_getter().get()
             for detected_vm in vms_from_this_node:
                 this_vm_id = int(detected_vm["vmid"])
-                desired_vm = filtered_vms.get(this_vm_id, None)
+                desired_vm = filtered_vms.get(this_vm_id)
                 if desired_vm:
                     desired_vm.update(detected_vm)
                     desired_vm["vmid"] = this_vm_id

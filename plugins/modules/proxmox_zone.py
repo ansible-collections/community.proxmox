@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_zone
@@ -353,11 +350,11 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
         zone_type = kwargs.get("type")
 
         # Check if zone already exists
-        if zone_name in available_zones.keys() and not update:
+        if zone_name in available_zones and not update:
             self.module.exit_json(
                 changed=False, zone=zone_name, msg=f"Zone {zone_name} already exists and update is false!"
             )
-        if zone_name in available_zones.keys() and update:
+        if zone_name in available_zones and update:
             if zone_type != available_zones[zone_name]["type"]:
                 self.module.fail_json(
                     msg=f"zone {zone_name} exists with different type and we cannot change type post fact."

@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, teslamania <nicolas.vial@protonmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -154,9 +151,8 @@ class TestProxmoxCephMon(ModuleTestCase):
         super(TestProxmoxCephMon, self).tearDown()
 
     def test_proxmox_ceph_missing_argument(self):
-        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
         msg = "missing required arguments: node, state"
@@ -166,9 +162,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_add_mon_check_mode(self):
         monitor = "srv-proxmox-03"
-        with set_module_args(build_arg(monitor, "present", True)):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "present", True)), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -178,9 +173,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_add_mon(self):
         monitor = "srv-proxmox-03"
-        with set_module_args(build_arg(monitor, "present")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "present")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -190,9 +184,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_add_mon_not_exist(self):
         monitor = "srv-proxmox-04"
-        with set_module_args(build_arg(monitor, "present")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "present")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -201,9 +194,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_add_mon_already_mon(self):
         monitor = "srv-proxmox-02"
-        with set_module_args(build_arg(monitor, "present")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "present")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -213,9 +205,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_del_mon_check_mode(self):
         monitor = "srv-proxmox-02"
-        with set_module_args(build_arg(monitor, "absent", True)):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "absent", True)), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -225,9 +216,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_del_mon(self):
         monitor = "srv-proxmox-02"
-        with set_module_args(build_arg(monitor, "absent")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "absent")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -237,9 +227,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_del_mon_not_exist(self):
         monitor = "srv-proxmox-04"
-        with set_module_args(build_arg(monitor, "absent")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "absent")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 
@@ -248,9 +237,8 @@ class TestProxmoxCephMon(ModuleTestCase):
 
     def test_del_mon_already_not_mon(self):
         monitor = "srv-proxmox-03"
-        with set_module_args(build_arg(monitor, "absent")):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_ceph_mon.main()
+        with set_module_args(build_arg(monitor, "absent")), pytest.raises(SystemExit) as exc_info:
+            proxmox_ceph_mon.main()
 
         result = exc_info.value.args[0]
 

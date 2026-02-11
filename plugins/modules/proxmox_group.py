@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Jeffrey van Pelt (Thulium-Drake) <jeff@vanpelt.one>
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_group
@@ -99,7 +96,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
                     return True
             return False
         except Exception as e:
-            self.module.fail_json(msg="Unable to retrieve groups: {0}".format(e))
+            self.module.fail_json(msg=f"Unable to retrieve groups: {e}")
 
     def create_group(self, groupid, comment=None):
         """Create Proxmox VE group
@@ -109,7 +106,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         :return: None
         """
         if self.is_group_existing(groupid):
-            self.module.exit_json(changed=False, groupid=groupid, msg="Group {0} already exists".format(groupid))
+            self.module.exit_json(changed=False, groupid=groupid, msg=f"Group {groupid} already exists")
 
         if self.module.check_mode:
             return
@@ -117,7 +114,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         try:
             self.proxmox_api.access.groups.post(groupid=groupid, comment=comment)
         except Exception as e:
-            self.module.fail_json(msg="Failed to create group with ID {0}: {1}".format(groupid, e))
+            self.module.fail_json(msg=f"Failed to create group with ID {groupid}: {e}")
 
     def delete_group(self, groupid):
         """Delete Proxmox VE group
@@ -126,7 +123,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         :return: None
         """
         if not self.is_group_existing(groupid):
-            self.module.exit_json(changed=False, groupid=groupid, msg="Group {0} doesn't exist".format(groupid))
+            self.module.exit_json(changed=False, groupid=groupid, msg=f"Group {groupid} doesn't exist")
 
         if self.module.check_mode:
             return
@@ -134,7 +131,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         try:
             self.proxmox_api.access.groups(groupid).delete()
         except Exception as e:
-            self.module.fail_json(msg="Failed to delete group with ID {0}: {1}".format(groupid, e))
+            self.module.fail_json(msg=f"Failed to delete group with ID {groupid}: {e}")
 
 
 def main():
@@ -162,10 +159,10 @@ def main():
 
     if state == "present":
         proxmox.create_group(groupid, comment)
-        module.exit_json(changed=True, groupid=groupid, msg="Group {0} successfully created".format(groupid))
+        module.exit_json(changed=True, groupid=groupid, msg=f"Group {groupid} successfully created")
     else:
         proxmox.delete_group(groupid)
-        module.exit_json(changed=True, groupid=groupid, msg="Group {0} successfully deleted".format(groupid))
+        module.exit_json(changed=True, groupid=groupid, msg=f"Group {groupid} successfully deleted")
 
 
 if __name__ == "__main__":

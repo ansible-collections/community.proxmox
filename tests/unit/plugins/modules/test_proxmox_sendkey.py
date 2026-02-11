@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Ansible Project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 import time
 from unittest.mock import patch
@@ -68,9 +65,8 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
 
     def test_module_fail_when_required_args_missing(self):
         args = get_module_args_sendkey()
-        with set_module_args(args):
-            with self.assertRaises(AnsibleFailJson):
-                self.module.main()
+        with set_module_args(args), self.assertRaises(AnsibleFailJson):
+            self.module.main()
 
     def test_sendkey_resolve_vmid(self):
         with self.assertRaises(AnsibleExitJson) as exc_info:

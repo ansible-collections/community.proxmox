@@ -1,14 +1,11 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025 Marzieh Raoufnezhad <raoufnezhad@gmail.com>
 # Copyright (c) 2025 Maryam Mayabi <mayabi.ahm at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = """
 ---
@@ -138,7 +135,6 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
             self.proxmox_api.cluster.backup.put(backup_id, vmid=updated_backup_vmids)
         except Exception as e:
             self.module.fail_json(msg="Setting vmid backup failed: %s" % e)
-        return
 
     def get_vms_list(self):
         """Retrieve the list of all virtual machines in the cluster."""

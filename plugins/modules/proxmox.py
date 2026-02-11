@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright Ansible Project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox
@@ -1198,10 +1195,9 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             if "cpus" in kwargs:
                 kwargs["cpuunits"] = kwargs.pop("cpus")
             kwargs.update(kwargs.pop("netif", {}))
-        else:
-            if "mount_volumes" in kwargs:
-                kwargs.pop("mount_volumes")
-                self.module.warn("'mount_volumes' is not supported for non-LXC clusters. Ignoring keyword.")
+        elif "mount_volumes" in kwargs:
+            kwargs.pop("mount_volumes")
+            self.module.warn("'mount_volumes' is not supported for non-LXC clusters. Ignoring keyword.")
 
         if "pubkey" in kwargs:
             pubkey = kwargs.pop("pubkey")
@@ -1522,18 +1518,15 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         if volume is not None:
             storage_content = self.get_storage_content(node, storage, vmid=vmid)
             vol_ids = [vol["volid"] for vol in storage_content]
-            volid = "{storage}:{volume}".format(storage=storage, volume=volume)
+            volid = f"{storage}:{volume}"
             if volid not in vol_ids:
                 self.module.fail_json(
                     changed=False,
-                    msg="Storage {storage} does not contain volume {volume}".format(
-                        storage=storage,
-                        volume=volume,
-                    ),
+                    msg=f"Storage {storage} does not contain volume {volume}",
                 )
             vol_parts = [
-                "{storage}:{volume}".format(storage=storage, volume=volume),
-                "size={size}".format(size=size),
+                f"{storage}:{volume}",
+                f"size={size}",
             ]
         # 2. If volume not defined (but storage is), check if it exists
         elif storage is not None:
@@ -1542,8 +1535,8 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 vol = proxmox_node.lxc(vmid).get("config").get(key)
                 volume = self.parse_disk_string(vol).get("volume")
                 vol_parts = [
-                    "{storage}:{volume}".format(storage=storage, volume=volume),
-                    "size={size}".format(size=size),
+                    f"{storage}:{volume}",
+                    f"size={size}",
                 ]
 
             # If not, we have proxmox create one using the special syntax
@@ -1552,7 +1545,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                     raise ValueError("Size must be provided for storage-backed volume creation.")
                 elif size.endswith("G"):
                     size = size.rstrip("G")
-                    vol_parts = ["{storage}:{size}".format(storage=storage, size=size)]
+                    vol_parts = [f"{storage}:{size}"]
                 else:
                     raise ValueError(
                         "Size must be provided in GiB for storage-backed volume creation. Convert it to GiB or allocate a new storage manually."
@@ -1570,13 +1563,13 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             vol_parts += [host_path]
 
         if mountpoint is not None:
-            vol_parts += ["mp={}".format(mountpoint)]
+            vol_parts += [f"mp={mountpoint}"]
 
         if options is not None:
-            vol_parts += ["{0}={1}".format(k, v) for k, v in options.items()]
+            vol_parts += [f"{k}={v}" for k, v in options.items()]
 
         if kwargs:
-            vol_parts += ["{0}={1}".format(k, v) for k, v in kwargs.items()]
+            vol_parts += [f"{k}={v}" for k, v in kwargs.items()]
         return {key: ",".join(vol_parts)}
 
     def get_lxc_resource(self, vmid, hostname):
@@ -1681,9 +1674,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             if self.version() < LooseVersion(version) and option in self.module.params:
                 self.module.fail_json(
                     changed=False,
-                    msg="Feature {option} is only supported in PVE {version}+, and you're using PVE {pve_version}".format(
-                        option=option, version=version, pve_version=self.version()
-                    ),
+                    msg=f"Feature {option} is only supported in PVE {version}+, and you're using PVE {self.version()}",
                 )
 
 

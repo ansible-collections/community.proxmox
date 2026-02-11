@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2023, Sergei Antipov <greendayonfire at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 import os
 from unittest.mock import Mock, patch
@@ -53,9 +50,8 @@ class TestProxmoxTemplateModule(ModuleTestCase):
                 "src": "/tmp/mock.iso",
                 "content_type": "iso",
             }
-        ):
-            with pytest.raises(AnsibleFailJson) as exc_info:
-                self.module.main()
+        ), pytest.raises(AnsibleFailJson) as exc_info:
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["failed"] is True

@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2023, Julian Vanden Broeck <julian.vandenbroeck at dalibo.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import patch
 
@@ -77,15 +74,13 @@ class TestProxmoxStorageContentsInfo(ModuleTestCase):
         super(TestProxmoxStorageContentsInfo, self).tearDown()
 
     def test_module_fail_when_required_args_missing(self):
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args({}):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):
+            self.module.main()
 
     def test_storage_contents_info(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(get_module_args(node=NODE1, storage="datastore")):
-                expected_output = {}
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(node=NODE1, storage="datastore")):
+            expected_output = {}
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]

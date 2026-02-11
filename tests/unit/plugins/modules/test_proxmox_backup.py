@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2019, Ansible Project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import absolute_import, division, print_function
 
 from unittest.mock import patch
 
+import pytest
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,
@@ -16,10 +15,6 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
 
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.proxmox.plugins.modules import proxmox_backup
-
-__metaclass__ = type
-
-import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
@@ -253,9 +248,8 @@ class TestProxmoxBackup(ModuleTestCase):
         super(TestProxmoxBackup, self).tearDown()
 
     def test_proxmox_backup_without_argument(self):
-        with set_module_args({}):
-            with pytest.raises(AnsibleFailJson):
-                proxmox_backup.main()
+        with set_module_args({}), pytest.raises(AnsibleFailJson):
+            proxmox_backup.main()
 
     def test_create_backup_check_mode(self):
         with set_module_args(
@@ -267,9 +261,8 @@ class TestProxmoxBackup(ModuleTestCase):
                 "storage": "backup",
                 "_ansible_check_mode": True,
             }
-        ):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_backup.main()
+        ), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_backup.main()
 
         result = exc_info.value.args[0]
 
@@ -289,9 +282,8 @@ class TestProxmoxBackup(ModuleTestCase):
                 "mode": "all",
                 "storage": "backup",
             }
-        ):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_backup.main()
+        ), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_backup.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -313,9 +305,8 @@ class TestProxmoxBackup(ModuleTestCase):
                 "vmids": [100],
                 "wait": True,
             }
-        ):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                proxmox_backup.main()
+        ), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_backup.main()
 
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -337,9 +328,8 @@ class TestProxmoxBackup(ModuleTestCase):
                 "vmids": [100],
                 "wait": True,
             }
-        ):
-            with pytest.raises(AnsibleFailJson) as exc_info:
-                proxmox_backup.main()
+        ), pytest.raises(AnsibleFailJson) as exc_info:
+            proxmox_backup.main()
 
         result = exc_info.value.args[0]
         assert (
@@ -361,9 +351,8 @@ class TestProxmoxBackup(ModuleTestCase):
                 "vmids": [100],
                 "wait": True,
             }
-        ):
-            with pytest.raises(AnsibleFailJson) as exc_info:
-                proxmox_backup.main()
+        ), pytest.raises(AnsibleFailJson) as exc_info:
+            proxmox_backup.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "Node nonexistingnode was specified, but does not exist on the cluster"
@@ -381,9 +370,8 @@ class TestProxmoxBackup(ModuleTestCase):
                 "vmids": [100],
                 "wait": True,
             }
-        ):
-            with pytest.raises(AnsibleFailJson) as exc_info:
-                proxmox_backup.main()
+        ), pytest.raises(AnsibleFailJson) as exc_info:
+            proxmox_backup.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "Storage nonexistingstorage does not exist in the cluster"

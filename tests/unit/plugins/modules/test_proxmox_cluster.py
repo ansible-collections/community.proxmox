@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 #
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -121,9 +120,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "state": "present",
                 "_ansible_check_mode": True,
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -144,9 +142,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "cluster_name": "devcluster",
                 "state": "present",
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -167,9 +164,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "cluster_name": "devcluster",
                 "state": "present",
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -190,9 +186,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "cluster_name": "devcluster2",
                 "state": "present",
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -213,9 +208,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "state": "present",
                 "_ansible_check_mode": True,
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -235,9 +229,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
                 "state": "present",
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -257,9 +250,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
                 "state": "present",
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 
@@ -279,9 +271,8 @@ class TestProxmoxCluster(ModuleTestCase):
                 "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
                 "state": "present",
             }
-        ):
-            with pytest.raises(SystemExit) as exc_info:
-                proxmox_cluster.main()
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
 
         result = exc_info.value.args[0]
 

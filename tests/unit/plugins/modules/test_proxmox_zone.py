@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -154,45 +151,40 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_zone_present(self):
         # Create new Zone
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type="simple", zone="test")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Created new Zone - test"
         assert result["zone"] == "test"
 
         # Update the zone
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type="simple", zone="test1", state="present")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test1", state="present")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Updated zone - test1"
         assert result["zone"] == "test1"
 
         # Zone Already exists update=False
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type="simple", zone="test1", update=False)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test1", update=False)):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["msg"] == "Zone test1 already exists and update is false!"
         assert result["zone"] == "test1"
 
         # Zone Already exists with update=True
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type="vlan", zone="test1", update=True, bridge="test")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="vlan", zone="test1", update=True, bridge="test")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
         assert result["failed"] is True
         assert result["msg"] == "zone test1 exists with different type and we cannot change type post fact."
 
     def test_zone_absent(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_zone(zone_type="simple", zone="test1", state="absent")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test1", state="absent")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Successfully deleted zone test1"
@@ -200,9 +192,8 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_create_with_fabric(self):
         """Test creating a new VXLAN zone with fabric"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_vxlan_fabric(zone="new-vxlan-fabric", fabric="test-fabric")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_vxlan_fabric(zone="new-vxlan-fabric", fabric="test-fabric")):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Created new Zone - new-vxlan-fabric"
@@ -210,11 +201,10 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_create_with_peers(self):
         """Test creating a new VXLAN zone with peers"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                get_module_args_vxlan_peers(zone="new-vxlan-peers", peers="10.0.0.1,10.0.0.2,10.0.0.3")
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_peers(zone="new-vxlan-peers", peers="10.0.0.1,10.0.0.2,10.0.0.3")
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Created new Zone - new-vxlan-peers"
@@ -222,19 +212,18 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_create_without_fabric_or_peers(self):
         """Test that creating VXLAN zone without fabric or peers fails"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "type": "vxlan",
-                    "zone": "invalid-vxlan",
-                    "state": "present",
-                    "update": True,
-                }
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "type": "vxlan",
+                "zone": "invalid-vxlan",
+                "state": "present",
+                "update": True,
+            }
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
         assert result["failed"] is True
@@ -242,15 +231,14 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_update_peers_zone(self):
         """Test updating an existing VXLAN zone with peers"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                get_module_args_vxlan_peers(
-                    zone="vxlan-peers-zone",
-                    peers="192.168.1.10,192.168.1.11,192.168.1.12,192.168.1.13",  # Added peer
-                    update=True,
-                )
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_peers(
+                zone="vxlan-peers-zone",
+                peers="192.168.1.10,192.168.1.11,192.168.1.12,192.168.1.13",  # Added peer
+                update=True,
+            )
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Updated zone - vxlan-peers-zone"
@@ -258,11 +246,10 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_delete_fabric_zone(self):
         """Test deleting a VXLAN zone with fabric"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                get_module_args_vxlan_fabric(zone="vxlan-fabric-zone", fabric="my-fabric", state="absent")
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_fabric(zone="vxlan-fabric-zone", fabric="my-fabric", state="absent")
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Successfully deleted zone vxlan-fabric-zone"
@@ -270,11 +257,10 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_delete_peers_zone(self):
         """Test deleting a VXLAN zone with peers"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(
-                get_module_args_vxlan_peers(zone="vxlan-peers-zone", peers="192.168.1.10,192.168.1.11", state="absent")
-            ):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_peers(zone="vxlan-peers-zone", peers="192.168.1.10,192.168.1.11", state="absent")
+        ):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Successfully deleted zone vxlan-peers-zone"
@@ -282,18 +268,16 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_empty_peers_list(self):
         """Test VXLAN zone with empty peers string"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_vxlan_peers(zone="vxlan-empty-peers", peers="")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_vxlan_peers(zone="vxlan-empty-peers", peers="")):
+            self.module.main()
         result = exc_info.value.args[0]
         # Should fail validation since neither fabric nor valid peers provided
         assert self.fail_json_mock.called or result["changed"] is False
 
     def test_vxlan_zone_empty_fabric(self):
         """Test VXLAN zone with empty fabric string"""
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args_vxlan_fabric(zone="vxlan-empty-fabric", fabric="")):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_vxlan_fabric(zone="vxlan-empty-fabric", fabric="")):
+            self.module.main()
         result = exc_info.value.args[0]
         # Should fail validation
         assert self.fail_json_mock.called or result["changed"] is False

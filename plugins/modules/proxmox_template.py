@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright Ansible Project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 
 DOCUMENTATION = r"""
@@ -301,7 +298,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             "checksum-algorithm": checksum_algorithm,
         }
         try:
-            taskid = self.proxmox_api.nodes(node).storage(storage).post("download-url?{}".format(urlencode(data)))
+            taskid = self.proxmox_api.nodes(node).storage(storage).post(f"download-url?{urlencode(data)}")
             return self.task_status(node, taskid, timeout)
         except Exception as e:
             self.module.fail_json(msg="Checksum mismatch: %s" % (e))
