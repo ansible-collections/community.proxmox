@@ -9,6 +9,7 @@ from __future__ import absolute_import, annotations, division, print_function
 __metaclass__ = type
 
 import os
+from contextlib import ExitStack
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
@@ -478,15 +479,15 @@ def test_close_lock_file_time_out_error_handling(mock_exists, mock_unlink, conne
 
     mock_exists.return_value = False
     matcher = f"writing lock file for {connection.keyfile} ran in to the timeout of {connection.get_option('lock_file_timeout')}s"
+
     with pytest.raises(AnsibleError, match=matcher):
-        with (
-            patch("os.getuid", return_value=1000),
-            patch("os.getgid", return_value=1000),
-            patch("os.chmod"),
-            patch("os.chown"),
-            patch("os.rename"),
-            patch.object(FileLock, "lock_file", side_effect=LockTimeout()),
-        ):
+        with ExitStack() as stack:
+            stack.enter_context(patch("os.getuid", return_value=1000))
+            stack.enter_context(patch("os.getgid", return_value=1000))
+            stack.enter_context(patch("os.chmod"))
+            stack.enter_context(patch("os.chown"))
+            stack.enter_context(patch("os.rename"))
+            stack.enter_context(patch.object(FileLock, "lock_file", side_effect=LockTimeout()))
             connection.close()
 
 

@@ -582,7 +582,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         properties[self._fact("name")] = name
         properties[self._fact("status")] = status
 
-        if tags := item.get("tags"):
+        tags = item.get("tags")
+        if tags:
             properties[self._fact("tags")] = tags
 
         # get status, config and snapshots if want_facts == True
