@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -212,69 +213,61 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
     def check_node(self, node):
         nodes = self.proxmox_api.cluster.resources.get(type="node")
         if node not in [item["node"] for item in nodes]:
-            self.module.fail_json(
-                msg=f"Node {node} does not exist."
-            )
+            self.module.fail_json(msg=f"Node {node} does not exist.")
 
     def check_dev(self, node, dev):
         devs = self.proxmox_api.nodes(node).disks.list.get()
         if dev not in [dev_data["devpath"] for dev_data in devs]:
-            self.module.fail_json(
-                msg=f"{dev} does not exist on the node {node}."
-            )
+            self.module.fail_json(msg=f"{dev} does not exist on the node {node}.")
         dev_data = list(filter(lambda d: d["devpath"] == dev, devs))[0]
-        if 'used' in dev_data.keys():
-            if int(dev_data['osdid']) >= 0:
+        if "used" in dev_data.keys():
+            if int(dev_data["osdid"]) >= 0:
                 self.module.exit_json(
                     changed=False,
                     msg=f"{dev} is already an osd.",
                 )
             else:
-                self.module.fail_json(
-                    msg=f"{dev} is already in use by the node {node}."
-                )
+                self.module.fail_json(msg=f"{dev} is already in use by the node {node}.")
 
     def check_osd(self, node, osdid):
         try:
             root = self.proxmox_api.nodes(node).ceph.osd.get()
-            root = root['root']['children'][0]['children']
-            return True in [any(d.get("id") == str(osdid) for d in host.get('children')) for host in root if host.get('children') is not None]
+            root = root["root"]["children"][0]["children"]
+            return True in [
+                any(d.get("id") == str(osdid) for d in host.get("children"))
+                for host in root
+                if host.get("children") is not None
+            ]
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failure checking osd with exception : {to_native(e)}."
-            )
+            self.module.fail_json(msg=f"Failure checking osd with exception : {to_native(e)}.")
 
     # If in return True Else return False, fails if osdid not exists
     def check_osd_in(self, node, osdid):
         try:
             root = self.proxmox_api.nodes(node).ceph.osd.get()
-            root = root['root']['children'][0]['children']
+            root = root["root"]["children"][0]["children"]
             for host in root:
-                if host.get('children') is not None:
-                    for osd in host.get('children'):
-                        if osd.get('id') == str(osdid):
-                            return osd['in'] == 1
+                if host.get("children") is not None:
+                    for osd in host.get("children"):
+                        if osd.get("id") == str(osdid):
+                            return osd["in"] == 1
             return False
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failure checking osd in with exception : {to_native(e)}."
-            )
+            self.module.fail_json(msg=f"Failure checking osd in with exception : {to_native(e)}.")
 
     # If status==up return True Else return False, fails if osdid not exists
     def check_osd_started(self, node, osdid):
         try:
             root = self.proxmox_api.nodes(node).ceph.osd.get()
-            root = root['root']['children'][0]['children']
+            root = root["root"]["children"][0]["children"]
             for host in root:
-                if host.get('children') is not None:
-                    for osd in host.get('children'):
-                        if osd.get('id') == str(osdid):
-                            return osd['status'] == "up"
+                if host.get("children") is not None:
+                    for osd in host.get("children"):
+                        if osd.get("id") == str(osdid):
+                            return osd["status"] == "up"
             return False
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failure checking osd status with exception : {to_native(e)}."
-            )
+            self.module.fail_json(msg=f"Failure checking osd status with exception : {to_native(e)}.")
 
     def add_osd(self, node, dev, encrypted, args):
         self.check_node(node)
@@ -422,30 +415,19 @@ def get_present_optional_args(args):
 def main():
     module_args = proxmox_auth_argument_spec()
     osd_args = dict(
-        node=dict(type='str', required=True),
-        state=dict(
-            choices=[
-                'present',
-                'absent',
-                'in',
-                'out',
-                'scrub',
-                'start',
-                'stop',
-                'restart'],
-            required=True
-        ),
-        dev=dict(type='str'),
-        osdid=dict(type='int'),
-        cleanup=dict(type='bool', default=False),
-        crush_device_class=dict(type='str'),
-        db_dev=dict(type='str'),
-        db_dev_size=dict(type='int'),
-        deep=dict(type='bool', default=False),
-        encrypted=dict(type='bool', default=False),
-        osds_per_device=dict(type='int'),
-        wal_dev=dict(type='str'),
-        wal_dev_size=dict(type='int'),
+        node=dict(type="str", required=True),
+        state=dict(choices=["present", "absent", "in", "out", "scrub", "start", "stop", "restart"], required=True),
+        dev=dict(type="str"),
+        osdid=dict(type="int"),
+        cleanup=dict(type="bool", default=False),
+        crush_device_class=dict(type="str"),
+        db_dev=dict(type="str"),
+        db_dev_size=dict(type="int"),
+        deep=dict(type="bool", default=False),
+        encrypted=dict(type="bool", default=False),
+        osds_per_device=dict(type="int"),
+        wal_dev=dict(type="str"),
+        wal_dev_size=dict(type="int"),
     )
 
     module_args.update(osd_args)
@@ -456,71 +438,71 @@ def main():
         required_one_of=[("api_password", "api_token_id")],
         required_together=[("api_token_id", "api_token_secret")],
         required_if=[
-            ('state', 'present', ['dev']),
-            ('state', 'absent', ['osdid']),
-            ('state', 'in', ['osdid']),
-            ('state', 'out', ['osdid']),
-            ('state', 'scrub', ['osdid']),
-            ('state', 'start', ['osdid']),
-            ('state', 'stop', ['osdid']),
-            ('state', 'restart', ['osdid']),
+            ("state", "present", ["dev"]),
+            ("state", "absent", ["osdid"]),
+            ("state", "in", ["osdid"]),
+            ("state", "out", ["osdid"]),
+            ("state", "scrub", ["osdid"]),
+            ("state", "start", ["osdid"]),
+            ("state", "stop", ["osdid"]),
+            ("state", "restart", ["osdid"]),
         ],
     )
 
     proxmox = ProxmoxCephOsdAnsible(module)
-    state = module.params['state']
+    state = module.params["state"]
 
-    if state == 'present':
+    if state == "present":
         optional_args = get_present_optional_args(module.params)
         proxmox.add_osd(
-            module.params['node'],
-            module.params['dev'],
-            ansible_to_proxmox_bool(module.params['encrypted']),
+            module.params["node"],
+            module.params["dev"],
+            ansible_to_proxmox_bool(module.params["encrypted"]),
             optional_args,
         )
 
-    elif state == 'absent':
+    elif state == "absent":
         proxmox.del_osd(
-            module.params['node'],
-            module.params['osdid'],
-            ansible_to_proxmox_bool(module.params['cleanup']),
+            module.params["node"],
+            module.params["osdid"],
+            ansible_to_proxmox_bool(module.params["cleanup"]),
         )
 
-    elif state == 'in':
+    elif state == "in":
         proxmox.in_osd(
-            module.params['node'],
-            module.params['osdid'],
+            module.params["node"],
+            module.params["osdid"],
         )
 
-    elif state == 'out':
+    elif state == "out":
         proxmox.out_osd(
-            module.params['node'],
-            module.params['osdid'],
+            module.params["node"],
+            module.params["osdid"],
         )
 
-    elif state == 'scrub':
+    elif state == "scrub":
         proxmox.scrub_osd(
-            module.params['node'],
-            module.params['osdid'],
-            ansible_to_proxmox_bool(module.params['deep']),
+            module.params["node"],
+            module.params["osdid"],
+            ansible_to_proxmox_bool(module.params["deep"]),
         )
 
-    elif state == 'start':
+    elif state == "start":
         proxmox.start_osd(
-            module.params['node'],
-            module.params['osdid'],
+            module.params["node"],
+            module.params["osdid"],
         )
 
-    elif state == 'stop':
+    elif state == "stop":
         proxmox.stop_osd(
-            module.params['node'],
-            module.params['osdid'],
+            module.params["node"],
+            module.params["osdid"],
         )
 
-    elif state == 'restart':
+    elif state == "restart":
         proxmox.restart_osd(
-            module.params['node'],
-            module.params['osdid'],
+            module.params["node"],
+            module.params["osdid"],
         )
 
 
