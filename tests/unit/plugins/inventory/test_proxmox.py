@@ -5,7 +5,6 @@
 # The API responses used in these tests were recorded from PVE version 6.2.
 
 
-
 import pytest
 from ansible.inventory.data import InventoryData
 

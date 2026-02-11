@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import patch
 
 import pytest
@@ -86,7 +85,9 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
         assert self.mock_put.call_count == 0
 
     def test_module_present_missing(self):
-        with set_module_args({**API, "state": "present", **ACE, "path": "/vms/101"}), pytest.raises(AnsibleExitJson) as exc_info:
+        with set_module_args({**API, "state": "present", **ACE, "path": "/vms/101"}), pytest.raises(
+            AnsibleExitJson
+        ) as exc_info:
             proxmox_access_acl.main()
 
         result = exc_info.value.args[0]
@@ -112,7 +113,9 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
         assert self.mock_put.call_count == 1
 
     def test_module_absent_missing(self):
-        with set_module_args({**API, "state": "absent", **ACE, "path": "/vms/101"}), pytest.raises(AnsibleExitJson) as exc_info:
+        with set_module_args({**API, "state": "absent", **ACE, "path": "/vms/101"}), pytest.raises(
+            AnsibleExitJson
+        ) as exc_info:
             proxmox_access_acl.main()
 
         result = exc_info.value.args[0]

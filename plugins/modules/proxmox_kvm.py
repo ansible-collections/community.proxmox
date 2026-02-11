@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_kvm
 short_description: Management of Qemu(KVM) Virtual Machines in Proxmox VE cluster
@@ -1474,20 +1473,14 @@ def main():
     if delete is not None:
         try:
             proxmox.settings(vmid, node, delete=delete)
-            module.exit_json(
-                changed=True, vmid=vmid, msg=f"Settings has deleted on VM {name} with vmid {vmid}"
-            )
+            module.exit_json(changed=True, vmid=vmid, msg=f"Settings has deleted on VM {name} with vmid {vmid}")
         except Exception as e:
-            module.fail_json(
-                vmid=vmid, msg=f"Unable to delete settings on VM {name} with vmid {vmid}: " + str(e)
-            )
+            module.fail_json(vmid=vmid, msg=f"Unable to delete settings on VM {name} with vmid {vmid}: " + str(e))
 
     if revert is not None:
         try:
             proxmox.settings(vmid, node, revert=revert)
-            module.exit_json(
-                changed=True, vmid=vmid, msg=f"Settings has reverted on VM {name} with vmid {vmid}"
-            )
+            module.exit_json(changed=True, vmid=vmid, msg=f"Settings has reverted on VM {name} with vmid {vmid}")
         except Exception as e:
             module.fail_json(
                 vmid=vmid,
@@ -1501,15 +1494,11 @@ def main():
             vm_node = vm["node"]
             if node != vm_node:
                 proxmox.migrate_vm(vm, node, module.params["with_local_disks"])
-                module.exit_json(
-                    changed=True, vmid=vmid, msg=f"VM {vmid} has been migrated from {vm_node} to {node}"
-                )
+                module.exit_json(changed=True, vmid=vmid, msg=f"VM {vmid} has been migrated from {vm_node} to {node}")
             else:
                 module.exit_json(changed=False, vmid=vmid, msg=f"VM {vmid} is already on {node}")
         except Exception as e:
-            module.fail_json(
-                vmid=vmid, msg=f"Unable to migrate VM {vmid} from {vm_node} to {node}: {e}"
-            )
+            module.fail_json(vmid=vmid, msg=f"Unable to migrate VM {vmid} from {vm_node} to {node}: {e}")
 
     if state == "present":
         if not (update or clone) and proxmox.get_vm(vmid, ignore_missing=True):

@@ -6,7 +6,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_node
 version_added: 1.2.0

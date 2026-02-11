@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_node_network_info
 short_description: Retrieve information about Proxmox VE node network interfaces

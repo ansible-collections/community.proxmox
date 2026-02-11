@@ -283,9 +283,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=False, userid=userid, msg=f"User {userid} doesn't exist")
 
         if self.module.check_mode:
-            self.module.exit_json(
-                changed=False, userid=userid, msg=f"Would deleted user with ID {userid} (check mode)"
-            )
+            self.module.exit_json(changed=False, userid=userid, msg=f"Would deleted user with ID {userid} (check mode)")
 
         try:
             self.proxmox_api.access.users(userid).delete()

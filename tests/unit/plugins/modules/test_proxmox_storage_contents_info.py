@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import patch
 
 import pytest
@@ -78,7 +77,9 @@ class TestProxmoxStorageContentsInfo(ModuleTestCase):
             self.module.main()
 
     def test_storage_contents_info(self):
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(node=NODE1, storage="datastore")):
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            get_module_args(node=NODE1, storage="datastore")
+        ):
             expected_output = {}
             self.module.main()
 

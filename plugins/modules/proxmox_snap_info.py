@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_snap_info
 short_description: Snapshot management of instances in Proxmox VE cluster

@@ -74,7 +74,9 @@ def test_missing_host_key(connection):
     with patch("ansible.utils.display.Display.prompt_until", return_value="yes"):
         policy.missing_host_key(client, "test.host", key)
 
-    with patch("ansible.utils.display.Display.prompt_until", return_value="no"), pytest.raises(AnsibleError, match="host connection rejected by user"):
+    with patch("ansible.utils.display.Display.prompt_until", return_value="no"), pytest.raises(
+        AnsibleError, match="host connection rejected by user"
+    ):
         policy.missing_host_key(client, "test.host", key)
 
 
@@ -555,7 +557,9 @@ def test_close_tempfile_error_handling(mock_exists, mock_lock_file, mock_tempfil
     mock_tempfile_instance.name = "/tmp/mock_tempfile"
     mock_tempfile.return_value.__enter__.return_value = mock_tempfile_instance
 
-    with pytest.raises(AnsibleError, match="error occurred while writing SSH host keys!"), patch.object(os, "chmod", side_effect=Exception()):
+    with pytest.raises(AnsibleError, match="error occurred while writing SSH host keys!"), patch.object(
+        os, "chmod", side_effect=Exception()
+    ):
         connection.close()
     mock_unlink.assert_called_with(missing_ok=True)
 

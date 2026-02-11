@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox
 short_description: Management of instances in Proxmox VE cluster

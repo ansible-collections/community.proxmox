@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from typing import Dict, List
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (

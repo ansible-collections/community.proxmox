@@ -83,7 +83,9 @@ class TestProxmoxUserModule(ModuleTestCase):
             userid="testuser@pam", comment="Test User", state="present", _ansible_check_mode=True
         )
 
-        with set_module_args(module_args), patch.object(proxmox_user.ProxmoxUserAnsible, "is_user_existing", return_value=False):
+        with set_module_args(module_args), patch.object(
+            proxmox_user.ProxmoxUserAnsible, "is_user_existing", return_value=False
+        ):
             with pytest.raises(AnsibleExitJson) as exc_info:
                 proxmox_user.main()
 

@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -97,7 +96,9 @@ class TestProxmoxSubnetModule(ModuleTestCase):
 
     def test_subnet_create(self):
         # Create new Zone
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="new_vnet", subnet="10.10.10.0/24", zone="test_zone")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args(vnet="new_vnet", subnet="10.10.10.0/24", zone="test_zone")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -106,7 +107,9 @@ class TestProxmoxSubnetModule(ModuleTestCase):
 
     def test_subnet_update(self):
         # Normal subnet param (snat) differ
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", snat=1)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", snat=1)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -114,7 +117,9 @@ class TestProxmoxSubnetModule(ModuleTestCase):
         assert result["subnet"] == "ans1-10.10.2.0-24"
 
         # No update needed
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
@@ -152,7 +157,9 @@ class TestProxmoxSubnetModule(ModuleTestCase):
         assert result["msg"] == "There are partially overlapping DHCP ranges. this is not allowed."
 
     def test_subnet_absent(self):
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", state="absent")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args(vnet="test", subnet="10.10.2.0/24", zone="ans1", state="absent")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True

@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -151,7 +150,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_zone_present(self):
         # Create new Zone
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone_type="simple", zone="test")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -159,7 +160,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
         assert result["zone"] == "test"
 
         # Update the zone
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test1", state="present")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone_type="simple", zone="test1", state="present")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -167,7 +170,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
         assert result["zone"] == "test1"
 
         # Zone Already exists update=False
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test1", update=False)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone_type="simple", zone="test1", update=False)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
@@ -175,7 +180,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
         assert result["zone"] == "test1"
 
         # Zone Already exists with update=True
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="vlan", zone="test1", update=True, bridge="test")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone_type="vlan", zone="test1", update=True, bridge="test")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
@@ -183,7 +190,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
         assert result["msg"] == "zone test1 exists with different type and we cannot change type post fact."
 
     def test_zone_absent(self):
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone_type="simple", zone="test1", state="absent")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone_type="simple", zone="test1", state="absent")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -192,7 +201,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_create_with_fabric(self):
         """Test creating a new VXLAN zone with fabric"""
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_vxlan_fabric(zone="new-vxlan-fabric", fabric="test-fabric")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_fabric(zone="new-vxlan-fabric", fabric="test-fabric")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -268,7 +279,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_empty_peers_list(self):
         """Test VXLAN zone with empty peers string"""
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_vxlan_peers(zone="vxlan-empty-peers", peers="")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_peers(zone="vxlan-empty-peers", peers="")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         # Should fail validation since neither fabric nor valid peers provided
@@ -276,7 +289,9 @@ class TestProxmoxZoneModule(ModuleTestCase):
 
     def test_vxlan_zone_empty_fabric(self):
         """Test VXLAN zone with empty fabric string"""
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_vxlan_fabric(zone="vxlan-empty-fabric", fabric="")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_vxlan_fabric(zone="vxlan-empty-fabric", fabric="")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         # Should fail validation

@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -164,7 +163,9 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         assert result["group"] == "test"
 
     def test_delete_group(self):
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_group_conf(group="test1", state="absent")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_group_conf(group="test1", state="absent")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -187,14 +188,18 @@ class TestProxmoxFirewallModule(ModuleTestCase):
 
     def test_ipset_present(self):
         # New Ipset name
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_ipset(state="present", name="new_ipset", cidr=True)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_ipset(state="present", name="new_ipset", cidr=True)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "All ipsets present."
 
         # Same as existing ipset (no change)
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_ipset(state="present", name="test_ipset", cidr=True, nomatch=True)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_ipset(state="present", name="test_ipset", cidr=True, nomatch=True)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
@@ -202,21 +207,27 @@ class TestProxmoxFirewallModule(ModuleTestCase):
 
     def test_ipset_absent(self):
         # Delete full ipset
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_ipset(state="absent", name="test_ipset", cidr=False)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_ipset(state="absent", name="test_ipset", cidr=False)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Ipsets are absent."
 
         # Delete only 1 CIDR
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_ipset(state="absent", name="test_ipset", cidr=True)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_ipset(state="absent", name="test_ipset", cidr=True)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
         assert result["msg"] == "Ipsets are absent."
 
         # try to delete non existent ipset (changed=False)
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_ipset(state="absent", name="ipset_doesnt_exist")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_ipset(state="absent", name="ipset_doesnt_exist")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False

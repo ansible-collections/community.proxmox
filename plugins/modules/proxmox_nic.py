@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_nic
 short_description: Management of a NIC of a Qemu(KVM) VM in a Proxmox VE cluster
@@ -324,28 +323,20 @@ def main():
                 tag=module.params["tag"],
                 trunks=module.params["trunks"],
             ):
-                module.exit_json(
-                    changed=True, vmid=vmid, msg=f"Nic {interface} updated on VM with vmid {vmid}"
-                )
+                module.exit_json(changed=True, vmid=vmid, msg=f"Nic {interface} updated on VM with vmid {vmid}")
             else:
                 module.exit_json(vmid=vmid, msg=f"Nic {interface} unchanged on VM with vmid {vmid}")
         except Exception as e:
-            module.fail_json(
-                vmid=vmid, msg=f"Unable to change nic {interface} on VM with vmid {vmid}: " + str(e)
-            )
+            module.fail_json(vmid=vmid, msg=f"Unable to change nic {interface} on VM with vmid {vmid}: " + str(e))
 
     elif state == "absent":
         try:
             if proxmox.delete_nic(vmid, interface):
-                module.exit_json(
-                    changed=True, vmid=vmid, msg=f"Nic {interface} deleted on VM with vmid {vmid}"
-                )
+                module.exit_json(changed=True, vmid=vmid, msg=f"Nic {interface} deleted on VM with vmid {vmid}")
             else:
                 module.exit_json(vmid=vmid, msg=f"Nic {interface} does not exist on VM with vmid {vmid}")
         except Exception as e:
-            module.fail_json(
-                vmid=vmid, msg=f"Unable to delete nic {interface} on VM with vmid {vmid}: " + str(e)
-            )
+            module.fail_json(vmid=vmid, msg=f"Unable to delete nic {interface} on VM with vmid {vmid}: " + str(e))
 
 
 if __name__ == "__main__":

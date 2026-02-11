@@ -5,8 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
-
 DOCUMENTATION = r"""
 module: proxmox_storage_contents_info
 short_description: List content from a Proxmox VE storage

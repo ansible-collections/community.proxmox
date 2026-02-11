@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_disk
 short_description: Management of a disk of a Qemu(KVM) VM in a Proxmox VE cluster

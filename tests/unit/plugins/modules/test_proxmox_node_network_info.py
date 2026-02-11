@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import patch
 
 import pytest
@@ -321,7 +320,9 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_node_not_specified(self):
         """Test error handling when node parameter is not specified."""
-        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({"api_host": "host", "api_user": "user", "api_password": "password"}):
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {"api_host": "host", "api_user": "user", "api_password": "password"}
+        ):
             self.module.main()
 
         result = exc_info.value.args[0]

@@ -5,8 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
-
 DOCUMENTATION = r"""
 module: proxmox_template
 short_description: Management of OS templates in Proxmox VE cluster

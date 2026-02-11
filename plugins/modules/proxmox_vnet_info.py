@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 DOCUMENTATION = r"""
 module: proxmox_vnet_info
 short_description: Retrieve information about one or more Proxmox VE SDN vnets.

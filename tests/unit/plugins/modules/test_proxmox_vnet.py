@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -99,7 +98,9 @@ class TestProxmoxVnetModule(ModuleTestCase):
         assert result["vnet"] == "vtest"
 
         # Update the vnet
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=True)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone="test1", vnet="test2", alias="test", update=True)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True
@@ -107,7 +108,9 @@ class TestProxmoxVnetModule(ModuleTestCase):
         assert result["vnet"] == "test2"
 
         # Vnet needs to be updated but update=False
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="test1", vnet="test2", alias="test", update=False)):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone="test1", vnet="test2", alias="test", update=False)
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert self.fail_json_mock.called
@@ -115,7 +118,9 @@ class TestProxmoxVnetModule(ModuleTestCase):
         assert result["msg"] == "vnet test2 needs to be updated but update is false."
 
     def test_zone_absent(self):
-        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_zone(zone="test1", vnet="test2", state="absent")):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_zone(zone="test1", vnet="test2", state="absent")
+        ):
             self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is True

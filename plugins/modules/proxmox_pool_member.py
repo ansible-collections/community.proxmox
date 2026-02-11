@@ -218,9 +218,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                     self.proxmox_api.pools(poolid).put(vms=[vmid], delete=1)
                 return diff
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failed to delete a member ({member}) from the pool {poolid}: {e}"
-            )
+            self.module.fail_json(msg=f"Failed to delete a member ({member}) from the pool {poolid}: {e}")
 
 
 def main():

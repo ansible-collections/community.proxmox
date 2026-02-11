@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-
 from unittest.mock import Mock, patch
 
 import pytest
@@ -147,7 +146,9 @@ class TestProxmoxCephMgr(ModuleTestCase):
         super(TestProxmoxCephMgr, self).tearDown()
 
     def test_proxmox_ceph_missing_argument(self):
-        with set_module_args({"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}), pytest.raises(SystemExit) as exc_info:
+        with set_module_args(
+            {"api_user": "root@pam", "api_password": "secret", "api_host": "192.168.1.21"}
+        ), pytest.raises(SystemExit) as exc_info:
             proxmox_ceph_mgr.main()
 
         result = exc_info.value.args[0]
