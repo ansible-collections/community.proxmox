@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: 2025 Felix Fontein <felix@fontein.de>
 
 line-length = 120
+target-version = "py37"
 
 [lint]
 # https://docs.astral.sh/ruff/rules/
