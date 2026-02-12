@@ -1,27 +1,24 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
-
-from unittest.mock import (patch, MagicMock)
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible.module_utils import basic
-from ansible_collections.community.proxmox.plugins.modules import proxmox_firewall_info
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
-from ansible.module_utils.compat.version import LooseVersion
+from ansible_collections.community.proxmox.plugins.modules import proxmox_firewall_info
 
 RAW_FIREWALL_RULES = [
     {
@@ -32,7 +29,7 @@ RAW_FIREWALL_RULES = [
         "enable": 1,
         "type": "out",
         "source": "1.1.1.1",
-        "pos": 0
+        "pos": 0,
     },
     {
         "enable": 1,
@@ -41,40 +38,19 @@ RAW_FIREWALL_RULES = [
         "type": "out",
         "action": "ACCEPT",
         "digest": "245f9fb31d5f59543dedc5a84ba7cd6afa4dbcc0",
-        "ipversion": 4
-    }
+        "ipversion": 4,
+    },
 ]
 
 RAW_GROUPS = [
-    {
-        "digest": "fdb62dec01018d4f35c83ecc2ae3f110a8b3bd62",
-        "group": "test1"
-    },
-    {
-        "group": "test2",
-        "digest": "fdb62dec01018d4f35c83ecc2ae3f110a8b3bd62"
-    }
+    {"digest": "fdb62dec01018d4f35c83ecc2ae3f110a8b3bd62", "group": "test1"},
+    {"group": "test2", "digest": "fdb62dec01018d4f35c83ecc2ae3f110a8b3bd62"},
 ]
 
 RAW_ALIASES = [
-    {
-        "name": "test1",
-        "cidr": "10.10.1.0/24",
-        "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
-        "ipversion": 4
-    },
-    {
-        "name": "test2",
-        "cidr": "10.10.2.0/24",
-        "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
-        "ipversion": 4
-    },
-    {
-        "name": "test3",
-        "cidr": "10.10.3.0/24",
-        "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f",
-        "ipversion": 4
-    }
+    {"name": "test1", "cidr": "10.10.1.0/24", "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f", "ipversion": 4},
+    {"name": "test2", "cidr": "10.10.2.0/24", "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f", "ipversion": 4},
+    {"name": "test3", "cidr": "10.10.3.0/24", "digest": "978391f460484e8d4fb3ca785cfe5a9d16fe8b1f", "ipversion": 4},
 ]
 
 RAW_CLUSTER_RESOURCES = [
@@ -97,23 +73,14 @@ RAW_CLUSTER_RESOURCES = [
         "status": "running",
         "diskwrite": 1024,
         "maxmem": 8589934592,
-        "node": "pve"
+        "node": "pve",
     }
 ]
 
-RAW_IPSET = [
-    {
-        "digest": "48671c29c6503157990fc99354b78f32e8654c78",
-        "name": "test_ipset"
-    }
-]
+RAW_IPSET = [{"digest": "48671c29c6503157990fc99354b78f32e8654c78", "name": "test_ipset"}]
 
 RAW_IPSET_CIDR = [
-    {
-        "digest": "dce088809f001ca83c39c8dcfc2a5e4892bf3d1b",
-        "cidr": "192.168.1.10",
-        "comment": "Proxmox pve-01"
-    }
+    {"digest": "dce088809f001ca83c39c8dcfc2a5e4892bf3d1b", "cidr": "192.168.1.10", "comment": "Proxmox pve-01"}
 ]
 
 EXPECTED_IPSET = [
@@ -125,24 +92,23 @@ EXPECTED_IPSET = [
                 "digest": "dce088809f001ca83c39c8dcfc2a5e4892bf3d1b",
                 "cidr": "192.168.1.10",
                 "comment": "Proxmox pve-01",
-                "nomatch": False
+                "nomatch": False,
             }
-        ]
-
+        ],
     }
 ]
 
 
 def exit_json(*args, **kwargs):
     """function to patch over exit_json; package return data into an exception"""
-    if 'changed' not in kwargs:
-        kwargs['changed'] = False
+    if "changed" not in kwargs:
+        kwargs["changed"] = False
     raise SystemExit(kwargs)
 
 
 def fail_json(*args, **kwargs):
     """function to patch over fail_json; package return data into an exception"""
-    kwargs['failed'] = True
+    kwargs["failed"] = True
     raise SystemExit(kwargs)
 
 
@@ -155,7 +121,7 @@ def get_module_args(level="cluster", vmid=None, node=None, vnet=None, group=None
         "vmid": vmid,
         "node": node,
         "vnet": vnet,
-        "group": group
+        "group": group,
     }
 
 
@@ -164,18 +130,16 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         super(TestProxmoxFirewallModule, self).setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_firewall_info
-        self.mock_module_helper = patch.multiple(basic.AnsibleModule,
-                                                 exit_json=exit_json,
-                                                 fail_json=fail_json)
+        self.mock_module_helper = patch.multiple(basic.AnsibleModule, exit_json=exit_json, fail_json=fail_json)
         self.mock_module_helper.start()
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
 
-        self.connect_mock.return_value.cluster.resources.get.return_value = (
-            RAW_CLUSTER_RESOURCES
-        )
-        self.version_mock = patch.object(proxmox_firewall_info.ProxmoxFirewallInfoAnsible, "version", return_value=LooseVersion("9.0")).start()
+        self.connect_mock.return_value.cluster.resources.get.return_value = RAW_CLUSTER_RESOURCES
+        self.version_mock = patch.object(
+            proxmox_firewall_info.ProxmoxFirewallInfoAnsible, "version", return_value=LooseVersion("9.0")
+        ).start()
 
         mock_cluster = self.connect_mock.return_value.cluster.return_value.firewall
         # return the mock object as return value to enable passing it on as firewall_obj
@@ -189,7 +153,9 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         )
         mock_cluster.aliases.return_value.get.return_value = RAW_ALIASES
 
-        mock_vm100_fw = self.connect_mock.return_value.nodes.return_value.return_value.return_value.firewall.return_value
+        mock_vm100_fw = (
+            self.connect_mock.return_value.nodes.return_value.return_value.return_value.firewall.return_value
+        )
         mock_vm100_fw.rules.return_value.get.return_value = RAW_FIREWALL_RULES
         mock_vm100_fw.aliases.return_value.get.return_value = RAW_ALIASES
 
@@ -200,25 +166,23 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         super(TestProxmoxFirewallModule, self).tearDown()
 
     def test_cluster_level_info(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args()):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args()):
+            self.module.main()
         result = exc_info.value.args[0]
 
         assert result["changed"] is False
         assert result["msg"] == "successfully retrieved firewall rules and groups"
         assert result["firewall_rules"] == RAW_FIREWALL_RULES
-        assert result["groups"] == ['test1', 'test2']
+        assert result["groups"] == ["test1", "test2"]
         assert result["aliases"] == RAW_ALIASES
         assert result["ip_sets"] == EXPECTED_IPSET
 
     def test_vm_level_info(self):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(get_module_args(level='vm', vmid=100)):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(level="vm", vmid=100)):
+            self.module.main()
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["msg"] == "successfully retrieved firewall rules and groups"
         assert result["firewall_rules"] == RAW_FIREWALL_RULES
-        assert result["groups"] == ['test1', 'test2']
+        assert result["groups"] == ["test1", "test2"]
         assert result["aliases"] == RAW_ALIASES

@@ -1,37 +1,28 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Ansible Project
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
-
-from unittest.mock import patch
 
 import time
+from unittest.mock import patch
+
 import pytest
+
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_sendkey
-import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
-    AnsibleFailJson,
     AnsibleExitJson,
+    AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
 )
 
+import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_sendkey
 
-def get_module_args_sendkey(
-    name=None,
-    vmid=None,
-    keys_send=None,
-    string_send=None,
-    delay=None,
-    **kwargs
-):
+
+def get_module_args_sendkey(name=None, vmid=None, keys_send=None, string_send=None, delay=None, **kwargs):
     args = {
         "api_host": "host",
         "api_user": "user",
@@ -73,9 +64,8 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
 
     def test_module_fail_when_required_args_missing(self):
         args = get_module_args_sendkey()
-        with set_module_args(args):
-            with self.assertRaises(AnsibleFailJson):
-                self.module.main()
+        with set_module_args(args), self.assertRaises(AnsibleFailJson):
+            self.module.main()
 
     def test_sendkey_resolve_vmid(self):
         with self.assertRaises(AnsibleExitJson) as exc_info:

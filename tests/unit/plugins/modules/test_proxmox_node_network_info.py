@@ -1,28 +1,26 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, aleskxyz <aleskxyz@gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 from unittest.mock import patch
+
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-from ansible_collections.community.proxmox.plugins.modules import (
-    proxmox_node_network_info,
-)
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
     AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import (
+    proxmox_node_network_info,
+)
 
 # Mock API response from Proxmox node network endpoint
 RAW_NETWORK_OUTPUT = [
@@ -133,9 +131,7 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
         mock_nodes.get.return_value = [{"node": "pve"}]
 
         mock_network_obj.get.side_effect = lambda type=None: [
-            interface
-            for interface in RAW_NETWORK_OUTPUT
-            if type is None or interface["type"] == type
+            interface for interface in RAW_NETWORK_OUTPUT if type is None or interface["type"] == type
         ]
 
     def tearDown(self):
@@ -144,16 +140,15 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_basic_network_info(self):
         """Test basic network interface retrieval."""
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
@@ -161,17 +156,16 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_filter_by_iface(self):
         """Test filtering by specific interface name."""
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "iface": "vmbr0",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface": "vmbr0",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
@@ -180,26 +174,21 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_filter_by_iface_type(self):
         """Test filtering by interface type."""
-        mock_network_obj = (
-            self.connect_mock.return_value.nodes.return_value.network.return_value
-        )
+        mock_network_obj = self.connect_mock.return_value.nodes.return_value.network.return_value
         mock_network_obj.get.side_effect = lambda type=None: [
-            interface
-            for interface in RAW_NETWORK_OUTPUT
-            if type is None or interface["type"] == type
+            interface for interface in RAW_NETWORK_OUTPUT if type is None or interface["type"] == type
         ]
 
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "iface_type": "bridge",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface_type": "bridge",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
@@ -227,17 +216,16 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
             "request",
             return_value=mock_response,
         ):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                with set_module_args(
-                    {
-                        "api_host": "host",
-                        "api_user": "user",
-                        "api_password": "password",
-                        "node": "pve",
-                        "check_changes": True,
-                    }
-                ):
-                    self.module.main()
+            with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+                {
+                    "api_host": "host",
+                    "api_user": "user",
+                    "api_password": "password",
+                    "node": "pve",
+                    "check_changes": True,
+                }
+            ):
+                self.module.main()
 
             result = exc_info.value.args[0]
             assert not result["changed"]
@@ -261,17 +249,16 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
             "request",
             return_value=mock_response,
         ):
-            with pytest.raises(AnsibleExitJson) as exc_info:
-                with set_module_args(
-                    {
-                        "api_host": "host",
-                        "api_user": "user",
-                        "api_password": "password",
-                        "node": "pve",
-                        "check_changes": True,
-                    }
-                ):
-                    self.module.main()
+            with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+                {
+                    "api_host": "host",
+                    "api_user": "user",
+                    "api_password": "password",
+                    "node": "pve",
+                    "check_changes": True,
+                }
+            ):
+                self.module.main()
 
             result = exc_info.value.args[0]
             assert not result["changed"]
@@ -280,59 +267,49 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_invalid_parameter_combination(self):
         """Test that check_changes cannot be used with iface or iface_type."""
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "check_changes": True,
-                    "iface": "eth0",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "check_changes": True,
+                "iface": "eth0",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
-        assert (
-            "check_changes cannot be used with iface or iface_type parameters"
-            in result["msg"]
-        )
+        assert "check_changes cannot be used with iface or iface_type parameters" in result["msg"]
 
     def test_node_not_found(self):
         """Test error handling when node doesn't exist."""
-        with patch.object(
-            self.module.ProxmoxNodeNetworkInfoAnsible, "get_node", return_value=None
-        ):
-            with pytest.raises(AnsibleFailJson) as exc_info:
-                with set_module_args(
-                    {
-                        "api_host": "host",
-                        "api_user": "user",
-                        "api_password": "password",
-                        "node": "nonexistent",
-                    }
-                ):
-                    self.module.main()
-
-            result = exc_info.value.args[0]
-            assert (
-                "Node 'nonexistent' not found in the Proxmox cluster" in result["msg"]
-            )
-
-    def test_boolean_conversion(self):
-        """Test that boolean values are properly converted."""
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
+        with patch.object(self.module.ProxmoxNodeNetworkInfoAnsible, "get_node", return_value=None):
+            with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
                 {
                     "api_host": "host",
                     "api_user": "user",
                     "api_password": "password",
-                    "node": "pve",
-                    "iface": "bond0",
+                    "node": "nonexistent",
                 }
             ):
                 self.module.main()
+
+            result = exc_info.value.args[0]
+            assert "Node 'nonexistent' not found in the Proxmox cluster" in result["msg"]
+
+    def test_boolean_conversion(self):
+        """Test that boolean values are properly converted."""
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface": "bond0",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
@@ -343,28 +320,26 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_node_not_specified(self):
         """Test error handling when node parameter is not specified."""
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(
-                {"api_host": "host", "api_user": "user", "api_password": "password"}
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {"api_host": "host", "api_user": "user", "api_password": "password"}
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert "missing required arguments: node" in result["msg"]
 
     def test_iface_specified_but_not_found(self):
         """Test when iface is specified but the interface doesn't exist."""
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "iface": "nonexistent_interface",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface": "nonexistent_interface",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
@@ -372,17 +347,16 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_iface_type_specified_but_not_found(self):
         """Test when iface_type is specified but no interfaces of that type exist."""
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "iface_type": "OVSPort",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface_type": "OVSPort",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
@@ -390,35 +364,33 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_iface_type_invalid(self):
         """Test when iface_type is specified with an invalid value."""
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "iface_type": "invalid_type",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface_type": "invalid_type",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert "value of iface_type must be one of:" in result["msg"]
 
     def test_combination_iface_and_iface_type_not_found(self):
         """Test when both iface and iface_type are specified but combination doesn't exist."""
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args(
-                {
-                    "api_host": "host",
-                    "api_user": "user",
-                    "api_password": "password",
-                    "node": "pve",
-                    "iface": "vmbr0",
-                    "iface_type": "eth",
-                }
-            ):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "iface": "vmbr0",
+                "iface_type": "eth",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert not result["changed"]
