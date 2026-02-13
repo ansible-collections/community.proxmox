@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2026, Clément Cruau (@PendaGTP) <38917281+PendaGTP@users.noreply.github.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_role
@@ -109,7 +105,7 @@ def get_ansible_module():
 
 class ProxmoxRoleAnsible(ProxmoxAnsible):
     def __init__(self, module):
-        super(ProxmoxRoleAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

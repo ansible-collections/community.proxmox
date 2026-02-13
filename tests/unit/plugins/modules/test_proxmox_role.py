@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2026, Clément Cruau (@PendaGTP) <38917281+PendaGTP@users.noreply.github.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 from unittest.mock import Mock, patch
 
@@ -73,9 +69,8 @@ class TestProxmoxRoleModule(ModuleTestCase):
         super().tearDown()
 
     def _run_module(self, args):
-        with pytest.raises(SystemExit) as exc_info:
-            with set_module_args(args):
-                self.module.main()
+        with pytest.raises(SystemExit) as exc_info, set_module_args(args):
+            self.module.main()
         return exc_info.value.args[0]
 
     def _check_mode_args(self, **kwargs):
