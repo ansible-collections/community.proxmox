@@ -40,18 +40,22 @@ options:
       - Specify the token secret.
       - Uses the E(PROXMOX_TOKEN_SECRET) environment variable if not specified.
     type: str
+  ca_path:
+    description:
+      - Path to a local certificate, which will be used to verify TLS connections.
+      - Ignored if O(validate_certs=false).
+    type: path
   api_timeout:
     description:
-      - Time limit for requests towards the Proxmox api.
+      - Time limit for requests towards the Proxmox VE API.
     type: int
     default: 5
   validate_certs:
     description:
-      - If V(false), SSL certificates will not be validated.
-      - This should only be used on personally controlled sites using self-signed certificates.
+      - Validate the TLS certificates used for the connection to the Proxmox VE API.
+      - Currently defaults to V(false) and changes default to V(true) with community.proxmox 2.0.0.
       - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
     type: bool
-    default: false
 requirements: ["proxmoxer >= 2.0", "requests"]
 """
 
