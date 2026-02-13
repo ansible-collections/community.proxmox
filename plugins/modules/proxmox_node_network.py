@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, aleskxyz <aleskxyz@gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_node_network
@@ -580,19 +576,19 @@ diff:
 
 
 import re
-from ipaddress import ip_address, ip_interface
 import traceback
+from ipaddress import ip_address, ip_interface
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 from ansible.module_utils.common.yaml import yaml_dump
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_to_ansible_bool,
     proxmox_auth_argument_spec,
+    proxmox_to_ansible_bool,
 )
-
 
 # Single source of truth for all parameter definitions
 PARAMETER_DEFINITIONS = {
@@ -911,9 +907,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
 
         param_type = param_def["type"]
 
-        if param_type == "str" and value == "":
-            return None
-        elif param_type == "int" and value == -1:
+        if param_type == "str" and value == "" or param_type == "int" and value == -1:
             return None
         else:
             return value
@@ -969,9 +963,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             if not _is_valid_ipv4(gateway_value):
                 errors.append("gateway must be a valid IPv4 address")
 
-        gateway6_value = self.get_effective_value(
-            self.params.get("gateway6"), "gateway6"
-        )
+        gateway6_value = self.get_effective_value(self.params.get("gateway6"), "gateway6")
         if gateway6_value and not cidr6_value:
             errors.append("gateway6 cannot be set when cidr6 is not defined")
         elif gateway6_value:
@@ -990,14 +982,10 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         errors = []
 
         # bridge_vids requires bridge_vlan_aware to be enabled
-        bridge_vids_value = self.get_effective_value(
-            self.params.get("bridge_vids"), "bridge_vids"
-        )
+        bridge_vids_value = self.get_effective_value(self.params.get("bridge_vids"), "bridge_vids")
         if bridge_vids_value is not None:
             if not self.params.get("bridge_vlan_aware"):
-                errors.append(
-                    "bridge_vids should not be defined if bridge_vlan_aware is not set or false"
-                )
+                errors.append("bridge_vids should not be defined if bridge_vlan_aware is not set or false")
 
         return errors
 
@@ -1019,9 +1007,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 "balance-alb",
             ]
             if bond_mode not in valid_modes:
-                errors.append(
-                    f"Invalid bond_mode for bond type. Must be one of: {', '.join(valid_modes)}"
-                )
+                errors.append(f"Invalid bond_mode for bond type. Must be one of: {', '.join(valid_modes)}")
 
         if not self.params.get("slaves"):
             errors.append("slaves is required for bond type")
@@ -1035,28 +1021,20 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 bond_primary = self.params.get("bond_primary")
                 slaves = self.params.get("slaves", "").split()
                 if bond_primary not in slaves:
-                    errors.append(
-                        "bond_primary must be included in slaves for active-backup mode"
-                    )
+                    errors.append("bond_primary must be included in slaves for active-backup mode")
         elif bond_mode in ["balance-xor", "802.3ad"]:
             if not self.params.get("bond_xmit_hash_policy"):
-                errors.append(
-                    "bond_xmit_hash_policy is required for balance-xor and 802.3ad modes"
-                )
+                errors.append("bond_xmit_hash_policy is required for balance-xor and 802.3ad modes")
 
         # Validate parameter combinations based on bond mode
         if self.params.get("bond_primary") is not None and bond_mode != "active-backup":
-            errors.append(
-                "bond_primary should not be defined if bond_mode is not active-backup"
-            )
+            errors.append("bond_primary should not be defined if bond_mode is not active-backup")
 
         if self.params.get("bond_xmit_hash_policy") is not None and bond_mode not in [
             "balance-xor",
             "802.3ad",
         ]:
-            errors.append(
-                "bond_xmit_hash_policy should not be defined if bond_mode is not balance-xor or 802.3ad"
-            )
+            errors.append("bond_xmit_hash_policy should not be defined if bond_mode is not balance-xor or 802.3ad")
 
         return errors
 
@@ -1069,14 +1047,11 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         # Validate vlan_raw_device based on interface naming format
         if iface.startswith("vlan"):
             if not self.params.get("vlan_raw_device"):
-                errors.append(
-                    f"vlan_raw_device is required for VLAN interface '{iface}' in vlanXY format"
-                )
-        else:
-            if self.params.get("vlan_raw_device") is not None:
-                errors.append(
-                    f"vlan_raw_device should not be specified for VLAN interface '{iface}' in iface_name.vlan_id format"
-                )
+                errors.append(f"vlan_raw_device is required for VLAN interface '{iface}' in vlanXY format")
+        elif self.params.get("vlan_raw_device") is not None:
+            errors.append(
+                f"vlan_raw_device should not be specified for VLAN interface '{iface}' in iface_name.vlan_id format"
+            )
 
         return errors
 
@@ -1100,9 +1075,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 "lacp-balance-tcp",
             ]
             if bond_mode not in valid_modes:
-                errors.append(
-                    f"Invalid bond_mode for OVSBond. Must be one of: {', '.join(valid_modes)}"
-                )
+                errors.append(f"Invalid bond_mode for OVSBond. Must be one of: {', '.join(valid_modes)}")
 
         if not self.params.get("ovs_bonds"):
             errors.append("ovs_bonds is required for OVSBond type")
@@ -1221,16 +1194,11 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             else:
                 bond_number = int(iface[4:])
                 if bond_number > 9999:
-                    errors.append(
-                        f"bond interface number must be between 0 and 9999, got {bond_number}"
-                    )
+                    errors.append(f"bond interface number must be between 0 and 9999, got {bond_number}")
 
         # VLAN interfaces support two formats: eth0.100 and vlan100
         elif iface_type == "vlan":
-            if not (
-                re.match(r"^(?!vlan\.)[a-zA-Z0-9_-]+\.\d+$", iface)
-                or re.match(r"^vlan\d+$", iface)
-            ):
+            if not (re.match(r"^(?!vlan\.)[a-zA-Z0-9_-]+\.\d+$", iface) or re.match(r"^vlan\d+$", iface)):
                 errors.append(
                     f"VLAN interface name '{iface}' must follow format 'vlanXY' (e.g., vlan100) or 'iface_name.vlan_id' (e.g., eth0.100)"
                 )
@@ -1241,9 +1209,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                     else:
                         vlan_id = int(iface.split(".")[-1])
                     if not (1 <= vlan_id <= 4094):
-                        errors.append(
-                            f"vlan_id must be between 1 and 4094, got {vlan_id}"
-                        )
+                        errors.append(f"vlan_id must be between 1 and 4094, got {vlan_id}")
                 except (ValueError, TypeError):
                     errors.append("vlan_id must be a valid integer")
 
@@ -1264,14 +1230,10 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         auth_params = list(proxmox_auth_argument_spec().keys())
         all_allowed_params = allowed_params + list(core_params) + auth_params
 
-        invalid_params = [
-            param for param in set_params if param not in all_allowed_params
-        ]
+        invalid_params = [param for param in set_params if param not in all_allowed_params]
 
         if invalid_params:
-            errors.append(
-                f"Parameters {', '.join(invalid_params)} are not valid for interface type '{iface_type}'"
-            )
+            errors.append(f"Parameters {', '.join(invalid_params)} are not valid for interface type '{iface_type}'")
 
         return errors
 
@@ -1298,9 +1260,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             changes = resp.json().get("changes", None)
             return changes
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failed to check network changes for node {self.node}: {e}"
-            )
+            self.module.fail_json(msg=f"Failed to check network changes for node {self.node}: {e}")
 
     def get_all_interfaces(self):
         """Get all network interfaces."""
@@ -1417,9 +1377,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         try:
             node_info = self.get_node(self.node)
             if not node_info:
-                self.module.fail_json(
-                    msg=f"Node '{self.node}' not found in the Proxmox cluster"
-                )
+                self.module.fail_json(msg=f"Node '{self.node}' not found in the Proxmox cluster")
         except Exception as e:
             self.module.fail_json(msg=f"Failed to validate node '{self.node}': {e}")
 
@@ -1585,9 +1543,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             data["type"] = self.params.get("iface_type")
 
         # Process all parameters for the interface type
-        for param_name in self.get_params_for_interface_type(
-            self.params.get("iface_type")
-        ):
+        for param_name in self.get_params_for_interface_type(self.params.get("iface_type")):
             if self.params.get(param_name) is not None:
                 value = self.params.get(param_name)
 
@@ -1649,9 +1605,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                     current_value_normalized = self.normalize_comment(current_value)
                     if current_value_normalized != desired_value:
                         return True
-                else:
-                    if str(current_value) != str(desired_value):
-                        return True
+                elif str(current_value) != str(desired_value):
+                    return True
 
         return False
 
@@ -1755,9 +1710,7 @@ def main():
     # Validate parameters
     validation_errors = network_manager.validate_params()
     if validation_errors:
-        module.fail_json(
-            msg="Parameter validation failed: " + "; ".join(validation_errors)
-        )
+        module.fail_json(msg="Parameter validation failed: " + "; ".join(validation_errors))
 
     # Execute the operation
     result = network_manager.execute()

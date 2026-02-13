@@ -1,12 +1,8 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright Tristan Le Guern <tleguern at bouledef.eu>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 
 DOCUMENTATION = r"""
@@ -75,8 +71,11 @@ proxmox_groups:
 
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxGroupInfoAnsible(ProxmoxAnsible):
@@ -85,7 +84,7 @@ class ProxmoxGroupInfoAnsible(ProxmoxAnsible):
             group = self.proxmox_api.access.groups.get(groupid)
         except Exception:
             self.module.fail_json(msg="Group '%s' does not exist" % groupid)
-        group['groupid'] = groupid
+        group["groupid"] = groupid
         return ProxmoxGroup(group)
 
     def get_groups(self):
@@ -98,17 +97,17 @@ class ProxmoxGroup:
         self.group = dict()
         # Data representation is not the same depending on API calls
         for k, v in group.items():
-            if k == 'users' and isinstance(v, str):
-                self.group['users'] = v.split(',')
-            elif k == 'members':
-                self.group['users'] = group['members']
+            if k == "users" and isinstance(v, str):
+                self.group["users"] = v.split(",")
+            elif k == "members":
+                self.group["users"] = group["members"]
             else:
                 self.group[k] = v
 
 
 def proxmox_group_info_argument_spec():
     return dict(
-        group=dict(type='str', aliases=['groupid', 'name']),
+        group=dict(type="str", aliases=["groupid", "name"]),
     )
 
 
@@ -119,25 +118,23 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
-        supports_check_mode=True
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
+        supports_check_mode=True,
     )
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     proxmox = ProxmoxGroupInfoAnsible(module)
-    group = module.params['group']
+    group = module.params["group"]
 
     if group:
         groups = [proxmox.get_group(groupid=group)]
     else:
         groups = proxmox.get_groups()
-    result['proxmox_groups'] = [group.group for group in groups]
+    result["proxmox_groups"] = [group.group for group in groups]
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

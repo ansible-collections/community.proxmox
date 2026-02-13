@@ -1,3 +1,4 @@
+#
 # Copyright (c) 2020, Tristan Le Guern <tleguern at bouledef.eu>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -72,8 +73,15 @@ def ansible_to_proxmox_bool(value):
 
 
 def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
-    """
-    Compare two lists of dicts.
+    """Compare 2 list of dicts
+    Use case - for firewall rules we will be getting a list of rules from user.
+    We want to filter out which rules needs to be updated and which rules are completely new and needs to be created
+
+    :param existing_list: Existing values example - list of existing rules
+    :param new_list: New values example - list of rules passed to module
+    :param uid: unique identifier in dict. It should always be present in both lists - in case of firewall rules it's pos
+    :param params_to_ignore:  list of params we want to ignore which are present in existing_list's dict.
+                            In case of firewall rules we want to ignore ['digest', 'ipversion']
 
     Use case - for firewall rules we will be getting a list of rules from user.
     We want to filter out which rules needs to be updated and which rules are completely new and needs to be created.
@@ -247,7 +255,7 @@ class ProxmoxAnsible:
             if ignore_missing:
                 return None
 
-            self.module.fail_json(msg=f"No VM with name {name}f found")
+            self.module.fail_json(msg=f"No VM with name {name} found")
         elif len(vms) > 1 and not choose_first_if_multiple:
             self.module.fail_json(msg=f"Multiple VMs with name {name} found, provide vmid instead")
 

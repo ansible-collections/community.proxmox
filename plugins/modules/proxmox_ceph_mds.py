@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, (@teslamania) <nicolas.vial@protonmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_ceph_mds
@@ -71,9 +68,10 @@ msg:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ProxmoxAnsible,
+    proxmox_auth_argument_spec,
 )
 
 
@@ -82,9 +80,7 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
         nodes = self.proxmox_api.cluster.resources.get(type="node")
         nodes = [item["node"] for item in nodes]
         if node not in nodes:
-            self.module.fail_json(
-                msg="Node %s does not exist in the cluster" % node
-            )
+            self.module.fail_json(msg="Node %s does not exist in the cluster" % node)
 
     def check_mds(self, node):
         mds = self.proxmox_api.nodes(node).ceph.mds.get()
@@ -96,11 +92,7 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
     def add_mds(self, mds):
         self.check_node(mds)
         if self.check_mds(mds):
-            self.module.exit_json(
-                changed=False,
-                msg="Mds already exists",
-                mds=mds
-            )
+            self.module.exit_json(changed=False, msg="Mds already exists", mds=mds)
         else:
             if not self.module.check_mode:
                 self.proxmox_api.nodes(mds).ceph.mds(mds).create()
@@ -108,11 +100,7 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
             else:
                 msg = f"Mds {mds} would be added"
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-                mds=mds
-            )
+            self.module.exit_json(changed=True, msg=msg, mds=mds)
 
     def del_mds(self, mds):
         self.check_node(mds)
@@ -123,24 +111,16 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
             else:
                 msg = f"Mds {mds} would be deleted"
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-                mds=mds
-            )
+            self.module.exit_json(changed=True, msg=msg, mds=mds)
         else:
-            self.module.exit_json(
-                changed=False,
-                msg="Mds not present",
-                mds=mds
-            )
+            self.module.exit_json(changed=False, msg="Mds not present", mds=mds)
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
     mds_args = dict(
-        node=dict(type='str', required=True),
-        state=dict(choices=['present', 'absent'], required=True),
+        node=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"], required=True),
     )
 
     module_args.update(mds_args)
@@ -153,25 +133,19 @@ def main():
     )
 
     proxmox = ProxmoxCephMdsAnsible(module)
-    state = module.params['state']
+    state = module.params["state"]
 
-    if state == 'present':
+    if state == "present":
         try:
-            proxmox.add_mds(module.params['node'])
+            proxmox.add_mds(module.params["node"])
         except Exception as e:
-            module.fail_json(
-                msg="Adding mds failed with exception: %s" % to_native(e)
-            )
+            module.fail_json(msg="Adding mds failed with exception: %s" % to_native(e))
 
-    elif state == 'absent':
+    elif state == "absent":
         try:
-            proxmox.del_mds(
-                module.params['node']
-            )
+            proxmox.del_mds(module.params["node"])
         except Exception as e:
-            module.fail_json(
-                msg="Deleting mds failed with exception: %s" % to_native(e)
-            )
+            module.fail_json(msg="Deleting mds failed with exception: %s" % to_native(e))
 
 
 if __name__ == "__main__":

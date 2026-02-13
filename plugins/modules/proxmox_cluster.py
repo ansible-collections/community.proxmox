@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_cluster
@@ -106,9 +103,13 @@ cluster:
 
 
 import re
+
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxClusterAnsible(ProxmoxAnsible):
@@ -138,9 +139,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
         if self.check_is_cluster(cluster_status):
             if self.get_cluster_name(cluster_status) == cluster_name:
                 self.module.exit_json(
-                    changed=False,
-                    msg=f"Cluster '{cluster_name}' already present.",
-                    cluster=cluster_name
+                    changed=False, msg=f"Cluster '{cluster_name}' already present.", cluster=cluster_name
                 )
             else:
                 self.module.fail_json(
@@ -153,19 +152,11 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             payload["link1"] = self.module.params.get("link1")
 
         if self.module.check_mode:
-            self.module.exit_json(
-                changed=True,
-                msg=f"Cluster '{cluster_name}' would be created.",
-                cluster=cluster_name
-            )
+            self.module.exit_json(changed=True, msg=f"Cluster '{cluster_name}' would be created.", cluster=cluster_name)
 
         try:
             self.proxmox_api.cluster.config.post(**payload)
-            self.module.exit_json(
-                changed=True,
-                msg=f"Cluster '{cluster_name}' created.",
-                cluster=cluster_name
-            )
+            self.module.exit_json(changed=True, msg=f"Cluster '{cluster_name}' created.", cluster=cluster_name)
         except Exception as e:
             self.module.fail_json(msg=f"Error while creating cluster: {str(e)}")
 
@@ -186,20 +177,12 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
 
         if self.check_is_cluster(cluster_status):
             if self.check_already_in_right_cluster(cluster_status, master_ip):
-                self.module.exit_json(
-                    changed=False,
-                    msg="Node already in the cluster."
-                )
+                self.module.exit_json(changed=False, msg="Node already in the cluster.")
 
-            self.module.fail_json(
-                msg="Error while joining cluster: Node is already part of a cluster."
-            )
+            self.module.fail_json(msg="Error while joining cluster: Node is already part of a cluster.")
 
         if self.module.check_mode:
-            self.module.exit_json(
-                changed=True,
-                msg="Node would join the cluster."
-            )
+            self.module.exit_json(changed=True, msg="Node would join the cluster.")
 
         try:
             self.proxmox_api.cluster.config.join.post(**payload)
@@ -218,35 +201,31 @@ def validate_cluster_name(module, min_length=1, max_length=15):
         module.fail_json(msg=f"Cluster name must be between {min_length} and {max_length} characters long.")
 
     if not re.match(r"^[a-zA-Z0-9\-]+$", cluster_name):
-        module.fail_json(
-            msg="Cluster name must contain only letters, digits, or hyphens."
-        )
+        module.fail_json(msg="Cluster name must contain only letters, digits, or hyphens.")
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
 
     cluster_args = dict(
-        state=dict(default=None, choices=['present']),
-        cluster_name=dict(type='str'),
-        link0=dict(type='str'),
-        link1=dict(type='str'),
-        master_ip=dict(type='str'),
-        master_api_password=dict(type='str', no_log=True),
-        fingerprint=dict(type='str'),
+        state=dict(default=None, choices=["present"]),
+        cluster_name=dict(type="str"),
+        link0=dict(type="str"),
+        link1=dict(type="str"),
+        master_ip=dict(type="str"),
+        master_api_password=dict(type="str", no_log=True),
+        fingerprint=dict(type="str"),
     )
     module_args.update(cluster_args)
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
         supports_check_mode=True,
     )
 
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     proxmox = ProxmoxClusterAnsible(module)
 
@@ -263,9 +242,9 @@ def main():
     else:
         cluster_action = {}
 
-    result['proxmox_cluster'] = cluster_action
+    result["proxmox_cluster"] = cluster_action
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

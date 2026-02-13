@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_zone_info
@@ -100,14 +96,13 @@ zones:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import proxmox_auth_argument_spec
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
 def get_proxmox_args():
-    return dict(
-        type=dict(type='str', choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"], required=False)
-    )
+    return dict(type=dict(type="str", choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"], required=False))
 
 
 def get_ansible_module():
@@ -125,12 +120,8 @@ class ProxmoxZoneInfoAnsible(ProxmoxSdnAnsible):
         self.params = module.params
 
     def run(self):
-        zones = self.get_zones(
-            zone_type=self.params.get('type')
-        )
-        self.module.exit_json(
-            changed=False, zones=zones, msg="Successfully retrieved zone info."
-        )
+        zones = self.get_zones(zone_type=self.params.get("type"))
+        self.module.exit_json(changed=False, zones=zones, msg="Successfully retrieved zone info.")
 
 
 def main():
@@ -140,7 +131,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

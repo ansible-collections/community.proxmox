@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: 2025 Felix Fontein <felix@fontein.de>
 
 line-length = 120
+target-version = "py37"
 
 [lint]
 # https://docs.astral.sh/ruff/rules/
@@ -37,19 +38,19 @@ dummy-variable-rgx = "^(_|dummy).*$"
 
 [lint.pydocstyle]
 # force users to include their variables in docstrings to improve editor support
-ignore-var-parameters = false 
+ignore-var-parameters = false
 # quite similar to the yaml we already use as ansible documentation
-convention = "google" 
+convention = "google"
 
 
 [lint.isort]
-# The resulting order is: stdlib, third-party, e.g. ansible, first-party, e.g. ansible_collections.community.proxmox.*, local 
+# The resulting order is: stdlib, third-party, e.g. ansible, first-party, e.g. ansible_collections.community.proxmox.*, local
 known-first-party = [
     "ansible_collections.community.proxmox",
 ]
 known-third-party = [
     "ansible_collections.community.internal_test_tools",
-] 
+]
 
 [lint.pycodestyle]
 max-line-length = 160
