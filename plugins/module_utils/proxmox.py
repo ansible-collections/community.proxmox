@@ -36,7 +36,7 @@ def proxmox_auth_argument_spec():
         api_port=dict(type="int", fallback=(env_fallback, ["PROXMOX_PORT"])),
         api_user=dict(type="str", required=True, fallback=(env_fallback, ["PROXMOX_USER"])),
         api_password=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_PASSWORD"])),
-        api_otp=dict(type='str', no_log=True, fallback=(env_fallback, ['PROXMOX_OTP'])),
+        api_otp=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_OTP"])),
         api_token_id=dict(type="str", no_log=False, fallback=(env_fallback, ["PROXMOX_TOKEN_ID"])),
         api_token_secret=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_TOKEN_SECRET"])),
         ca_path=dict(type="path", fallback=(env_fallback, ["PROXMOX_CA_PATH"])),
@@ -160,7 +160,7 @@ class ProxmoxAnsible:
         api_port = self.module.params["api_port"]
         api_user = self.module.params["api_user"]
         api_password = self.module.params["api_password"]
-        api_otp = self.module.params['api_otp']
+        api_otp = self.module.params["api_otp"]
         api_token_id = self.module.params["api_token_id"]
         api_token_secret = self.module.params["api_token_secret"]
         if self.module.params["validate_certs"] is None:
