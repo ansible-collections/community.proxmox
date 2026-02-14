@@ -150,13 +150,13 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 def get_proxmox_args():
     return dict(
-        hostname=dict(),
-        vmid=dict(),
-        state=dict(default="present", choices=["present", "absent", "rollback"]),
+        hostname=dict(type="str"),
+        vmid=dict(type=str),
+        state=dict(type=str, default="present", choices=["present", "absent", "rollback"]),
         force=dict(type="bool", default=False),
         unbind=dict(type="bool", default=False),
         vmstate=dict(type="bool", default=False),
-        description=dict(),
+        description=dict(type=str),
         timeout=dict(type="int", default=30),
         snapname=dict(default="ansible_snap"),
         retention=dict(type="int", default=0),
