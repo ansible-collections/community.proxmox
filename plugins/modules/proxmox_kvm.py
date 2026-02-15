@@ -436,7 +436,7 @@ options:
     type: int
   sshkeys:
     description:
-      - Cloud-init: SSH public key(s) to assign to the default user.
+      - 'Cloud-init: SSH public key(s) to assign to the default user.'
       - Supports multiple SSH keys by providing a multi-line value.
       - Each key should be on a separate line in the format C(ssh-key-type key-data [comment]).
       - Use YAML literal block scalar (C(|)) to provide multiple keys, one per line.
