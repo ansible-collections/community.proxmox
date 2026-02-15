@@ -161,9 +161,10 @@ options:
         type: bool
   force:
     description:
-      - Allow to force stop VM.
-      - Can be used with states V(stopped), V(restarted), and V(absent).
-      - Requires parameter O(archive).
+      - If V(true), allows forceful power operations (stop, reset).
+      - When used with O(state=stopped), attempts a graceful shutdown
+        and if the VM is still running after O(timeout), it will be forcefully powered off.
+      - When used with O(state=restarted), performs reset (power off and on) and not a graceful reboot.
     type: bool
   format:
     description:
@@ -453,6 +454,7 @@ options:
     description:
       - Indicates desired state of the instance.
       - If V(current), the current state of the VM will be fetched. You can access it with C(results.status).
+      - V(stopped) ensures that the VM is powered off using a graceful shutdown.
     type: str
     choices: ['present', 'started', 'absent', 'stopped', 'restarted', 'current', 'template', 'paused', 'hibernated']
     default: present
@@ -487,9 +489,9 @@ options:
     type: bool
   timeout:
     description:
-      - Timeout for operations.
-      - When used with O(state=stopped) the option sets a graceful timeout for VM stop after which a VM will be forcefully
-        stopped.
+      - Timeout in seconds for operations.
+      - If the timeout is reached with O(state=stopped) and O(force=True), the VM will be forcefully powered off.
+      - If the timeout is reached with O(state=stopped) and O(force=False), the task will fail.
     type: int
     default: 30
   tpmstate0:
