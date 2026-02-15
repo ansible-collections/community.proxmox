@@ -293,7 +293,9 @@ storage:
   sample: "Storage 'net-nfsshare01' created successfully."
 """
 
+from ansible.errors import AnsibleOptionsError
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
@@ -480,7 +482,7 @@ def validate_storage_type_options(storage_type, options):
     if storage_type == "cephfs":
         content = options.get("content")
         if not all([content]):
-            raise Exception("CephFS storage requires 'content' option.")
+            raise AnsibleOptionsError("CephFS storage requires 'content' option.")
 
     if storage_type == "cephfs":
         content = options.get("content")
@@ -491,25 +493,25 @@ def validate_storage_type_options(storage_type, options):
         server = options.get("server")
         share = options.get("share")
         if not all([server, share]):
-            raise Exception("CIFS storage requires 'server' and 'share' options.")
+            raise AnsibleOptionsError("CIFS storage requires 'server' and 'share' options.")
 
     elif storage_type == "dir":
         path = options.get("path")
         content = options.get("content")
         if not all([path, content]):
-            raise Exception("Directory storage requires 'path' and 'content' options.")
+            raise AnsibleOptionsError("Directory storage requires 'path' and 'content' options.")
 
     elif storage_type == "iscsi":
         portal = options.get("portal")
         target = options.get("target")
         if not all([portal, target]):
-            raise Exception("iSCSI storage requires 'portal' and 'target' options.")
+            raise AnsibleOptionsError("iSCSI storage requires 'portal' and 'target' options.")
 
     elif storage_type == "nfs":
         server = options.get("server")
         export = options.get("export")
         if not all([server, export]):
-            raise Exception("NFS storage requires 'server' and 'export' options.")
+            raise AnsibleOptionsError("NFS storage requires 'server' and 'export' options.")
 
     elif storage_type == "pbs":
         server = options.get("server")
@@ -517,13 +519,13 @@ def validate_storage_type_options(storage_type, options):
         password = options.get("password")
         datastore = options.get("datastore")
         if not all([server, username, password, datastore]):
-            raise Exception("PBS storage requires 'server', 'username', 'password' and 'datastore' options.")
+            raise AnsibleOptionsError("PBS storage requires 'server', 'username', 'password' and 'datastore' options.")
 
     elif storage_type == "zfspool":
         pool = options.get("pool")
         content = options.get("content")
         if not all([pool, content]):
-            raise Exception("ZFS storage requires 'pool' and 'content' options.")
+            raise AnsibleOptionsError("ZFS storage requires 'pool' and 'content' options.")
 
 
 def main():
@@ -611,8 +613,8 @@ def main():
 
         try:
             validate_storage_type_options(storage_type, options)
-        except Exception as e:
-            module.fail_json(msg=f"Storage validation error: {str(e)}")
+        except AnsibleOptionsError as e:
+            module.fail_json(msg=to_native(e))
 
         changed, function_result = proxmox.add_storage()
         result = {"changed": changed, "msg": function_result}
