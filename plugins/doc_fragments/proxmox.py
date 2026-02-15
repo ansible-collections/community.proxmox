@@ -30,6 +30,11 @@ options:
       - Specify the password to authenticate with.
       - Uses the E(PROXMOX_PASSWORD) environment variable if not specified.
     type: str
+  api_otp:
+    description:
+      - Specify the OTP.
+      - Uses the E(PROXMOX_OTP) environment variable if not specified.
+    type: str
   api_token_id:
     description:
       - Specify the token ID.
