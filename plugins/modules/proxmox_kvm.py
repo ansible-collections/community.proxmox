@@ -218,9 +218,10 @@ options:
       - A hash/dictionary of volume used as IDE hard disk or CD-ROM.
       - Keys must be C(ide[n]) where 0 ≤ n ≤ 3.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "ide[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - |
+        For a complete list of all available options, please refer to the Proxmox VE documentation
+        (look for "ide[n]:") at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   ipconfig:
     description:
@@ -364,18 +365,18 @@ options:
       - A hash/dictionary of volume used as SATA hard disk or CD-ROM.
       - Keys must be C(sata[n]) where 0 ≤ n ≤ 5.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:")
+        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   scsi:
     description:
       - A hash/dictionary of volume used as SCSI hard disk or CD-ROM.
       - Keys must be C(scsi[n]) where 0 ≤ n ≤ 30.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:")
+        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   scsihw:
     description:
@@ -543,9 +544,9 @@ options:
       - A hash/dictionary of volume used as VIRTIO hard disk or CD-ROM.
       - Keys must be C(virtio[n]) where 0 ≤ n ≤ 15.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:")
+        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   watchdog:
     description:
