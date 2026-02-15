@@ -139,6 +139,7 @@ RETURN = r"""#"""
 
 import time
 
+from ansible.errors import AnsibleOptionsError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
@@ -187,7 +188,7 @@ def validate_params(params):
         api_user = params.get("api_user")
         api_password = params.get("api_password")
         if api_user != "root@pam" or not api_password:
-            raise Exception("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
+            raise AnsibleOptionsError("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
 
 
 class ProxmoxSnapAnsible(ProxmoxAnsible):
@@ -333,8 +334,8 @@ def main():
 
     try:
         validate_params(module.params)
-    except Exception as e:
-        module.fail_json(msg=f"Module parameters validation error: {str(e)}")
+    except AnsibleOptionsError as e:
+        module.fail_json(msg=to_native(e))
 
     proxmox = ProxmoxSnapAnsible(module)
 
