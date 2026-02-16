@@ -73,7 +73,8 @@ def ansible_to_proxmox_bool(value):
 
 
 def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
-    """Compare 2 list of dicts
+    """Compare 2 list of dicts.
+
     Use case - for firewall rules we will be getting a list of rules from user.
     We want to filter out which rules needs to be updated and which rules are completely new and needs to be created
 
