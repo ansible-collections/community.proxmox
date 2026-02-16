@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - inventory plugin - add want_post_filtering_facts to delay fact gathering until filtering has completed (https://github.com/ansible-collections/community.proxmox/pull/261).

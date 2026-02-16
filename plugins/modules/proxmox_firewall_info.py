@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_firewall_info
@@ -266,8 +262,9 @@ firewall_rules:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import proxmox_auth_argument_spec
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
 def get_proxmox_args():
@@ -289,11 +286,11 @@ def get_ansible_module():
         argument_spec=module_args,
         supports_check_mode=True,
         required_if=[
-            ('level', 'vm', ['vmid']),
-            ('level', 'node', ['node']),
-            ('level', 'vnet', ['vnet']),
-            ('level', 'group', ['group']),
-        ]
+            ("level", "vm", ["vmid"]),
+            ("level", "node", ["node"]),
+            ("level", "vnet", ["vnet"]),
+            ("level", "group", ["group"]),
+        ],
     )
 
 
@@ -306,18 +303,18 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
         level = self.params.get("level")
 
         if level == "vm":
-            vm = self.get_vm(vmid=self.params.get('vmid'))
-            node = self.proxmox_api.nodes(vm['node'])
-            virt = node(vm['type'])
-            firewall_obj = virt(str(vm['vmid'])).firewall
+            vm = self.get_vm(vmid=self.params.get("vmid"))
+            node = self.proxmox_api.nodes(vm["node"])
+            virt = node(vm["type"])
+            firewall_obj = virt(str(vm["vmid"])).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "node":
-            firewall_obj = self.proxmox_api.nodes(self.params.get('node')).firewall
+            firewall_obj = self.proxmox_api.nodes(self.params.get("node")).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "vnet":
-            firewall_obj = self.proxmox_api.cluster().sdn().vnets(self.params.get('vnet')).firewall
+            firewall_obj = self.proxmox_api.cluster().sdn().vnets(self.params.get("vnet")).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "group":
@@ -328,17 +325,17 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
             firewall_obj = self.proxmox_api.cluster().firewall
             rules_obj = firewall_obj().rules
 
-        rules = self.get_fw_rules(rules_obj, pos=self.params.get('pos'))
+        rules = self.get_fw_rules(rules_obj, pos=self.params.get("pos"))
         groups = self.get_groups()
         aliases = self.get_aliases(firewall_obj=firewall_obj)
-        ip_sets = self.get_ip_sets()
+        ip_sets = self.get_ip_sets(firewall_obj=firewall_obj)
         self.module.exit_json(
             changed=False,
             firewall_rules=rules,
             groups=groups,
             aliases=aliases,
             ip_sets=ip_sets,
-            msg='successfully retrieved firewall rules and groups'
+            msg="successfully retrieved firewall rules and groups",
         )
 
 
@@ -349,7 +346,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

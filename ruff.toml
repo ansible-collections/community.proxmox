@@ -1,0 +1,75 @@
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2025 Felix Fontein <felix@fontein.de>
+
+line-length = 120
+target-version = "py37"
+
+[lint]
+# https://docs.astral.sh/ruff/rules/
+
+select = ["A", "B", "D", "E", "F", "FA", "FLY", "UP", "SIM", "I", "RUF022", "PL"]
+ignore = [
+    # Better keep ignored (for now)
+    "F811",  # Redefinition of unused `xxx` (happens a lot for fixtures in unit tests)
+    "E402",  # Module level import not at top of file
+    "E741",  # Ambiguous variable name
+    "UP012",  # unnecessary-encode-utf8
+    "UP015",  # Unnecessary mode argument
+    "SIM105",  # suppressible-exception
+    "SIM108",  # if-else-block-instead-of-if-exp
+    "D100", # Missing docstring in public module
+    "D107", # undocumented-public-init
+    "D203", # incorrect-blank-line-before-class, mutually exclusive to D211
+    "D212", # multi-line-summary-first-line, mutually exclusive to D213
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed or starting with dummy
+dummy-variable-rgx = "^(_|dummy).*$"
+
+
+[lint.per-file-ignores]
+# Only require docstrings for shared utils
+"!**/*_utils/*.py" = ["D"]
+
+[lint.pydocstyle]
+# force users to include their variables in docstrings to improve editor support
+ignore-var-parameters = false
+# quite similar to the yaml we already use as ansible documentation
+convention = "google"
+
+
+[lint.isort]
+# The resulting order is: stdlib, third-party, e.g. ansible, first-party, e.g. ansible_collections.community.proxmox.*, local
+known-first-party = [
+    "ansible_collections.community.proxmox",
+]
+known-third-party = [
+    "ansible_collections.community.internal_test_tools",
+]
+
+[lint.pycodestyle]
+max-line-length = 160
+
+[format]
+# https://docs.astral.sh/ruff/formatter/#configuration
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+line-ending = "lf"
+
+# Disable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+docstring-code-format = false
+
+

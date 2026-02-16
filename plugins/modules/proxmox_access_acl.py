@@ -4,10 +4,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Markus Kötter <koetter@cispa.de>
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
 
-DOCUMENTATION = r'''
+
+DOCUMENTATION = r"""
 ---
 module: proxmox_access_acl
 
@@ -58,9 +57,9 @@ extends_documentation_fragment:
   - community.proxmox.attributes
 author:
     - Markus Kötter (@commonism)
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Create ACE
   community.proxmox.proxmox_access_acl:
     api_host: "{{ ansible_host }}"
@@ -82,9 +81,9 @@ EXAMPLES = r'''
 
     state: "absent"
     path: /vms/100
-'''
+"""
 
-RETURN = r'''
+RETURN = r"""
 # These are examples of possible return values, and in general should use other names for return values.
 old_acls:
     description: The original name param that was passed in.
@@ -94,11 +93,14 @@ new_acls:
     description: The output message that the test module generates.
     type: list
     returned: when changed
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxAccessACLAnsible(ProxmoxAnsible):
@@ -111,15 +113,16 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
 
     def create(self, acls, path, roleid, type, ugid, propagate):
         for ace in acls:
-            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], bool(ace.get("propagate", 1))) == (path, roleid, type, ugid, propagate):
+            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], bool(ace.get("propagate", 1))) == (
+                path,
+                roleid,
+                type,
+                ugid,
+                propagate,
+            ):
                 return False
 
-        data = {
-            "path": path,
-            "roles": roleid,
-            "propagate": int(propagate),
-            f"{type}s": ugid
-        }
+        data = {"path": path, "roles": roleid, "propagate": int(propagate), f"{type}s": ugid}
 
         self._put(**data)
         return True
@@ -142,7 +145,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
                 "path": ace["path"],
                 "roles": ace["roleid"],
                 "propagate": ace["propagate"],
-                f'{ace["type"]}s': ace["ugid"]
+                f"{ace['type']}s": ace["ugid"],
             }
 
             self._put(**data, delete="1")
@@ -154,12 +157,12 @@ def run_module():
     module_args = proxmox_auth_argument_spec()
 
     acl_args = dict(
-        state=dict(choices=['present', 'absent'], required=True),
-        path=dict(type='str', required=False),
-        roleid=dict(type='str', required=False),
-        type=dict(type='str', choices=["user", "group", "token"]),
-        ugid=dict(type='str'),
-        propagate=dict(type='bool', default=True),
+        state=dict(choices=["present", "absent"], required=True),
+        path=dict(type="str", required=False),
+        roleid=dict(type="str", required=False),
+        type=dict(type="str", choices=["user", "group", "token"]),
+        ugid=dict(type="str"),
+        propagate=dict(type="bool", default=True),
     )
 
     module_args.update(acl_args)
@@ -169,10 +172,7 @@ def run_module():
         old_acls=[],
     )
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=False
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
     if module.params["state"] == "present":
         required = frozenset({"path", "roleid", "type", "ugid"})
@@ -180,7 +180,9 @@ def run_module():
         if len(required - exists) > 0:
             result["failed"] = True
             result["missing_parameters"] = required - exists
-            module.fail_json(msg="The following required parameters are not provided {}".format(sorted(required - exists)), **result)
+            module.fail_json(
+                msg=f"The following required parameters are not provided {sorted(required - exists)}", **result
+            )
 
     proxmox = ProxmoxAccessACLAnsible(module)
 
@@ -198,7 +200,7 @@ def run_module():
         else:
             r = proxmox.delete(acls, path, roleid, type, ugid, propagate)
 
-        result['changed'] = r
+        result["changed"] = r
         if r:
             result["new_acls"] = proxmox._get()
     except Exception as e:
@@ -211,5 +213,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

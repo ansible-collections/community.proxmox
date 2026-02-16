@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, aleskxyz <aleskxyz@gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_node_network_info
@@ -164,9 +160,10 @@ import traceback
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ProxmoxAnsible,
+    proxmox_auth_argument_spec,
     proxmox_to_ansible_bool,
 )
 
@@ -256,9 +253,7 @@ class ProxmoxNodeNetworkInfoAnsible(ProxmoxAnsible):
         try:
             node_info = self.get_node(node)
             if not node_info:
-                self.module.fail_json(
-                    msg=f"Node '{node}' not found in the Proxmox cluster"
-                )
+                self.module.fail_json(msg=f"Node '{node}' not found in the Proxmox cluster")
         except Exception as e:
             self.module.fail_json(
                 msg=f"Failed to validate node '{node}': {to_native(e)}",
@@ -270,9 +265,7 @@ class ProxmoxNodeNetworkInfoAnsible(ProxmoxAnsible):
             if check_changes:
                 pending_changes = self.check_network_changes(node)
                 result["pending_changes"] = pending_changes
-                result["has_pending_changes"] = (
-                    pending_changes is not None and len(pending_changes.strip()) > 0
-                )
+                result["has_pending_changes"] = pending_changes is not None and len(pending_changes.strip()) > 0
                 return result
 
             # Get all interfaces or filter by type using API parameter
@@ -289,11 +282,7 @@ class ProxmoxNodeNetworkInfoAnsible(ProxmoxAnsible):
 
             if iface:
                 # Search for interface by name
-                converted_networks = [
-                    network
-                    for network in converted_networks
-                    if network["iface"] == iface
-                ]
+                converted_networks = [network for network in converted_networks if network["iface"] == iface]
 
             result["proxmox_node_networks"] = converted_networks
 

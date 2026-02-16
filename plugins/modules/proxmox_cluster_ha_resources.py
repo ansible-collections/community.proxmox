@@ -4,11 +4,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Markus Kötter <koetter@cispa.de>
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import (absolute_import, division, print_function)
 
-__metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: proxmox_cluster_ha_resources
 
@@ -70,9 +68,9 @@ extends_documentation_fragment:
 
 author:
     - Markus Kötter (@commonism)
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Add VM to HA group
   community.proxmox.proxmox_cluster_ha_resources:
     api_host: "{{ ansible_host }}"
@@ -105,9 +103,9 @@ EXAMPLES = r'''
     max_relocate: 2
     max_restart: 2
   delegate_to: localhost
-'''
+"""
 
-RETURN = r'''
+RETURN = r"""
 # These are examples of possible return values, and in general should use other names for return values.
 old_groups:
     description: The original name param that was passed in.
@@ -117,12 +115,14 @@ new_groups:
     description: The output message that the test module generates.
     type: list
     returned: when changed
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec,
-                                                                                ProxmoxAnsible)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
@@ -149,11 +149,11 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
         }
 
         # Normalize input SIDs to version without : in them
-        if ':' in sid:
-            sid = sid.partition(':')[2]
+        if ":" in sid:
+            sid = sid.partition(":")[2]
 
         for resource in resources:
-            if resource["sid"].partition(':')[2] != sid:
+            if resource["sid"].partition(":")[2] != sid:
                 continue
 
             # Compare all keys in the desired state against current state
@@ -180,13 +180,13 @@ def run_module():
     module_args = proxmox_auth_argument_spec()
 
     acl_args = dict(
-        state=dict(choices=['present', 'absent'], required=True),
-        name=dict(type='str', required=True),
-        comment=dict(type='str', default="", required=False),
-        group=dict(type='str', required=False),
-        max_relocate=dict(type='int', default=1, required=False),
-        max_restart=dict(type='int', default=1, required=False),
-        hastate=dict(choices=["started", "stopped", "disabled", "ignored"], default="started", required=False)
+        state=dict(choices=["present", "absent"], required=True),
+        name=dict(type="str", required=True),
+        comment=dict(type="str", default="", required=False),
+        group=dict(type="str", required=False),
+        max_relocate=dict(type="int", default=1, required=False),
+        max_restart=dict(type="int", default=1, required=False),
+        hastate=dict(choices=["started", "stopped", "disabled", "ignored"], default="started", required=False),
     )
 
     module_args.update(acl_args)
@@ -195,19 +195,16 @@ def run_module():
         changed=False,
     )
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=False
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
     proxmox = ProxmoxClusterHAResourcesAnsible(module)
 
-    sid = module.params['name']
-    comment = module.params['comment']
-    group = module.params['group']
-    max_relocate = module.params['max_relocate']
-    max_restart = module.params['max_restart']
-    state = module.params['hastate']
+    sid = module.params["name"]
+    comment = module.params["comment"]
+    group = module.params["group"]
+    max_relocate = module.params["max_relocate"]
+    max_restart = module.params["max_restart"]
+    state = module.params["hastate"]
     try:
         resources = proxmox._get()
 
@@ -216,7 +213,7 @@ def run_module():
         else:
             changed = proxmox.delete(resources, sid)
 
-        result['changed'] = changed
+        result["changed"] = changed
     except Exception as e:
         module.fail_json(msg=str(e), **result)
 
@@ -227,5 +224,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

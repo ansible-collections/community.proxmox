@@ -1,19 +1,15 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
-
-from typing import List, Dict
+from typing import Dict, List
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
     ansible_to_proxmox_bool,
     proxmox_to_ansible_bool,
-    ProxmoxAnsible
 )
 
 
@@ -23,18 +19,25 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super(ProxmoxSdnAnsible, self).__init__(module)
         self.module = module
+        pve_major_version = self.version().version[0]
+        self._is_lock_and_rollback_supported = pve_major_version >= 9
+
+    @property
+    def is_lock_and_rollback_supported(self) -> bool:
+        return self._is_lock_and_rollback_supported
 
     def get_global_sdn_lock(self) -> str:
         """Acquire global SDN lock. Needed for any changes under SDN.
 
         :return: lock-token
         """
+        if not self.is_lock_and_rollback_supported:
+            return ""
+
         try:
             return self.proxmox_api.cluster().sdn().lock().post()
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to acquire global sdn lock {e}'
-            )
+            self.module.fail_json(msg=f"Failed to acquire global sdn lock {e}")
 
     def apply_sdn_changes_and_release_lock(self, lock: str, release_lock: bool = True) -> None:
         """Apply all SDN changes done under a lock token.
@@ -42,17 +45,21 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         :param lock: Global SDN lock token
         :param release_lock: if True release lock after successfully applying changes
         """
-        lock_params = {
-            'lock-token': lock,
-            'release-lock': ansible_to_proxmox_bool(release_lock)
-        }
+        lock_params = {}
+        if self.is_lock_and_rollback_supported:
+            lock_params = {"lock-token": lock, "release-lock": ansible_to_proxmox_bool(release_lock)}
         try:
-            self.proxmox_api.cluster().sdn().put(**lock_params)
+            task_id = self.proxmox_api.cluster().sdn().put(**lock_params)
+            if not self.is_lock_and_rollback_supported:
+                # wait until reload network configuration has finished
+                # otherwise it will fail in proxmox when there are multiple reloads at the same time
+                self.api_task_complete(task_id.split(":")[1], task_id, 60)
         except Exception as e:
-            self.rollback_sdn_changes_and_release_lock(lock)
-            self.module.fail_json(
-                msg=f'Failed to apply sdn changes {e}. Rolling back all pending changes.'
-            )
+            if self.is_lock_and_rollback_supported:
+                self.rollback_sdn_changes_and_release_lock(lock)
+                self.module.fail_json(msg=f"Failed to apply sdn changes {e}. Rolling back all pending changes.")
+            else:
+                self.module.fail_json(msg=f"Failed to apply sdn changes {e}.")
 
     def rollback_sdn_changes_and_release_lock(self, lock: str, release_lock: bool = True) -> None:
         """Rollback all changes  done under a lock token.
@@ -60,15 +67,12 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         :param lock: Global SDN lock token
         :param release_lock: if True release lock after successfully rolling back changes
         """
-        lock_params = {
-            'lock-token': lock,
-            'release-lock': ansible_to_proxmox_bool(release_lock)
-        }
+        lock_params = {"lock-token": lock, "release-lock": ansible_to_proxmox_bool(release_lock)}
         try:
             self.proxmox_api.cluster().sdn().rollback().post(**lock_params)
         except Exception as e:
             self.module.fail_json(
-                msg=f'Rollback attempt failed - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock'
+                msg=f"Rollback attempt failed - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock"
             )
 
     def release_lock(self, lock: str, force: bool = False) -> None:
@@ -77,15 +81,12 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         :param lock: Global SDN lock token
         :param force: if true, allow releasing lock without providing the token
         """
-        lock_params = {
-            'lock-token': lock,
-            'force': ansible_to_proxmox_bool(force)
-        }
+        lock_params = {"lock-token": lock, "force": ansible_to_proxmox_bool(force)}
         try:
             self.proxmox_api.cluster().sdn().lock().delete(**lock_params)
         except Exception as e:
             self.module.fail_json(
-                msg=f'Failed to release lock - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock'
+                msg=f"Failed to release lock - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock"
             )
 
     def get_zones(self, zone_type: str = None) -> List[Dict]:
@@ -97,9 +98,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().sdn().zones().get(type=zone_type)
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve zone information from cluster: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve zone information from cluster: {e}")
 
     def get_aliases(self, firewall_obj):
         """Get aliases for IP/CIDR at given firewall endpoint level
@@ -113,9 +112,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         try:
             return firewall_obj().aliases().get()
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve aliases - {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve aliases - {e}")
 
     def get_fw_rules(self, rules_obj, pos=None):
         """Get firewall rules at given rules endpoint level
@@ -129,9 +126,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         try:
             return rules_obj(pos).get()
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve firewall rules: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve firewall rules: {e}")
 
     def get_groups(self):
         """Get firewall security groups
@@ -139,27 +134,23 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         :return: list of groups
         """
         try:
-            return [x['group'] for x in self.proxmox_api.cluster().firewall().groups().get()]
+            return [x["group"] for x in self.proxmox_api.cluster().firewall().groups().get()]
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve firewall security groups: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve firewall security groups: {e}")
 
-    def get_ip_sets(self):
+    def get_ip_sets(self, firewall_obj):
         """Get ipsets for firewall.
 
         :return: dict of ip_set name and cidr
         """
         try:
-            ip_sets = self.proxmox_api.cluster().firewall().ipset().get()
+            ip_sets = firewall_obj.ipset().get()
             for ip_set in ip_sets:
-                ip_set_obj = getattr(self.proxmox_api.cluster().firewall().ipset(), ip_set['name'])
+                ip_set_obj = firewall_obj.ipset(ip_set["name"])
                 cidrs = ip_set_obj.get()
                 for cidr in cidrs:
-                    cidr['nomatch'] = proxmox_to_ansible_bool(cidr.get('nomatch'))
-                ip_set['cidrs'] = cidrs
+                    cidr["nomatch"] = proxmox_to_ansible_bool(cidr.get("nomatch"))
+                ip_set["cidrs"] = cidrs
             return ip_sets
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve firewall ipsets: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve firewall ipsets: {e}")

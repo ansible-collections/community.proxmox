@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_firewall
@@ -423,13 +419,16 @@ group:
       test
 """
 
+import ipaddress
+
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ansible_to_proxmox_bool,
-    compare_list_of_dicts
+    compare_list_of_dicts,
+    proxmox_auth_argument_spec,
 )
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
 def get_proxmox_args():
@@ -458,10 +457,10 @@ def get_proxmox_args():
                     options=dict(
                         cidr=dict(type="str", required=True),
                         nomatch=dict(type="bool", default=False),
-                        comment=dict(type="str", required=False)
-                    )
-                )
-            )
+                        comment=dict(type="str", required=False),
+                    ),
+                ),
+            ),
         ),
         aliases=dict(
             type="list",
@@ -470,8 +469,8 @@ def get_proxmox_args():
             options=dict(
                 name=dict(type="str", required=True),
                 cidr=dict(type="str", required=False),
-                comment=dict(type="str", required=False)
-            )
+                comment=dict(type="str", required=False),
+            ),
         ),
         rules=dict(
             type="list",
@@ -487,16 +486,18 @@ def get_proxmox_args():
                 enable=dict(type="bool", required=False),
                 icmp_type=dict(type="str", required=False),
                 iface=dict(type="str", required=False),
-                log=dict(type="str",
-                         choices=["emerg", "alert", "crit", "err", "warning", "notice", "info", "debug", "nolog"],
-                         required=False),
+                log=dict(
+                    type="str",
+                    choices=["emerg", "alert", "crit", "err", "warning", "notice", "info", "debug", "nolog"],
+                    required=False,
+                ),
                 macro=dict(type="str", required=False),
                 pos=dict(type="int", required=True),
                 proto=dict(type="str", required=False),
                 source=dict(type="str", required=False),
-                sport=dict(type="str", required=False)
-            )
-        )
+                sport=dict(type="str", required=False),
+            ),
+        ),
     )
 
 
@@ -507,17 +508,17 @@ def get_ansible_module():
     return AnsibleModule(
         argument_spec=module_args,
         required_if=[
-            ('group_conf', True, ['group']),
-            ('level', 'vm', ['vmid']),
-            ('level', 'node', ['node']),
-            ('level', 'vnet', ['vnet']),
-            ('level', 'group', ['group']),
+            ("group_conf", True, ["group"]),
+            ("level", "vm", ["vmid"]),
+            ("level", "node", ["node"]),
+            ("level", "vnet", ["vnet"]),
+            ("level", "group", ["group"]),
         ],
         mutually_exclusive=[
-            ('aliases', 'rules'),
-            ('aliases', 'ip_sets'),
-            ('rules', 'ip_sets'),
-        ]
+            ("aliases", "rules"),
+            ("aliases", "ip_sets"),
+            ("rules", "ip_sets"),
+        ],
     )
 
 
@@ -527,25 +528,25 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         self.params = module.params
 
     def validate_params(self):
-        if self.params.get('state') == 'present':
-            if self.params.get('group_conf') != bool(self.params.get('rules') or
-                                                     self.params.get('aliases') or
-                                                     self.params.get('ip_sets')):
+        if self.params.get("state") == "present":
+            if self.params.get("group_conf") != bool(
+                self.params.get("rules") or self.params.get("aliases") or self.params.get("ip_sets")
+            ):
                 return True
             else:
                 self.module.fail_json(
                     msg="When state is present either group_conf should be true or "
-                        "rules/aliases/ip_sets must be present but not both"
+                    "rules/aliases/ip_sets must be present but not both"
                 )
-        elif self.params.get('state') == 'absent':
-            if self.params.get('group_conf') != bool((self.params.get('pos') is not None) or
-                                                     self.params.get('aliases') or
-                                                     self.params.get('ip_sets')):
+        elif self.params.get("state") == "absent":
+            if self.params.get("group_conf") != bool(
+                (self.params.get("pos") is not None) or self.params.get("aliases") or self.params.get("ip_sets")
+            ):
                 return True
             else:
                 self.module.fail_json(
                     msg="When state is absent either group_conf should be true or "
-                        "pos/aliases/ip_sets must be present but not both"
+                    "pos/aliases/ip_sets must be present but not both"
                 )
 
     def run(self):
@@ -562,23 +563,23 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
         if rules:
             for rule in rules:
-                rule['icmp-type'] = rule.get('icmp_type')
-                rule['enable'] = ansible_to_proxmox_bool(rule.get('enable'))
-                del rule['icmp_type']
+                rule["icmp-type"] = rule.get("icmp_type")
+                rule["enable"] = ansible_to_proxmox_bool(rule.get("enable"))
+                del rule["icmp_type"]
 
         if level == "vm":
-            vm = self.get_vm(vmid=self.params.get('vmid'))
-            node = self.proxmox_api.nodes(vm['node'])
-            virt = node(vm['type'])
-            firewall_obj = virt(str(vm['vmid'])).firewall
+            vm = self.get_vm(vmid=self.params.get("vmid"))
+            node = self.proxmox_api.nodes(vm["node"])
+            virt = node(vm["type"])
+            firewall_obj = virt(str(vm["vmid"])).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "node":
-            firewall_obj = self.proxmox_api.nodes(self.params.get('node')).firewall
+            firewall_obj = self.proxmox_api.nodes(self.params.get("node")).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "vnet":
-            firewall_obj = self.proxmox_api.cluster().sdn().vnets(self.params.get('vnet')).firewall
+            firewall_obj = self.proxmox_api.cluster().sdn().vnets(self.params.get("vnet")).firewall
             rules_obj = firewall_obj().rules
 
         elif level == "group":
@@ -591,126 +592,118 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
         if state == "present":
             if group_conf:
-                self.group_present(group=group, comment=self.params.get('comment'))
+                self.group_present(group=group, comment=self.params.get("comment"))
             if rules:
                 self.fw_rules_present(rules_obj=rules_obj, rules=rules, update=update)
             if aliases:
                 self.aliases_present(firewall_obj=firewall_obj, level=level, aliases=aliases, update=update)
             if ip_sets:
-                self.ip_set_present(ip_sets=ip_sets, update=update)
+                self.ip_set_present(ip_sets=ip_sets, update=update, firewall_obj=firewall_obj)
         elif state == "absent":
-            if self.params.get('pos') is not None:
-                self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get('pos'))
+            if self.params.get("pos") is not None:
+                self.fw_rule_absent(rules_obj=rules_obj, pos=self.params.get("pos"))
             if group_conf:
                 self.group_absent(group_name=group)
             if aliases:
                 self.aliases_absent(firewall_obj=firewall_obj, aliases=aliases)
             if ip_sets:
-                self.ip_set_absent(ip_sets=ip_sets)
+                self.ip_set_absent(ip_sets=ip_sets, firewall_obj=firewall_obj)
 
-    def ip_set_present(self, ip_sets, update):
-        existing_ip_sets = self.get_ip_sets()
-        existing_ip_set_names = [x['name'] for x in existing_ip_sets]
+    def ip_set_present(self, ip_sets, update, firewall_obj):
+        self.reformat_ipset_cidrs(ip_sets)
+        existing_ip_sets = self.get_ip_sets(firewall_obj)
+        existing_ip_set_names = [x["name"] for x in existing_ip_sets]
         changed = False
-
         try:
             for ip_set in ip_sets:
-                ip_set_name = ip_set['name']
+                ip_set_name = ip_set["name"]
                 if ip_set_name not in existing_ip_set_names:
-                    self.proxmox_api.cluster().firewall().ipset().post(
-                        name=ip_set.get('name'),
-                        comment=ip_set.get('comment')
-                    )
-                    cidrs_to_create = ip_set['cidrs']
+                    firewall_obj.ipset().post(name=ip_set.get("name"), comment=ip_set.get("comment"))
+                    cidrs_to_create = ip_set["cidrs"]
                     cidrs_to_update = []
                 else:
-                    existing_ip_set_cidrs = [x['cidrs'] for x in existing_ip_sets if x['name'] == ip_set_name][0]
+                    existing_ip_set_cidrs = [x["cidrs"] for x in existing_ip_sets if x["name"] == ip_set_name][0]
                     cidrs_to_create, cidrs_to_update = compare_list_of_dicts(
                         existing_list=existing_ip_set_cidrs,
-                        new_list=ip_set['cidrs'],
-                        uid='cidr',
-                        params_to_ignore=['digest'],
+                        new_list=ip_set["cidrs"],
+                        uid="cidr",
+                        params_to_ignore=["digest"],
                     )
 
                 if cidrs_to_update and not update:
-                    self.module.fail_json(f'IP set {ip_set_name} needs to be updated but update is false.')
+                    self.module.fail_json(f"IP set {ip_set_name} needs to be updated but update is false.")
 
                 for cidr in cidrs_to_update:
                     changed = True
-                    proxmoxer_cidr_obj = getattr(self.proxmox_api.cluster().firewall().ipset(ip_set_name), cidr['cidr'])
+                    proxmoxer_cidr_obj = getattr(firewall_obj.ipset(ip_set_name), cidr["cidr"])
                     proxmoxer_cidr_obj.put(
-                        cidr=cidr['cidr'],
+                        cidr=cidr["cidr"],
                         name=ip_set_name,
-                        comment=cidr['comment'],
-                        nomatch=ansible_to_proxmox_bool(cidr.get('nomatch'))
+                        comment=cidr["comment"],
+                        nomatch=ansible_to_proxmox_bool(cidr.get("nomatch")),
                     )
 
                 for cidr in cidrs_to_create:
                     changed = True
-                    self.proxmox_api.cluster().firewall().ipset(ip_set_name).post(
-                        cidr=cidr.get('cidr'),
-                        nomatch=ansible_to_proxmox_bool(cidr.get('nomatch')),
-                        comment=cidr.get('comment')
+                    firewall_obj.ipset(ip_set_name).post(
+                        cidr=cidr.get("cidr"),
+                        nomatch=ansible_to_proxmox_bool(cidr.get("nomatch")),
+                        comment=cidr.get("comment"),
                     )
 
-            self.module.exit_json(
-                changed=changed,
-                msg='All ipsets present.'
-            )
+            self.module.exit_json(changed=changed, msg="All ipsets present.")
         except Exception as e:
             self.module.fail_json(f"Failed to create/update ipsets - {e}.")
 
-    def ip_set_absent(self, ip_sets):
-        existing_ip_sets = self.get_ip_sets()
-        existing_ip_set_names = [x['name'] for x in existing_ip_sets]
+    def ip_set_absent(self, ip_sets, firewall_obj):
+        self.reformat_ipset_cidrs(ip_sets)
+        existing_ip_sets = self.get_ip_sets(firewall_obj)
+        existing_ip_set_names = [x["name"] for x in existing_ip_sets]
         changed = False
-
         try:
             for ip_set in ip_sets:
                 delete_ipset = False
-                ip_set_name = ip_set['name']
+                ip_set_name = ip_set["name"]
 
                 if ip_set_name not in existing_ip_set_names:
                     continue
 
-                existing_ip_set_cidrs = [x['cidrs'] for x in existing_ip_sets if x['name'] == ip_set_name][0]
+                existing_ip_set_cidrs = [x["cidrs"] for x in existing_ip_sets if x["name"] == ip_set_name][0]
 
-                if not ip_set.get('cidrs'):
+                if not ip_set.get("cidrs"):
                     cidrs_to_delete = existing_ip_set_cidrs
                     delete_ipset = True
                 else:
-                    cidrs_to_delete = ip_set['cidrs']
+                    cidrs_to_delete = ip_set["cidrs"]
 
                 for cidr in cidrs_to_delete:
-                    if cidr['cidr'] not in [x['cidr'] for x in existing_ip_set_cidrs]:
+                    if cidr["cidr"] not in [x["cidr"] for x in existing_ip_set_cidrs]:
                         continue
-                    cidr_obj = getattr(self.proxmox_api.cluster().firewall().ipset(ip_set_name), cidr['cidr'])
+                    cidr_obj = getattr(firewall_obj.ipset(ip_set_name), cidr["cidr"])
                     cidr_obj.delete()
                     changed = True
 
                 if delete_ipset:
-                    self.proxmox_api.cluster().firewall().ipset(ip_set_name).delete()
+                    firewall_obj.ipset(ip_set_name).delete()
 
-            self.module.exit_json(changed=changed, msg='Ipsets are absent.')
+            self.module.exit_json(changed=changed, msg="Ipsets are absent.")
 
         except Exception as e:
-            self.module.fail_json(f'Failed to delete ipsets {e}')
+            self.module.fail_json(f"Failed to delete ipsets {e}")
 
     def aliases_present(self, firewall_obj, level, aliases, update):
-        if not firewall_obj or level not in ['cluster', 'vm']:
-            self.module.fail_json(
-                msg='Aliases can only be created at cluster or VM level'
-            )
+        if not firewall_obj or level not in ["cluster", "vm"]:
+            self.module.fail_json(msg="Aliases can only be created at cluster or VM level")
 
         aliases_to_create, aliases_to_update = compare_list_of_dicts(
             existing_list=self.get_aliases(firewall_obj=firewall_obj),
             new_list=aliases,
-            uid='name',
-            params_to_ignore=['digest', 'ipversion']
+            uid="name",
+            params_to_ignore=["digest", "ipversion"],
         )
 
         if len(aliases_to_create) == 0 and len(aliases_to_update) == 0:
-            self.module.exit_json(changed=False, msg='No need to create/update any aliases')
+            self.module.exit_json(changed=False, msg="No need to create/update any aliases")
         elif len(aliases_to_update) > 0 and not update:
             self.module.fail_json(
                 msg=f"Need to update aliases - {[x['name'] for x in aliases_to_update]} but update is false"
@@ -720,56 +713,38 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             try:
                 firewall_obj().aliases().post(**alias)
             except Exception as e:
-                self.module.fail_json(
-                    msg=f"Failed to create Alias {alias['name']} - {e}"
-                )
+                self.module.fail_json(msg=f"Failed to create Alias {alias['name']} - {e}")
         for alias in aliases_to_update:
             try:
-                firewall_obj().aliases(alias['name']).put(**alias)
+                firewall_obj().aliases(alias["name"]).put(**alias)
             except Exception as e:
-                self.module.fail_json(
-                    msg=f"Failed to update Alias {alias['name']} - {e}"
-                )
+                self.module.fail_json(msg=f"Failed to update Alias {alias['name']} - {e}")
 
         self.module.exit_json(changed=True, msg="Aliases created/updated")
 
     def aliases_absent(self, firewall_obj, aliases):
-        existing_aliases = set([x.get('name') for x in self.get_aliases(firewall_obj=firewall_obj)])
-        aliases = set([x.get('name') for x in aliases])
+        existing_aliases = set([x.get("name") for x in self.get_aliases(firewall_obj=firewall_obj)])
+        aliases = set([x.get("name") for x in aliases])
         aliases_to_delete = list(existing_aliases.intersection(aliases))
 
         if len(aliases_to_delete) == 0:
-            self.module.exit_json(
-                changed=False,
-                msg="No need to delete any alias"
-            )
+            self.module.exit_json(changed=False, msg="No need to delete any alias")
         for alias_name in aliases_to_delete:
             try:
                 alias_obj = getattr(firewall_obj().aliases(), alias_name)
                 alias_obj().delete()
             except Exception as e:
-                self.module.fail_json(
-                    msg=f"Failed to delete alias {alias_name} - {e}"
-                )
-        self.module.exit_json(
-            changed=True,
-            msg="Successfully deleted aliases"
-        )
+                self.module.fail_json(msg=f"Failed to delete alias {alias_name} - {e}")
+        self.module.exit_json(changed=True, msg="Successfully deleted aliases")
 
     def group_present(self, group, comment=None):
         if group in self.get_groups():
-            self.module.exit_json(
-                changed=False, group=group, msg=f"security group {group} already exists"
-            )
+            self.module.exit_json(changed=False, group=group, msg=f"security group {group} already exists")
         try:
             self.proxmox_api.cluster().firewall().groups.post(group=group, comment=comment)
-            self.module.exit_json(
-                changed=True, group=group, msg=f'successfully created security group {group}'
-            )
+            self.module.exit_json(changed=True, group=group, msg=f"successfully created security group {group}")
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to create security group: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to create security group: {e}")
 
     def group_absent(self, group_name):
         if group_name not in self.get_groups():
@@ -780,45 +755,34 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             group = getattr(self.proxmox_api.cluster().firewall().groups(), group_name)
             group.delete()
             self.module.exit_json(
-                changed=True, group=group_name, msg=f'successfully deleted security group {group_name}'
+                changed=True, group=group_name, msg=f"successfully deleted security group {group_name}"
             )
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to delete security group {group_name}: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to delete security group {group_name}: {e}")
 
     def fw_rule_absent(self, rules_obj, pos):
         try:
             for item in self.get_fw_rules(rules_obj):
-                if item.get('pos') == pos:
+                if item.get("pos") == pos:
                     break
             else:
-                self.module.exit_json(
-                    changed=False, msg="Firewall rule already doesn't exist"
-                )
+                self.module.exit_json(changed=False, msg="Firewall rule already doesn't exist")
             rule_obj = getattr(rules_obj(), str(pos))
-            digest = rule_obj.get().get('digest')
+            digest = rule_obj.get().get("digest")
             rule_obj.delete(pos=pos, digest=digest)
 
-            self.module.exit_json(
-                changed=True, msg='successfully deleted firewall rules'
-            )
+            self.module.exit_json(changed=True, msg="successfully deleted firewall rules")
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to delete firewall rule at pos {pos}: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to delete firewall rule at pos {pos}: {e}")
 
     def fw_rules_present(self, rules_obj, rules, update):
         existing_rules = self.get_fw_rules(rules_obj=rules_obj)
         rules_to_create, rules_to_update = compare_list_of_dicts(
-            existing_list=existing_rules,
-            new_list=rules,
-            uid='pos',
-            params_to_ignore=['digest', 'ipversion']
+            existing_list=existing_rules, new_list=rules, uid="pos", params_to_ignore=["digest", "ipversion"]
         )
 
         if len(rules_to_create) == 0 and len(rules_to_update) == 0:
-            self.module.exit_json(changed=False, msg='No need to create/update any rule')
+            self.module.exit_json(changed=False, msg="No need to create/update any rule")
         elif len(rules_to_update) > 0 and not update:
             self.module.fail_json(
                 msg=f"Need to update rules at pos - {[x['pos'] for x in rules_to_update]} but update is false"
@@ -826,26 +790,41 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
         for rule in rules_to_update:
             try:
-                rule_obj = getattr(rules_obj(), str(rule['pos']))
-                rule['digest'] = rule_obj.get().get('digest')  # Avoids concurrent changes
+                rule_obj = getattr(rules_obj(), str(rule["pos"]))
+                rule["digest"] = rule_obj.get().get("digest")  # Avoids concurrent changes
                 rule_obj.put(**rule)
 
             except Exception as e:
-                self.module.fail_json(
-                    msg=f'Failed to update firewall rule at pos {rule["pos"]}: {e}'
-                )
+                self.module.fail_json(msg=f"Failed to update firewall rule at pos {rule['pos']}: {e}")
         for rule in rules_to_create:
             try:
                 rules_obj().post(**rule)
                 self.move_rule_to_correct_pos(rules_obj, rule)
 
             except Exception as e:
-                self.module.fail_json(
-                    msg=f'Failed to create firewall rule {rule}: {e}'
-                )
-        self.module.exit_json(
-            changed=True, msg='successfully created/updated firewall rules'
-        )
+                self.module.fail_json(msg=f"Failed to create firewall rule {rule}: {e}")
+        self.module.exit_json(changed=True, msg="successfully created/updated firewall rules")
+
+    def reformat_ipset_cidrs(self, ip_sets):
+        """Normalise every CIDR entry in-place so it matches Proxmox format."""
+
+        def _normalise(cidr_entry: str) -> str:
+            """Return Proxmox-compatible string for a single CIDR."""
+            # /32 and /128 → plain address
+            if cidr_entry.endswith(("/32", "/128")):
+                return str(ipaddress.ip_address(cidr_entry.split("/")[0]))
+            # bare address → itself
+            if "/" not in cidr_entry:
+                return str(ipaddress.ip_address(cidr_entry))
+            # real network → compressed network string
+            return str(ipaddress.ip_network(cidr_entry, strict=False))
+
+        try:
+            for ipset in ip_sets:
+                for cidr in ipset.get("cidrs") or []:
+                    cidr["cidr"] = _normalise(cidr["cidr"])
+        except ValueError as exc:
+            self.module.fail_json(msg=f"Invalid CIDR in ipset: {exc}")
 
     def move_rule_to_correct_pos(self, rules_obj, rule):
         ##################################################################################################
@@ -856,24 +835,26 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
         # To workaround this issue we will check rule at pos 0 and if needed move it to correct position #
         ##################################################################################################
 
-        pos = rule.get('pos')
+        pos = rule.get("pos")
         rule = {k: v for k, v in rule.items() if v is not None}
         if pos is not None and pos != 0:
             try:
                 fw_rule_at0 = getattr(rules_obj(), str(0))
-                for param, value, in fw_rule_at0.get().items():
-                    if param in rule.keys() and param != 'pos' and value != rule.get(param):
+                for (
+                    param,
+                    value,
+                ) in fw_rule_at0.get().items():
+                    if param in rule.keys() and param != "pos" and value != rule.get(param):
                         self.module.warn(
-                            msg=f'Skipping workaround for rule placement. '
-                                f'Verify rule is at correct pos '
-                                f'provided - {rule} rule_at0 - {fw_rule_at0.get()}')
+                            msg=f"Skipping workaround for rule placement. "
+                            f"Verify rule is at correct pos "
+                            f"provided - {rule} rule_at0 - {fw_rule_at0.get()}"
+                        )
                         break  # No need to move this. Potentially the issue is resolved.
                 else:
                     fw_rule_at0.put(moveto=(pos + 1))  # moveto moves rule to one position before the value
             except Exception as e:
-                self.module.fail_json(
-                    msg=f'Rule created but failed to move it to correct pos. {e}'
-                )
+                self.module.fail_json(msg=f"Rule created but failed to move it to correct pos. {e}")
 
 
 def main():
@@ -883,7 +864,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

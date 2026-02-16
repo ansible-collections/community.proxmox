@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_cluster_join_info
@@ -112,10 +109,13 @@ cluster_join:
 
 
 import traceback
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
 
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 try:
     import proxmoxer
@@ -134,7 +134,7 @@ class ProxmoxClusterJoinInfoAnsible(ProxmoxAnsible):
         except proxmoxer.core.ResourceException:
             self.module.fail_json(msg="Node is not part of a cluster and does not have any join information.")
         except Exception as e:
-            self.module.fail_json(msg="Error obtaining cluster join information: {}".format(str(e)))
+            self.module.fail_json(msg=f"Error obtaining cluster join information: {str(e)}")
 
 
 def proxmox_cluster_join_info_argument_spec():
@@ -148,21 +148,19 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
         supports_check_mode=True,
     )
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     proxmox = ProxmoxClusterJoinInfoAnsible(module)
 
     cluster_join = proxmox.get_cluster_join()
-    result['cluster_join'] = cluster_join
+    result["cluster_join"] = cluster_join
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
