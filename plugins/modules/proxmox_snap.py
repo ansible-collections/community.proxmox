@@ -139,9 +139,9 @@ RETURN = r"""#"""
 
 import time
 
-from ansible.errors import AnsibleOptionsError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
+from ansible.module_utils.errors import AnsibleOptionsError
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
