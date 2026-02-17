@@ -435,7 +435,10 @@ options:
     type: int
   sshkeys:
     description:
-      - 'Cloud-init: SSH key to assign to the default user. NOT TESTED with multiple keys but a multi-line value should work.'
+      - 'Cloud-init: SSH public key(s) to assign to the default user.'
+      - Supports multiple SSH keys by providing a multi-line value.
+      - Each key should be on a separate line in the format C(ssh-key-type key-data [comment]).
+      - Use YAML literal block scalar (C(|)) to provide multiple keys, one per line.
     type: str
   startdate:
     description:
@@ -749,7 +752,9 @@ EXAMPLES = r"""
     name: spynal
     ide:
       ide2: 'local:cloudinit,format=qcow2'
-    sshkeys: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJkVm98B71lD5XHfihwcYHE9TVpsJmK1vR1JcaU82L+'
+    sshkeys: |
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPUF/cMCRObddaMmvUDio//yge6gRGXNv3uqMq7ve0x3 ssh-key-1@example.com
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP+v9HERWdWKh1lxceobl98LBX3+alfVK0zJnAxLbMRq ssh-key-2@example.com
     searchdomains: 'mydomain.internal'
     nameservers:
       - '1.1.1.1'
