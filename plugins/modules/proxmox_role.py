@@ -73,6 +73,15 @@ roleid:
   type: str
   sample:
     test
+privs:
+  description: List of role's privileges
+  type: list
+  elements: str
+  returned: when state is present
+  sample: [
+    "VM.PowerMgmt",
+    "VM.Console"
+  ]
 msg:
   description: A short message on what the module did.
   returned: always
@@ -155,12 +164,24 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
 
         if existing_role is None:
             if self.module.check_mode:
-                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} would be created")
+                self.module.exit_json(
+                    changed=True,
+                    roleid=roleid,
+                    privs=desired_privs or [],
+                    msg=f"Role {roleid} would be created",
+                )
 
             try:
                 privs_string = self._privs_to_string(desired_privs)
                 self.proxmox_api.access.roles.post(roleid=roleid, privs=privs_string)
-                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} successfully created")
+                created_role = self._get_role(roleid)
+                created_privs = self._role_privs_to_list(created_role)
+                self.module.exit_json(
+                    changed=True,
+                    roleid=roleid,
+                    privs=created_privs,
+                    msg=f"Role {roleid} successfully created",
+                )
             except Exception as e:
                 self.module.fail_json(changed=False, roleid=roleid, msg=f"Failed to create role {roleid}: {e}")
         else:
@@ -169,16 +190,31 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
 
             if not needs_update:
                 self.module.exit_json(
-                    changed=False, roleid=roleid, msg=f"Role {roleid} already exists with desired configuration"
+                    changed=False,
+                    roleid=roleid,
+                    privs=existing_privs,
+                    msg=f"Role {roleid} already exists with desired configuration",
                 )
 
             if self.module.check_mode:
-                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} would be updated")
+                self.module.exit_json(
+                    changed=True,
+                    roleid=roleid,
+                    privs=desired_privs or [],
+                    msg=f"Role {roleid} would be updated",
+                )
 
             try:
                 privs_string = self._privs_to_string(desired_privs)
                 self.proxmox_api.access.roles(roleid).put(privs=privs_string)
-                self.module.exit_json(changed=True, roleid=roleid, msg=f"Role {roleid} successfully updated")
+                updated_role = self._get_role(roleid)
+                updated_privs = self._role_privs_to_list(updated_role)
+                self.module.exit_json(
+                    changed=True,
+                    roleid=roleid,
+                    privs=updated_privs,
+                    msg=f"Role {roleid} successfully updated",
+                )
             except Exception as e:
                 self.module.fail_json(changed=False, roleid=roleid, msg=f"Failed to update role {roleid}: {e}")
 

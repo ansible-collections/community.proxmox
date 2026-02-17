@@ -77,29 +77,37 @@ class TestProxmoxRoleModule(ModuleTestCase):
         return {**get_module_args(**kwargs), "_ansible_check_mode": True}
 
     def test_role_present(self):
-        self.mock_get_role.return_value = None
+        # Role does not exist, then is created with no privileges
+        self.mock_get_role.side_effect = [None, {}]
         result = self._run_module(get_module_args(roleid=ROLE_ID))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} successfully created"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == []
 
-        self.mock_get_role.return_value = {}
+        # Role exists already with desired configuration (no privileges)
+        self.mock_get_role.side_effect = [{}]
         result = self._run_module(get_module_args(roleid=ROLE_ID))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == []
 
-        self.mock_get_role.return_value = {"VM.Console": True, "VM.PowerMgmt": False}
+        # Role exists already with privileges but privs omitted - privileges are kept unchanged
+        self.mock_get_role.side_effect = [{"VM.Console": 1}]
         result = self._run_module(get_module_args(roleid=ROLE_ID))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == ["VM.Console"]
 
-        self.mock_get_role.return_value = {}
+        # Role exists without privileges, then is updated to have the requested privileges
+        self.mock_get_role.side_effect = [{}, {"VM.Console": 1}]
         result = self._run_module(get_module_args(roleid=ROLE_ID, privs=["VM.Console"]))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} successfully updated"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == ["VM.Console"]
 
     def test_role_absent(self):
         self.mock_get_role.return_value = {}
@@ -120,24 +128,28 @@ class TestProxmoxRoleModule(ModuleTestCase):
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} would be created"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == []
 
         self.mock_get_role.return_value = {}
         result = self._run_module(self._check_mode_args(roleid=ROLE_ID))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == []
 
         self.mock_get_role.return_value = {"VM.Console": True}
         result = self._run_module(self._check_mode_args(roleid=ROLE_ID))
         assert result["changed"] is False
         assert result["msg"] == f"Role {ROLE_ID} already exists with desired configuration"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == ["VM.Console"]
 
         self.mock_get_role.return_value = {}
         result = self._run_module(self._check_mode_args(roleid=ROLE_ID, privs=["VM.Console"]))
         assert result["changed"] is True
         assert result["msg"] == f"Role {ROLE_ID} would be updated"
         assert result["roleid"] == ROLE_ID
+        assert result["privs"] == ["VM.Console"]
 
     def test_role_absent_check_mode(self):
         self.mock_get_role.return_value = {}
