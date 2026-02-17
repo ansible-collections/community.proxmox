@@ -654,7 +654,7 @@ def test_populate(inventory, mocker):
 
     # make sure that ['prelaunch', 'paused'] are in the group list
     for group in ["paused", "prelaunch"]:
-        assert ("%sall_%s" % (inventory.group_prefix, group)) in inventory.inventory.groups
+        assert (f"{inventory.group_prefix}all_{group}") in inventory.inventory.groups
 
     # check if qemu-windows is in the prelaunch group
     group_prelaunch = inventory.inventory.groups["proxmox_all_prelaunch"]
@@ -694,7 +694,7 @@ def test_populate_missing_qemu_extended_groups(inventory, mocker):
 
     # make sure that ['prelaunch', 'paused'] are not in the group list
     for group in ["paused", "prelaunch"]:
-        assert ("%sall_%s" % (inventory.group_prefix, group)) not in inventory.inventory.groups
+        assert (f"{inventory.group_prefix}all_{group}") not in inventory.inventory.groups
 
 
 def test_populate_exclude_nodes(inventory, mocker):
@@ -728,7 +728,7 @@ def test_populate_exclude_nodes(inventory, mocker):
     for node in ["testnode", "testnode2"]:
         assert node not in inventory.inventory.hosts
     # make sure that nodes group is absent
-    assert ("%s_nodes" % (inventory.group_prefix)) not in inventory.inventory.groups
+    assert (f"{inventory.group_prefix}_nodes") not in inventory.inventory.groups
     # make sure that nodes are not in the "ungrouped" group
     for node in ["testnode", "testnode2"]:
         assert node not in inventory.inventory.get_groups_dict()["ungrouped"]

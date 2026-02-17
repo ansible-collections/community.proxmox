@@ -119,28 +119,28 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
         try:
             backupSections = self.proxmox_api.cluster.backup.get()
         except Exception as e:
-            self.module.fail_json(msg="Getting backup sections failed: %s" % e)
+            self.module.fail_json(msg=f"Getting backup sections failed: {e}")
         return backupSections
 
     def get_backup_job_info(self, backup_id):
         try:
             specificBackupID = self.proxmox_api.cluster.backup.get(backup_id)
         except Exception as e:
-            self.module.fail_json(msg="Getting specific backup ID failed: %s" % e)
+            self.module.fail_json(msg=f"Getting specific backup ID failed: {e}")
         return specificBackupID
 
     def update_backup_job_vmid(self, backup_id, updated_backup_vmids):
         try:
             self.proxmox_api.cluster.backup.put(backup_id, vmid=updated_backup_vmids)
         except Exception as e:
-            self.module.fail_json(msg="Setting vmid backup failed: %s" % e)
+            self.module.fail_json(msg=f"Setting vmid backup failed: {e}")
 
     def get_vms_list(self):
         """Retrieve the list of all virtual machines in the cluster."""
         try:
             vms = self.proxmox_api.cluster.resources.get(type="vm")
         except Exception as e:
-            self.module.fail_json(msg="Getting vms info from cluster failed: %s" % e)
+            self.module.fail_json(msg=f"Getting vms info from cluster failed: {e}")
         return vms
 
     def get_vmid_from_vmname(self, vmname):
@@ -179,7 +179,7 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
                     return True
                 else:
                     self.module.fail_json(
-                        msg="No more than one vmid is assigned to %s. You just can remove job." % backup_job_info["id"]
+                        msg=f"No more than one vmid is assigned to {backup_job_info['id']}. You just can remove job."
                     )
             return False
         else:
@@ -195,7 +195,7 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
                         list_backup_jobs_vm_deleted.append(backup_job["id"])
                     else:
                         self.module.fail_json(
-                            msg="No more than one vmid is assigned to %s. You just can remove job." % backup_job["id"]
+                            msg=f"No more than one vmid is assigned to {backup_job['id']}. You just can remove job."
                         )
             return len(list_backup_jobs_vm_deleted) > 0
 

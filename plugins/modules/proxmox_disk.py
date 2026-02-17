@@ -474,7 +474,7 @@ def disk_conf_str_to_dict(config_string):
         storage_name = storage_volume[0]
         volume_name = storage_volume[1]
         config_current = dict(
-            volume="%s:%s" % (storage_name, volume_name),
+            volume=f"{storage_name}:{volume_name}",
             storage_name=storage_name,
             volume_name=volume_name,
         )
@@ -563,7 +563,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         create = self.module.params["create"]
         if create == "disabled" and disk not in vm_config:
             # NOOP
-            return False, "Disk %s not found in VM %s and creation was disabled in parameters." % (disk, vmid)
+            return False, f"Disk {disk} not found in VM {vmid} and creation was disabled in parameters."
 
         timeout_str = "Reached timeout. Last line in task before timeout: %s"
         if (create == "regular" and disk not in vm_config) or (create == "forced"):
@@ -574,7 +574,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
             if import_string:
                 # When 'import_from' option is present in task options.
-                config_str = "%s:%s,import-from=%s" % (self.module.params["storage"], "0", import_string)
+                config_str = f"{self.module.params['storage']}:0,import-from={import_string}"
                 timeout_str = "Reached timeout while importing VM disk. Last line in task before timeout: %s"
                 ok_str = "Disk %s imported into VM %s"
             elif iso_image is not None:
@@ -586,12 +586,12 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
                 if not config_str:
                     self.module.fail_json(msg="The storage option must be specified.")
                 if self.module.params.get("media") != "cdrom":
-                    config_str += ":%s" % (self.module.params["size"])
+                    config_str += f":{self.module.params['size']}"
                 ok_str = "Disk %s created in VM %s"
                 timeout_str = "Reached timeout while creating VM disk. Last line in task before timeout: %s"
 
             for k, v in playbook_config.items():
-                config_str += ",%s=%s" % (k, v)
+                config_str += f",{k}={v}"
 
             disk_config_to_apply = {self.module.params["disk"]: config_str}
 
@@ -612,7 +612,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
                 config_str = proxmox_config["volume"]
             # Append all mandatory fields from playbook_config
             for k, v in playbook_config.items():
-                config_str += ",%s=%s" % (k, v)
+                config_str += f",{k}={v}"
 
             # Append to playbook_config fields which are constants for disk images
             for option in ["size", "storage_name", "volume", "volume_name"]:
@@ -625,7 +625,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
             # Now compare old and new config to detect if changes are needed
             if proxmox_config == playbook_config:
-                return False, "Disk %s is up to date in VM %s" % (disk, vmid)
+                return False, f"Disk {disk} is up to date in VM {vmid}"
 
             disk_config_to_apply = {self.module.params["disk"]: config_str}
 
@@ -639,7 +639,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
                 msg=timeout_str % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
             )
         else:
-            self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
+            self.module.fail_json(msg=f"Error occurred on task execution: {fail_reason}")
 
     def move_disk(self, disk, vmid, vm, vm_config):
         """Call the `move_disk` API function that moves the disk to another storage and wait for the result.
@@ -670,20 +670,19 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
             # Check if the disk is already in the target storage.
             disk_config = disk_conf_str_to_dict(vm_config[disk])
             if params["storage"] == disk_config["storage_name"]:
-                return False, "Disk %s already at %s storage" % (disk, disk_storage)
+                return False, f"Disk {disk} already at {disk_storage} storage"
 
         current_task_id = self.proxmox_api.nodes(vm["node"]).qemu(vmid).move_disk.post(**params)
         task_success, fail_reason = self.api_task_complete(vm["node"], current_task_id, self.module.params["timeout"])
 
         if task_success:
-            return True, "Disk %s moved from VM %s storage %s" % (disk, vmid, disk_storage)
+            return True, f"Disk {disk} moved from VM {vmid} storage {disk_storage}"
         elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
             self.module.fail_json(
-                msg="Reached timeout while waiting for moving VM disk. Last line in task before timeout: %s"
-                % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
+                msg=f"Reached timeout while waiting for moving VM disk. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]}"
             )
         else:
-            self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
+            self.module.fail_json(msg=f"Error occurred on task execution: {fail_reason}")
 
     def resize_disk(self, disk, vmid, vm, vm_config):
         """Call the `resize` API function to change the disk size and wait for the result.
@@ -697,11 +696,11 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         """
         size = self.module.params["size"]
         if not match(r"^\+?\d+(\.\d+)?[KMGT]?$", size):
-            self.module.fail_json(msg="Unrecognized size pattern for disk %s: %s" % (disk, size))
+            self.module.fail_json(msg=f"Unrecognized size pattern for disk {disk}: {size}")
         disk_config = disk_conf_str_to_dict(vm_config[disk])
         actual_size = disk_config["size"]
         if size == actual_size:
-            return False, "Disk %s is already %s size" % (disk, size)
+            return False, f"Disk {disk} is already {size} size"
 
         # Resize disk API endpoint has changed at v8.0: PUT method become async.
         version = self.version()
@@ -712,17 +711,16 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
                 vm["node"], current_task_id, self.module.params["timeout"]
             )
             if task_success:
-                return True, "Disk %s resized in VM %s" % (disk, vmid)
+                return True, f"Disk {disk} resized in VM {vmid}"
             elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
                 self.module.fail_json(
-                    msg="Reached timeout while resizing disk. Last line in task before timeout: %s"
-                    % self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
+                    msg=f"Reached timeout while resizing disk. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]}"
                 )
             else:
-                self.module.fail_json(msg="Error occurred on task execution: %s" % fail_reason)
+                self.module.fail_json(msg=f"Error occurred on task execution: {fail_reason}")
         else:
             self.proxmox_api.nodes(vm["node"]).qemu(vmid).resize.set(disk=disk, size=size)
-            return True, "Disk %s resized in VM %s" % (disk, vmid)
+            return True, f"Disk {disk} resized in VM {vmid}"
 
 
 def main():
@@ -834,10 +832,10 @@ def main():
     disk_bus = sub(disk_regex, r"\1", disk)
     disk_number = int(sub(disk_regex, r"\2", disk))
     if disk_bus not in proxmox.supported_bus_num_ranges:
-        proxmox.module.fail_json(msg="Unsupported disk bus: %s" % disk_bus)
+        proxmox.module.fail_json(msg=f"Unsupported disk bus: {disk_bus}")
     elif disk_number not in proxmox.supported_bus_num_ranges[disk_bus]:
         bus_range = proxmox.supported_bus_num_ranges[disk_bus]
-        proxmox.module.fail_json(msg="Disk %s number not in range %s..%s " % (disk, bus_range[0], bus_range[-1]))
+        proxmox.module.fail_json(msg=f"Disk {disk} number not in range {bus_range[0]}..{bus_range[-1]} ")
 
     name = module.params["name"]
     state = module.params["state"]
@@ -850,52 +848,52 @@ def main():
         vm = proxmox.get_vm(vmid)
         vm_config = proxmox.proxmox_api.nodes(vm["node"]).qemu(vmid).config.get()
     except Exception as e:
-        proxmox.module.fail_json(msg="Getting information for VM %s failed with exception: %s" % (vmid, str(e)))
+        proxmox.module.fail_json(msg=f"Getting information for VM {vmid} failed with exception: {str(e)}")
 
     # Do not try to perform actions on missing disk
     if disk not in vm_config and state in ["resized", "moved"]:
-        module.fail_json(vmid=vmid, msg="Unable to process missing disk %s in VM %s" % (disk, vmid))
+        module.fail_json(vmid=vmid, msg=f"Unable to process missing disk {disk} in VM {vmid}")
 
     if state == "present":
         try:
             changed, message = proxmox.create_disk(disk, vmid, vm, vm_config)
             module.exit_json(changed=changed, vmid=vmid, msg=message)
         except Exception as e:
-            module.fail_json(vmid=vmid, msg="Unable to create/update disk %s in VM %s: %s" % (disk, vmid, str(e)))
+            module.fail_json(vmid=vmid, msg=f"Unable to create/update disk {disk} in VM {vmid}: {str(e)}")
 
     elif state == "detached":
         try:
             if disk_bus == "unused":
-                module.exit_json(changed=False, vmid=vmid, msg="Disk %s already detached in VM %s" % (disk, vmid))
+                module.exit_json(changed=False, vmid=vmid, msg=f"Disk {disk} already detached in VM {vmid}")
             if disk not in vm_config:
-                module.exit_json(changed=False, vmid=vmid, msg="Disk %s not present in VM %s config" % (disk, vmid))
+                module.exit_json(changed=False, vmid=vmid, msg=f"Disk {disk} not present in VM {vmid} config")
             proxmox.proxmox_api.nodes(vm["node"]).qemu(vmid).unlink.put(idlist=disk, force=0)
-            module.exit_json(changed=True, vmid=vmid, msg="Disk %s detached from VM %s" % (disk, vmid))
+            module.exit_json(changed=True, vmid=vmid, msg=f"Disk {disk} detached from VM {vmid}")
         except Exception as e:
-            module.fail_json(msg="Failed to detach disk %s from VM %s with exception: %s" % (disk, vmid, str(e)))
+            module.fail_json(msg=f"Failed to detach disk {disk} from VM {vmid} with exception: {str(e)}")
 
     elif state == "moved":
         try:
             changed, message = proxmox.move_disk(disk, vmid, vm, vm_config)
             module.exit_json(changed=changed, vmid=vmid, msg=message)
         except Exception as e:
-            module.fail_json(msg="Failed to move disk %s in VM %s with exception: %s" % (disk, vmid, str(e)))
+            module.fail_json(msg=f"Failed to move disk {disk} in VM {vmid} with exception: {str(e)}")
 
     elif state == "resized":
         try:
             changed, message = proxmox.resize_disk(disk, vmid, vm, vm_config)
             module.exit_json(changed=changed, vmid=vmid, msg=message)
         except Exception as e:
-            module.fail_json(msg="Failed to resize disk %s in VM %s with exception: %s" % (disk, vmid, str(e)))
+            module.fail_json(msg=f"Failed to resize disk {disk} in VM {vmid} with exception: {str(e)}")
 
     elif state == "absent":
         try:
             if disk not in vm_config:
-                module.exit_json(changed=False, vmid=vmid, msg="Disk %s is already absent in VM %s" % (disk, vmid))
+                module.exit_json(changed=False, vmid=vmid, msg=f"Disk {disk} is already absent in VM {vmid}")
             proxmox.proxmox_api.nodes(vm["node"]).qemu(vmid).unlink.put(idlist=disk, force=1)
-            module.exit_json(changed=True, vmid=vmid, msg="Disk %s removed from VM %s" % (disk, vmid))
+            module.exit_json(changed=True, vmid=vmid, msg=f"Disk {disk} removed from VM {vmid}")
         except Exception as e:
-            module.fail_json(vmid=vmid, msg="Unable to remove disk %s from VM %s: %s" % (disk, vmid, str(e)))
+            module.fail_json(vmid=vmid, msg=f"Unable to remove disk {disk} from VM {vmid}: {str(e)}")
 
 
 if __name__ == "__main__":

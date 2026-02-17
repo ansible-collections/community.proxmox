@@ -1285,7 +1285,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return converted_interfaces
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to get network interfaces: %s" % to_native(e),
+                msg=f"Failed to get network interfaces: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1303,7 +1303,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return None  # Interface not found
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to get interface configuration: %s" % to_native(e),
+                msg=f"Failed to get interface configuration: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1318,7 +1318,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return True
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to create interface: %s" % to_native(e),
+                msg=f"Failed to create interface: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1331,7 +1331,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return True
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to update interface: %s" % to_native(e),
+                msg=f"Failed to update interface: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1343,7 +1343,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return True
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to delete interface: %s" % to_native(e),
+                msg=f"Failed to delete interface: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1354,7 +1354,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return True
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to apply network: %s" % to_native(e),
+                msg=f"Failed to apply network: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1365,7 +1365,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
             return True
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to revert network: %s" % to_native(e),
+                msg=f"Failed to revert network: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 
@@ -1392,7 +1392,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 return self._handle_revert_state()
         except Exception as e:
             self.module.fail_json(
-                msg="Failed to manage network interface: %s" % to_native(e),
+                msg=f"Failed to manage network interface: {to_native(e)}",
                 exception=traceback.format_exc(),
             )
 

@@ -165,7 +165,7 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().resources().get(type="vm")
         except Exception as e:
-            self.module.fail_json(msg="Failed to retrieve VMs information from cluster resources: %s" % e)
+            self.module.fail_json(msg=f"Failed to retrieve VMs information from cluster resources: {e}")
 
     def get_vms_from_nodes(self, cluster_machines, type, vmid=None, name=None, node=None, config=None, network=False):
         # Leave in dict only machines that user wants to know about
@@ -212,13 +212,13 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         try:
             return self.get_vms_from_nodes(cluster_machines, "qemu", vmid, name, node, config, network)
         except Exception as e:
-            self.module.fail_json(msg="Failed to retrieve QEMU VMs information: %s" % e)
+            self.module.fail_json(msg=f"Failed to retrieve QEMU VMs information: {e}")
 
     def get_lxc_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):
         try:
             return self.get_vms_from_nodes(cluster_machines, "lxc", vmid, name, node, config, network)
         except Exception as e:
-            self.module.fail_json(msg="Failed to retrieve LXC VMs information: %s" % e)
+            self.module.fail_json(msg=f"Failed to retrieve LXC VMs information: {e}")
 
 
 def main():
@@ -251,7 +251,7 @@ def main():
     result = dict(changed=False)
 
     if node and proxmox.get_node(node) is None:
-        module.fail_json(msg="Node %s doesn't exist in PVE cluster" % node)
+        module.fail_json(msg=f"Node {node} doesn't exist in PVE cluster")
 
     vms_cluster_resources = proxmox.get_vms_from_cluster_resources()
     cluster_machines = {int(machine["vmid"]): machine for machine in vms_cluster_resources}

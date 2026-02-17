@@ -86,7 +86,7 @@ class ProxmoxDomainInfoAnsible(ProxmoxAnsible):
         try:
             domain = self.proxmox_api.access.domains.get(realm)
         except Exception:
-            self.module.fail_json(msg="Domain '%s' does not exist" % realm)
+            self.module.fail_json(msg=f"Domain '{realm}' does not exist")
         domain["realm"] = realm
         return domain
 

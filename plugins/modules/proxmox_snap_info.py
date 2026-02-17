@@ -122,7 +122,7 @@ def main():
         module.exit_json(changed=False, snapshots=snapshots)
 
     except Exception as e:
-        module.fail_json(msg="Failed to list snapshots: %s" % to_native(e))
+        module.fail_json(msg=f"Failed to list snapshots: {to_native(e)}")
 
 
 if __name__ == "__main__":
