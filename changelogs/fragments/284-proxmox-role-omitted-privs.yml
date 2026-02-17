@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_role - when privs is omitted, keep existing role privileges unchanged instead of treating it as no privileges (https://github.com/ansible-collections/community.proxmox/pull/284).
