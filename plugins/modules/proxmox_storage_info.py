@@ -122,11 +122,11 @@ class ProxmoxStorageInfoAnsible(ProxmoxAnsible):
         try:
             storage = self.proxmox_api.storage.get(storage)
         except Exception:
-            self.module.fail_json(msg="Storage '%s' does not exist" % storage)
+            self.module.fail_json(msg=f"Storage {storage} does not exist")
         return ProxmoxStorage(storage)
 
-    def get_storages(self, type=None):
-        storages = self.proxmox_api.storage.get(type=type)
+    def get_storages(self, storagetype=None):
+        storages = self.proxmox_api.storage.get(type=storagetype)
         storages = [ProxmoxStorage(storage) for storage in storages]
         return storages
 
@@ -178,7 +178,7 @@ def main():
     if storage:
         storages = [proxmox.get_storage(storage)]
     else:
-        storages = proxmox.get_storages(type=storagetype)
+        storages = proxmox.get_storages(storagetype=storagetype)
     result["proxmox_storages"] = [storage.storage for storage in storages]
 
     module.exit_json(**result)
