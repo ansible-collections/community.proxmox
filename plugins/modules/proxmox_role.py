@@ -141,11 +141,15 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
         return sorted([priv for priv, enabled in role_data.items() if enabled])
 
     def _privs_need_update(self, existing_privs, desired_privs):
+        if not desired_privs:
+            return False
         return sorted(existing_privs) != sorted(desired_privs)
 
     def role_present(self, role_params):
         roleid = role_params["roleid"]
-        desired_privs = role_params["privs"] or []
+        desired_privs = role_params["privs"]
+        if desired_privs:
+            desired_privs = sorted(desired_privs)
 
         existing_role = self._get_role(roleid)
 
