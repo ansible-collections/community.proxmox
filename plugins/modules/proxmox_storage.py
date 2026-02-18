@@ -413,7 +413,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload["password"] = password
                 payload["datastore"] = datastore
                 if namespace:
-                  payload["namespace"] = namespace
+                    payload["namespace"] = namespace
                 if fingerprint:
                     payload["fingerprint"] = fingerprint
 
