@@ -193,6 +193,11 @@ options:
           - The required datastore to use from the Proxmox Backup Server.
         type: str
         required: false
+      namespace:
+        description:
+          - The namespace to use from the Proxmox Backup Server.
+        type: str
+        required: false
       fingerprint:
         description:
           - The required fingerprint of the Proxmox Backup Server system.
@@ -396,6 +401,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             username = pbs_options.get("username")
             password = pbs_options.get("password")
             datastore = pbs_options.get("datastore")
+            namespace = pbs_options.get("namespace")
             fingerprint = pbs_options.get("fingerprint")
             if not all([server, datastore, username, password]):
                 self.module.fail_json(
@@ -406,6 +412,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 payload["username"] = username
                 payload["password"] = password
                 payload["datastore"] = datastore
+                if namespace:
+                    payload["namespace"] = namespace
                 if fingerprint:
                     payload["fingerprint"] = fingerprint
 
@@ -544,6 +552,7 @@ def main():
                 "username": dict(type="str"),
                 "password": dict(type="str", no_log=True),
                 "datastore": dict(type="str"),
+                "namespace": dict(type="str"),
                 "fingerprint": dict(type="str"),
             },
         ),
