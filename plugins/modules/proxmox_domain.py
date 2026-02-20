@@ -232,7 +232,7 @@ EXAMPLES = r"""
     group_name_attr: "cn"
     mode: "ldaps"
     password: XXXXX
-    realm: "ipa.example.test"
+    realm: "example.test"
     server1: "ipa.example.test"
     state: present
     type: "ldap"
