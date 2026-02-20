@@ -465,9 +465,9 @@ def disk_conf_str_to_dict(config_string):
     if storage_volume in ["none", "cdrom"]:
         config_current = dict(
             volume=storage_volume,
-            storage_name=None,
-            volume_name=None,
-            size=None,
+            storage_name=str(None),
+            volume_name=str(None),
+            size=str(None),
         )
     else:
         storage_volume = storage_volume.split(":")
