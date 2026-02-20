@@ -326,7 +326,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             client_keyring = cephfs_options.get("client_keyring")
             fs_name = cephfs_options.get("fs_name")
 
-            if not monhost == "":
+            if monhost != "":
                 payload["monhost"] = monhost
             if username:
                 payload["username"] = username
