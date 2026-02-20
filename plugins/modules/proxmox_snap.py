@@ -141,7 +141,7 @@ import time
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
-from ansible.module_utils.errors import AnsibleOptionsError
+from ansible.module_utils.errors import AnsibleValidationError
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
@@ -152,12 +152,12 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 def get_proxmox_args():
     return dict(
         hostname=dict(type="str"),
-        vmid=dict(type=str),
-        state=dict(type=str, default="present", choices=["present", "absent", "rollback"]),
+        vmid=dict(type="str"),
+        state=dict(type="str", default="present", choices=["present", "absent", "rollback"]),
         force=dict(type="bool", default=False),
         unbind=dict(type="bool", default=False),
         vmstate=dict(type="bool", default=False),
-        description=dict(type=str),
+        description=dict(type="str"),
         timeout=dict(type="int", default=30),
         snapname=dict(default="ansible_snap"),
         retention=dict(type="int", default=0),
@@ -188,7 +188,7 @@ def validate_params(params):
         api_user = params.get("api_user")
         api_password = params.get("api_password")
         if api_user != "root@pam" or not api_password:
-            raise AnsibleOptionsError("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
+            raise AnsibleValidationError("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
 
 
 class ProxmoxSnapAnsible(ProxmoxAnsible):
@@ -334,7 +334,7 @@ def main():
 
     try:
         validate_params(module.params)
-    except AnsibleOptionsError as e:
+    except AnsibleValidationError as e:
         module.fail_json(msg=to_native(e))
 
     proxmox = ProxmoxSnapAnsible(module)
