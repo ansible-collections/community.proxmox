@@ -678,8 +678,9 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         if task_success:
             return True, f"Disk {disk} moved from VM {vmid} storage {disk_storage}"
         elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
+            last_log = self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
             self.module.fail_json(
-                msg=f"Reached timeout while waiting for moving VM disk. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]}"
+                msg=f"Reached timeout while waiting for moving VM disk. Last line in task before timeout: {last_log}"
             )
         else:
             self.module.fail_json(msg=f"Error occurred on task execution: {fail_reason}")
@@ -713,8 +714,9 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
             if task_success:
                 return True, f"Disk {disk} resized in VM {vmid}"
             elif fail_reason == ProxmoxAnsible.TASK_TIMED_OUT:
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(current_task_id).log.get()[:1]
                 self.module.fail_json(
-                    msg=f"Reached timeout while resizing disk. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(current_task_id).log.get()[:1]}"
+                    msg=f"Reached timeout while resizing disk. Last line in task before timeout: {last_log}"
                 )
             else:
                 self.module.fail_json(msg=f"Error occurred on task execution: {fail_reason}")

@@ -189,8 +189,9 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
                 return True
             timeout -= 1
             if timeout == 0:
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
                 self.module.fail_json(
-                    msg=f"Reached timeout while waiting for VM to start. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1]}"
+                    msg=f"Reached timeout while waiting for VM to start. Last line in task before timeout: {last_log}"
                 )
             time.sleep(1)
         return False
@@ -202,8 +203,9 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
                 return True
             timeout -= 1
             if timeout == 0:
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
                 self.module.fail_json(
-                    msg=f"Reached timeout while waiting for VM to stop. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1]}"
+                    msg=f"Reached timeout while waiting for VM to stop. Last line in task before timeout: {last_log}"
                 )
             time.sleep(1)
         return False
@@ -244,8 +246,9 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             if self.api_task_ok(vm["node"], taskid):
                 break
             if timeout == 0:
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
                 self.module.fail_json(
-                    msg=f"Reached timeout while waiting for creating VM snapshot. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1]}"
+                    msg=f"Reached timeout while waiting for creating VM snapshot. Last line in task before timeout: {last_log}"
                 )
 
             time.sleep(1)
@@ -265,8 +268,9 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             if self.api_task_ok(vm["node"], taskid):
                 return True
             if timeout == 0:
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
                 self.module.fail_json(
-                    msg=f"Reached timeout while waiting for removing VM snapshot. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1]}"
+                    msg=f"Reached timeout while waiting for removing VM snapshot. Last line in task before timeout: {last_log}"
                 )
 
             time.sleep(1)
@@ -282,8 +286,9 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             if self.api_task_ok(vm["node"], taskid):
                 return True
             if timeout == 0:
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
                 self.module.fail_json(
-                    msg=f"Reached timeout while waiting for rolling back VM snapshot. Last line in task before timeout: {self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1]}"
+                    msg=f"Reached timeout while waiting for rolling back VM snapshot. Last line in task before timeout: {last_log}"
                 )
 
             time.sleep(1)
