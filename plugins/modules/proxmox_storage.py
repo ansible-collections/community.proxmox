@@ -392,12 +392,15 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             password = pbs_options.get("password")
             datastore = pbs_options.get("datastore")
             fingerprint = pbs_options.get("fingerprint")
+            namespace = pbs_options.get("namespace")
             payload["server"] = server
             payload["username"] = username
             payload["password"] = password
             payload["datastore"] = datastore
             if fingerprint:
                 payload["fingerprint"] = fingerprint
+            if namespace:
+                payload["namespace"] = namespace
 
         if storage_type == "zfspool":
             zfspool_options = self.module.params.get(f"{storage_type}_options", {})
@@ -584,6 +587,7 @@ def main():
                 "password": dict(type="str", no_log=True),
                 "datastore": dict(type="str"),
                 "fingerprint": dict(type="str"),
+                "namespace": dict(type="str"),
             },
         ),
         zfspool_options=dict(type="dict", options={"pool": dict(type="str")}),
