@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_storage - Add support for ZFS thin-provisioning (https://github.com/ansible-collections/community.proxmox/pull/265)
