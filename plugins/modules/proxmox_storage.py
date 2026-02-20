@@ -302,6 +302,27 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
 )
 
+STORAGE_REQUIRED_OPTIONS = {
+    "cephfs": (["content"], "CephFS storage requires 'content' option."),
+    "cifs": (["server", "share"], "CIFS storage requires 'server' and 'share' options."),
+    "dir": (["path", "content"], "Directory storage requires 'path' and 'content' options."),
+    "iscsi": (["portal", "target"], "iSCSI storage requires 'portal' and 'target' options."),
+    "nfs": (["server", "export"], "NFS storage requires 'server' and 'export' options."),
+    "pbs": (
+        ["server", "username", "password", "datastore"],
+        "PBS storage requires 'server', 'username', 'password' and 'datastore' options.",
+    ),
+    "zfspool": (["pool", "content"], "ZFS storage requires 'pool' and 'content' options."),
+}
+
+
+def validate_storage_type_options(storage_type, options):
+    if storage_type not in STORAGE_REQUIRED_OPTIONS:
+        return
+    required_fields, error_msg = STORAGE_REQUIRED_OPTIONS[storage_type]
+    if not all(options.get(field) for field in required_fields):
+        raise AnsibleValidationError(error_msg)
+
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
     def add_storage(self):
@@ -479,58 +500,6 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to delete storage '{storage_name}': {e}")
 
         return changed, result
-
-
-def validate_storage_type_options(storage_type, options):
-    if storage_type == "cephfs":
-        content = options.get("content")
-        if not all([content]):
-            raise AnsibleValidationError("CephFS storage requires 'content' option.")
-
-    if storage_type == "cephfs":
-        content = options.get("content")
-        if not all([content]):
-            raise AnsibleValidationError("CephFS storage requires 'content' option.")
-
-    elif storage_type == "cifs":
-        server = options.get("server")
-        share = options.get("share")
-        if not all([server, share]):
-            raise AnsibleValidationError("CIFS storage requires 'server' and 'share' options.")
-
-    elif storage_type == "dir":
-        path = options.get("path")
-        content = options.get("content")
-        if not all([path, content]):
-            raise AnsibleValidationError("Directory storage requires 'path' and 'content' options.")
-
-    elif storage_type == "iscsi":
-        portal = options.get("portal")
-        target = options.get("target")
-        if not all([portal, target]):
-            raise AnsibleValidationError("iSCSI storage requires 'portal' and 'target' options.")
-
-    elif storage_type == "nfs":
-        server = options.get("server")
-        export = options.get("export")
-        if not all([server, export]):
-            raise AnsibleValidationError("NFS storage requires 'server' and 'export' options.")
-
-    elif storage_type == "pbs":
-        server = options.get("server")
-        username = options.get("username")
-        password = options.get("password")
-        datastore = options.get("datastore")
-        if not all([server, username, password, datastore]):
-            raise AnsibleValidationError(
-                "PBS storage requires 'server', 'username', 'password' and 'datastore' options."
-            )
-
-    elif storage_type == "zfspool":
-        pool = options.get("pool")
-        content = options.get("content")
-        if not all([pool, content]):
-            raise AnsibleValidationError("ZFS storage requires 'pool' and 'content' options.")
 
 
 def main():
