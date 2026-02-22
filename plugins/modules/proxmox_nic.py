@@ -154,7 +154,7 @@ class ProxmoxNicAnsible(ProxmoxAnsible):
         try:
             vminfo = self.proxmox_api.nodes(vm["node"]).qemu(vmid).config.get()
         except Exception as e:
-            self.module.fail_json(msg="Getting information for VM with vmid = %s failed with exception: %s" % (vmid, e))
+            self.module.fail_json(msg=f"Getting information for VM with vmid = {vmid} failed with exception: {e}")
 
         if interface in vminfo:
             # Convert the current config to a dictionary
@@ -196,10 +196,10 @@ class ProxmoxNicAnsible(ProxmoxAnsible):
             config_provided = model
 
         if kwargs["mac"]:
-            config_provided = "{0}={1}".format(model, kwargs["mac"])
+            config_provided = f"{model}={kwargs['mac']}"
 
         if kwargs["bridge"]:
-            config_provided += ",bridge={0}".format(kwargs["bridge"])
+            config_provided += f",bridge={kwargs['bridge']}"
 
         if kwargs["firewall"]:
             config_provided += ",firewall=1"
@@ -208,23 +208,23 @@ class ProxmoxNicAnsible(ProxmoxAnsible):
             config_provided += ",link_down=1"
 
         if kwargs["mtu"]:
-            config_provided += ",mtu={0}".format(kwargs["mtu"])
+            config_provided += f",mtu={kwargs['mtu']}"
             if model != "virtio":
                 self.module.warn(
                     f"Ignoring MTU for nic {interface} on VM with vmid {vmid}, model should be set to 'virtio': "
                 )
 
         if kwargs["queues"]:
-            config_provided += ",queues={0}".format(kwargs["queues"])
+            config_provided += f",queues={kwargs['queues']}"
 
         if kwargs["rate"]:
-            config_provided += ",rate={0}".format(kwargs["rate"])
+            config_provided += f",rate={kwargs['rate']}"
 
         if kwargs["tag"]:
-            config_provided += ",tag={0}".format(kwargs["tag"])
+            config_provided += f",tag={kwargs['tag']}"
 
         if kwargs["trunks"]:
-            config_provided += ",trunks={0}".format(";".join(str(x) for x in kwargs["trunks"]))
+            config_provided += f",trunks={';'.join(str(x) for x in kwargs['trunks'])}"
 
         net = {interface: config_provided}
         vm = self.get_vm(vmid)

@@ -245,14 +245,9 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
                 self.module.fail_json(
                     changed=False,
                     msg=(
-                        "Rule %s already exists with type=%s. "
+                        f"Rule {name} already exists with type={existing_rule.get('type')}. "
                         "The type of an existing rule can not be changed. "
-                        "Use force=true to delete the existing rule and recreate it with type=%s"
-                        % (
-                            name,
-                            existing_rule.get("type"),
-                            self.module.params.get("type"),
-                        )
+                        f"Use force=true to delete the existing rule and recreate it with type={self.module.params.get('type')}"
                     ),
                 )
 

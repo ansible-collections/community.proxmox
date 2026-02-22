@@ -254,13 +254,13 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
                 tasklog = ", ".join(logentry["t"] for logentry in self._get_tasklog(node, upid))
             else:
                 tasklog = ""
-            task_ids.extend([{"node": node, "upid": upid, "status": "unknown", "log": "%s" % tasklog}])
+            task_ids.extend([{"node": node, "upid": upid, "status": "unknown", "log": f"{tasklog}"}])
         return task_ids
 
     def check_relevant_nodes(self, node):
         nodes = [item["node"] for item in self._get_resources("node") if item["status"] == "online"]
         if node and node not in nodes:
-            self.module.fail_json(msg="Node %s was specified, but does not exist on the cluster" % node)
+            self.module.fail_json(msg=f"Node {node} was specified, but does not exist on the cluster")
         elif node:
             return [node]
         return nodes
@@ -306,7 +306,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
                 self.module.fail_json(
                     changed=False,
                     msg="Insufficient permissions: "
-                    "You dont have the VM.Backup permission for VMID %s" % ", ".join(failed_vmids),
+                    f"You dont have the VM.Backup permission for VMID {', '.join(failed_vmids)}",
                 )
             sufficient_permissions = True
         # Finally, when no check succeeded, fail
@@ -326,7 +326,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
         # Loop through all cluster storages and get all matching storages
         validated_storagepath = [storageentry for storageentry in storages if storageentry["storage"] == storage]
         if not validated_storagepath:
-            self.module.fail_json(changed=False, msg="Storage %s does not exist in the cluster" % storage)
+            self.module.fail_json(changed=False, msg=f"Storage {storage} does not exist in the cluster")
 
     def check_vmids(self, vmids):
         cluster_vmids = [vm["vmid"] for vm in self._get_resources("vm")]
@@ -338,7 +338,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
         vmids_not_found = [str(vm) for vm in vmids if vm not in cluster_vmids]
         if vmids_not_found:
             self.module.warn(
-                "VMIDs %s not found. This task will fail if one VMID does not exist" % ", ".join(vmids_not_found)
+                f"VMIDs {', '.join(vmids_not_found)} not found. This task will fail if one VMID does not exist"
             )
 
     def wait_for_timeout(self, timeout, raw_tasks):
@@ -365,7 +365,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
                         if status["status"] == "stopped" and status["exitstatus"] == "job errors":
                             node["status"] = "failed"
                     except Exception as e:
-                        self.module.fail_json(msg="Unable to retrieve API task ID from node %s: %s" % (node["node"], e))
+                        self.module.fail_json(msg=f"Unable to retrieve API task ID from node {node['node']}: {e}")
             if len([item for item in tasks if item["status"] != "unknown"]) == len(tasks):
                 break
             if time.time() > start_time + timeout:
@@ -374,12 +374,12 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
                 if failed_nodes:
                     self.module.fail_json(
                         msg="Reached timeout while waiting for backup task. "
-                        "Nodes, who reached the timeout: %s. "
-                        "Nodes, which failed: %s" % (", ".join(timeouted_nodes), ", ".join(failed_nodes))
+                        f"Nodes, who reached the timeout: {', '.join(timeouted_nodes)}. "
+                        f"Nodes, which failed: {', '.join(failed_nodes)}"
                     )
                 self.module.fail_json(
                     msg="Reached timeout while waiting for creating VM snapshot. "
-                    "Nodes who reached the timeout: %s" % ", ".join(timeouted_nodes)
+                    f"Nodes who reached the timeout: {', '.join(timeouted_nodes)}"
                 )
             time.sleep(1)
 
@@ -387,11 +387,11 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
         for node in tasks:
             if node["status"] == "failed":
                 tasklog = ", ".join([logentry["t"] for logentry in self._get_tasklog(node["node"], node["upid"])])
-                error_logs.append("%s: %s" % (node, tasklog))
+                error_logs.append(f"{node}: {tasklog}")
         if error_logs:
             self.module.fail_json(
                 msg="An error occured creating the backups. "
-                "These are the last log lines from the failed nodes: %s" % ", ".join(error_logs)
+                f"These are the last log lines from the failed nodes: {', '.join(error_logs)}"
             )
 
         for node in tasks:
@@ -524,7 +524,7 @@ def main():
     try:
         result = proxmox.backup_create(module.params, module.check_mode, node_endpoints)
     except Exception as e:
-        module.fail_json(msg="Creating backups failed with exception: %s" % to_native(e))
+        module.fail_json(msg=f"Creating backups failed with exception: {to_native(e)}")
 
     if module.check_mode:
         module.exit_json(backups=result, changed=True, msg="Backups would be created")

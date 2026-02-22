@@ -83,7 +83,7 @@ class ProxmoxGroupInfoAnsible(ProxmoxAnsible):
         try:
             group = self.proxmox_api.access.groups.get(groupid)
         except Exception:
-            self.module.fail_json(msg="Group '%s' does not exist" % groupid)
+            self.module.fail_json(msg=f"Group '{groupid}' does not exist")
         group["groupid"] = groupid
         return ProxmoxGroup(group)
 

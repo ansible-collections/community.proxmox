@@ -149,7 +149,7 @@ class ProxmoxBackupInfoAnsible(ProxmoxAnsible):
         try:
             backupJobs = self.proxmox_api.cluster.backup.get()
         except Exception as e:
-            self.module.fail_json(msg="Getting backup jobs failed: %s" % e)
+            self.module.fail_json(msg=f"Getting backup jobs failed: {e}")
         return backupJobs
 
     # Get VM information
@@ -157,7 +157,7 @@ class ProxmoxBackupInfoAnsible(ProxmoxAnsible):
         try:
             vms = self.proxmox_api.cluster.resources.get(type="vm")
         except Exception as e:
-            self.module.fail_json(msg="Getting VMs info from cluster failed: %s" % e)
+            self.module.fail_json(msg=f"Getting VMs info from cluster failed: {e}")
         return vms
 
     # Get all backup information by VM ID and VM name

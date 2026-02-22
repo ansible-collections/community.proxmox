@@ -80,7 +80,7 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
         nodes = self.proxmox_api.cluster.resources.get(type="node")
         nodes = [item["node"] for item in nodes]
         if node not in nodes:
-            self.module.fail_json(msg="Node %s does not exist in the cluster" % node)
+            self.module.fail_json(msg=f"Node {node} does not exist in the cluster")
 
     def check_mds(self, node):
         mds = self.proxmox_api.nodes(node).ceph.mds.get()
@@ -139,13 +139,13 @@ def main():
         try:
             proxmox.add_mds(module.params["node"])
         except Exception as e:
-            module.fail_json(msg="Adding mds failed with exception: %s" % to_native(e))
+            module.fail_json(msg=f"Adding mds failed with exception: {to_native(e)}")
 
     elif state == "absent":
         try:
             proxmox.del_mds(module.params["node"])
         except Exception as e:
-            module.fail_json(msg="Deleting mds failed with exception: %s" % to_native(e))
+            module.fail_json(msg=f"Deleting mds failed with exception: {to_native(e)}")
 
 
 if __name__ == "__main__":
