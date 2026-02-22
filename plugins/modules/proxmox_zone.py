@@ -274,7 +274,7 @@ def get_ansible_module():
 
 class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxZoneAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def validate_params(self):

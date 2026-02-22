@@ -249,7 +249,7 @@ def build_common_arg(node, state, check=False):
 
 class TestProxmoxCephOsd(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxCephOsd, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_ceph_osd
 
@@ -274,7 +274,7 @@ class TestProxmoxCephOsd(ModuleTestCase):
         self.connect_mock.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
-        super(TestProxmoxCephOsd, self).tearDown()
+        super().tearDown()
 
     def test_add_osd_node_not_present(self):
         args = build_common_arg("srv-proxmox-04", "present", False)

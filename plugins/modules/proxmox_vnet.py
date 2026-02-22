@@ -152,7 +152,7 @@ def get_ansible_module():
 
 class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxVnetAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

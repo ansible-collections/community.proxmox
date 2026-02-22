@@ -225,7 +225,7 @@ def compare_dhcp_ranges(existing_ranges, new_ranges):
 
 class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxSubnetAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

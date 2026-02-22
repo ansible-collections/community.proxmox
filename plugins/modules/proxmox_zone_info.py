@@ -116,7 +116,7 @@ def get_ansible_module():
 
 class ProxmoxZoneInfoAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxZoneInfoAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

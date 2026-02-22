@@ -17,7 +17,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
     """Base Class for All Proxmox SDN Classes"""
 
     def __init__(self, module):
-        super(ProxmoxSdnAnsible, self).__init__(module)
+        super().__init__(module)
         self.module = module
         pve_major_version = self.version().version[0]
         self._is_lock_and_rollback_supported = pve_major_version >= 9

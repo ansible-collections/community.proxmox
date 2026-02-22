@@ -831,7 +831,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
     """Manages Proxmox network interfaces."""
 
     def __init__(self, module):
-        super(ProxmoxNetworkManager, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
         self.node = self.params["node"]
 

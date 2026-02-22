@@ -421,7 +421,7 @@ def get_module_args(type="all", node=None, vmid=None, name=None, config="none"):
 
 class TestProxmoxVmInfoModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxVmInfoModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_vm_info
         self.connect_mock = patch(
@@ -434,7 +434,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxVmInfoModule, self).tearDown()
+        super().tearDown()
 
     def test_module_fail_when_required_args_missing(self):
         with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):

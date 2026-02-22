@@ -121,7 +121,7 @@ def get_module_args_vxlan_peers(zone, peers, state="present", update=True, **kwa
 
 class TestProxmoxZoneModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxZoneModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_zone
         self.fail_json_patcher = patch(
@@ -146,7 +146,7 @@ class TestProxmoxZoneModule(ModuleTestCase):
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
         self.version_mock.stop()
-        super(TestProxmoxZoneModule, self).tearDown()
+        super().tearDown()
 
     def test_zone_present(self):
         # Create new Zone

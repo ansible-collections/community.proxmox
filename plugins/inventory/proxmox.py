@@ -243,7 +243,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     NAME = "community.proxmox.proxmox"
 
     def __init__(self):
-        super(InventoryModule, self).__init__()
+        super().__init__()
 
         # from config
         self.proxmox_url = None
@@ -254,7 +254,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def verify_file(self, path):
         valid = False
-        if super(InventoryModule, self).verify_file(path):
+        if super().verify_file(path):
             if path.endswith(("proxmox.yaml", "proxmox.yml")):
                 valid = True
             else:
@@ -688,7 +688,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not HAS_REQUESTS:
             raise AnsibleError("This module requires Python Requests 1.1.0 or higher: https://github.com/psf/requests.")
 
-        super(InventoryModule, self).parse(inventory, loader, path)
+        super().parse(inventory, loader, path)
 
         # read config from file, this sets 'options'
         self._read_config_data(path)
