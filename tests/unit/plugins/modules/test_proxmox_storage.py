@@ -82,7 +82,7 @@ def zfspool_storage_args():
         "nodes": ["pve01", "pve02"],
         "state": "present",
         "name": "zfspool-storage",
-        "type": "zfspooldir",
+        "type": "zfspool",
         "zfspool_options": {
             "pool": "mypool",
         },

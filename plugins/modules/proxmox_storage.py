@@ -213,6 +213,10 @@ options:
           - The name of the ZFS pool to use.
         type: str
         required: false
+      sparse:
+        description:
+          - Use ZFS thin-provisioning.
+        type: bool
   content:
     description:
       - The desired content that should be used with this storage type.
@@ -283,6 +287,19 @@ EXAMPLES = r"""
     state: absent
     name: net-nfsshare01
     type: nfs
+- name: Add ZFS storage to Proxmox VE Cluster
+  community.proxmox.proxmox_storage:
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: password123
+    validate_certs: false
+    state: present
+    name: zfspool-storage
+    type: zfspool
+    content: ["rootdir", "images"]
+    zfspool_options:
+      pool: rpool/data
+      sparse: true
 """
 
 RETURN = r"""
@@ -425,6 +442,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             else:
                 payload["pool"] = pool
 
+            payload["sparse"] = 1 if zfspool_options.get("sparse") else 0
+
         # Check Mode validation
         if self.module.check_mode:
             try:
@@ -556,7 +575,10 @@ def main():
                 "fingerprint": dict(type="str"),
             },
         ),
-        zfspool_options=dict(type="dict", options={"pool": dict(type="str")}),
+        zfspool_options=dict(
+            type="dict",
+            options={"pool": dict(type="str"), "sparse": dict(type="bool")},
+        ),
         content=dict(
             type="list", elements="str", choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
         ),
