@@ -534,7 +534,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 2
 
     def test_get_vm_with_an_empty_name(self):
         name = ""
@@ -579,7 +578,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 2
 
     def test_module_returns_empty_list_when_vm_does_not_exist(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
