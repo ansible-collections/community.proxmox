@@ -149,7 +149,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 
-def get_proxmox_args():
+def get_ansible_module_args():
     return dict(
         hostname=dict(type="str"),
         vmid=dict(type="str"),
@@ -166,7 +166,7 @@ def get_proxmox_args():
 
 def get_ansible_module():
     module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
+    module_args.update(get_ansible_module_args())
 
     return AnsibleModule(
         argument_spec=module_args,
@@ -183,8 +183,7 @@ def validate_params(params):
     # API tokens are not supported for mountpoint operations, even for root@pam.
     # Without proper authentication, the operation would fail after mountpoints are removed,
     # leaving the container in a misconfigured state without its mountpoints.
-    unbind = params.get("unbind", False)
-    if unbind is True:
+    if params.get("unbind"):
         api_user = params.get("api_user")
         api_password = params.get("api_password")
         if api_user != "root@pam" or not api_password:
