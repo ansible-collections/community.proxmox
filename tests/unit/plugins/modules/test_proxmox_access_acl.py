@@ -78,7 +78,7 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["changed"] is True
-        assert self.mock_get.call_count == 2 # noqa: PLR2004
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
         assert self.mock_put.call_count == 1
 
     def test_absent_ace_does_not_exist(self):
