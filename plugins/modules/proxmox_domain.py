@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2026, (@teslamania) <nicolas.vial@protonmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_domain
@@ -44,12 +41,12 @@ options:
         type: str
     case_sensitive:
         description:
-            - Username is case-sensitive.
+            - Choose if username is case-sensitive or not.
             - Supported for O(type=ad).
         type: bool
         default: True
     comment:
-        description: Description.
+        description: Description of the realm.
         type: str
     client_id:
         description:
@@ -157,9 +154,8 @@ options:
     state:
         description:
             - Indicates if the realm should be present or absent.
-            - Run a sync.
         required: true
-        choices: ['present', 'absent', 'sync']
+        choices: ['present', 'absent']
         type: str
     sync_defaults_options:
         description:
@@ -243,14 +239,6 @@ EXAMPLES = r"""
       enable_new: True
       remove_vanished: "acl;properties;entry"
 
-- name: Sync ldap domain
-  community.proxmox.proxmox_domain:
-    api_host: 192.168.1.21
-    api_user: "root@pam"
-    api_password: secret
-    realm: "ipa.example.test"
-    state: sync
-
 - name: Add ad domain
   community.proxmox.proxmox_domain:
     api_host: 192.168.1.21
@@ -280,6 +268,14 @@ EXAMPLES = r"""
     client_id: idoftheclient
     client_key: keyoftheclient
     issuer_url: "https://example.test/openid-server"
+
+- name: Del domain
+  community.proxmox.proxmox_domain:
+    api_host: 192.168.1.21
+    api_user: "root@pam"
+    api_password: secret
+    realm: "ipa.example.test"
+    state: absent
 """
 
 RETURN = r"""
@@ -290,16 +286,17 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
-    ansible_to_proxmox_bool,
     ProxmoxAnsible,
+    ansible_to_proxmox_bool,
+    proxmox_auth_argument_spec,
 )
 
 
 class ProxmoxDomainAnsible(ProxmoxAnsible):
     def __init__(self, module):
-        super(ProxmoxDomainAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def check_domain(self, realm):
@@ -309,12 +306,10 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
     def get_domain(self, realm):
         return self.proxmox_api.access.domains.get(realm)
 
-    # In params there is no None value
     def is_equal(self, params, current):
-        for k, v in params.items():
-            if k not in ["password", "realm"] and (k not in current.keys() or v != current[k]):
-                return False
-        return True
+        return all(
+            not (k not in ["password", "realm"] and (k not in current or v != current[k])) for k, v in params.items()
+        )
 
     def get_params_from_list(self, params_list):
         params = {
@@ -365,21 +360,16 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
         return self.get_params_from_list(list_sync_params)
 
     def get_sync_options_param(self):
-        sync_option = self.params['sync_defaults_options']
+        sync_option = self.params["sync_defaults_options"]
         if sync_option is not None:
             options = []
-            if sync_option.get('enable_new'):
-                options.append(
-                    f"enable-new={ansible_to_proxmox_bool(sync_option.get('enable_new'))}"
-                )
-            if sync_option.get('remove_vanished') is not None:
+            if sync_option.get("enable_new"):
+                options.append(f"enable-new={ansible_to_proxmox_bool(sync_option.get('enable_new'))}")
+            if sync_option.get("remove_vanished") is not None:
                 options.append(f"remove-vanished={sync_option.get('remove_vanished')}")
-            if sync_option.get('scope') is not None:
+            if sync_option.get("scope") is not None:
                 options.append(f"scope={sync_option.get('scope')}")
-            try:
-                param = {"sync-defaults-options": ','.join(options)}
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed : {options}")
+            param = {"sync-defaults-options": ",".join(options)}
         else:
             param = {}
         return param
@@ -399,30 +389,30 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
         ]
         openid_param = self.get_params_from_list(list_openid_params)
         # On the api all the parameters are with a - and not a _
-        openid_params = {k.replace('_', '-'): v for k, v in openid_param.items()}
+        openid_params = {k.replace("_", "-"): v for k, v in openid_param.items()}
         return openid_params
 
     def add_domain(self):
         domain_params = self.get_domain_params()
-        if self.params['type'] == "ldap":
+        if self.params["type"] == "ldap":
             type_params = {
                 **self.get_ldap_params(),
                 **self.get_sync_params(),
                 **self.get_sync_options_param(),
             }
-        elif self.params['type'] == "ad":
+        elif self.params["type"] == "ad":
             type_params = {
                 **self.get_ad_params(),
                 **self.get_sync_params(),
                 **self.get_sync_options_param(),
             }
-        elif self.params['type'] == "openid":
+        elif self.params["type"] == "openid":
             type_params = self.get_openid_params()
 
         params = {**domain_params, **type_params}
 
-        if self.check_domain(self.params['realm']):
-            current = self.get_domain(self.params['realm'])
+        if self.check_domain(self.params["realm"]):
+            current = self.get_domain(self.params["realm"])
             if self.is_equal(params, current):
                 self.module.exit_json(
                     changed=False,
@@ -430,8 +420,8 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
                 )
             else:
                 if not self.module.check_mode:
-                    params.pop('type')
-                    self.proxmox_api.access.domains(self.params['realm']).put(**params)
+                    params.pop("type")
+                    self.proxmox_api.access.domains(self.params["realm"]).put(**params)
                     msg = f"Domain {self.params['realm']} edited."
                 else:
                     msg = f"Domain {self.params['realm']} would be edited."
@@ -442,83 +432,65 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
                 msg = f"Domain {self.params['realm']} added."
             else:
                 msg = f"Domain {self.params['realm']} would be added."
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
+            self.module.exit_json(changed=True, msg=msg)
 
     def del_domain(self):
-        if self.check_domain(self.params['realm']):
+        if self.check_domain(self.params["realm"]):
             if not self.module.check_mode:
-                self.proxmox_api.access.domains(self.params['realm']).delete()
+                self.proxmox_api.access.domains(self.params["realm"]).delete()
                 msg = f"Domain {self.params['realm']} deleted."
             else:
                 msg = f"Domain {self.params['realm']} would be deleted."
 
-            self.module.exit_json(
-                changed=True,
-                msg=msg,
-            )
-        else:
-            self.module.exit_json(
-                changed=False,
-                msg="Domain not present.",
-            )
-
-    def sync_domain(self):
-        if self.check_domain(self.params['realm']):
-            if not self.module.check_mode:
-                self.proxmox_api.access.domains(self.params['realm']).sync.post()
-                msg = f"Domain {self.params['realm']} synced."
-            else:
-                msg = f"Domain {self.params['realm']} would be synced."
-
             self.module.exit_json(changed=True, msg=msg)
         else:
-            self.module.fail_json(msg=f"Domain {self.params['realm']} not present.")
+            self.module.exit_json(changed=False, msg=f"Domain {self.params['realm']} not present.")
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
     domain_args = dict(
-        acr_values=dict(type='str'),
-        autocreate=dict(type='bool'),
-        base_dn=dict(type='str'),
-        bind_dn=dict(type='str'),
-        case_sensitive=dict(type='bool', default=True),
-        comment=dict(type='str'),
-        client_id=dict(type='str'),
-        client_key=dict(type='str', no_log=True),
-        default=dict(type='bool'),
-        domain=dict(type='str'),
-        filter=dict(type='str'),
-        groups_autocreate=dict(type='bool'),
-        groups_claim=dict(type='str'),
-        groups_overwrite=dict(type='bool'),
-        group_filter=dict(type='str'),
-        group_classes=dict(type='str'),
-        group_name_attr=dict(type='str'),
-        issuer_url=dict(type='str'),
-        mode=dict(choices=['ldap', 'ldaps', 'ldap+starttls']),
-        password=dict(type='str', no_log=True),
-        port=dict(type='int'),
-        prompt=dict(type='str'),
-        query_userinfo=dict(type='bool'),
-        realm=dict(type='str', required=True),
-        scopes=dict(type='str'),
-        server1=dict(type='str'),
-        server2=dict(type='str'),
-        state=dict(choices=['present', 'absent', 'sync'], required=True),
-        type=dict(choices=['ad', 'ldap', 'openid']),
-        username_claim=dict(type='str'),
-        user_attr=dict(type='str'),
-        user_classes=dict(type='str'),
-        verify=dict(type='bool'),
-        sync_defaults_options=dict(type='dict', options={
-            'enable_new': dict(type='bool'),
-            'remove_vanished': dict(type='str'),
-            'scope': dict(choices=['users', 'groups', 'both']),
-        }),
+        acr_values=dict(type="str"),
+        autocreate=dict(type="bool"),
+        base_dn=dict(type="str"),
+        bind_dn=dict(type="str"),
+        case_sensitive=dict(type="bool", default=True),
+        comment=dict(type="str"),
+        client_id=dict(type="str"),
+        client_key=dict(type="str", no_log=True),
+        default=dict(type="bool"),
+        domain=dict(type="str"),
+        filter=dict(type="str"),
+        groups_autocreate=dict(type="bool"),
+        groups_claim=dict(type="str"),
+        groups_overwrite=dict(type="bool"),
+        group_filter=dict(type="str"),
+        group_classes=dict(type="str"),
+        group_name_attr=dict(type="str"),
+        issuer_url=dict(type="str"),
+        mode=dict(choices=["ldap", "ldaps", "ldap+starttls"]),
+        password=dict(type="str", no_log=True),
+        port=dict(type="int"),
+        prompt=dict(type="str"),
+        query_userinfo=dict(type="bool"),
+        realm=dict(type="str", required=True),
+        scopes=dict(type="str"),
+        server1=dict(type="str"),
+        server2=dict(type="str"),
+        state=dict(choices=["present", "absent"], required=True),
+        type=dict(choices=["ad", "ldap", "openid"]),
+        username_claim=dict(type="str"),
+        user_attr=dict(type="str"),
+        user_classes=dict(type="str"),
+        verify=dict(type="bool"),
+        sync_defaults_options=dict(
+            type="dict",
+            options={
+                "enable_new": dict(type="bool"),
+                "remove_vanished": dict(type="str"),
+                "scope": dict(choices=["users", "groups", "both"]),
+            },
+        ),
     )
 
     module_args.update(domain_args)
@@ -529,28 +501,25 @@ def main():
         required_one_of=[("api_password", "api_token_id")],
         required_together=[("api_token_id", "api_token_secret")],
         required_if=[
-            ('type', 'ldap', ['base_dn']),
-            ('type', 'ldap', ['user_attr']),
-            ('type', 'ldap', ['server1']),
-            ('type', 'ad', ['server1']),
-            ('type', 'ad', ['domain']),
-            ('type', 'openid', ['issuer_url']),
-            ('type', 'openid', ['client_id']),
-            ('state', 'present', ['type']),
+            ("type", "ldap", ["base_dn"]),
+            ("type", "ldap", ["user_attr"]),
+            ("type", "ldap", ["server1"]),
+            ("type", "ad", ["server1"]),
+            ("type", "ad", ["domain"]),
+            ("type", "openid", ["issuer_url"]),
+            ("type", "openid", ["client_id"]),
+            ("state", "present", ["type"]),
         ],
     )
 
     proxmox = ProxmoxDomainAnsible(module)
-    state = module.params['state']
+    state = module.params["state"]
 
-    if state == 'present':
+    if state == "present":
         proxmox.add_domain()
 
-    elif state == 'absent':
+    elif state == "absent":
         proxmox.del_domain()
-
-    elif state == 'sync':
-        proxmox.sync_domain()
 
 
 if __name__ == "__main__":

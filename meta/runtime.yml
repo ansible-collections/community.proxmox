@@ -23,6 +23,7 @@ action_groups:
     - proxmox_cluster_join_info
     - proxmox_disk
     - proxmox_domain
+    - proxmox_domain_sync
     - proxmox_domain_info
     - proxmox_firewall
     - proxmox_firewall_info
