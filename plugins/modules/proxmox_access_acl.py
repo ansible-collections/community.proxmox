@@ -9,54 +9,50 @@
 DOCUMENTATION = r"""
 ---
 module: proxmox_access_acl
-
-short_description: Management of ACLs for objects in Proxmox VE Cluster
-
+short_description: Manages ACLs on the Proxmox PVE cluster
 version_added: "1.1.0"
-
+author:
+  - Markus Kötter (@commonism)
 description:
   - Setting ACLs via C(/access/acls) to grant permission to interact with objects.
-
 attributes:
   check_mode:
     support: none
   diff_mode:
     support: none
-
 options:
-    state:
-        description: create or delete
-        required: true
-        choices: ['present', 'absent']
-        type: str
-    path:
-        description: Access Control Path
-        required: false
-        type: str
-    roleid:
-        description: name of the role
-        required: false
-        type: str
-    type:
-        description: type of access control
-        choices: ["user", "group", "token"]
-        required: false
-        type: str
-    ugid:
-        description: id of user or group
-        required: false
-        type: str
-    propagate:
-        description: Allow to propagate (inherit) permissions.
-        required: false
-        type: bool
-        default: 1
+  state:
+    description:
+      - Indicate desired state of the ACL.
+    required: true
+    choices: ["present", "absent"]
+    type: str
+  path:
+    description:
+      - Access Control Path.
+    type: str
+  roleid:
+    description:
+        - The name of the role.
+    type: str
+  type:
+    description:
+        - type of access control
+    choices: ["user", "group", "token"]
+    type: str
+  ugid:
+    description:
+      - The ID of user or group.
+    type: str
+  propagate:
+    description:
+      - Allow to propagate (inherit) permissions.
+    type: bool
+    default: true
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
-author:
-    - Markus Kötter (@commonism)
 """
 
 EXAMPLES = r"""
