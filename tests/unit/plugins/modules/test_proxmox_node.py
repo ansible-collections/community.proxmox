@@ -1,14 +1,15 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2025, Florian Paul Azim Hoberg (@gyptazy) <florian.hoberg@credativ.de>
 #
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.modules import proxmox_node
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
+from ansible_collections.community.proxmox.plugins.modules import proxmox_node
 
 
 @pytest.fixture
@@ -33,14 +34,7 @@ def test_power_state_present(mock_api, mock_init, module_args_power_on):
     mock_api_instance = MagicMock()
     mock_api.return_value = mock_api_instance
 
-    nodes = {
-        "nodes": {
-            "test-node": {
-                "name": "test-node",
-                "status": "offline"
-            }
-        }
-    }
+    nodes = {"nodes": {"test-node": {"name": "test-node", "status": "offline"}}}
 
     module.exit_json = lambda **kwargs: (x for x in ()).throw(SystemExit(kwargs))
     module.fail_json = lambda **kwargs: (x for x in ()).throw(SystemExit(kwargs))
@@ -49,7 +43,7 @@ def test_power_state_present(mock_api, mock_init, module_args_power_on):
     proxmox.module = module
     proxmox.proxmox_api = mock_api_instance
 
-    with patch.object(mock_api_instance.nodes("test-node").wakeonlan, 'post') as mock_post:
+    with patch.object(mock_api_instance.nodes("test-node").wakeonlan, "post") as mock_post:
         changed, msg = proxmox.power_state(nodes)
 
     assert changed is True
@@ -67,14 +61,7 @@ def test_power_state_already_online(mock_api, mock_init, module_args_power_on):
     mock_api_instance = MagicMock()
     mock_api.return_value = mock_api_instance
 
-    nodes = {
-        "nodes": {
-            "test-node": {
-                "name": "test-node",
-                "status": "online"
-            }
-        }
-    }
+    nodes = {"nodes": {"test-node": {"name": "test-node", "status": "online"}}}
 
     proxmox = proxmox_node.ProxmoxNodeAnsible(module)
     proxmox.module = module
@@ -90,13 +77,7 @@ def test_power_state_already_online(mock_api, mock_init, module_args_power_on):
 @patch.object(ProxmoxAnsible, "proxmox_api", create=True)
 def test_subscription_present_new_key(mock_api, mock_init):
     module = MagicMock(spec=AnsibleModule)
-    module.params = {
-        "node_name": "test-node",
-        "subscription": {
-            "state": "present",
-            "key": "ABCD-1234"
-        }
-    }
+    module.params = {"node_name": "test-node", "subscription": {"state": "present", "key": "ABCD-1234"}}
     module.check_mode = False
 
     mock_api_instance = MagicMock()
@@ -121,13 +102,7 @@ def test_subscription_present_new_key(mock_api, mock_init):
 @patch.object(ProxmoxAnsible, "proxmox_api", create=True)
 def test_subscription_already_present(mock_api, mock_init):
     module = MagicMock(spec=AnsibleModule)
-    module.params = {
-        "node_name": "test-node",
-        "subscription": {
-            "state": "present",
-            "key": "ABCD-1234"
-        }
-    }
+    module.params = {"node_name": "test-node", "subscription": {"state": "present", "key": "ABCD-1234"}}
     module.check_mode = False
 
     mock_api_instance = MagicMock()

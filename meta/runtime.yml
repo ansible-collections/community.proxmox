@@ -15,6 +15,7 @@ action_groups:
     - proxmox_ceph_mds
     - proxmox_ceph_mgr
     - proxmox_ceph_mon
+    - proxmox_ceph_osd
     - proxmox_cluster
     - proxmox_cluster_ha_resources
     - proxmox_cluster_ha_rules
@@ -36,6 +37,7 @@ action_groups:
     - proxmox_node_network_info
     - proxmox_pool
     - proxmox_pool_member
+    - proxmox_role
     - proxmox_sendkey
     - proxmox_snap
     - proxmox_snap_info

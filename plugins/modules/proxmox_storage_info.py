@@ -1,12 +1,8 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright Tristan Le Guern (@tleguern) <tleguern at bouledef.eu>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 
 DOCUMENTATION = r"""
@@ -113,8 +109,12 @@ proxmox_storages:
 
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible, proxmox_to_ansible_bool)
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+    proxmox_to_ansible_bool,
+)
 
 
 class ProxmoxStorageInfoAnsible(ProxmoxAnsible):
@@ -122,11 +122,11 @@ class ProxmoxStorageInfoAnsible(ProxmoxAnsible):
         try:
             storage = self.proxmox_api.storage.get(storage)
         except Exception:
-            self.module.fail_json(msg="Storage '%s' does not exist" % storage)
+            self.module.fail_json(msg=f"Storage '{storage}' does not exist")
         return ProxmoxStorage(storage)
 
-    def get_storages(self, type=None):
-        storages = self.proxmox_api.storage.get(type=type)
+    def get_storages(self, storagetype=None):
+        storages = self.proxmox_api.storage.get(type=storagetype)
         storages = [ProxmoxStorage(storage) for storage in storages]
         return storages
 
@@ -136,24 +136,24 @@ class ProxmoxStorage:
         self.storage = storage
         # Convert proxmox representation of lists, dicts and boolean for easier
         # manipulation within ansible.
-        if 'shared' in self.storage:
-            self.storage['shared'] = proxmox_to_ansible_bool(self.storage['shared'])
-        if 'content' in self.storage:
-            self.storage['content'] = self.storage['content'].split(',')
-        if 'nodes' in self.storage:
-            self.storage['nodes'] = self.storage['nodes'].split(',')
-        if 'prune-backups' in storage:
-            options = storage['prune-backups'].split(',')
-            self.storage['prune-backups'] = dict()
+        if "shared" in self.storage:
+            self.storage["shared"] = proxmox_to_ansible_bool(self.storage["shared"])
+        if "content" in self.storage:
+            self.storage["content"] = self.storage["content"].split(",")
+        if "nodes" in self.storage:
+            self.storage["nodes"] = self.storage["nodes"].split(",")
+        if "prune-backups" in storage:
+            options = storage["prune-backups"].split(",")
+            self.storage["prune-backups"] = dict()
             for option in options:
-                k, v = option.split('=')
-                self.storage['prune-backups'][k] = v
+                k, v = option.split("=")
+                self.storage["prune-backups"][k] = v
 
 
 def proxmox_storage_info_argument_spec():
     return dict(
-        storage=dict(type='str', aliases=['name']),
-        type=dict(type='str'),
+        storage=dict(type="str", aliases=["name"]),
+        type=dict(type="str"),
     )
 
 
@@ -164,27 +164,25 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
-        mutually_exclusive=[('storage', 'type')],
-        supports_check_mode=True
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
+        mutually_exclusive=[("storage", "type")],
+        supports_check_mode=True,
     )
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     proxmox = ProxmoxStorageInfoAnsible(module)
-    storage = module.params['storage']
-    storagetype = module.params['type']
+    storage = module.params["storage"]
+    storagetype = module.params["type"]
 
     if storage:
         storages = [proxmox.get_storage(storage)]
     else:
-        storages = proxmox.get_storages(type=storagetype)
-    result['proxmox_storages'] = [storage.storage for storage in storages]
+        storages = proxmox.get_storages(storagetype=storagetype)
+    result["proxmox_storages"] = [storage.storage for storage in storages]
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,12 +1,8 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2021, Andreas Botzner (@paginabianca) <andreas at botzner dot com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 
 DOCUMENTATION = r"""
@@ -134,15 +130,18 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible)
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxTaskInfoAnsible(ProxmoxAnsible):
     def get_task(self, upid, node, source):
         tasks = self.get_tasks(node, source)
         for task in tasks:
-            if task.info['upid'] == upid:
+            if task.info["upid"] == upid:
                 return [task]
 
     def get_tasks(self, node, source):
@@ -154,19 +153,19 @@ class ProxmoxTask:
     def __init__(self, task):
         self.info = dict()
         for k, v in task.items():
-            if k == 'status' and isinstance(v, str):
+            if k == "status" and isinstance(v, str):
                 self.info[k] = v
-                if v != 'OK':
-                    self.info['failed'] = True
+                if v != "OK":
+                    self.info["failed"] = True
             else:
                 self.info[k] = v
 
 
 def proxmox_task_info_argument_spec():
     return dict(
-        task=dict(type='str', aliases=['upid', 'name'], required=False),
-        node=dict(type='str', required=True),
-        source=dict(default='archive', choices=['archive', 'active', 'all']),
+        task=dict(type="str", aliases=["upid", "name"], required=False),
+        node=dict(type="str", required=True),
+        source=dict(default="archive", choices=["archive", "active", "all"]),
     )
 
 
@@ -177,27 +176,27 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_together=[('api_token_id', 'api_token_secret')],
-        required_one_of=[('api_password', 'api_token_id')],
-        supports_check_mode=True)
+        required_together=[("api_token_id", "api_token_secret")],
+        required_one_of=[("api_password", "api_token_id")],
+        supports_check_mode=True,
+    )
     result = dict(changed=False)
 
     proxmox = ProxmoxTaskInfoAnsible(module)
-    upid = module.params['task']
-    node = module.params['node']
-    source = module.params['source']
+    upid = module.params["task"]
+    node = module.params["node"]
+    source = module.params["source"]
     if upid:
         tasks = proxmox.get_task(upid=upid, node=node, source=source)
     else:
         tasks = proxmox.get_tasks(node=node, source=source)
     if tasks is not None:
-        result['proxmox_tasks'] = [task.info for task in tasks]
+        result["proxmox_tasks"] = [task.info for task in tasks]
         module.exit_json(**result)
     else:
-        result['msg'] = 'Task: {0} does not exist on node: {1}.'.format(
-            upid, node)
+        result["msg"] = f"Task: {upid} does not exist on node: {node}."
         module.fail_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

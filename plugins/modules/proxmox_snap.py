@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2020, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_snap
@@ -144,33 +141,37 @@ import time
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxSnapAnsible(ProxmoxAnsible):
     def snapshot(self, vm, vmid):
-        return getattr(self.proxmox_api.nodes(vm['node']), vm['type'])(vmid).snapshot
+        return getattr(self.proxmox_api.nodes(vm["node"]), vm["type"])(vmid).snapshot
 
     def vmconfig(self, vm, vmid):
-        return getattr(self.proxmox_api.nodes(vm['node']), vm['type'])(vmid).config
+        return getattr(self.proxmox_api.nodes(vm["node"]), vm["type"])(vmid).config
 
     def vmstatus(self, vm, vmid):
-        return getattr(self.proxmox_api.nodes(vm['node']), vm['type'])(vmid).status
+        return getattr(self.proxmox_api.nodes(vm["node"]), vm["type"])(vmid).status
 
     def _container_mp_get(self, vm, vmid):
         cfg = self.vmconfig(vm, vmid).get()
         mountpoints = {}
         for key, value in cfg.items():
-            if key.startswith('mp'):
+            if key.startswith("mp"):
                 mountpoints[key] = value
         return mountpoints
 
     def _container_mp_disable(self, vm, vmid, timeout, unbind, mountpoints, vmstatus):
         # shutdown container if running
-        if vmstatus == 'running':
+        if vmstatus == "running":
             self.shutdown_instance(vm, vmid, timeout)
         # delete all mountpoints configs
-        self.vmconfig(vm, vmid).put(delete=' '.join(mountpoints))
+        self.vmconfig(vm, vmid).put(delete=" ".join(mountpoints))
 
     def _container_mp_restore(self, vm, vmid, timeout, unbind, mountpoints, vmstatus):
         # NOTE: requires auth as `root@pam`, API tokens are not supported
@@ -178,30 +179,34 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
         # restore original config
         self.vmconfig(vm, vmid).put(**mountpoints)
         # start container (if was running before snap)
-        if vmstatus == 'running':
+        if vmstatus == "running":
             self.start_instance(vm, vmid, timeout)
 
     def start_instance(self, vm, vmid, timeout):
         taskid = self.vmstatus(vm, vmid).start.post()
         while timeout >= 0:
-            if self.api_task_ok(vm['node'], taskid):
+            if self.api_task_ok(vm["node"], taskid):
                 return True
             timeout -= 1
             if timeout == 0:
-                self.module.fail_json(msg='Reached timeout while waiting for VM to start. Last line in task before timeout: %s' %
-                                      self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1])
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
+                self.module.fail_json(
+                    msg=f"Reached timeout while waiting for VM to start. Last line in task before timeout: {last_log}"
+                )
             time.sleep(1)
         return False
 
     def shutdown_instance(self, vm, vmid, timeout):
         taskid = self.vmstatus(vm, vmid).shutdown.post()
         while timeout >= 0:
-            if self.api_task_ok(vm['node'], taskid):
+            if self.api_task_ok(vm["node"], taskid):
                 return True
             timeout -= 1
             if timeout == 0:
-                self.module.fail_json(msg='Reached timeout while waiting for VM to stop. Last line in task before timeout: %s' %
-                                      self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1])
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
+                self.module.fail_json(
+                    msg=f"Reached timeout while waiting for VM to stop. Last line in task before timeout: {last_log}"
+                )
             time.sleep(1)
         return False
 
@@ -210,28 +215,27 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
         snapshots = self.snapshot(vm, vmid).get()[:-1]
         if retention > 0 and len(snapshots) > retention:
             # sort by age, oldest first
-            for snap in sorted(snapshots, key=lambda x: x['snaptime'])[:len(snapshots) - retention]:
-                self.snapshot(vm, vmid)(snap['name']).delete()
+            for snap in sorted(snapshots, key=lambda x: x["snaptime"])[: len(snapshots) - retention]:
+                self.snapshot(vm, vmid)(snap["name"]).delete()
 
     def snapshot_create(self, vm, vmid, timeout, snapname, description, vmstate, unbind, retention):
         if self.module.check_mode:
             return True
 
-        if vm['type'] == 'lxc':
+        if vm["type"] == "lxc":
             if unbind is True:
                 # check if credentials will work
                 # WARN: it is crucial this check runs here!
                 # The correct permissions are required only to reconfig mounts.
                 # Not checking now would allow to remove the configuration BUT
                 # fail later, leaving the container in a misconfigured state.
-                if (
-                    self.module.params['api_user'] != 'root@pam'
-                    or not self.module.params['api_password']
-                ):
-                    self.module.fail_json(msg='`unbind=True` requires authentication as `root@pam` with `api_password`, API tokens are not supported.')
+                if self.module.params["api_user"] != "root@pam" or not self.module.params["api_password"]:
+                    self.module.fail_json(
+                        msg="`unbind=True` requires authentication as `root@pam` with `api_password`, API tokens are not supported."
+                    )
                     return False
                 mountpoints = self._container_mp_get(vm, vmid)
-                vmstatus = self.vmstatus(vm, vmid).current().get()['status']
+                vmstatus = self.vmstatus(vm, vmid).current().get()["status"]
                 if mountpoints:
                     self._container_mp_disable(vm, vmid, timeout, unbind, mountpoints, vmstatus)
             taskid = self.snapshot(vm, vmid).post(snapname=snapname, description=description)
@@ -239,15 +243,17 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             taskid = self.snapshot(vm, vmid).post(snapname=snapname, description=description, vmstate=int(vmstate))
 
         while timeout >= 0:
-            if self.api_task_ok(vm['node'], taskid):
+            if self.api_task_ok(vm["node"], taskid):
                 break
             if timeout == 0:
-                self.module.fail_json(msg='Reached timeout while waiting for creating VM snapshot. Last line in task before timeout: %s' %
-                                      self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1])
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
+                self.module.fail_json(
+                    msg=f"Reached timeout while waiting for creating VM snapshot. Last line in task before timeout: {last_log}"
+                )
 
             time.sleep(1)
             timeout -= 1
-        if vm['type'] == 'lxc' and unbind is True and mountpoints:
+        if vm["type"] == "lxc" and unbind is True and mountpoints:
             self._container_mp_restore(vm, vmid, timeout, unbind, mountpoints, vmstatus)
 
         self.snapshot_retention(vm, vmid, retention)
@@ -259,11 +265,13 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
         taskid = self.snapshot(vm, vmid).delete(snapname, force=int(force))
         while timeout >= 0:
-            if self.api_task_ok(vm['node'], taskid):
+            if self.api_task_ok(vm["node"], taskid):
                 return True
             if timeout == 0:
-                self.module.fail_json(msg='Reached timeout while waiting for removing VM snapshot. Last line in task before timeout: %s' %
-                                      self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1])
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
+                self.module.fail_json(
+                    msg=f"Reached timeout while waiting for removing VM snapshot. Last line in task before timeout: {last_log}"
+                )
 
             time.sleep(1)
             timeout -= 1
@@ -275,11 +283,13 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
 
         taskid = self.snapshot(vm, vmid)(snapname).post("rollback")
         while timeout >= 0:
-            if self.api_task_ok(vm['node'], taskid):
+            if self.api_task_ok(vm["node"], taskid):
                 return True
             if timeout == 0:
-                self.module.fail_json(msg='Reached timeout while waiting for rolling back VM snapshot. Last line in task before timeout: %s' %
-                                      self.proxmox_api.nodes(vm['node']).tasks(taskid).log.get()[:1])
+                last_log = self.proxmox_api.nodes(vm["node"]).tasks(taskid).log.get()[:1]
+                self.module.fail_json(
+                    msg=f"Reached timeout while waiting for rolling back VM snapshot. Last line in task before timeout: {last_log}"
+                )
 
             time.sleep(1)
             timeout -= 1
@@ -291,97 +301,93 @@ def main():
     snap_args = dict(
         vmid=dict(required=False),
         hostname=dict(),
-        timeout=dict(type='int', default=30),
-        state=dict(default='present', choices=['present', 'absent', 'rollback']),
-        description=dict(type='str'),
-        snapname=dict(type='str', default='ansible_snap'),
-        force=dict(type='bool', default=False),
-        unbind=dict(type='bool', default=False),
-        vmstate=dict(type='bool', default=False),
-        retention=dict(type='int', default=0),
+        timeout=dict(type="int", default=30),
+        state=dict(default="present", choices=["present", "absent", "rollback"]),
+        description=dict(type="str"),
+        snapname=dict(type="str", default="ansible_snap"),
+        force=dict(type="bool", default=False),
+        unbind=dict(type="bool", default=False),
+        vmstate=dict(type="bool", default=False),
+        retention=dict(type="int", default=0),
     )
     module_args.update(snap_args)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     proxmox = ProxmoxSnapAnsible(module)
 
-    state = module.params['state']
-    vmid = module.params['vmid']
-    hostname = module.params['hostname']
-    description = module.params['description']
-    snapname = module.params['snapname']
-    timeout = module.params['timeout']
-    force = module.params['force']
-    unbind = module.params['unbind']
-    vmstate = module.params['vmstate']
-    retention = module.params['retention']
+    state = module.params["state"]
+    vmid = module.params["vmid"]
+    hostname = module.params["hostname"]
+    description = module.params["description"]
+    snapname = module.params["snapname"]
+    timeout = module.params["timeout"]
+    force = module.params["force"]
+    unbind = module.params["unbind"]
+    vmstate = module.params["vmstate"]
+    retention = module.params["retention"]
 
     # If hostname is set get the VM id from ProxmoxAPI
     if not vmid and hostname:
         vmid = proxmox.get_vmid(hostname)
     elif not vmid:
-        module.exit_json(changed=False, msg="Vmid could not be fetched for the following action: %s" % state)
+        module.exit_json(changed=False, msg=f"Vmid could not be fetched for the following action: {state}")
 
     vm = proxmox.get_vm(vmid)
-    if state == 'present':
+    if state == "present":
         try:
             for i in proxmox.snapshot(vm, vmid).get():
-                if i['name'] == snapname:
-                    module.exit_json(changed=False, msg="Snapshot %s is already present" % snapname)
+                if i["name"] == snapname:
+                    module.exit_json(changed=False, msg=f"Snapshot {snapname} is already present")
 
             if proxmox.snapshot_create(vm, vmid, timeout, snapname, description, vmstate, unbind, retention):
                 if module.check_mode:
-                    module.exit_json(changed=False, msg="Snapshot %s would be created" % snapname)
+                    module.exit_json(changed=False, msg=f"Snapshot {snapname} would be created")
                 else:
-                    module.exit_json(changed=True, msg="Snapshot %s created" % snapname)
+                    module.exit_json(changed=True, msg=f"Snapshot {snapname} created")
 
         except Exception as e:
-            module.fail_json(msg="Creating snapshot %s of VM %s failed with exception: %s" % (snapname, vmid, to_native(e)))
+            module.fail_json(msg=f"Creating snapshot {snapname} of VM {vmid} failed with exception: {to_native(e)}")
 
-    elif state == 'absent':
+    elif state == "absent":
         try:
             snap_exist = False
 
             for i in proxmox.snapshot(vm, vmid).get():
-                if i['name'] == snapname:
+                if i["name"] == snapname:
                     snap_exist = True
                     continue
 
             if not snap_exist:
-                module.exit_json(changed=False, msg="Snapshot %s does not exist" % snapname)
-            else:
-                if proxmox.snapshot_remove(vm, vmid, timeout, snapname, force):
-                    if module.check_mode:
-                        module.exit_json(changed=False, msg="Snapshot %s would be removed" % snapname)
-                    else:
-                        module.exit_json(changed=True, msg="Snapshot %s removed" % snapname)
+                module.exit_json(changed=False, msg=f"Snapshot {snapname} does not exist")
+            elif proxmox.snapshot_remove(vm, vmid, timeout, snapname, force):
+                if module.check_mode:
+                    module.exit_json(changed=False, msg=f"Snapshot {snapname} would be removed")
+                else:
+                    module.exit_json(changed=True, msg=f"Snapshot {snapname} removed")
 
         except Exception as e:
-            module.fail_json(msg="Removing snapshot %s of VM %s failed with exception: %s" % (snapname, vmid, to_native(e)))
-    elif state == 'rollback':
+            module.fail_json(msg=f"Removing snapshot {snapname} of VM {vmid} failed with exception: {to_native(e)}")
+    elif state == "rollback":
         try:
             snap_exist = False
 
             for i in proxmox.snapshot(vm, vmid).get():
-                if i['name'] == snapname:
+                if i["name"] == snapname:
                     snap_exist = True
                     continue
 
             if not snap_exist:
-                module.exit_json(changed=False, msg="Snapshot %s does not exist" % snapname)
+                module.exit_json(changed=False, msg=f"Snapshot {snapname} does not exist")
             if proxmox.snapshot_rollback(vm, vmid, timeout, snapname):
                 if module.check_mode:
-                    module.exit_json(changed=True, msg="Snapshot %s would be rolled back" % snapname)
+                    module.exit_json(changed=True, msg=f"Snapshot {snapname} would be rolled back")
                 else:
-                    module.exit_json(changed=True, msg="Snapshot %s rolled back" % snapname)
+                    module.exit_json(changed=True, msg=f"Snapshot {snapname} rolled back")
 
         except Exception as e:
-            module.fail_json(msg="Rollback of snapshot %s of VM %s failed with exception: %s" % (snapname, vmid, to_native(e)))
+            module.fail_json(msg=f"Rollback of snapshot {snapname} of VM {vmid} failed with exception: {to_native(e)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

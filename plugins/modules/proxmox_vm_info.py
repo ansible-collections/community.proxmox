@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2023, Sergei Antipov <greendayonfire at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_vm_info
@@ -156,9 +152,10 @@ proxmox_vms:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ProxmoxAnsible,
+    proxmox_auth_argument_spec,
     proxmox_to_ansible_bool,
 )
 
@@ -168,14 +165,14 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().resources().get(type="vm")
         except Exception as e:
-            self.module.fail_json(
-                msg="Failed to retrieve VMs information from cluster resources: %s" % e
-            )
+            self.module.fail_json(msg=f"Failed to retrieve VMs information from cluster resources: {e}")
 
     def get_vms_from_nodes(self, cluster_machines, type, vmid=None, name=None, node=None, config=None, network=False):
         # Leave in dict only machines that user wants to know about
         filtered_vms = {
-            vm: info for vm, info in cluster_machines.items() if not (
+            vm: info
+            for vm, info in cluster_machines.items()
+            if not (
                 type != info["type"]
                 or (node and info.get("node") != node)
                 or (vmid and int(info.get("vmid", -1)) != vmid)
@@ -190,7 +187,7 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
             vms_from_this_node = call_vm_getter().get()
             for detected_vm in vms_from_this_node:
                 this_vm_id = int(detected_vm["vmid"])
-                desired_vm = filtered_vms.get(this_vm_id, None)
+                desired_vm = filtered_vms.get(this_vm_id)
                 if desired_vm:
                     desired_vm.update(detected_vm)
                     desired_vm["vmid"] = this_vm_id
@@ -203,7 +200,9 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
                         desired_vm["config"] = call_vm_getter(this_vm_id).config().get(current=config_type)
                     if network:
                         if type == "qemu":
-                            desired_vm["network"] = call_vm_getter(this_vm_id).agent("network-get-interfaces").get()['result']
+                            desired_vm["network"] = (
+                                call_vm_getter(this_vm_id).agent("network-get-interfaces").get()["result"]
+                            )
                         elif type == "lxc":
                             desired_vm["network"] = call_vm_getter(this_vm_id).interfaces.get()
 
@@ -213,28 +212,23 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         try:
             return self.get_vms_from_nodes(cluster_machines, "qemu", vmid, name, node, config, network)
         except Exception as e:
-            self.module.fail_json(msg="Failed to retrieve QEMU VMs information: %s" % e)
+            self.module.fail_json(msg=f"Failed to retrieve QEMU VMs information: {e}")
 
     def get_lxc_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):
         try:
             return self.get_vms_from_nodes(cluster_machines, "lxc", vmid, name, node, config, network)
         except Exception as e:
-            self.module.fail_json(msg="Failed to retrieve LXC VMs information: %s" % e)
+            self.module.fail_json(msg=f"Failed to retrieve LXC VMs information: {e}")
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
     vm_info_args = dict(
         node=dict(type="str", required=False),
-        type=dict(
-            type="str", choices=["lxc", "qemu", "all"], default="all", required=False
-        ),
+        type=dict(type="str", choices=["lxc", "qemu", "all"], default="all", required=False),
         vmid=dict(type="int", required=False),
         name=dict(type="str", required=False),
-        config=dict(
-            type="str", choices=["none", "current", "pending"],
-            default="none", required=False
-        ),
+        config=dict(type="str", choices=["none", "current", "pending"], default="none", required=False),
         network=dict(type="bool", default=False, required=False),
     )
     module_args.update(vm_info_args)
@@ -257,7 +251,7 @@ def main():
     result = dict(changed=False)
 
     if node and proxmox.get_node(node) is None:
-        module.fail_json(msg="Node %s doesn't exist in PVE cluster" % node)
+        module.fail_json(msg=f"Node {node} doesn't exist in PVE cluster")
 
     vms_cluster_resources = proxmox.get_vms_from_cluster_resources()
     cluster_machines = {int(machine["vmid"]): machine for machine in vms_cluster_resources}

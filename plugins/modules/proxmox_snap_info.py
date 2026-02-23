@@ -1,12 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2020, Jeffrey van Pelt (@Thulium-Drake) <jeff@vanpelt.one>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_snap_info
@@ -74,12 +71,16 @@ snapshots:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (proxmox_auth_argument_spec, ProxmoxAnsible)
+
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxSnapAnsible(ProxmoxAnsible):
     def snapshot(self, vm, vmid):
-        return getattr(self.proxmox_api.nodes(vm['node']), vm['type'])(vmid).snapshot
+        return getattr(self.proxmox_api.nodes(vm["node"]), vm["type"])(vmid).snapshot
 
 
 def main():
@@ -87,20 +88,17 @@ def main():
     snap_args = dict(
         vmid=dict(required=False),
         hostname=dict(),
-        snapname=dict(type='str', required=False),
+        snapname=dict(type="str", required=False),
     )
     module_args.update(snap_args)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     proxmox = ProxmoxSnapAnsible(module)
 
-    vmid = module.params['vmid']
-    hostname = module.params['hostname']
-    snapname = module.params['snapname']
+    vmid = module.params["vmid"]
+    hostname = module.params["hostname"]
+    snapname = module.params["snapname"]
 
     # If hostname is set get the VM id from ProxmoxAPI
     if not vmid and hostname:
@@ -113,32 +111,19 @@ def main():
     try:
         snapshots = proxmox.snapshot(vm, vmid).get()
         if snapname:
-            snapshot = next(
-                (s for s in snapshots if s.get('name') == snapname),
-                None
-            )
+            snapshot = next((s for s in snapshots if s.get("name") == snapname), None)
 
             if not snapshot:
-                module.exit_json(
-                    changed=False,
-                    snapshots=[],
-                    msg=f"Snapshot '{snapname}' not found"
-                )
+                module.exit_json(changed=False, snapshots=[], msg=f"Snapshot '{snapname}' not found")
 
-            module.exit_json(
-                changed=False,
-                snapshot=snapshot
-            )
+            module.exit_json(changed=False, snapshot=snapshot)
 
         # No snapname → return all snapshots
-        module.exit_json(
-            changed=False,
-            snapshots=snapshots
-        )
+        module.exit_json(changed=False, snapshots=snapshots)
 
     except Exception as e:
-        module.fail_json(msg="Failed to list snapshots: %s" % to_native(e))
+        module.fail_json(msg=f"Failed to list snapshots: {to_native(e)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

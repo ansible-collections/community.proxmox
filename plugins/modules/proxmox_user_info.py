@@ -1,12 +1,8 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright Tristan Le Guern <tleguern at bouledef.eu>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 
 DOCUMENTATION = r"""
@@ -158,8 +154,12 @@ proxmox_users:
 
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible, proxmox_to_ansible_bool)
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+    proxmox_to_ansible_bool,
+)
 
 
 class ProxmoxUserInfoAnsible(ProxmoxAnsible):
@@ -167,15 +167,15 @@ class ProxmoxUserInfoAnsible(ProxmoxAnsible):
         try:
             user = self.proxmox_api.access.users.get(userid)
         except Exception:
-            self.module.fail_json(msg="User '%s' does not exist" % userid)
-        user['userid'] = userid
+            self.module.fail_json(msg=f"User '{userid}' does not exist")
+        user["userid"] = userid
         return ProxmoxUser(user)
 
     def get_users(self, domain=None):
         users = self.proxmox_api.access.users.get(full=1)
         users = [ProxmoxUser(user) for user in users]
         if domain:
-            return [user for user in users if user.user['domain'] == domain]
+            return [user for user in users if user.user["domain"] == domain]
         return users
 
 
@@ -184,38 +184,38 @@ class ProxmoxUser:
         self.user = dict()
         # Data representation is not the same depending on API calls
         for k, v in user.items():
-            if k == 'enable':
-                self.user['enabled'] = proxmox_to_ansible_bool(user['enable'])
-            elif k == 'userid':
-                self.user['user'] = user['userid'].split('@')[0]
-                self.user['domain'] = user['userid'].split('@')[1]
+            if k == "enable":
+                self.user["enabled"] = proxmox_to_ansible_bool(user["enable"])
+            elif k == "userid":
+                self.user["user"] = user["userid"].split("@")[0]
+                self.user["domain"] = user["userid"].split("@")[1]
                 self.user[k] = v
-            elif k in ['groups', 'tokens'] and (v == '' or v is None):
+            elif k in ["groups", "tokens"] and (v == "" or v is None):
                 self.user[k] = []
-            elif k == 'groups' and isinstance(v, str):
-                self.user['groups'] = v.split(',')
-            elif k == 'tokens' and isinstance(v, list):
+            elif k == "groups" and isinstance(v, str):
+                self.user["groups"] = v.split(",")
+            elif k == "tokens" and isinstance(v, list):
                 for token in v:
-                    if 'privsep' in token:
-                        token['privsep'] = proxmox_to_ansible_bool(token['privsep'])
-                self.user['tokens'] = v
-            elif k == 'tokens' and isinstance(v, dict):
-                self.user['tokens'] = list()
+                    if "privsep" in token:
+                        token["privsep"] = proxmox_to_ansible_bool(token["privsep"])
+                self.user["tokens"] = v
+            elif k == "tokens" and isinstance(v, dict):
+                self.user["tokens"] = list()
                 for tokenid, tokenvalues in v.items():
                     t = tokenvalues
-                    t['tokenid'] = tokenid
-                    if 'privsep' in tokenvalues:
-                        t['privsep'] = proxmox_to_ansible_bool(tokenvalues['privsep'])
-                    self.user['tokens'].append(t)
+                    t["tokenid"] = tokenid
+                    if "privsep" in tokenvalues:
+                        t["privsep"] = proxmox_to_ansible_bool(tokenvalues["privsep"])
+                    self.user["tokens"].append(t)
             else:
                 self.user[k] = v
 
 
 def proxmox_user_info_argument_spec():
     return dict(
-        domain=dict(type='str', aliases=['realm']),
-        user=dict(type='str', aliases=['name']),
-        userid=dict(type='str'),
+        domain=dict(type="str", aliases=["realm"]),
+        user=dict(type="str", aliases=["name"]),
+        userid=dict(type="str"),
     )
 
 
@@ -226,31 +226,29 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        required_one_of=[('api_password', 'api_token_id')],
-        required_together=[('api_token_id', 'api_token_secret')],
-        mutually_exclusive=[('user', 'userid'), ('domain', 'userid')],
-        supports_check_mode=True
+        required_one_of=[("api_password", "api_token_id")],
+        required_together=[("api_token_id", "api_token_secret")],
+        mutually_exclusive=[("user", "userid"), ("domain", "userid")],
+        supports_check_mode=True,
     )
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     proxmox = ProxmoxUserInfoAnsible(module)
-    domain = module.params['domain']
-    user = module.params['user']
+    domain = module.params["domain"]
+    user = module.params["user"]
     if user and domain:
-        userid = user + '@' + domain
+        userid = user + "@" + domain
     else:
-        userid = module.params['userid']
+        userid = module.params["userid"]
 
     if userid:
         users = [proxmox.get_user(userid=userid)]
     else:
         users = proxmox.get_users(domain=domain)
-    result['proxmox_users'] = [user.user for user in users]
+    result["proxmox_users"] = [user.user for user in users]
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

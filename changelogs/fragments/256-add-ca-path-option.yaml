@@ -1,0 +1,4 @@
+major_changes:
+  - proxmox - Add ca_path option to specify a ca-certificate for tls validation (https://github.com/ansible-collections/community.proxmox/pull/256).
+deprecated_features:
+  - proxmox - Certificate verification default changes from ``false`` to ``true`` with version 2.0.0 (https://github.com/ansible-collections/community.proxmox/pull/256).

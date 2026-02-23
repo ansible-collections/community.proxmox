@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_ipam_info
@@ -142,17 +138,15 @@ ipams:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
     proxmox_auth_argument_spec,
-    ProxmoxAnsible
 )
 
 
 def get_proxmox_args():
-    return dict(
-        ipam=dict(type="str", required=False),
-        vmid=dict(type='int', required=False)
-    )
+    return dict(ipam=dict(type="str", required=False), vmid=dict(type="int", required=False))
 
 
 def get_ansible_module():
@@ -167,37 +161,25 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
         self.params = module.params
 
     def run(self):
-        vmid = self.params.get('vmid')
-        ipam = self.params.get('ipam')
+        vmid = self.params.get("vmid")
+        ipam = self.params.get("ipam")
         if vmid:
-            self.module.exit_json(
-                changed=False, ips=self.get_ip_by_vmid(vmid)
-            )
+            self.module.exit_json(changed=False, ips=self.get_ip_by_vmid(vmid))
 
-        elif self.params.get('ipam'):
+        elif self.params.get("ipam"):
             if ipam not in self.get_ipams():
-                self.module.fail_json(
-                    msg=f'IPAM {ipam} is not present'
-                )
+                self.module.fail_json(msg=f"IPAM {ipam} is not present")
             else:
-                self.module.exit_json(
-                    changed=False,
-                    ipams=self.get_ipam_status()[ipam]
-                )
+                self.module.exit_json(changed=False, ipams=self.get_ipam_status()[ipam])
         else:
-            self.module.exit_json(
-                changed=False,
-                ipams=self.get_ipam_status()
-            )
+            self.module.exit_json(changed=False, ipams=self.get_ipam_status())
 
     def get_ipams(self):
         try:
             ipams = self.proxmox_api.cluster().sdn().ipams().get()
-            return [ipam['ipam'] for ipam in ipams]
+            return [ipam["ipam"] for ipam in ipams]
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve IPAM information {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve IPAM information {e}")
 
     def get_ipam_status(self):
         try:
@@ -207,9 +189,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
                 ipam_status[ipam_id] = self.proxmox_api.cluster().sdn().ipams(ipam_id).status().get()
             return ipam_status
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve IPAM status {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve IPAM status {e}")
 
     def get_ip_by_vmid(self, vmid):
         ipam_status = self.get_ipam_status()
@@ -218,7 +198,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
             for item in ipam:
                 # vmid is always an integer
                 # ipam["vmid"] (if present) is a string on PVE 8.4 and an integer on PVE 9.0
-                if str(item.get('vmid')) == str(vmid):
+                if str(item.get("vmid")) == str(vmid):
                     ips.append(item)
         return ips
 
@@ -230,7 +210,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

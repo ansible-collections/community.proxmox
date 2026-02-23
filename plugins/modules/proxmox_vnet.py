@@ -1,13 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 module: proxmox_vnet
@@ -121,17 +117,18 @@ vnet:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ansible_to_proxmox_bool,
-    compare_list_of_dicts
+    compare_list_of_dicts,
+    proxmox_auth_argument_spec,
 )
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
 def get_proxmox_args():
     return dict(
-        state=dict(type="str", choices=["present", "absent"], default='present', required=False),
+        state=dict(type="str", choices=["present", "absent"], default="present", required=False),
         update=dict(type="bool", default=True, required=False),
         vnet=dict(type="str", required=False),
         zone=dict(type="str", required=False),
@@ -140,7 +137,7 @@ def get_proxmox_args():
         lock_token=dict(type="str", required=False, no_log=False),
         tag=dict(type="int", required=False),
         vlanaware=dict(type="bool", required=False),
-        delete=dict(type="str", required=False)
+        delete=dict(type="str", required=False),
     )
 
 
@@ -149,11 +146,7 @@ def get_ansible_module():
     module_args.update(get_proxmox_args())
 
     return AnsibleModule(
-        argument_spec=module_args,
-        required_if=[
-            ('state', 'present', ['vnet', 'zone']),
-            ('state', 'absent', ['vnet'])
-        ]
+        argument_spec=module_args, required_if=[("state", "present", ["vnet", "zone"]), ("state", "absent", ["vnet"])]
     )
 
 
@@ -167,130 +160,96 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
         update = self.params.get("update")
 
         vnet_params = {
-            'vnet': self.params.get('vnet'),
-            'zone': self.params.get('zone'),
-            'alias': self.params.get('alias'),
-            'isolate-ports': ansible_to_proxmox_bool(self.params.get('isolate_ports')),
-            'lock-token': None,
-            'tag': self.params.get('tag'),
-            'type': 'vnet',
-            'vlanaware': ansible_to_proxmox_bool(self.params.get('vlanaware'))
+            "vnet": self.params.get("vnet"),
+            "zone": self.params.get("zone"),
+            "alias": self.params.get("alias"),
+            "isolate-ports": ansible_to_proxmox_bool(self.params.get("isolate_ports")),
+            "lock-token": None,
+            "tag": self.params.get("tag"),
+            "type": "vnet",
+            "vlanaware": ansible_to_proxmox_bool(self.params.get("vlanaware")),
         }
 
-        if state == 'present':
+        if state == "present":
             self.vnet_present(update=update, vnet_params=vnet_params)
-        elif state == 'absent':
-            self.vnet_absent(vnet_params['vnet'])
+        elif state == "absent":
+            self.vnet_absent(vnet_params["vnet"])
 
     def get_vnet_detail(self):
         try:
             return self.proxmox_api.cluster().sdn().vnets().get()
         except Exception as e:
-            self.module.fail_json(
-                msg=f'Failed to retrieve vnet information from cluster: {e}'
-            )
+            self.module.fail_json(msg=f"Failed to retrieve vnet information from cluster: {e}")
 
     def vnet_present(self, update, vnet_params):
-        vnet_name = vnet_params['vnet']
-        existing_vnet = [vnet for vnet in self.get_vnet_detail() if vnet.get('vnet') == vnet_name]
+        vnet_name = vnet_params["vnet"]
+        existing_vnet = [vnet for vnet in self.get_vnet_detail() if vnet.get("vnet") == vnet_name]
         vnet_to_create, vnet_to_update = compare_list_of_dicts(
-            existing_list=existing_vnet,
-            new_list=[vnet_params],
-            uid='vnet',
-            params_to_ignore=['digest', 'lock-token']
+            existing_list=existing_vnet, new_list=[vnet_params], uid="vnet", params_to_ignore=["digest", "lock-token"]
         )
 
         # Check if vnet needs to be updated
         if len(vnet_to_update) > 0:
             if update:
-                vnet_params['lock-token'] = self.get_global_sdn_lock()
-                vnet_params['digest'] = existing_vnet[0]['digest']
-                vnet_params['delete'] = self.params.get('delete')
-                del vnet_params['type']
+                vnet_params["lock-token"] = self.get_global_sdn_lock()
+                vnet_params["digest"] = existing_vnet[0]["digest"]
+                vnet_params["delete"] = self.params.get("delete")
+                del vnet_params["type"]
 
                 try:
                     if not self.is_lock_and_rollback_supported:
-                        del vnet_params['lock-token']
+                        del vnet_params["lock-token"]
                     self.proxmox_api.cluster().sdn().vnets(vnet_name).put(**vnet_params)
-                    self.apply_sdn_changes_and_release_lock(vnet_params.get('lock-token'))
-                    self.module.exit_json(
-                        changed=True, vnet=vnet_name, msg=f'updated vnet {vnet_name}'
-                    )
+                    self.apply_sdn_changes_and_release_lock(vnet_params.get("lock-token"))
+                    self.module.exit_json(changed=True, vnet=vnet_name, msg=f"updated vnet {vnet_name}")
                 except Exception as e:
-                    self.module.warn(f'Failed to update vnet - {e}')
+                    self.module.warn(f"Failed to update vnet - {e}")
                     if self.is_lock_and_rollback_supported:
-                        self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
-                        self.module.fail_json(
-                            msg=f'Failed to update vnet - {e}. Rolling back all changes.'
-                        )
+                        self.rollback_sdn_changes_and_release_lock(vnet_params["lock-token"])
+                        self.module.fail_json(msg=f"Failed to update vnet - {e}. Rolling back all changes.")
                     else:
-                        self.module.fail_json(
-                            msg=f'Failed to update vnet - {e}. Rollback not supported.'
-                        )
+                        self.module.fail_json(msg=f"Failed to update vnet - {e}. Rollback not supported.")
             else:
-                self.module.fail_json(
-                    msg=f'vnet {vnet_name} needs to be updated but update is false.'
-                )
+                self.module.fail_json(msg=f"vnet {vnet_name} needs to be updated but update is false.")
         elif len(vnet_to_create) > 0:
             try:
-                vnet_params['lock-token'] = self.get_global_sdn_lock()
+                vnet_params["lock-token"] = self.get_global_sdn_lock()
                 if not self.is_lock_and_rollback_supported:
-                    del vnet_params['lock-token']
+                    del vnet_params["lock-token"]
                 self.module.warn(f"{vnet_params}")
                 self.proxmox_api.cluster().sdn().vnets().post(**vnet_params)
-                self.apply_sdn_changes_and_release_lock(vnet_params.get('lock-token'))
-                self.module.exit_json(
-                    changed=True, vnet=vnet_name, msg=f'Create new vnet {vnet_name}'
-                )
+                self.apply_sdn_changes_and_release_lock(vnet_params.get("lock-token"))
+                self.module.exit_json(changed=True, vnet=vnet_name, msg=f"Create new vnet {vnet_name}")
             except Exception as e:
-                self.module.warn(f'Failed to create vnet - {e}')
+                self.module.warn(f"Failed to create vnet - {e}")
                 if self.is_lock_and_rollback_supported:
-                    self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
-                    self.module.fail_json(
-                        msg=f'Failed to create vnet - {e}. Rolling back all changes.'
-                    )
+                    self.rollback_sdn_changes_and_release_lock(vnet_params["lock-token"])
+                    self.module.fail_json(msg=f"Failed to create vnet - {e}. Rolling back all changes.")
                 else:
-                    self.module.fail_json(
-                        msg=f'Failed to create vnet - {e}. Rollback not supported.'
-                    )
+                    self.module.fail_json(msg=f"Failed to create vnet - {e}. Rollback not supported.")
         else:
-            self.module.exit_json(
-                changed=False,
-                vnet=vnet_name,
-                msg=f'vnet {vnet_name} is already in desired state.'
-            )
+            self.module.exit_json(changed=False, vnet=vnet_name, msg=f"vnet {vnet_name} is already in desired state.")
 
     def vnet_absent(self, vnet_name):
-        available_vnets = [vnet['vnet'] for vnet in self.get_vnet_detail()]
+        available_vnets = [vnet["vnet"] for vnet in self.get_vnet_detail()]
 
         if vnet_name not in available_vnets:
-            self.module.exit_json(
-                changed=False, vnet=vnet_name, msg=f"vnet already doesn't exist  {vnet_name}"
-            )
+            self.module.exit_json(changed=False, vnet=vnet_name, msg=f"vnet already doesn't exist  {vnet_name}")
         else:
-            vnet_params = {
-                'vnet': vnet_name,
-                'lock-token': self.get_global_sdn_lock()
-            }
+            vnet_params = {"vnet": vnet_name, "lock-token": self.get_global_sdn_lock()}
             if not self.is_lock_and_rollback_supported:
-                del vnet_params['lock-token']
+                del vnet_params["lock-token"]
             try:
                 self.proxmox_api.cluster().sdn().vnets(vnet_name).delete(**vnet_params)
-                self.apply_sdn_changes_and_release_lock(vnet_params.get('lock-token'))
-                self.module.exit_json(
-                    changed=True, vnet=vnet_name, msg=f'Deleted vnet {vnet_name}'
-                )
+                self.apply_sdn_changes_and_release_lock(vnet_params.get("lock-token"))
+                self.module.exit_json(changed=True, vnet=vnet_name, msg=f"Deleted vnet {vnet_name}")
             except Exception as e:
-                self.module.warn(f'Failed to update vnet - {e}')
+                self.module.warn(f"Failed to update vnet - {e}")
                 if self.is_lock_and_rollback_supported:
-                    self.rollback_sdn_changes_and_release_lock(vnet_params['lock-token'])
-                    self.module.fail_json(
-                        msg=f'Failed to delete vnet. Rolling back all changes - {e}'
-                    )
+                    self.rollback_sdn_changes_and_release_lock(vnet_params["lock-token"])
+                    self.module.fail_json(msg=f"Failed to delete vnet. Rolling back all changes - {e}")
                 else:
-                    self.module.fail_json(
-                        msg=f'Failed to delete vnet. Rollback not supported - {e}'
-                    )
+                    self.module.fail_json(msg=f"Failed to delete vnet. Rollback not supported - {e}")
 
 
 def main():
@@ -300,7 +259,7 @@ def main():
     try:
         proxmox.run()
     except Exception as e:
-        module.fail_json(msg=f'An error occurred: {e}')
+        module.fail_json(msg=f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

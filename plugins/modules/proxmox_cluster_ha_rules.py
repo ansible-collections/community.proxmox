@@ -4,9 +4,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-FileCopyrightText: (c) 2025, Reto Kupferschmid <kupferschmid@puzzle.ch>
 # SPDX-License-Identifier: GPL-3.0-or-later
-from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
@@ -186,8 +184,8 @@ rule:
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec,
     ProxmoxAnsible,
+    proxmox_auth_argument_spec,
 )
 
 
@@ -247,14 +245,9 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
                 self.module.fail_json(
                     changed=False,
                     msg=(
-                        "Rule %s already exists with type=%s. "
+                        f"Rule {name} already exists with type={existing_rule.get('type')}. "
                         "The type of an existing rule can not be changed. "
-                        "Use force=true to delete the existing rule and recreate it with type=%s"
-                        % (
-                            name,
-                            existing_rule.get("type"),
-                            self.module.params.get("type"),
-                        )
+                        f"Use force=true to delete the existing rule and recreate it with type={self.module.params.get('type')}"
                     ),
                 )
 
@@ -267,7 +260,7 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
 
             # sort fields to ensure idempotency
             for key in ["nodes", "resources"]:
-                if existing_rule.get(key, None) is not None:
+                if existing_rule.get(key) is not None:
                     value_list = existing_rule.get(key).split(",")
                     existing_rule[key] = ",".join(sorted(value_list))
 
@@ -290,9 +283,7 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
 
                 # fetch the new rule and update the diff
                 rules = self.get()
-                diff["after"] = next(
-                    (item for item in rules if item.get("rule") == name), {}
-                )
+                diff["after"] = next((item for item in rules if item.get("rule") == name), {})
             else:
                 diff["after"] = payload
 

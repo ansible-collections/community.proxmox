@@ -1,13 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024 Marzieh Raoufnezhad <raoufnezhad at gmail.com>
 # Copyright (c) 2024 Maryam Mayabi <mayabi.ahm at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 DOCUMENTATION = """
 ---
@@ -135,27 +132,32 @@ backup_info:
 """
 
 from datetime import datetime
+
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
-    proxmox_auth_argument_spec, ProxmoxAnsible, HAS_PROXMOXER, PROXMOXER_IMP_ERR)
+    HAS_PROXMOXER,
+    PROXMOXER_IMP_ERR,
+    ProxmoxAnsible,
+    proxmox_auth_argument_spec,
+)
 
 
 class ProxmoxBackupInfoAnsible(ProxmoxAnsible):
-
     # Get all backup information
     def get_jobs_list(self):
         try:
             backupJobs = self.proxmox_api.cluster.backup.get()
         except Exception as e:
-            self.module.fail_json(msg="Getting backup jobs failed: %s" % e)
+            self.module.fail_json(msg=f"Getting backup jobs failed: {e}")
         return backupJobs
 
     # Get VM information
     def get_vms_list(self):
         try:
-            vms = self.proxmox_api.cluster.resources.get(type='vm')
+            vms = self.proxmox_api.cluster.resources.get(type="vm")
         except Exception as e:
-            self.module.fail_json(msg="Getting VMs info from cluster failed: %s" % e)
+            self.module.fail_json(msg=f"Getting VMs info from cluster failed: {e}")
         return vms
 
     # Get all backup information by VM ID and VM name
@@ -164,22 +166,24 @@ class ProxmoxBackupInfoAnsible(ProxmoxAnsible):
         vmInfo = self.get_vms_list()
         bkInfo = []
         for backupItem in backupList:
-            nextrun = datetime.fromtimestamp(backupItem['next-run'])
-            vmids = backupItem['vmid'].split(',')
+            nextrun = datetime.fromtimestamp(backupItem["next-run"])
+            vmids = backupItem["vmid"].split(",")
             for vmid in vmids:
                 for vm in vmInfo:
-                    if vm['vmid'] == int(vmid):
-                        vmName = vm['name']
+                    if vm["vmid"] == int(vmid):
+                        vmName = vm["name"]
                         break
-                bkInfoData = {'id': backupItem['id'],
-                              'schedule': backupItem['schedule'],
-                              'storage': backupItem['storage'],
-                              'mode': backupItem['mode'],
-                              'next-run': nextrun.strftime("%Y-%m-%d %H:%M:%S"),
-                              'enabled': backupItem['enabled'],
-                              'bktype': backupItem['type'],
-                              'vmid': vmid,
-                              'vm_name': vmName}
+                bkInfoData = {
+                    "id": backupItem["id"],
+                    "schedule": backupItem["schedule"],
+                    "storage": backupItem["storage"],
+                    "mode": backupItem["mode"],
+                    "next-run": nextrun.strftime("%Y-%m-%d %H:%M:%S"),
+                    "enabled": backupItem["enabled"],
+                    "bktype": backupItem["type"],
+                    "vmid": vmid,
+                    "vm_name": vmName,
+                }
                 bkInfo.append(bkInfoData)
         return bkInfo
 
@@ -188,7 +192,7 @@ class ProxmoxBackupInfoAnsible(ProxmoxAnsible):
         fullBackupInfo = self.vms_backup_info()
         vmBackupJobs = []
         for vm in fullBackupInfo:
-            if (vm["vm_name"] == vm_name_id or vm["vmid"] == vm_name_id):
+            if vm["vm_name"] == vm_name_id or vm["vmid"] == vm_name_id:
                 vmBackupJobs.append(vm)
         return vmBackupJobs
 
@@ -197,46 +201,40 @@ def main():
     # Define module args
     args = proxmox_auth_argument_spec()
     backup_info_args = dict(
-        vm_id=dict(type='str'),
-        vm_name=dict(type='str'),
-        backup_jobs=dict(type='bool', default=False)
+        vm_id=dict(type="str"), vm_name=dict(type="str"), backup_jobs=dict(type="bool", default=False)
     )
     args.update(backup_info_args)
 
     module = AnsibleModule(
-        argument_spec=args,
-        mutually_exclusive=[('backup_jobs', 'vm_id', 'vm_name')],
-        supports_check_mode=True
+        argument_spec=args, mutually_exclusive=[("backup_jobs", "vm_id", "vm_name")], supports_check_mode=True
     )
 
     # Define (init) result value
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     # Check if proxmoxer exist
     if not HAS_PROXMOXER:
-        module.fail_json(msg=missing_required_lib('proxmoxer'), exception=PROXMOXER_IMP_ERR)
+        module.fail_json(msg=missing_required_lib("proxmoxer"), exception=PROXMOXER_IMP_ERR)
 
     # Start to connect to proxmox to get backup data
     proxmox = ProxmoxBackupInfoAnsible(module)
-    vm_id = module.params['vm_id']
-    vm_name = module.params['vm_name']
-    backup_jobs = module.params['backup_jobs']
+    vm_id = module.params["vm_id"]
+    vm_name = module.params["vm_name"]
+    backup_jobs = module.params["backup_jobs"]
 
     # Update result value based on what requested (module args)
     if backup_jobs:
-        result['backup_info'] = proxmox.get_jobs_list()
+        result["backup_info"] = proxmox.get_jobs_list()
     elif vm_id:
-        result['backup_info'] = proxmox.specific_vmbackup_info(vm_id)
+        result["backup_info"] = proxmox.specific_vmbackup_info(vm_id)
     elif vm_name:
-        result['backup_info'] = proxmox.specific_vmbackup_info(vm_name)
+        result["backup_info"] = proxmox.specific_vmbackup_info(vm_name)
     else:
-        result['backup_info'] = proxmox.vms_backup_info()
+        result["backup_info"] = proxmox.vms_backup_info()
 
     # Return result value
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025 Marzieh Raoufnezhad <raoufnezhad at gmail.com>
 # Copyright (c) 2025 Maryam Mayabi <mayabi.ahm at gmail.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import absolute_import, division, print_function
-
-__metaclass__ = type
 
 import sys
+
 import pytest
 
 proxmoxer = pytest.importorskip("proxmoxer")
@@ -18,7 +15,6 @@ mandatory_py_version = pytest.mark.skipif(
     reason="The proxmoxer dependency requires python2.7 or higher",
 )
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_backup_schedule
 from ansible_collections.community.internal_test_tools.tests.unit.compat.mock import patch
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
@@ -26,7 +22,9 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     ModuleTestCase,
     set_module_args,
 )
+
 import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
+from ansible_collections.community.proxmox.plugins.modules import proxmox_backup_schedule
 
 RESOURCE_LIST = [
     {
@@ -47,7 +45,7 @@ RESOURCE_LIST = [
         "id": "qemu/100",
         "template": 0,
         "vmid": 100,
-        "type": "qemu"
+        "type": "qemu",
     },
     {
         "uptime": 0,
@@ -67,7 +65,7 @@ RESOURCE_LIST = [
         "id": "qemu/101",
         "template": 0,
         "vmid": 101,
-        "type": "qemu"
+        "type": "qemu",
     },
     {
         "uptime": 0,
@@ -87,7 +85,7 @@ RESOURCE_LIST = [
         "id": "qemu/102",
         "template": 0,
         "vmid": 102,
-        "type": "qemu"
+        "type": "qemu",
     },
     {
         "uptime": 0,
@@ -107,7 +105,7 @@ RESOURCE_LIST = [
         "id": "qemu/103",
         "template": 0,
         "vmid": 103,
-        "type": "qemu"
+        "type": "qemu",
     },
     {
         "uptime": 0,
@@ -127,8 +125,8 @@ RESOURCE_LIST = [
         "id": "qemu/105",
         "template": 0,
         "vmid": 105,
-        "type": "qemu"
-    }
+        "type": "qemu",
+    },
 ]
 
 BACKUP_JOBS = [
@@ -142,7 +140,7 @@ BACKUP_JOBS = [
         "mailnotification": "always",
         "schedule": "06,18:30",
         "mode": "snapshot",
-        "notes-template": "{{guestname}}"
+        "notes-template": "{{guestname}}",
     },
     {
         "schedule": "sat 15:00",
@@ -167,7 +165,7 @@ BACKUP_JOBS = [
         "vmid": "101",
         "storage": "local",
         "id": "backup-003",
-    }
+    },
 ]
 
 
@@ -179,11 +177,9 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
         ).start()
-        self.connect_mock.return_value.cluster.resources.get.return_value = (
-            RESOURCE_LIST
-        )
-        self.connect_mock.return_value.cluster.backup.get.side_effect = (
-            lambda backup_id=None: BACKUP_JOBS if backup_id is None else [job for job in BACKUP_JOBS if job['id'] == backup_id]
+        self.connect_mock.return_value.cluster.resources.get.return_value = RESOURCE_LIST
+        self.connect_mock.return_value.cluster.backup.get.side_effect = lambda backup_id=None: (
+            BACKUP_JOBS if backup_id is None else [job for job in BACKUP_JOBS if job["id"] == backup_id]
         )
 
     def tearDown(self):
@@ -191,112 +187,118 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
         super(TestProxmoxBackupScheduleModule, self).tearDown()
 
     def test_module_fail_when_required_args_missing(self):
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args({}):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "missing required arguments: api_host, api_user, state"
 
     def test_update_vmid_in_backup(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_name': 'test05',
-                'backup_id': 'backup-001',
-                'state': 'present'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_name": "test05",
+                "backup_id": "backup-001",
+                "state": "present",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
-        assert result['changed'] is True
+        assert result["changed"] is True
 
     def test_delete_vmid_from_backup(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_id': 102,
-                'state': 'absent'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 102,
+                "state": "absent",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
-        assert result['changed'] is True
+        assert result["changed"] is True
 
     def test_ensure_vmid_is_absent_from_backup(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_id': 105,
-                'state': 'absent'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 105,
+                "state": "absent",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
-        assert result['changed'] is False
+        assert result["changed"] is False
 
     def test_ensure_vmid_is_absent_from_specfic_backup(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_id': 102,
-                'backup_id': 'backup-003',
-                'state': 'absent'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 102,
+                "backup_id": "backup-003",
+                "state": "absent",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
-        assert result['changed'] is False
+        assert result["changed"] is False
 
     def test_delete_vmid_from_specfic_backup_id(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_id': 101,
-                'backup_id': 'backup-002',
-                'state': 'absent'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 101,
+                "backup_id": "backup-002",
+                "state": "absent",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
-        assert result['changed'] is True
+        assert result["changed"] is True
 
     def test_fail_when_there_is_one_vmid_for_delete_in_backup_job(self):
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_id': 101,
-                'backup_id': 'backup-003',
-                'state': 'absent'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 101,
+                "backup_id": "backup-003",
+                "state": "absent",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "No more than one vmid is assigned to backup-003. You just can remove job."
 
     def test_fail_when_there_is_one_vm_name_for_delete_in_backup_job(self):
-        with pytest.raises(AnsibleFailJson) as exc_info:
-            with set_module_args({
-                'api_host': 'proxmoxhost',
-                'api_user': 'root@pam',
-                'api_password': 'supersecret',
-                'vm_name': 'test02',
-                'backup_id': 'backup-003',
-                'state': 'absent'
-            }):
-                self.module.main()
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_name": "test02",
+                "backup_id": "backup-003",
+                "state": "absent",
+            }
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["msg"] == "No more than one vmid is assigned to backup-003. You just can remove job."
