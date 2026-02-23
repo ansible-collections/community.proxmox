@@ -84,7 +84,7 @@ def fail_json(*args, **kwargs):
 
 class TestProxmoxCluster(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxCluster, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_cluster
 
@@ -104,7 +104,7 @@ class TestProxmoxCluster(ModuleTestCase):
         self.connect_mock.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
-        super(TestProxmoxCluster, self).tearDown()
+        super().tearDown()
 
     def test_create_check_mode(self):
         mock_obj = self.connect_mock.return_value

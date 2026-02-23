@@ -157,7 +157,7 @@ def get_ansible_module():
 
 class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
     def __init__(self, module):
-        super(ProxmoxIpamInfoAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

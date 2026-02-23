@@ -496,7 +496,7 @@ class Connection(ConnectionBase):
     _log_channel: str | None = None
 
     def __init__(self, play_context, new_stdin, *args, **kwargs):
-        super(Connection, self).__init__(play_context, new_stdin, *args, **kwargs)
+        super().__init__(play_context, new_stdin, *args, **kwargs)
 
     def _set_log_channel(self, name: str) -> None:
         """Mimic paramiko.SSHClient.set_log_channel"""
@@ -675,7 +675,7 @@ class Connection(ConnectionBase):
 
         cmd = self._build_pct_command(cmd)
 
-        super(Connection, self).exec_command(cmd, in_data=in_data, sudoable=sudoable)
+        super().exec_command(cmd, in_data=in_data, sudoable=sudoable)
 
         bufsize = 4096
 

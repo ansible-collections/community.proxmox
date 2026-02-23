@@ -111,7 +111,7 @@ MOCK_PENDING_CHANGES = """--- /etc/network/interfaces
 
 class TestProxmoxNodeNetworkInfo(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxNodeNetworkInfo, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_node_network_info
 
@@ -136,7 +136,7 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxNodeNetworkInfo, self).tearDown()
+        super().tearDown()
 
     def test_basic_network_info(self):
         """Test basic network interface retrieval."""

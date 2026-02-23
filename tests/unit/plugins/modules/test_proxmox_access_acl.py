@@ -35,7 +35,7 @@ def return_get_api():
 
 class TestProxmoxAccessACLModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxAccessACLModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_kvm
         self.connect_mock = patch(
@@ -48,7 +48,7 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxAccessACLModule, self).tearDown()
+        super().tearDown()
 
     def test_module_present_missing_args(self):
         with set_module_args(

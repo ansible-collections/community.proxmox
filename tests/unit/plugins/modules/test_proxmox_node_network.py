@@ -48,7 +48,7 @@ EXISTING_NETWORK_OUTPUT = [
 
 class TestProxmoxNodeNetwork(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxNodeNetwork, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_node_network
 
@@ -73,7 +73,7 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxNodeNetwork, self).tearDown()
+        super().tearDown()
 
     def test_invalid_node(self):
         """Test invalid node."""

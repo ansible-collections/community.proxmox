@@ -125,7 +125,7 @@ def build_arg(node, state, check=False):
 
 class TestProxmoxCephMds(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxCephMds, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_ceph_mds
 
@@ -149,7 +149,7 @@ class TestProxmoxCephMds(ModuleTestCase):
         self.connect_mock.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
-        super(TestProxmoxCephMds, self).tearDown()
+        super().tearDown()
 
     def test_proxmox_ceph_missing_argument(self):
         with set_module_args(

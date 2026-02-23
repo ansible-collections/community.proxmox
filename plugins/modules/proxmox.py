@@ -780,7 +780,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
     }
 
     def __init__(self, module):
-        super(ProxmoxLxcAnsible, self).__init__(module)
+        super().__init__(module)
 
         self.VZ_TYPE = "openvz" if self.version() < LooseVersion("4.0") else "lxc"
         self.params = self.module.params

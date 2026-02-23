@@ -524,7 +524,7 @@ def get_ansible_module():
 
 class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxFirewallAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def validate_params(self):

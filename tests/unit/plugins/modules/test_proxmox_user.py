@@ -54,7 +54,7 @@ class TestProxmoxUserModule(ModuleTestCase):
     }
 
     def setUp(self):
-        super(TestProxmoxUserModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_user
         self.connect_mock = patch(
@@ -64,7 +64,7 @@ class TestProxmoxUserModule(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxUserModule, self).tearDown()
+        super().tearDown()
 
     def _create_module_args(self, **kwargs):
         """Helper to create module arguments with defaults."""

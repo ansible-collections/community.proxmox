@@ -105,7 +105,7 @@ def get_module_args(ipam=None, vmid=None):
 
 class TestProxmoxIpamInfoModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxIpamInfoModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_ipam_info
         self.mock_module_helper = patch.multiple(basic.AnsibleModule, exit_json=exit_json, fail_json=fail_json)
@@ -121,7 +121,7 @@ class TestProxmoxIpamInfoModule(ModuleTestCase):
     def tearDown(self):
         self.connect_mock.stop()
         self.mock_module_helper.stop()
-        super(TestProxmoxIpamInfoModule, self).tearDown()
+        super().tearDown()
 
     def test_get_all_ipam_status(self):
         with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(ipam=None)):
