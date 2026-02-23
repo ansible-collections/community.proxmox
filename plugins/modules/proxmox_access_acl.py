@@ -97,6 +97,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     proxmox_auth_argument_spec,
+    ansible_to_proxmox_bool,
+    proxmox_to_ansible_bool,
 )
 
 
@@ -110,7 +112,8 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
 
     def create(self, acls, path, roleid, type, ugid, propagate):
         for ace in acls:
-            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], bool(ace.get("propagate", 1))) == (
+            ace_propagate = proxmox_to_ansible_bool(ace.get("propagate", 1))
+            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], ace_propagate) == (
                 path,
                 roleid,
                 type,
@@ -119,7 +122,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
             ):
                 return False
 
-        data = {"path": path, "roles": roleid, "propagate": int(propagate), f"{type}s": ugid}
+        data = {"path": path, "roles": roleid, "propagate": ansible_to_proxmox_bool(propagate), f"{type}s": ugid}
 
         self._put(**data)
         return True
@@ -135,7 +138,8 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
                 continue
             if ugid and ace["ugid"] != ugid:
                 continue
-            if propagate and bool(ace.get("propagate", 1)) != propagate:
+            ace_propagate = proxmox_to_ansible_bool(ace.get("propagate", 1))
+            if ace_propagate != propagate:
                 continue
 
             data = {
