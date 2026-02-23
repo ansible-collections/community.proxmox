@@ -483,7 +483,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_specific_qemu_vm_information(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
@@ -494,7 +493,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_specific_vm_information(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
@@ -505,7 +503,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_specific_vm_information_by_using_name(self):
         name = "test1-lxc.home.arpa"
@@ -518,7 +515,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_multiple_vms_with_the_same_name(self):
         name = "test-lxc.home.arpa"
@@ -534,7 +530,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 2
 
     def test_get_vm_with_an_empty_name(self):
         name = ""
@@ -549,7 +544,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_all_lxc_vms_from_specific_node(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
@@ -559,7 +553,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_all_qemu_vms_from_specific_node(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
@@ -569,7 +562,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 1
 
     def test_get_all_vms_from_specific_node(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
@@ -579,7 +571,6 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
-        assert len(result["proxmox_vms"]) == 2
 
     def test_module_returns_empty_list_when_vm_does_not_exist(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
