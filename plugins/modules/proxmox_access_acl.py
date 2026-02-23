@@ -169,17 +169,14 @@ def run_module():
         old_acls=[],
     )
 
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
-
-    if module.params["state"] == "present":
-        required = frozenset({"path", "roleid", "type", "ugid"})
-        exists = frozenset(map(lambda x: x[0], filter(lambda x: x[1] is not None, module.params.items())))
-        if len(required - exists) > 0:
-            result["failed"] = True
-            result["missing_parameters"] = required - exists
-            module.fail_json(
-                msg=f"The following required parameters are not provided {sorted(required - exists)}", **result
-            )
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=False,
+        required_if=[
+            ["state", "present", ["path", "roleid", "type", "ugid"]],
+            ["state", "absent", ["path"]],
+        ],
+    )
 
     proxmox = ProxmoxAccessACLAnsible(module)
 

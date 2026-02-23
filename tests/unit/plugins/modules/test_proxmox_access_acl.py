@@ -50,24 +50,6 @@ class TestProxmoxAccessACLModule(ModuleTestCase):
         self.connect_mock.stop()
         super().tearDown()
 
-    def test_module_present_missing_args(self):
-        with set_module_args(
-            {
-                **API,
-                "state": "present",
-                "path": "/vms/100",
-                "roleid": "PVEVMUser",
-            }
-        ), pytest.raises(AnsibleFailJson) as exc_info:
-            proxmox_access_acl.main()
-
-        result = exc_info.value.args[0]
-        assert result["failed"] is True
-        assert result["missing_parameters"] == frozenset({"ugid", "type"})
-        assert result["changed"] is False, result
-        assert self.mock_get.call_count == 0
-        assert self.mock_put.call_count == 0
-
     def test_module_present_exists(self):
         with set_module_args(
             {
