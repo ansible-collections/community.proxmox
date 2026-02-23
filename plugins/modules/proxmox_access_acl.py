@@ -25,7 +25,6 @@ options:
     description:
       - Indicate desired state of the ACL.
     type: str
-    required: true
     choices: ["present", "absent"]
     default: present
   path:
@@ -96,8 +95,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
     ansible_to_proxmox_bool,
+    proxmox_auth_argument_spec,
     proxmox_to_ansible_bool,
 )
 
