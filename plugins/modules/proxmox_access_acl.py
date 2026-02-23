@@ -24,9 +24,10 @@ options:
   state:
     description:
       - Indicate desired state of the ACL.
+    type: str
     required: true
     choices: ["present", "absent"]
-    type: str
+    default: present
   path:
     description:
       - Access Control Path.
@@ -153,7 +154,7 @@ def run_module():
     module_args = proxmox_auth_argument_spec()
 
     acl_args = dict(
-        state=dict(choices=["present", "absent"], required=True),
+        state=dict(choices=["present", "absent"], default="present"),
         path=dict(type="str", required=False),
         roleid=dict(type="str", required=False),
         type=dict(type="str", choices=["user", "group", "token"]),
@@ -182,6 +183,7 @@ def run_module():
 
     proxmox = ProxmoxAccessACLAnsible(module)
 
+    state = module.params.get("state")
     path = module.params["path"]
     roleid = module.params["roleid"]
     type = module.params["type"]
@@ -191,9 +193,9 @@ def run_module():
     try:
         result["old_acls"] = acls = proxmox._get()
 
-        if module.params["state"] == "present":
+        if state == "present":
             r = proxmox.create(acls, path, roleid, type, ugid, propagate)
-        else:
+        elif state == "absent":
             r = proxmox.delete(acls, path, roleid, type, ugid, propagate)
 
         result["changed"] = r
