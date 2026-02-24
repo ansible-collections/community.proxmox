@@ -20,79 +20,20 @@ We welcome members from all skill levels to participate actively in our open, in
 Whether you are an expert or just beginning your journey with Ansible and Proxmox,
 you are encouraged to contribute, share insights, and collaborate with fellow enthusiasts!
 
-## Code of Conduct
+## Using this collection
 
-We follow the [Ansible Code of Conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html) in all our interactions within this project.
 
-If you encounter abusive behavior, please refer to the [policy violations](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html#policy-violations) section of the Code for information on how to raise a complaint.
-
-## Communication
-
-<!--
-If your collection is not present on the Ansible forum yet, please check out the existing [tags](https://forum.ansible.com/tags) and [groups](https://forum.ansible.com/g) - use what suits your collection. If there is no appropritate tag and group yet, please [request one](https://forum.ansible.com/t/requesting-a-forum-group/503/17).
--->
-
-* Join the Ansible forum:
-  * [Get Help](https://forum.ansible.com/c/help/6): get help or help others. Please add appropriate tags if you start new discussions, for example the `proxmox` tag.
-  * [Posts tagged with 'proxmox'](https://forum.ansible.com/tag/proxmox): subscribe to participate in collection/technology-related conversations.
-  * [The Proxmox collection group on the forum](https://forum.ansible.com/g/proxmox-collection): by joining the team you will automatically get subscribed to the posts tagged with [proxmox](https://forum.ansible.com/tags).
-  * [Social Spaces](https://forum.ansible.com/c/chat/4): gather and interact with fellow enthusiasts.
-  * [News & Announcements](https://forum.ansible.com/c/news/5): track project-wide announcements including social events. The [Bullhorn newsletter](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn), which is used to announce releases and important changes, can also be found here.
-
-For more information about communication, see the [Ansible communication guide](https://docs.ansible.com/ansible/devel/community/communication.html).
-
-## Contributing to this collection
-
-<!--Describe how the community can contribute to your collection. At a minimum, fill up and include the CONTRIBUTING.md file containing how and where users can create issues to report problems or request features for this collection. List contribution requirements, including preferred workflows and necessary testing, so you can benefit from community PRs. If you are following general Ansible contributor guidelines, you can link to - [Ansible Community Guide](https://docs.ansible.com/ansible/devel/community/index.html). List the current maintainers (contributors with write or higher access to the repository). The following can be included:-->
-
-The content of this collection is made by people like you, a community of individuals collaborating on making the world better through developing automation software.
-
-We are actively accepting new contributors and all types of contributions are very welcome.
-
-Don't know how to start? Refer to the [Ansible community guide](https://docs.ansible.com/ansible/devel/community/index.html)!
-
-Want to submit code changes? Take a look at the [Quick-start development guide](https://docs.ansible.com/ansible/devel/community/create_pr_quick_start.html).
-
-We also use the following guidelines:
-
-* [Collection review checklist](https://docs.ansible.com/ansible/devel/community/collection_contributors/collection_reviewing.html)
-* [Ansible development guide](https://docs.ansible.com/ansible/devel/dev_guide/index.html)
-* [Ansible collection development guide](https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#contributing-to-collections)
-
-## Collection maintenance
-
-<!--
-The current maintainers are listed in the [MAINTAINERS](MAINTAINERS) file. If you have questions or need help, feel free to mention them in the proposals.
--->
-
-To learn how to maintain/become a maintainer of this collection, refer to the [Maintainer guidelines](https://docs.ansible.com/ansible/devel/community/maintainers.html).
-
-It is necessary for maintainers of this collection to be subscribed to:
-
-* The collection itself (the `Watch` button -> `All Activity` in the upper right corner of the repository's homepage).
-* The [news-for-maintainers repository](https://github.com/ansible-collections/news-for-maintainers).
-
-They also should be subscribed to Ansible's [The Bullhorn newsletter](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn).
-
-## Governance
-
-<!--Describe how the collection is governed. Here can be the following text:-->
-
-The process of decision making in this collection is based on discussing and finding consensus among participants.
-
-Every voice is important. If you have something on your mind, create an issue or dedicated discussion and let's discuss it!
-
-## Tested with Ansible
-
-Ansible-core 2.17, 2.18, and the current development version of ansible-core.
-
-## External requirements
+### External requirements
 In order to use the modules in this collection, you'll need:
 
   * Python >= 3.7
   * Proxmoxer >= 2.0
+  * requests
 
-## Using this collection
+To install these dependencies, you'll need to run `pip install proxmoxer>=2.0 requests` or 
+a similar command with your preferred python package manager in your current working environment.
+
+This collection is tested with ansible-core 2.17-2.20 and the current development version of ansible-core.
 
 ### Installing the Collection from Ansible Galaxy
 
@@ -125,11 +66,67 @@ See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guid
 
 See the [changelog](https://github.com/ansible-collections/community.proxmox/tree/main/CHANGELOG.md).
 
+<!--
 ## Roadmap
 
-<!-- Optional. Include the roadmap for this collection, and the proposed release/versioning strategy so users can anticipate the upgrade/update cycle. -->
+Optional. Include the roadmap for this collection, and the proposed release/versioning strategy so users can anticipate the upgrade/update cycle.
 
 Our first order of business is that we get this collection up and running, that means migrating all modules away from `community.general` and doing maintenance where needed.
+-->
+
+## Contributing to this collection
+
+<!--Describe how the community can contribute to your collection. At a minimum, fill up and include the CONTRIBUTING.md file containing how and where users can create issues to report problems or request features for this collection. List contribution requirements, including preferred workflows and necessary testing, so you can benefit from community PRs. If you are following general Ansible contributor guidelines, you can link to - [Ansible Community Guide](https://docs.ansible.com/ansible/devel/community/index.html). List the current maintainers (contributors with write or higher access to the repository). The following can be included:-->
+
+The content of this collection is made by people like you, a community of individuals collaborating on making the world better through developing automation software.
+
+We are actively accepting new contributors and all types of contributions are very welcome.
+
+Don't know how to start? Refer to the [Contribution Guide](./CONTRIBUTING.md).
+
+## Code of Conduct
+
+We follow the [Ansible Code of Conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html) in all our interactions within this project.
+
+If you encounter abusive behavior, please refer to the [policy violations](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html#policy-violations) section of the Code for information on how to raise a complaint.
+
+## Communication
+
+<!--
+If your collection is not present on the Ansible forum yet, please check out the existing [tags](https://forum.ansible.com/tags) and [groups](https://forum.ansible.com/g) - use what suits your collection. If there is no appropritate tag and group yet, please [request one](https://forum.ansible.com/t/requesting-a-forum-group/503/17).
+-->
+
+* Join the Ansible forum:
+  * [Get Help](https://forum.ansible.com/c/help/6): get help or help others. Please add appropriate tags if you start new discussions, for example the `proxmox` tag.
+  * [Posts tagged with 'proxmox'](https://forum.ansible.com/tag/proxmox): subscribe to participate in collection/technology-related conversations.
+  * [The Proxmox collection group on the forum](https://forum.ansible.com/g/proxmox-collection): by joining the team you will automatically get subscribed to the posts tagged with [proxmox](https://forum.ansible.com/tags).
+  * [Social Spaces](https://forum.ansible.com/c/chat/4): gather and interact with fellow enthusiasts.
+  * [News & Announcements](https://forum.ansible.com/c/news/5): track project-wide announcements including social events. The [Bullhorn newsletter](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn), which is used to announce releases and important changes, can also be found here.
+
+For more information about communication, see the [Ansible communication guide](https://docs.ansible.com/ansible/devel/community/communication.html).
+
+## Collection maintenance
+
+<!--
+The current maintainers are listed in the [MAINTAINERS](MAINTAINERS) file. If you have questions or need help, feel free to mention them in the proposals.
+-->
+
+To learn how to maintain/become a maintainer of this collection, refer to the [Maintainer guidelines](https://docs.ansible.com/ansible/devel/community/maintainers.html).
+
+It is necessary for maintainers of this collection to be subscribed to:
+
+* The collection itself (the `Watch` button -> `All Activity` in the upper right corner of the repository's homepage).
+* The [news-for-maintainers repository](https://github.com/ansible-collections/news-for-maintainers).
+
+They also should be subscribed to Ansible's [The Bullhorn newsletter](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn).
+
+## Governance
+
+<!--Describe how the collection is governed. Here can be the following text:-->
+
+The process of decision making in this collection is based on discussing and finding consensus among participants.
+
+Every voice is important. If you have something on your mind, create an issue or dedicated discussion and let's discuss it!
 
 ## More information
 - [Ansible user guide](https://docs.ansible.com/ansible/devel/user_guide/index.html)
