@@ -15,7 +15,6 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 
-import ansible_collections.community.proxmox.plugins.module_utils.proxmox as proxmox_utils
 from ansible_collections.community.proxmox.plugins.modules import proxmox_access_acl
 
 ACE = {
@@ -36,7 +35,6 @@ API = {
 class TestProxmoxAccessACLModule(ModuleTestCase):
     def setUp(self):
         super().setUp()
-        proxmox_utils.HAS_PROXMOXER = True
 
         self.connect_mock = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect"
