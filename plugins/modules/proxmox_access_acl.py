@@ -37,7 +37,7 @@ options:
     type: str
   type:
     description:
-        - type of access control
+        - Type of access control.
     choices: ["user", "group", "token"]
     type: str
   ugid:
@@ -105,16 +105,16 @@ def _ace_matches(ace, desired):
     if ace["path"] != desired["path"]:
         return False
     roleid = desired.get("roleid")
-    if roleid is not None and ace["roleid"] != roleid:
+    if roleid and ace["roleid"] != roleid:
         return False
     ace_type = desired.get("type")
-    if ace_type is not None and ace["type"] != ace_type:
+    if ace_type and ace["type"] != ace_type:
         return False
     ugid = desired.get("ugid")
-    if ugid is not None and ace["ugid"] != ugid:
+    if ugid and ace["ugid"] != ugid:
         return False
     propagate = desired.get("propagate")
-    if propagate is not None:
+    if propagate:
         ace_propagate = proxmox_to_ansible_bool(ace.get("propagate", 1))
         if ace_propagate != propagate:
             return False
