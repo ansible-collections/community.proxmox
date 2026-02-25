@@ -217,7 +217,7 @@ class ProxmoxCephOsdAnsible(ProxmoxAnsible):
         if dev not in [dev_data["devpath"] for dev_data in devs]:
             self.module.fail_json(msg=f"{dev} does not exist on the node {node}.")
         dev_data = list(filter(lambda d: d["devpath"] == dev, devs))[0]
-        if "used" in dev_data.keys():
+        if "used" in dev_data:
             if int(dev_data["osdid"]) >= 0:
                 self.module.exit_json(
                     changed=False,
