@@ -84,10 +84,7 @@ class ProxmoxCephMgrAnsible(ProxmoxAnsible):
 
     def check_managers(self, node):
         managers = self.proxmox_api.nodes(node).ceph.mgr.get()
-        for mgr in managers:
-            if mgr["name"] == node:
-                return True
-        return False
+        return any(mgr["name"] == node for mgr in managers)
 
     def add_mgr(self, manager):
         self.check_node(manager)
