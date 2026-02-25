@@ -9,7 +9,7 @@ DOCUMENTATION = r"""
 module: proxmox_domain_sync
 version_added: 1.6.0
 short_description: Sync realms.
-description: Sync domain realms, ldap or ad.
+description: Sync domain realms, LDAP or AD.
 author: Vial Nicolas (@teslamania)
 attributes:
   check_mode:
@@ -35,10 +35,11 @@ options:
         description:
             - A semicolon-separated list of things to remove when they or the user vanishes during a sync.
             - The following values are possible
-            - entry removes the user/group when not returned from the sync.
-            - properties removes the set properties on existing user/group that do not appear in the source (even custom ones).
-            - acl removes acls when the user/group is not returned from the sync.
-            - Instead of a list it also can be 'none' (the default).
+            - C(remove_vanished=acl) removes acls when the user/group is not returned from the sync.
+            - C(remove_vanished=properties) removes the set properties on existing user/group that do not appear in the source (even custom ones).
+            - C(remove_vanished=entry) removes the user/group when not returned from the sync.
+            - Instead of a list it also can be C(remove_vanishe=none).
+            - Exemple C(remove_vanished="acl;properties;entry")
         required: false
         type: str
 
@@ -50,7 +51,7 @@ extends_documentation_fragment:
 """
 
 EXAMPLES = r"""
-- name: Sync ldap domain
+- name: Sync LDAP domain
   community.proxmox.proxmox_domain_sync:
     api_host: 192.168.1.21
     api_user: "root@pam"

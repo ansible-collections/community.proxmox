@@ -31,12 +31,12 @@ options:
         type: bool
     base_dn:
         description:
-            - Ldap base domain name.
+            - LDAP base domain name.
             - Required when O(type=ldap).
         type: str
     bind_dn:
         description:
-            - Ldap user bind domain name.
+            - LDAP user bind domain name.
             - Supported for O(type=ldap) and O(type=ad).
         type: str
     case_sensitive:
@@ -68,7 +68,7 @@ options:
         type: str
     filter:
         description:
-            - Ldap filter for user sync.
+            - LDAP filter for user sync.
             - Supported for O(type=ldap) and O(type=ad).
         type: str
     issuer_url:
@@ -98,23 +98,23 @@ options:
         type: str
     group_filter:
         description:
-            - Ldap filter for group sync.
+            - LDAP filter for group sync.
             - Supported for O(type=ldap) and O(type=ad).
         type: str
     group_name_attr:
         description:
-            - Ldap group attribute name.
+            - LDAP group attribute name.
             - Supported for O(type=ldap) and O(type=ad).
         type: str
     mode:
         description:
-            - Ldap protocol mode.
+            - LDAP protocol mode.
             - Supported for O(type=ldap) and O(type=ad).
         choices: ['ldap', 'ldaps', 'ldap+starttls']
         type: str
     password:
         description:
-            - Ldap bind password.
+            - LDAP bind password.
             - Supported for O(type=ldap) and O(type=ad).
         type: str
     port:
@@ -125,12 +125,12 @@ options:
     prompt:
         description:
             - Specifies whether the Authorization Server prompts the End-User for reauthentication and consent.
-            - Supported for with 0(type=openid).
+            - Supported for with O(type=openid).
         type: str
     query_userinfo:
         description:
             - Enables querying the userinfo endpoint for claims values.
-            - Supported for with 0(type=openid).
+            - Supported for with O(type=openid).
         type: bool
     realm:
         description: Authentication domain ID.
@@ -174,10 +174,11 @@ options:
             description:
               - A semicolon-separated list of things to remove when they or the user vanishes during a sync.
               - The following values are possible
-              - entry removes the user/group when not returned from the sync.
-              - properties removes the set properties on existing user/group that do not appear in the source (even custom ones).
-              - acl removes acls when the user/group is not returned from the sync.
-              - Instead of a list it also can be 'none' (the default).
+              - C(remove_vanished=acl) removes acls when the user/group is not returned from the sync.
+              - C(remove_vanished=properties) removes the set properties on existing user/group that do not appear in the source (even custom ones).
+              - C(remove_vanished=entry) removes the user/group when not returned from the sync.
+              - Instead of a list it also can be C(remove_vanishe=none).
+              - Exemple C(remove_vanished="acl;properties;entry")
             type: str
     type:
         description:
@@ -188,11 +189,11 @@ options:
     username_claim:
         description:
             - OpenID claim used to generate the unique username.
-            - Supported for 0(type=openid).
+            - Supported for O(type=openid).
         type: str
     user_attr:
         description:
-            - Ldap user attribute name.
+            - LDAP user attribute name.
             - Required when O(type=ldap).
         type: str
     user_classes:
@@ -215,7 +216,7 @@ extends_documentation_fragment:
 
 
 EXAMPLES = r"""
-- name: Add ldap domain
+- name: Add LDAP domain
   community.proxmox.proxmox_domain:
     api_host: 192.168.1.21
     api_user: "root@pam"
@@ -239,7 +240,7 @@ EXAMPLES = r"""
       enable_new: True
       remove_vanished: "acl;properties;entry"
 
-- name: Add ad domain
+- name: Add AD domain
   community.proxmox.proxmox_domain:
     api_host: 192.168.1.21
     api_user: "root@pam"
@@ -257,7 +258,7 @@ EXAMPLES = r"""
       enable_new: True
       remove_vanished: "acl;properties;entry"
 
-- name: Add openid domain
+- name: Add OpenID domain
   community.proxmox.proxmox_domain:
     api_host: 192.168.1.21
     api_user: "root@pam"
@@ -269,7 +270,7 @@ EXAMPLES = r"""
     client_key: keyoftheclient
     issuer_url: "https://example.test/openid-server"
 
-- name: Del domain
+- name: Remove domain
   community.proxmox.proxmox_domain:
     api_host: 192.168.1.21
     api_user: "root@pam"
