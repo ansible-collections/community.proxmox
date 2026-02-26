@@ -114,9 +114,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 class ProxmoxClusterAnsible(ProxmoxAnsible):
     def check_is_cluster(self, cluster_status):
-        if "cluster" in [cluster_data["type"] for cluster_data in cluster_status]:
-            return True
-        return False
+        return "cluster" in [cluster_data["type"] for cluster_data in cluster_status]
 
     def get_cluster_name(self, cluster_status):
         for d in cluster_status:
@@ -125,10 +123,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
         return ""
 
     def check_already_in_right_cluster(self, cluster_status, master_ip):
-        for d in cluster_status:
-            if master_ip in (d.get("ip"), d.get("name")):
-                return True
-        return False
+        return any(master_ip in (d.get("ip"), d.get("name")) for d in cluster_status)
 
     def cluster_create(self):
         cluster_name = self.module.params.get("cluster_name") or self.module.params.get("api_host")
