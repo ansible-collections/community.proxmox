@@ -91,10 +91,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         """
         try:
             pools = self.proxmox_api.pools.get()
-            for pool in pools:
-                if pool["poolid"] == poolid:
-                    return True
-            return False
+            return any(pool["poolid"] == poolid for pool in pools)
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve pools: {e}")
 
@@ -104,7 +101,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         :param poolid: str - name of the pool
         :return: bool - is pool empty?
         """
-        return True if not self.get_pool(poolid)["members"] else False
+        return bool(not (self.get_pool(poolid)["members"]))
 
     def create_pool(self, poolid, comment=None):
         """Create Proxmox VE pool

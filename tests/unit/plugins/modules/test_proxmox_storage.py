@@ -7,9 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.errors import AnsibleValidationError
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
 from ansible_collections.community.proxmox.plugins.modules import proxmox_storage
+from ansible_collections.community.proxmox.plugins.modules.proxmox_storage import validate_storage_type_options
 
 
 @pytest.fixture
@@ -220,32 +222,6 @@ def test_remove_nonexistent_storage(mock_api, mock_init, nfs_storage_args):
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)
 @patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_pbs_missing_required_fields(mock_api, mock_init, pbs_storage_args):
-    del pbs_storage_args["pbs_options"]["datastore"]  # simulate missing datastore
-
-    module = MagicMock(spec=AnsibleModule)
-    module.params = pbs_storage_args
-    module.check_mode = False
-
-    module.fail_json = lambda **kwargs: (result for result in ()).throw(SystemExit(kwargs))
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    with pytest.raises(SystemExit) as exc:
-        proxmox.add_storage()
-
-    result = exc.value.args[0]
-    assert "PBS storage requires" in result["msg"]
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
 def test_add_cephfs_storage(mock_api, mock_init):
     cephfs_args = {
         "api_host": "localhost",
@@ -312,73 +288,74 @@ def test_add_zfspool_storage(mock_api, mock_init, zfspool_storage_args):
     assert "created successfully" in msg
 
 
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_dir_missing_required_path(mock_api, mock_init):
-    dir_args = {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01"],
-        "state": "present",
-        "name": "dir-storage",
-        "type": "dir",
-        "dir_options": {},  # Missing 'path' parameter
-        "content": ["images"],
-    }
+def test_validate_pbs_missing_required_options(pbs_storage_args):
+    del pbs_storage_args["pbs_options"]["datastore"]  # Missing 'datastore' parameter
 
-    module = MagicMock(spec=AnsibleModule)
-    module.params = dir_args
-    module.check_mode = False
-    module.fail_json = lambda **kwargs: (result for result in ()).throw(SystemExit(kwargs))
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("pbs", pbs_storage_args["pbs_options"])
 
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    with pytest.raises(SystemExit) as exc:
-        proxmox.add_storage()
-
-    result = exc.value.args[0]
-    assert "Directory storage requires 'path' parameter" in result["msg"]
+    assert "PBS storage requires" in str(exc.value)
+    assert "datastore" in str(exc.value)
 
 
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_zfspool_missing_required_pool(mock_api, mock_init):
-    zfspool_args = {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01"],
-        "state": "present",
-        "name": "zfspool-storage",
-        "type": "zfspool",
-        "zfspool_options": {},  # Missing 'pool' parameter
-        "content": ["images"],
-    }
+def test_validate_dir_missing_required_options():
+    dir_options = {}  # Missing 'path' parameter
 
-    module = MagicMock(spec=AnsibleModule)
-    module.params = zfspool_args
-    module.check_mode = False
-    module.fail_json = lambda **kwargs: (result for result in ()).throw(SystemExit(kwargs))
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("dir", dir_options)
 
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
+    assert "Directory storage requires" in str(exc.value)
+    assert "path" in str(exc.value)
 
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
 
-    with pytest.raises(SystemExit) as exc:
-        proxmox.add_storage()
+def test_validate_zfspool_missing_required_options():
+    zfspool_options = {}  # Missing 'pool' parameter
 
-    result = exc.value.args[0]
-    assert "ZFS storage requires 'pool' parameter" in result["msg"]
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("zfspool", zfspool_options)
+
+    assert "ZFS storage requires" in str(exc.value)
+    assert "pool" in str(exc.value)
+
+
+def test_validate_cephfs_missing_required_options():
+    cephfs_options = {}  # Missing 'content' parameter
+
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("cephfs", cephfs_options)
+
+    assert "CephFS storage requires" in str(exc.value)
+    assert "content" in str(exc.value)
+
+
+def test_validate_cifs_missing_required_options():
+    cifs_options = {"server": "10.0.0.1"}  # Missing 'share' parameter
+
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("cifs", cifs_options)
+
+    assert "CIFS storage requires" in str(exc.value)
+    assert "server" in str(exc.value)
+    assert "share" in str(exc.value)
+
+
+def test_validate_iscsi_missing_required_options():
+    iscsi_options = {"portal": "10.0.0.1"}  # Missing 'target' parameter
+
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("iscsi", iscsi_options)
+
+    assert "iSCSI storage requires" in str(exc.value)
+    assert "portal" in str(exc.value)
+    assert "target" in str(exc.value)
+
+
+def test_validate_nfs_missing_required_options():
+    nfs_options = {"server": "10.0.0.1"}  # Missing 'export' parameter
+
+    with pytest.raises(AnsibleValidationError) as exc:
+        validate_storage_type_options("nfs", nfs_options)
+
+    assert "NFS storage requires" in str(exc.value)
+    assert "server" in str(exc.value)
+    assert "export" in str(exc.value)
