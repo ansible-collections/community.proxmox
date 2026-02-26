@@ -84,10 +84,7 @@ class ProxmoxCephMonAnsible(ProxmoxAnsible):
 
     def check_monitors(self, node):
         monitors = self.proxmox_api.nodes(node).ceph.mon.get()
-        for mon in monitors:
-            if mon["name"] == node:
-                return True
-        return False
+        return any(mon["name"] == node for mon in monitors)
 
     def add_mon(self, monitor):
         self.check_node(monitor)
