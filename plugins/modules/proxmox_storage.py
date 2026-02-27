@@ -320,16 +320,12 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 STORAGE_REQUIRED_OPTIONS = {
-    "cephfs": (["content"], "CephFS storage requires 'content' option."),
     "cifs": (["server", "share"], "CIFS storage requires 'server' and 'share' options."),
-    "dir": (["path", "content"], "Directory storage requires 'path' and 'content' options."),
+    "dir": (["path"], "Directory storage requires 'path' option."),
     "iscsi": (["portal", "target"], "iSCSI storage requires 'portal' and 'target' options."),
     "nfs": (["server", "export"], "NFS storage requires 'server' and 'export' options."),
-    "pbs": (
-        ["server", "username", "password", "datastore"],
-        "PBS storage requires 'server', 'username', 'password' and 'datastore' options.",
-    ),
-    "zfspool": (["pool", "content"], "ZFS storage requires 'pool' and 'content' options."),
+    "pbs": (["server", "datastore"], "PBS storage requires 'server' and 'datastore' options."),
+    "zfspool": (["pool"], "ZFS storage requires 'pool' option."),
 }
 
 
