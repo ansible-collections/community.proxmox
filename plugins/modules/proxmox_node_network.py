@@ -579,13 +579,13 @@ import re
 import traceback
 from ipaddress import ip_address, ip_interface
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 from ansible.module_utils.common.yaml import yaml_dump
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
+    create_proxmox_module,
     proxmox_auth_argument_spec,
     proxmox_to_ansible_bool,
 )
@@ -806,7 +806,7 @@ def _is_valid_ipv6(addr):
         return False
 
 
-def get_network_args():
+def module_args():
     """Get network-specific arguments for AnsibleModule."""
     args = {}
     for param_name, param_def in PARAMETER_DEFINITIONS.items():
@@ -825,6 +825,10 @@ def get_network_args():
         args[param_name] = arg_def
 
     return args
+
+
+def module_options():
+    return dict(required_if=[("state", "present", ["iface", "iface_type"])])
 
 
 class ProxmoxNetworkManager(ProxmoxAnsible):
@@ -1572,7 +1576,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
     def _has_differences(self, current_config):
         """Check if there are differences between current and desired configuration."""
         core_params = self.get_core_params()
-        network_params = get_network_args()
+        network_params = module_args()
         for param_name in self.params:
             if (
                 param_name in network_params
@@ -1690,30 +1694,16 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
 
 def main():
     """Main function."""
-    module_args = proxmox_auth_argument_spec()
-    network_args = get_network_args()
-    module_args.update(network_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_if=[
-            ("state", "present", ["iface", "iface_type"]),
-        ],
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        supports_check_mode=True,
-    )
-
-    # Create network manager instance
-    network_manager = ProxmoxNetworkManager(module)
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxNetworkManager(module)
 
     # Validate parameters
-    validation_errors = network_manager.validate_params()
+    validation_errors = proxmox.validate_params()
     if validation_errors:
         module.fail_json(msg="Parameter validation failed: " + "; ".join(validation_errors))
 
     # Execute the operation
-    result = network_manager.execute()
+    result = proxmox.execute()
 
     module.exit_json(**result)
 
