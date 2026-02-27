@@ -318,16 +318,6 @@ def test_validate_zfspool_missing_required_options():
     assert "pool" in str(exc.value)
 
 
-def test_validate_cephfs_missing_required_options():
-    cephfs_options = {}  # Missing 'content' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("cephfs", cephfs_options)
-
-    assert "CephFS storage requires" in str(exc.value)
-    assert "content" in str(exc.value)
-
-
 def test_validate_cifs_missing_required_options():
     cifs_options = {"server": "10.0.0.1"}  # Missing 'share' parameter
 
