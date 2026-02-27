@@ -124,12 +124,30 @@ msg:
   sample: "User administrators successfully created"
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        userid=dict(type="str", aliases=["name"], required=True),
+        comment=dict(type="str"),
+        email=dict(type="str"),
+        enable=dict(default=True, type="bool"),
+        expire=dict(default=0, type="int"),
+        firstname=dict(type="str"),
+        groups=dict(type="list", elements="str"),
+        lastname=dict(type="str"),
+        keys=dict(type="str", no_log=True),
+        password=dict(type="str", no_log=True),
+        state=dict(default="present", choices=["present", "absent"]),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxUserAnsible(ProxmoxAnsible):
@@ -293,29 +311,8 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    users_args = dict(
-        userid=dict(type="str", aliases=["name"], required=True),
-        comment=dict(type="str"),
-        email=dict(type="str"),
-        enable=dict(default=True, type="bool"),
-        expire=dict(default=0, type="int"),
-        firstname=dict(type="str"),
-        groups=dict(type="list", elements="str"),
-        lastname=dict(type="str"),
-        keys=dict(type="str", no_log=True),
-        password=dict(type="str", no_log=True),
-        state=dict(default="present", choices=["present", "absent"]),
-    )
-
-    module_args.update(users_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True,
-    )
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxUserAnsible(module)
 
     userid = module.params["userid"]
     comment = module.params["comment"]
@@ -328,8 +325,6 @@ def main():
     keys = module.params["keys"]
     password = module.params["password"]
     state = module.params["state"]
-
-    proxmox = ProxmoxUserAnsible(module)
 
     # Convert empty strings to None for proper comparison
     for param in ["comment", "email", "firstname", "lastname", "keys"]:
