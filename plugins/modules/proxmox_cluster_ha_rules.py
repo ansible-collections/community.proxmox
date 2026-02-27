@@ -181,12 +181,35 @@ rule:
 
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        affinity=dict(choices=["positive", "negative"], required=False),
+        comment=dict(type="str", required=False),
+        disable=dict(type="bool", required=False),
+        force=dict(type="bool", default=False, required=False),
+        name=dict(type="str", required=True),
+        nodes=dict(type="list", elements="str", required=False),
+        resources=dict(type="list", elements="str", required=False),
+        state=dict(choices=["present", "absent"], required=True),
+        strict=dict(type="bool", required=False),
+        type=dict(choices=["node-affinity", "resource-affinity"], required=False),
+    )
+
+
+def module_options():
+    return dict(
+        required_if=[
+            ("state", "present", ["type", "resources"]),
+            ("type", "node-affinity", ["nodes"]),
+            ("type", "resource-affinity", ["affinity"]),
+        ],
+    )
 
 
 class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
@@ -302,42 +325,14 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
 
 
 def run_module():
-    module_args = proxmox_auth_argument_spec()
-
-    acl_args = dict(
-        affinity=dict(choices=["positive", "negative"], required=False),
-        comment=dict(type="str", required=False),
-        disable=dict(type="bool", required=False),
-        force=dict(type="bool", default=False, required=False),
-        name=dict(type="str", required=True),
-        nodes=dict(type="list", elements="str", required=False),
-        resources=dict(type="list", elements="str", required=False),
-        state=dict(choices=["present", "absent"], required=True),
-        strict=dict(type="bool", required=False),
-        type=dict(choices=["node-affinity", "resource-affinity"], required=False),
-    )
-
-    module_args.update(acl_args)
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxClusterHARuleAnsible(module)
 
     result = dict(
         changed=False,
         rule={},
         diff={},
     )
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        required_if=[
-            ("state", "present", ["type", "resources"]),
-            ("type", "node-affinity", ["nodes"]),
-            ("type", "resource-affinity", ["affinity"]),
-        ],
-        supports_check_mode=True,
-    )
-
-    proxmox = ProxmoxClusterHARuleAnsible(module)
 
     name = module.params["name"]
     state = module.params["state"]

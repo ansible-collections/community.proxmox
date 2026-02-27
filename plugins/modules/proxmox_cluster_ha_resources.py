@@ -117,12 +117,26 @@ new_groups:
     returned: when changed
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        state=dict(choices=["present", "absent"], required=True),
+        name=dict(type="str", required=True),
+        comment=dict(type="str", default="", required=False),
+        group=dict(type="str", required=False),
+        max_relocate=dict(type="int", default=1, required=False),
+        max_restart=dict(type="int", default=1, required=False),
+        hastate=dict(choices=["started", "stopped", "disabled", "ignored"], default="started", required=False),
+    )
+
+
+def module_options():
+    return dict(supports_check_mode=False)
 
 
 class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
@@ -177,27 +191,12 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
 
 
 def run_module():
-    module_args = proxmox_auth_argument_spec()
-
-    acl_args = dict(
-        state=dict(choices=["present", "absent"], required=True),
-        name=dict(type="str", required=True),
-        comment=dict(type="str", default="", required=False),
-        group=dict(type="str", required=False),
-        max_relocate=dict(type="int", default=1, required=False),
-        max_restart=dict(type="int", default=1, required=False),
-        hastate=dict(choices=["started", "stopped", "disabled", "ignored"], default="started", required=False),
-    )
-
-    module_args.update(acl_args)
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxClusterHAResourcesAnsible(module)
 
     result = dict(
         changed=False,
     )
-
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
-
-    proxmox = ProxmoxClusterHAResourcesAnsible(module)
 
     sid = module.params["name"]
     comment = module.params["comment"]

@@ -153,13 +153,23 @@ proxmox_users:
 """
 
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
+
+
+def module_args():
+    return dict(
+        domain=dict(type="str", aliases=["realm"]),
+        user=dict(type="str", aliases=["name"]),
+        userid=dict(type="str"),
+    )
+
+
+def module_options():
+    return dict(mutually_exclusive=[("user", "userid"), ("domain", "userid")])
 
 
 class ProxmoxUserInfoAnsible(ProxmoxAnsible):
@@ -211,29 +221,12 @@ class ProxmoxUser:
                 self.user[k] = v
 
 
-def proxmox_user_info_argument_spec():
-    return dict(
-        domain=dict(type="str", aliases=["realm"]),
-        user=dict(type="str", aliases=["name"]),
-        userid=dict(type="str"),
-    )
-
-
 def main():
-    module_args = proxmox_auth_argument_spec()
-    user_info_args = proxmox_user_info_argument_spec()
-    module_args.update(user_info_args)
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxUserInfoAnsible(module)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        mutually_exclusive=[("user", "userid"), ("domain", "userid")],
-        supports_check_mode=True,
-    )
     result = dict(changed=False)
 
-    proxmox = ProxmoxUserInfoAnsible(module)
     domain = module.params["domain"]
     user = module.params["user"]
     if user and domain:

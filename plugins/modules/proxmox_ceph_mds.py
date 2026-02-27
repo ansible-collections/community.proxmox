@@ -66,13 +66,23 @@ msg:
     returned: always
 """
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        node=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"], required=True),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxCephMdsAnsible(ProxmoxAnsible):
@@ -114,22 +124,9 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    mds_args = dict(
-        node=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"], required=True),
-    )
-
-    module_args.update(mds_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxCephMdsAnsible(module)
+
     state = module.params["state"]
 
     if state == "present":

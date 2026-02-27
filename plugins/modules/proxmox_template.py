@@ -189,11 +189,11 @@ import time
 import traceback
 from urllib.parse import urlencode, urlparse
 
-from ansible.module_utils.basic import AnsibleModule, missing_required_lib
+from ansible.module_utils.basic import missing_required_lib
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 
 REQUESTS_TOOLBELT_ERR = None
@@ -205,6 +205,31 @@ try:
 except ImportError:
     HAS_REQUESTS_TOOLBELT = False
     REQUESTS_TOOLBELT_ERR = traceback.format_exc()
+
+
+def module_args():
+    return dict(
+        node=dict(),
+        src=dict(type="path"),
+        url=dict(),
+        template=dict(),
+        content_type=dict(default="vztmpl", choices=["vztmpl", "iso", "import"]),
+        storage=dict(default="local"),
+        timeout=dict(type="int", default=30),
+        force=dict(type="bool", default=False),
+        state=dict(default="present", choices=["present", "absent"]),
+        checksum_algorithm=dict(choices=["md5", "sha1", "sha224", "sha256", "sha384", "sha512"]),
+        checksum=dict(type="str"),
+    )
+
+
+def module_options():
+    return dict(
+        supports_check_mode=False,
+        required_together=[("checksum", "checksum_algorithm")],
+        required_if=[("state", "absent", ["template"])],
+        mutually_exclusive=[("src", "url")],
+    )
 
 
 class ProxmoxTemplateAnsible(ProxmoxAnsible):
@@ -303,30 +328,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    template_args = dict(
-        node=dict(),
-        src=dict(type="path"),
-        url=dict(),
-        template=dict(),
-        content_type=dict(default="vztmpl", choices=["vztmpl", "iso", "import"]),
-        storage=dict(default="local"),
-        timeout=dict(type="int", default=30),
-        force=dict(type="bool", default=False),
-        state=dict(default="present", choices=["present", "absent"]),
-        checksum_algorithm=dict(choices=["md5", "sha1", "sha224", "sha256", "sha384", "sha512"]),
-        checksum=dict(type="str"),
-    )
-    module_args.update(template_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret"), ("checksum", "checksum_algorithm")],
-        required_one_of=[("api_password", "api_token_id")],
-        required_if=[("state", "absent", ["template"])],
-        mutually_exclusive=[("src", "url")],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxTemplateAnsible(module)
 
     state = module.params["state"]

@@ -163,12 +163,47 @@ import hashlib
 import re
 import ssl
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        node_name=dict(type="str", required=True),
+        power_state=dict(choices=["online", "offline"]),
+        certificates=dict(
+            type="dict",
+            options=dict(
+                cert=dict(type="str", required=False, no_log=True),
+                key=dict(type="str", required=False, no_log=True),
+                state=dict(type="str", required=False, choices=["present", "absent"]),
+                restart=dict(type="bool", default=False, required=False),
+                force=dict(type="bool", default=False, required=False),
+            ),
+        ),
+        dns=dict(
+            type="dict",
+            options=dict(
+                dns1=dict(type="str", default=None, required=False),
+                dns2=dict(type="str", default=None, required=False),
+                dns3=dict(type="str", default=None, required=False),
+                search=dict(type="str", required=True),
+            ),
+        ),
+        subscription=dict(
+            type="dict",
+            options=dict(
+                state=dict(type="str", required=False, choices=["present", "absent"]),
+                key=dict(type="str", default=None, required=False, no_log=True),
+            ),
+        ),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
@@ -389,51 +424,11 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-
-    node_args = dict(
-        node_name=dict(type="str", required=True),
-        power_state=dict(choices=["online", "offline"]),
-        certificates=dict(
-            type="dict",
-            options=dict(
-                cert=dict(type="str", required=False, no_log=True),
-                key=dict(type="str", required=False, no_log=True),
-                state=dict(type="str", required=False, choices=["present", "absent"]),
-                restart=dict(type="bool", default=False, required=False),
-                force=dict(type="bool", default=False, required=False),
-            ),
-        ),
-        dns=dict(
-            type="dict",
-            options=dict(
-                dns1=dict(type="str", default=None, required=False),
-                dns2=dict(type="str", default=None, required=False),
-                dns3=dict(type="str", default=None, required=False),
-                search=dict(type="str", required=True),
-            ),
-        ),
-        subscription=dict(
-            type="dict",
-            options=dict(
-                state=dict(type="str", required=False, choices=["present", "absent"]),
-                key=dict(type="str", default=None, required=False, no_log=True),
-            ),
-        ),
-    )
-
-    module_args.update(node_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        supports_check_mode=True,
-    )
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxNodeAnsible(module)
 
     # Initialize objects and avoid re-polling the current
     # nodes in the cluster in each function call.
-    proxmox = ProxmoxNodeAnsible(module)
     nodes = proxmox.get_nodes()
     proxmox.validate_node_name(nodes)
     result = {"changed": False}

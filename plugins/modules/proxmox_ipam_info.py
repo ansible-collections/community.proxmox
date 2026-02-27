@@ -137,22 +137,18 @@ ipams:
     }
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 
 
-def get_proxmox_args():
+def module_args():
     return dict(ipam=dict(type="str", required=False), vmid=dict(type="int", required=False))
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-    return AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+def module_options():
+    return {}
 
 
 class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
@@ -204,7 +200,7 @@ class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxIpamInfoAnsible(module)
 
     try:

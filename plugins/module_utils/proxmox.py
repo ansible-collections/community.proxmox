@@ -18,7 +18,7 @@ except ImportError:
     PROXMOXER_IMP_ERR = traceback.format_exc()
 
 
-from ansible.module_utils.basic import env_fallback, missing_required_lib
+from ansible.module_utils.basic import AnsibleModule, env_fallback, missing_required_lib
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
@@ -42,6 +42,29 @@ def proxmox_auth_argument_spec():
         validate_certs=dict(type="bool", fallback=(env_fallback, ["PROXMOX_VALIDATE_CERTS"])),
         api_timeout=dict(type="int", default=5, fallback=(env_fallback, ["PROXMOX_API_TIMEOUT"])),
     )
+
+
+def create_proxmox_module(argument_spec, **kwargs):
+    """
+    Create an AnsibleModule with Proxmox auth arguments and constraints merged in.
+
+    Args:
+        argument_spec: Module-specific argument specification.
+        **kwargs: Additional AnsibleModule options (e.g. supports_check_mode, mutually_exclusive, required_if).
+
+    Returns:
+        AnsibleModule: The configured module instance.
+    """
+    spec = {**proxmox_auth_argument_spec(), **argument_spec}
+    supports_check_mode = kwargs.pop("supports_check_mode", True)
+
+    for key, default in (
+        ("required_one_of", ("api_password", "api_token_id")),
+        ("required_together", ("api_token_id", "api_token_secret")),
+    ):
+        kwargs[key] = [default] + list(kwargs.get(key, []))
+
+    return AnsibleModule(argument_spec=spec, supports_check_mode=supports_check_mode, **kwargs)
 
 
 def proxmox_to_ansible_bool(value):  # noqa: SIM210

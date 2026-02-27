@@ -158,19 +158,17 @@ has_pending_changes:
 
 import traceback
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
 
 
-def main():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(
+def module_args():
+    return dict(
         node=dict(type="str", required=True),
         iface=dict(type="str", required=False),
         iface_type=dict(
@@ -190,14 +188,9 @@ def main():
         check_changes=dict(type="bool", default=False, required=False),
     )
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-    )
 
-    proxmox = ProxmoxNodeNetworkInfoAnsible(module)
-    result = proxmox.run()
-    module.exit_json(**result)
+def module_options():
+    return {}
 
 
 class ProxmoxNodeNetworkInfoAnsible(ProxmoxAnsible):
@@ -299,6 +292,14 @@ class ProxmoxNodeNetworkInfoAnsible(ProxmoxAnsible):
                 )
 
         return result
+
+
+def main():
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxNodeNetworkInfoAnsible(module)
+
+    result = proxmox.run()
+    module.exit_json(**result)
 
 
 if __name__ == "__main__":

@@ -143,12 +143,18 @@ vnets:
       ]
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(vnet=dict(type="str", required=False))
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
@@ -176,18 +182,9 @@ class ProxmoxVnetInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    vnet_info_args = dict(vnet=dict(type="str", required=False))
-    module_args.update(vnet_info_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True,
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxVnetInfoAnsible(module)
+
     vnet = module.params["vnet"]
     vnets = proxmox.get_vnet_detail()
 
