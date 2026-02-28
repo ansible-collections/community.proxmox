@@ -495,7 +495,7 @@ def main():
                 "monhost": dict(type="list", elements="str"),
                 "username": dict(type="str"),
                 "password": dict(type="str", no_log=True),
-                "path": dict(type="str", default="/"),
+                "path": dict(type="str"),
                 "subdir": dict(
                     type="str",
                 ),
