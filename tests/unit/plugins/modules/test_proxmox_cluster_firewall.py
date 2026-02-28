@@ -205,7 +205,7 @@ class TestProxmoxClusterFirewallModule(ModuleTestCase):
     # -- API error
 
     def test_get_options_api_failure(self):
-        self.mock_api_fw_options.get.side_effect = Exception("connection refused")
+        self.mock_api_fw_options.get.side_effect = Exception()
 
         result = self._run_module(build_module_args(state="enabled"))
 
@@ -214,13 +214,13 @@ class TestProxmoxClusterFirewallModule(ModuleTestCase):
 
     def test_put_options_api_failure(self):
         self.mock_api_fw_options.get.return_value = PROXMOX_OPTIONS_DISABLED
-        self.mock_api_fw_options.put.side_effect = Exception("write error")
+        self.mock_api_fw_options.put.side_effect = Exception()
         result = self._run_module(build_module_args(state="enabled"))
         assert result["failed"] is True
         assert "Failed to set cluster firewall options" in result["msg"]
 
         self.mock_api_fw_options.get.return_value = PROXMOX_OPTIONS_ENABLED
-        self.mock_api_fw_options.put.side_effect = Exception("write error")
+        self.mock_api_fw_options.put.side_effect = Exception()
         result = self._run_module(build_module_args(state="disabled"))
         assert result["failed"] is True
         assert "Failed to set cluster firewall options" in result["msg"]
