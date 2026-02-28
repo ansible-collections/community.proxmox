@@ -341,15 +341,18 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
     def add_storage(self):
         changed = False
         result = "Unchanged"
+
         storage_name = self.module.params["name"]
         storage_type = self.module.params["type"]
-        nodes = self.module.params["nodes"]
+        nodes = self.module.params.get("nodes")
         content = self.module.params.get("content")
 
-        # Create payload for storage creation
-        payload = {"storage": storage_name, "type": storage_type, "nodes": nodes, "content": content}
+        payload = {"storage": storage_name, "type": storage_type }
+        if nodes:
+            payload["nodes"] = nodes
+        if content:
+            payload["content"] = content
 
-        # Validate required parameters based on storage type
         if storage_type == "cephfs":
             cephfs_options = self.module.params.get(f"{storage_type}_options", {})
 
