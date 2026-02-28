@@ -65,8 +65,8 @@ options:
       path:
         description:
           - The path to be used within the CephFS.
-          - The Proxmox default is '/mnt/pve/<storage_id>/<subdir>'.
         type: str
+        default: '/'
         required: false
       subdir:
         description:
@@ -495,7 +495,7 @@ def main():
                 "monhost": dict(type="list", elements="str"),
                 "username": dict(type="str"),
                 "password": dict(type="str", no_log=True),
-                "path": dict(type="str"),
+                "path": dict(type="str", default="/"),
                 "subdir": dict(
                     type="str",
                 ),
