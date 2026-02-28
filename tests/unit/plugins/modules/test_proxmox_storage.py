@@ -3,349 +3,375 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.errors import AnsibleValidationError
+from ansible.module_utils import basic
+from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
+    ModuleTestCase,
+    set_module_args,
+)
 
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import ProxmoxAnsible
 from ansible_collections.community.proxmox.plugins.modules import proxmox_storage
-from ansible_collections.community.proxmox.plugins.modules.proxmox_storage import validate_storage_type_options
+
+# -- Fixtures
+
+CEPHFS_ARGS = {
+    "name": "cephfs-storage",
+    "type": "cephfs",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images", "rootdir"],
+    "cephfs_options": {
+        "monhost": ["10.0.0.1", "10.0.0.2"],
+        "username": "admin",
+        "password": "secretpass",
+        "path": "/",
+        "subdir": "mydata",
+        "client_keyring": "AQ==",
+        "fs_name": "mycephfs",
+    },
+}
+
+CIFS_ARGS = {
+    "name": "cifs-storage",
+    "type": "cifs",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images"],
+    "cifs_options": {
+        "server": "10.0.0.1",
+        "share": "myshare",
+        "username": "user",
+        "password": "secret",
+    },
+}
+
+DIR_ARGS = {
+    "name": "dir-storage",
+    "type": "dir",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images"],
+    "dir_options": {"path": "/dir"},
+}
+
+ISCSI_ARGS = {
+    "name": "iscsi-storage",
+    "type": "iscsi",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images"],
+    "iscsi_options": {
+        "portal": "10.0.0.1",
+        "target": "iqn.example:444",
+    },
+}
+
+NFS_ARGS = {
+    "name": "nfs-share",
+    "type": "nfs",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images"],
+    "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
+}
+
+PBS_ARGS = {
+    "name": "pbs-backup",
+    "type": "pbs",
+    "nodes": ["pve01", "pve02"],
+    "content": ["backup"],
+    "pbs_options": {
+        "server": "backup.local",
+        "username": "backup@pbs",
+        "password": "secret",
+        "datastore": "backup01",
+        "fingerprint": "21:67:27:63:3c:e5:73",
+    },
+}
+
+ZFSPOOL_ARGS = {
+    "name": "zfspool-storage",
+    "type": "zfspool",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images"],
+    "zfspool_options": {"pool": "mypool"},
+}
 
 
-@pytest.fixture
-def dir_storage_args():
+# -- Helpers
+
+
+def exit_json(*args, **kwargs):
+    kwargs.setdefault("changed", False)
+    raise SystemExit(kwargs)
+
+
+def fail_json(*args, **kwargs):
+    kwargs["failed"] = True
+    raise SystemExit(kwargs)
+
+
+def build_module_args(state="present", **overrides):
     return {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01", "pve02"],
-        "state": "present",
-        "name": "dir-storage",
-        "type": "dir",
-        "dir_options": {
-            "path": "/dir",
-        },
-        "content": ["images"],
+        "api_host": "host",
+        "api_user": "user",
+        "api_password": "password",
+        "state": state,
+        **overrides,
     }
 
 
-@pytest.fixture
-def pbs_storage_args():
-    return {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01", "pve02"],
-        "state": "present",
-        "name": "pbs-backup",
-        "type": "pbs",
-        "pbs_options": {
-            "server": "backup.local",
-            "username": "backup@pbs",
-            "password": "secret",
-            "datastore": "backup01",
-            "fingerprint": "FA:KE:FI:NG:ER:PR:IN:T0:01",
-        },
-        "content": ["backup"],
-    }
-
-
-@pytest.fixture
-def nfs_storage_args():
-    return {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01", "pve02"],
-        "state": "present",
-        "name": "nfs-share",
-        "type": "nfs",
-        "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
-        "content": ["images"],
-    }
-
-
-@pytest.fixture
-def zfspool_storage_args():
-    return {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01", "pve02"],
-        "state": "present",
-        "name": "zfspool-storage",
-        "type": "zfspool",
-        "zfspool_options": {
-            "pool": "mypool",
-        },
-        "content": ["images"],
-    }
-
-
-@pytest.fixture
-def existing_storages():
-    return [{"storage": "existing-storage"}, {"storage": "nfs-share"}]
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_dir_storage(mock_api, mock_init, dir_storage_args):
-    module = MagicMock(spec=AnsibleModule)
-    module.params = dir_storage_args
-    module.check_mode = False
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = []
-    mock_api_instance.storage.post.return_value = {}
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    changed, msg = proxmox.add_storage()
-
-    assert changed is True
-    assert "created successfully" in msg
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_pbs_storage(mock_api, mock_init, pbs_storage_args):
-    module = MagicMock(spec=AnsibleModule)
-    module.params = pbs_storage_args
-    module.check_mode = False
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = []
-    mock_api_instance.storage.post.return_value = {}
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    changed, msg = proxmox.add_storage()
-
-    assert changed is True
-    assert "created successfully" in msg
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_nfs_storage_check_mode(mock_api, mock_init, nfs_storage_args, existing_storages):
-    module = MagicMock(spec=AnsibleModule)
-    module.params = nfs_storage_args
-    module.check_mode = True
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = existing_storages
-
-    module.exit_json = lambda **kwargs: (result for result in ()).throw(SystemExit(kwargs))
-    module.fail_json = lambda **kwargs: (result for result in ()).throw(SystemExit(kwargs))
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    with pytest.raises(SystemExit) as exc:
-        proxmox.add_storage()
-
-    result = exc.value.args[0]
-    assert result["changed"] is True
-    assert "would be created" in result["msg"]
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_remove_existing_storage(mock_api, mock_init, nfs_storage_args):
-    nfs_storage_args["state"] = "absent"
-
-    module = MagicMock(spec=AnsibleModule)
-    module.params = nfs_storage_args
-    module.check_mode = False
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = [{"storage": "nfs-share"}]
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    changed, msg = proxmox.remove_storage()
-
-    assert changed is True
-    assert "removed successfully" in msg
-    mock_api_instance.storage("nfs-share").delete.assert_called_once()
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_remove_nonexistent_storage(mock_api, mock_init, nfs_storage_args):
-    nfs_storage_args["state"] = "absent"
-    nfs_storage_args["name"] = "nonexistent"
+# -- Module tests
 
-    module = MagicMock(spec=AnsibleModule)
-    module.params = nfs_storage_args
-    module.check_mode = False
 
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = [{"storage": "something-else"}]
+class TestProxmoxStorageModule(ModuleTestCase):
+    def setUp(self):
+        super().setUp()
+        self.module = proxmox_storage
 
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    changed, msg = proxmox.remove_storage()
-
-    assert changed is False
-    assert "does not exist" in msg
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_cephfs_storage(mock_api, mock_init):
-    cephfs_args = {
-        "api_host": "localhost",
-        "api_user": "root@pam",
-        "api_password": "secret",
-        "validate_certs": False,
-        "node_name": "pve01",
-        "nodes": ["pve01", "pve02"],
-        "state": "present",
-        "name": "cephfs-storage",
-        "type": "cephfs",
-        "cephfs_options": {
-            "monhost": ["10.0.0.1", "10.0.0.2"],
-            "username": "admin",
-            "password": "secretpass",
-            "path": "/",
-            "subdir": "mydata",
-            "client_keyring": "AQ==",
-            "fs_name": "mycephfs",
-        },
-        "content": ["images", "rootdir"],
-    }
-
-    module = MagicMock(spec=AnsibleModule)
-    module.params = cephfs_args
-    module.check_mode = False
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = []
-    mock_api_instance.storage.post.return_value = {}
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    changed, msg = proxmox.add_storage()
-
-    assert changed is True
-    assert "created successfully" in msg
-
-
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-def test_add_zfspool_storage(mock_api, mock_init, zfspool_storage_args):
-    module = MagicMock(spec=AnsibleModule)
-    module.params = zfspool_storage_args
-    module.check_mode = False
-
-    mock_api_instance = MagicMock()
-    mock_api.return_value = mock_api_instance
-    mock_api_instance.nodes.get.return_value = [{"node": "pve01", "status": "online"}]
-    mock_api_instance.storage.get.return_value = []
-    mock_api_instance.storage.post.return_value = {}
-
-    proxmox = proxmox_storage.ProxmoxNodeAnsible(module)
-    proxmox.module = module
-    proxmox.proxmox_api = mock_api_instance
-
-    changed, msg = proxmox.add_storage()
-
-    assert changed is True
-    assert "created successfully" in msg
-
-
-def test_validate_pbs_missing_required_options(pbs_storage_args):
-    del pbs_storage_args["pbs_options"]["datastore"]  # Missing 'datastore' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("pbs", pbs_storage_args["pbs_options"])
-
-    assert "PBS storage requires" in str(exc.value)
-    assert "datastore" in str(exc.value)
-
-
-def test_validate_dir_missing_required_options():
-    dir_options = {}  # Missing 'path' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("dir", dir_options)
-
-    assert "Directory storage requires" in str(exc.value)
-    assert "path" in str(exc.value)
-
-
-def test_validate_zfspool_missing_required_options():
-    zfspool_options = {}  # Missing 'pool' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("zfspool", zfspool_options)
-
-    assert "ZFS storage requires" in str(exc.value)
-    assert "pool" in str(exc.value)
-
-
-def test_validate_cifs_missing_required_options():
-    cifs_options = {"server": "10.0.0.1"}  # Missing 'share' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("cifs", cifs_options)
-
-    assert "CIFS storage requires" in str(exc.value)
-    assert "server" in str(exc.value)
-    assert "share" in str(exc.value)
-
-
-def test_validate_iscsi_missing_required_options():
-    iscsi_options = {"portal": "10.0.0.1"}  # Missing 'target' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("iscsi", iscsi_options)
-
-    assert "iSCSI storage requires" in str(exc.value)
-    assert "portal" in str(exc.value)
-    assert "target" in str(exc.value)
-
-
-def test_validate_nfs_missing_required_options():
-    nfs_options = {"server": "10.0.0.1"}  # Missing 'export' parameter
-
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("nfs", nfs_options)
-
-    assert "NFS storage requires" in str(exc.value)
-    assert "server" in str(exc.value)
-    assert "export" in str(exc.value)
+        self.mock_module_helper = patch.multiple(
+            basic.AnsibleModule,
+            exit_json=exit_json,
+            fail_json=fail_json,
+        )
+        self.mock_module_helper.start()
+
+        self.connect_mock = patch(
+            "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
+        ).start()
+
+        self.mock_api_storage = self.connect_mock.return_value.storage
+
+    def tearDown(self):
+        self.connect_mock.stop()
+        self.mock_module_helper.stop()
+        super().tearDown()
+
+    def _run_module(self, args):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(args):
+            self.module.main()
+        return exc_info.value.args[0]
+
+    def _check_mode(self, **kwargs):
+        return {**build_module_args(**kwargs), "_ansible_check_mode": True}
+
+    def _run_add_storage_success(self, args, expected_payload_subset):
+        self.mock_api_storage.post.return_value = {}
+
+        result = self._run_module(args)
+
+        assert result["changed"] is True
+        assert "created successfully" in result["msg"]
+        assert self.mock_api_storage.post.called
+
+        actual_payload = self.mock_api_storage.post.call_args[1]
+        for key, value in expected_payload_subset.items():
+            if value is None:
+                assert key not in actual_payload
+            else:
+                assert actual_payload.get(key) == value
+
+    def _run_add_storage_missing_required(self, args, missing_field):
+        result = self._run_module(args)
+
+        assert result["failed"] is True
+        assert missing_field in result["msg"]
+        assert "required" in result["msg"].lower()
+        assert not self.mock_api_storage.post.called
+
+    # -- API errors
+
+    def test_add_storage_post_api_failure(self):
+        self.mock_api_storage.post.side_effect = Exception()
+
+        result = self._run_module(build_module_args(**NFS_ARGS))
+
+        assert result["failed"] is True
+        assert "Failed to create storage" in result["msg"]
+
+    def test_remove_storage_get_api_failure(self):
+        self.mock_api_storage.get.side_effect = Exception()
+
+        result = self._run_module(build_module_args(state="absent", name="nfs-share", type="nfs"))
+
+        assert result["failed"] is True
+        assert "Failed to delete storage" in result["msg"]
+
+    def test_remove_storage_delete_api_failure(self):
+        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+        self.mock_api_storage.return_value.delete.side_effect = Exception()
+
+        result = self._run_module(build_module_args(state="absent", name="nfs-share", type="nfs"))
+
+        assert result["failed"] is True
+        assert "Failed to delete storage" in result["msg"]
+
+    # -- state=present
+
+    def test_add_cephfs_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**CEPHFS_ARGS),
+            {
+                "storage": "cephfs-storage",
+                "type": "cephfs",
+                "monhost": ["10.0.0.1", "10.0.0.2"],
+                "fs-name": "mycephfs",
+                "keyring": "AQ==",
+                "subdir": "mydata",
+            },
+        )
+
+    def test_add_cifs_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**CIFS_ARGS),
+            {
+                "storage": "cifs-storage",
+                "type": "cifs",
+                "server": "10.0.0.1",
+                "share": "myshare",
+            },
+        )
+
+    def test_add_dir_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**DIR_ARGS),
+            {"storage": "dir-storage", "type": "dir", "path": "/dir"},
+        )
+
+    def test_add_iscsi_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**ISCSI_ARGS),
+            {
+                "storage": "iscsi-storage",
+                "type": "iscsi",
+                "portal": "10.0.0.1",
+                "target": "iqn.example:444",
+            },
+        )
+
+    def test_add_nfs_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**NFS_ARGS),
+            {
+                "storage": "nfs-share",
+                "type": "nfs",
+                "server": "10.10.10.10",
+                "export": "/mnt/nfs",
+            },
+        )
+
+    def test_add_pbs_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**PBS_ARGS),
+            {
+                "storage": "pbs-backup",
+                "type": "pbs",
+                "server": "backup.local",
+                "datastore": "backup01",
+                "fingerprint": "21:67:27:63:3c:e5:73",
+            },
+        )
+
+    def test_add_zfspool_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**ZFSPOOL_ARGS),
+            {"storage": "zfspool-storage", "type": "zfspool", "pool": "mypool"},
+        )
+
+    def test_add_storage_already_exists(self):
+        self.mock_api_storage.post.side_effect = Exception("already defined")
+
+        result = self._run_module(build_module_args(**NFS_ARGS))
+
+        assert result["changed"] is False
+        assert "already present" in result["msg"]
+
+    def test_add_storage_check_mode_new(self):
+        self.mock_api_storage.get.return_value = [{"storage": "other-storage"}]
+
+        result = self._run_module(self._check_mode(**NFS_ARGS))
+
+        assert result["changed"] is True
+        assert "would be created" in result["msg"]
+        assert not self.mock_api_storage.post.called
+
+    def test_add_storage_check_mode_already_exists(self):
+        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+
+        result = self._run_module(self._check_mode(**NFS_ARGS))
+
+        assert result["changed"] is False
+        assert "already present" in result["msg"]
+        assert not self.mock_api_storage.post.called
+
+    def test_add_cifs_storage_missing_share(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**CIFS_ARGS, "cifs_options": {"server": "10.0.0.1"}}),
+            missing_field="share",
+        )
+
+    def test_add_dir_storage_missing_path(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**DIR_ARGS, "dir_options": {}}),
+            missing_field="path",
+        )
+
+    def test_add_iscsi_storage_missing_target(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**ISCSI_ARGS, "iscsi_options": {"portal": "10.0.0.1"}}),
+            missing_field="target",
+        )
+
+    def test_add_nfs_storage_missing_export(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**NFS_ARGS, "nfs_options": {"server": "10.0.0.1"}}),
+            missing_field="export",
+        )
+
+    def test_add_pbs_storage_missing_datastore(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**PBS_ARGS, "pbs_options": {"server": "s", "username": "u", "password": "p"}}),
+            missing_field="datastore",
+        )
+
+    def test_add_zfspool_storage_missing_pool(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**ZFSPOOL_ARGS, "zfspool_options": {}}),
+            missing_field="pool",
+        )
+
+    # -- state=absent
+
+    def test_remove_existing_storage(self):
+        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+
+        result = self._run_module(build_module_args(state="absent", name="nfs-share", type="nfs"))
+
+        assert result["changed"] is True
+        assert "removed successfully" in result["msg"]
+        self.mock_api_storage.assert_called_with("nfs-share")
+        self.mock_api_storage.return_value.delete.assert_called_once_with()
+
+    def test_remove_nonexistent_storage(self):
+        self.mock_api_storage.get.return_value = [{"storage": "other-storage"}]
+
+        result = self._run_module(build_module_args(state="absent", name="nonexistent", type="nfs"))
+
+        assert result["changed"] is False
+        assert "does not exist" in result["msg"]
+        self.mock_api_storage.return_value.delete.assert_not_called()
+
+    def test_remove_storage_check_mode_existing(self):
+        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+
+        result = self._run_module(self._check_mode(state="absent", name="nfs-share", type="nfs"))
+
+        assert result["changed"] is True
+        assert "would be deleted" in result["msg"]
+        self.mock_api_storage.return_value.delete.assert_not_called()
+
+    def test_remove_storage_check_mode_nonexistent(self):
+        self.mock_api_storage.get.return_value = [{"storage": "other-storage"}]
+
+        result = self._run_module(self._check_mode(state="absent", name="nonexistent", type="nfs"))
+
+        assert result["changed"] is False
+        assert "does not exist" in result["msg"]
+        self.mock_api_storage.return_value.delete.assert_not_called()
