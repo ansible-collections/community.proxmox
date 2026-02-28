@@ -65,12 +65,13 @@ options:
       path:
         description:
           - The path to be used within the CephFS.
+          - The Proxmox default is '/mnt/pve/<storage_id>/<subdir>'.
         type: str
-        default: '/'
         required: false
       subdir:
         description:
           - The subdir to be used within the CephFS.
+          - The Proxmox default is '/'.
         type: str
         required: false
       client_keyring:
