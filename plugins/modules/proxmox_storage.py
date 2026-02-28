@@ -352,26 +352,20 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         # Validate required parameters based on storage type
         if storage_type == "cephfs":
             cephfs_options = self.module.params.get(f"{storage_type}_options", {})
-            monhost = cephfs_options.get("monhost", "")
-            username = cephfs_options.get("username")
-            password = cephfs_options.get("password")
-            path = cephfs_options.get("path", "/")
-            subdir = cephfs_options.get("subdir", None)
-            client_keyring = cephfs_options.get("client_keyring")
-            fs_name = cephfs_options.get("fs_name")
 
-            if monhost != "":
-                payload["monhost"] = monhost
-            if username:
-                payload["username"] = username
-            if password:
-                payload["password"] = password
-            payload["path"] = path
-            payload["subdir"] = subdir
-            if client_keyring:
-                payload["client_keyring"] = client_keyring
-            if fs_name:
-                payload["fs_name"] = fs_name
+            cephfs_mapping = [
+                ("path", "path"),
+                ("monhost", "monhost"),
+                ("subdir", "subdir"),
+                ("username", "username"),
+                ("password", "password"),
+                ("client_keyring", "keyring"),
+                ("fs_name", "fs-name"),
+            ]
+            for opt_key, payload_key in cephfs_mapping:
+                value = cephfs_options.get(opt_key)
+                if value:
+                    payload[payload_key] = value
 
         if storage_type == "cifs":
             cifs_options = self.module.params.get(f"{storage_type}_options", {})
