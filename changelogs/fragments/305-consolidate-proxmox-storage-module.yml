@@ -1,0 +1,7 @@
+---
+minor_changes:
+  - proxmox_storage - when ``state=present`` parameters ``content`` and ``nodes`` are now not required (https://github.com/ansible-collections/community.proxmox/pull/305).
+bugfixes:
+  - proxmox_storage - the parameter ``client_keyring`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
+  - proxmox_storage - the parameter ``fs_name`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
+  - proxmox_storage - storage backend ``cephfs``, ``dir`` and ``zfspool`` doesn't requires ``content`` parameter (https://github.com/ansible-collections/community.proxmox/pull/305).
