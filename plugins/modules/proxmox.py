@@ -622,18 +622,17 @@ EXAMPLES = r"""
 import re
 import time
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
 
-def get_proxmox_args():
+def module_args():
     return dict(
         vmid=dict(type="int", required=False),
         node=dict(),
@@ -741,26 +740,15 @@ def get_proxmox_args():
     )
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-
-    return AnsibleModule(
-        argument_spec=module_args,
+def module_options():
+    return dict(
+        supports_check_mode=False,
         required_if=[
             ("state", "present", ["node", "hostname"]),
-            # Require one of clone, ostemplate, or update.
-            # Together with mutually_exclusive this ensures that we either
-            # clone a container or create a new one from a template file.
             ("state", "present", ("clone", "ostemplate", "update"), True),
         ],
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[
-            ("api_password", "api_token_id"),
-            ("vmid", "hostname"),
-        ],
+        required_one_of=[("vmid", "hostname")],
         mutually_exclusive=[
-            # Creating a new container is done either by cloning an existing one, or based on a template.
             ("clone", "ostemplate"),
             ("clone", "update"),
             ("force", "update"),
@@ -1685,7 +1673,7 @@ def isfloat(value):
 
 
 def main():
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxLxcAnsible(module)
 
     try:

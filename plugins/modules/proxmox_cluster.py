@@ -104,12 +104,26 @@ cluster:
 
 import re
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        state=dict(default=None, choices=["present"]),
+        cluster_name=dict(type="str"),
+        link0=dict(type="str"),
+        link1=dict(type="str"),
+        master_ip=dict(type="str"),
+        master_api_password=dict(type="str", no_log=True),
+        fingerprint=dict(type="str"),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxClusterAnsible(ProxmoxAnsible):
@@ -200,29 +214,10 @@ def validate_cluster_name(module, min_length=1, max_length=15):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-
-    cluster_args = dict(
-        state=dict(default=None, choices=["present"]),
-        cluster_name=dict(type="str"),
-        link0=dict(type="str"),
-        link1=dict(type="str"),
-        master_ip=dict(type="str"),
-        master_api_password=dict(type="str", no_log=True),
-        fingerprint=dict(type="str"),
-    )
-    module_args.update(cluster_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        supports_check_mode=True,
-    )
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxClusterAnsible(module)
 
     result = dict(changed=False)
-
-    proxmox = ProxmoxClusterAnsible(module)
 
     # The Proxmox VE API currently does not support leaving a cluster
     # or removing a node from a cluster. Therefore, we only support creating

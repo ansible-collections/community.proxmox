@@ -95,23 +95,16 @@ zones:
 
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import proxmox_auth_argument_spec
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import create_proxmox_module
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
-def get_proxmox_args():
+def module_args():
     return dict(type=dict(type="str", choices=["evpn", "faucet", "qinq", "simple", "vlan", "vxlan"], required=False))
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-    return AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-    )
+def module_options():
+    return {}
 
 
 class ProxmoxZoneInfoAnsible(ProxmoxSdnAnsible):
@@ -125,7 +118,7 @@ class ProxmoxZoneInfoAnsible(ProxmoxSdnAnsible):
 
 
 def main():
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxZoneInfoAnsible(module)
 
     try:

@@ -261,13 +261,11 @@ firewall_rules:
       ]
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import proxmox_auth_argument_spec
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import create_proxmox_module
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
-def get_proxmox_args():
+def module_args():
     return dict(
         level=dict(type="str", choices=["cluster", "node", "vm", "vnet", "group"], default="cluster", required=False),
         node=dict(type="str", required=False),
@@ -278,13 +276,8 @@ def get_proxmox_args():
     )
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-
-    return AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
+def module_options():
+    return dict(
         required_if=[
             ("level", "vm", ["vmid"]),
             ("level", "node", ["node"]),
@@ -340,7 +333,7 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
 
 
 def main():
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxFirewallInfoAnsible(module)
 
     try:

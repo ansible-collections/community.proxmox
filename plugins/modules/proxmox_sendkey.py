@@ -107,15 +107,13 @@ completed_keys_num:
 
 import time
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 
 
-def get_proxmox_args():
+def module_args():
     return dict(
         vmid=dict(type="int"),
         name=dict(type="str"),
@@ -125,23 +123,13 @@ def get_proxmox_args():
     )
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-
-    return AnsibleModule(
-        argument_spec=module_args,
-        required_together=[
-            ("api_token_id", "api_token_secret"),
-        ],
+def module_options():
+    return dict(
         required_one_of=[
             ("keys_send", "string_send"),
             ("vmid", "name"),
-            ("api_password", "api_token_id"),
         ],
-        mutually_exclusive=[
-            ("keys_send", "string_send"),
-        ],
+        mutually_exclusive=[("keys_send", "string_send")],
         supports_check_mode=False,
     )
 
@@ -475,8 +463,9 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
 
 def main():
     """Main entry point."""
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxSendkeyAnsible(module)
+
     proxmox.run()
 
 

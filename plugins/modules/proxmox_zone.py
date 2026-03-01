@@ -221,16 +221,14 @@ zone:
       test
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
-def get_proxmox_args():
+def module_args():
     return dict(
         state=dict(type="str", default="present", choices=["present", "absent"]),
         update=dict(type="bool", default=True),
@@ -263,12 +261,10 @@ def get_proxmox_args():
     )
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-
-    return AnsibleModule(
-        argument_spec=module_args, required_if=[("state", "present", ["type", "zone"]), ("state", "absent", ["zone"])]
+def module_options():
+    return dict(
+        supports_check_mode=False,
+        required_if=[("state", "present", ["type", "zone"]), ("state", "absent", ["zone"])],
     )
 
 
@@ -410,7 +406,7 @@ class ProxmoxZoneAnsible(ProxmoxSdnAnsible):
 
 
 def main():
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxZoneAnsible(module)
 
     try:

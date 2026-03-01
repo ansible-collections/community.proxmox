@@ -316,7 +316,7 @@ from ansible.module_utils.errors import AnsibleValidationError
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 
 STORAGE_REQUIRED_OPTIONS = {
@@ -339,6 +339,75 @@ def validate_storage_type_options(storage_type, options):
     required_fields, error_msg = STORAGE_REQUIRED_OPTIONS[storage_type]
     if not all(options.get(field) for field in required_fields):
         raise AnsibleValidationError(error_msg)
+
+
+def module_args():
+    return dict(
+        nodes=dict(
+            type="list",
+            elements="str",
+        ),
+        name=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"]),
+        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        dir_options=dict(type="dict", options={"path": dict(type="str")}),
+        cephfs_options=dict(
+            type="dict",
+            options={
+                "monhost": dict(type="list", elements="str"),
+                "username": dict(type="str"),
+                "password": dict(type="str", no_log=True),
+                "path": dict(type="str", default="/"),
+                "subdir": dict(
+                    type="str",
+                ),
+                "fs_name": dict(
+                    type="str",
+                ),
+                "client_keyring": dict(type="str", no_log=True),
+            },
+        ),
+        cifs_options=dict(
+            type="dict",
+            options={
+                "server": dict(type="str"),
+                "username": dict(type="str"),
+                "password": dict(type="str", no_log=True),
+                "share": dict(type="str"),
+                "domain": dict(type="str"),
+                "smb_version": dict(type="str"),
+                "subdir": dict(
+                    type="str",
+                ),
+            },
+        ),
+        nfs_options=dict(
+            type="dict", options={"server": dict(type="str"), "export": dict(type="str"), "options": dict(type="str")}
+        ),
+        iscsi_options=dict(type="dict", options={"portal": dict(type="str"), "target": dict(type="str")}),
+        pbs_options=dict(
+            type="dict",
+            options={
+                "server": dict(type="str"),
+                "username": dict(type="str"),
+                "password": dict(type="str", no_log=True),
+                "datastore": dict(type="str"),
+                "namespace": dict(type="str"),
+                "fingerprint": dict(type="str"),
+            },
+        ),
+        zfspool_options=dict(
+            type="dict",
+            options={"pool": dict(type="str"), "sparse": dict(type="bool")},
+        ),
+        content=dict(
+            type="list", elements="str", choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
+        ),
+    )
+
+
+def module_options():
+    return dict(required_if=[["state", "present", ["nodes", "content"]]])
 
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
@@ -522,84 +591,11 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-
-    storage_args = dict(
-        nodes=dict(
-            type="list",
-            elements="str",
-        ),
-        name=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"]),
-        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
-        dir_options=dict(type="dict", options={"path": dict(type="str")}),
-        cephfs_options=dict(
-            type="dict",
-            options={
-                "monhost": dict(type="list", elements="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "path": dict(type="str", default="/"),
-                "subdir": dict(
-                    type="str",
-                ),
-                "fs_name": dict(
-                    type="str",
-                ),
-                "client_keyring": dict(type="str", no_log=True),
-            },
-        ),
-        cifs_options=dict(
-            type="dict",
-            options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "share": dict(type="str"),
-                "domain": dict(type="str"),
-                "smb_version": dict(type="str"),
-                "subdir": dict(
-                    type="str",
-                ),
-            },
-        ),
-        nfs_options=dict(
-            type="dict", options={"server": dict(type="str"), "export": dict(type="str"), "options": dict(type="str")}
-        ),
-        iscsi_options=dict(type="dict", options={"portal": dict(type="str"), "target": dict(type="str")}),
-        pbs_options=dict(
-            type="dict",
-            options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "datastore": dict(type="str"),
-                "fingerprint": dict(type="str"),
-                "namespace": dict(type="str"),
-            },
-        ),
-        zfspool_options=dict(
-            type="dict",
-            options={"pool": dict(type="str"), "sparse": dict(type="bool")},
-        ),
-        content=dict(
-            type="list", elements="str", choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
-        ),
-    )
-
-    module_args.update(storage_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        supports_check_mode=True,
-        required_if=[["state", "present", ["nodes", "content"]]],
-    )
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxNodeAnsible(module)
 
     # Initialize objects and avoid re-polling the current
     # nodes in the cluster in each function call.
-    proxmox = ProxmoxNodeAnsible(module)
     result = {"changed": False, "result": ""}
 
     # Actions

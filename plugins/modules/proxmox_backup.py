@@ -216,17 +216,47 @@ backups:
 
 import time
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 
 
 def has_permission(permission_tree, permission, search_scopes, default=0, expected=1):
     return any(permission_tree.get(scope, {}).get(permission, default) == expected for scope in search_scopes)
+
+
+def module_args():
+    return dict(
+        backup_mode=dict(type="str", default="snapshot", choices=["snapshot", "suspend", "stop"]),
+        bandwidth=dict(type="int"),
+        change_detection_mode=dict(type="str", choices=["legacy", "data", "metadata"]),
+        compress=dict(type="str", choices=["0", "1", "gzip", "lzo", "zstd"]),
+        compression_threads=dict(type="int"),
+        description=dict(type="str", default="{{guestname}}"),
+        fleecing=dict(type="str"),
+        mode=dict(type="str", required=True, choices=["include", "all", "pool"]),
+        node=dict(type="str"),
+        notification_mode=dict(
+            type="str",
+            default="auto",
+            choices=["auto", "legacy-sendmail", "notification-system"],
+        ),
+        performance_tweaks=dict(type="str"),
+        pool=dict(type="str"),
+        protected=dict(type="bool"),
+        retention=dict(type="str"),
+        storage=dict(type="str", required=True),
+        vmids=dict(type="list", elements="int"),
+        wait=dict(type="bool", default=False),
+        wait_timeout=dict(type="int", default=10),
+    )
+
+
+def module_options():
+    return dict(required_if=[("mode", "include", ("vmids",), True), ("mode", "pool", ("pool",))])
 
 
 class ProxmoxBackupAnsible(ProxmoxAnsible):
@@ -475,39 +505,9 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    backup_args = {
-        "backup_mode": {"type": "str", "default": "snapshot", "choices": ["snapshot", "suspend", "stop"]},
-        "bandwidth": {"type": "int"},
-        "change_detection_mode": {"type": "str", "choices": ["legacy", "data", "metadata"]},
-        "compress": {"type": "str", "choices": ["0", "1", "gzip", "lzo", "zstd"]},
-        "compression_threads": {"type": "int"},
-        "description": {"type": "str", "default": "{{guestname}}"},
-        "fleecing": {"type": "str"},
-        "mode": {"type": "str", "required": True, "choices": ["include", "all", "pool"]},
-        "node": {"type": "str"},
-        "notification_mode": {
-            "type": "str",
-            "default": "auto",
-            "choices": ["auto", "legacy-sendmail", "notification-system"],
-        },
-        "performance_tweaks": {"type": "str"},
-        "pool": {"type": "str"},
-        "protected": {"type": "bool"},
-        "retention": {"type": "str"},
-        "storage": {"type": "str", "required": True},
-        "vmids": {"type": "list", "elements": "int"},
-        "wait": {"type": "bool", "default": False},
-        "wait_timeout": {"type": "int", "default": 10},
-    }
-    module_args.update(backup_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_if=[("mode", "include", ("vmids",), True), ("mode", "pool", ("pool",))],
-    )
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxBackupAnsible(module)
+
     bandwidth = module.params["bandwidth"]
     mode = module.params["mode"]
     node = module.params["node"]

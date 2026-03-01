@@ -116,17 +116,15 @@ vnet:
     anstest
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ansible_to_proxmox_bool,
     compare_list_of_dicts,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_sdn import ProxmoxSdnAnsible
 
 
-def get_proxmox_args():
+def module_args():
     return dict(
         state=dict(type="str", choices=["present", "absent"], default="present", required=False),
         update=dict(type="bool", default=True, required=False),
@@ -141,12 +139,10 @@ def get_proxmox_args():
     )
 
 
-def get_ansible_module():
-    module_args = proxmox_auth_argument_spec()
-    module_args.update(get_proxmox_args())
-
-    return AnsibleModule(
-        argument_spec=module_args, required_if=[("state", "present", ["vnet", "zone"]), ("state", "absent", ["vnet"])]
+def module_options():
+    return dict(
+        supports_check_mode=False,
+        required_if=[("state", "present", ["vnet", "zone"]), ("state", "absent", ["vnet"])],
     )
 
 
@@ -253,7 +249,7 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
 
 
 def main():
-    module = get_ansible_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxVnetAnsible(module)
 
     try:
