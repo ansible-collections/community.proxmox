@@ -1,0 +1,2 @@
+bugfixes:
+  - "proxmox_disk - make none iso disk idempotent (https://github.com/ansible-collections/community.proxmox/pull/288)."
