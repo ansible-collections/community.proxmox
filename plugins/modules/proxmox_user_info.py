@@ -167,7 +167,10 @@ class ProxmoxUserInfoAnsible(ProxmoxAnsible):
         try:
             user = self.proxmox_api.access.users.get(userid)
         except Exception:
-            self.module.fail_json(msg=f"User '{userid}' does not exist")
+          result = dict(changed=False)
+          result["proxmox_users"] = []
+          result["msg"] = f"User '{userid}' does not exist"
+          self.module.exit_json(**result)
         user["userid"] = userid
         return ProxmoxUser(user)
 
