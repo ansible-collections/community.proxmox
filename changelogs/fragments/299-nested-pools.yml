@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - proxmox - add support for retrieving nested pools (https://github.com/ansible-collections/community.proxmox/pull/306).
+  - proxmox_pool - add support for removing nested pools (https://github.com/ansible-collections/community.proxmox/pull/306).
+  - proxmox_pool_member - add support for adding and removing nested pool members (https://github.com/ansible-collections/community.proxmox/pull/306).

@@ -112,6 +112,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
 )
 
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
+
 
 class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
     def pool_members(self, poolid):
@@ -149,7 +151,10 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 if self.module.check_mode:
                     return diff
 
-                self.proxmox_api.pools(poolid).put(storage=[member])
+                if self.version() >= LooseVersion("8.1"):
+                    self.proxmox_api.pools.put(poolid=poolid, storage=[member])
+                else:
+                    self.proxmox_api.pools(poolid).put(storage=[member])
                 return diff
             else:
                 try:
@@ -169,7 +174,10 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 all_members_after.append(member)
 
                 if not self.module.check_mode:
-                    self.proxmox_api.pools(poolid).put(vms=[vmid])
+                    if self.version() >= LooseVersion("8.1"):
+                        self.proxmox_api.pools.put(poolid=poolid, vms=[vmid])
+                    else:
+                        self.proxmox_api.pools(poolid).put(vms=[vmid])
                 return diff
         except Exception as e:
             self.module.fail_json(msg=f"Failed to add a new member ({member}) to the pool {poolid}: {e}")
@@ -195,7 +203,10 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 if self.module.check_mode:
                     return diff
 
-                self.proxmox_api.pools(poolid).put(storage=[member], delete=1)
+                if self.version() >= LooseVersion("8.1"):
+                    self.proxmox_api.pools.put(poolid=poolid, storage=[member], delete=1)
+                else:
+                    self.proxmox_api.pools(poolid).put(storage=[member], delete=1)
                 return diff
             else:
                 try:
@@ -215,7 +226,10 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 all_members_after.remove(vmid)
 
                 if not self.module.check_mode:
-                    self.proxmox_api.pools(poolid).put(vms=[vmid], delete=1)
+                    if self.version() >= LooseVersion("8.1"):
+                        self.proxmox_api.pools.put(poolid=poolid, vms=[vmid], delete=1)
+                    else:
+                        self.proxmox_api.pools(poolid).put(vms=[vmid], delete=1)
                 return diff
         except Exception as e:
             self.module.fail_json(msg=f"Failed to delete a member ({member}) from the pool {poolid}: {e}")

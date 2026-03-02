@@ -81,6 +81,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
 )
 
+from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
+
 
 class ProxmoxPoolAnsible(ProxmoxAnsible):
     def is_pool_existing(self, poolid):
@@ -135,7 +137,10 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
                 return
 
             try:
-                self.proxmox_api.pools(poolid).delete()
+                if self.version() >= LooseVersion("8.1"):
+                    self.proxmox_api.pools.delete(poolid=poolid)
+                else:
+                    self.proxmox_api.pools(poolid).delete()
             except Exception as e:
                 self.module.fail_json(msg=f"Failed to delete pool with ID {poolid}: {e}")
         else:
