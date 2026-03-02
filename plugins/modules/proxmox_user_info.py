@@ -161,16 +161,27 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_to_ansible_bool,
 )
 
+import traceback
+
+try:
+    import proxmoxer
+except ImportError:
+    PROXMOXER_LIBRARY = False
+    PROXMOXER_LIBRARY_IMPORT_ERROR = traceback.format_exc()
+else:
+    PROXMOXER_LIBRARY = True
+    PROXMOXER_LIBRARY_IMPORT_ERROR = None
 
 class ProxmoxUserInfoAnsible(ProxmoxAnsible):
     def get_user(self, userid):
         try:
             user = self.proxmox_api.access.users.get(userid)
-        except Exception:
-          result = dict(changed=False)
-          result["proxmox_users"] = []
-          result["msg"] = f"User '{userid}' does not exist"
-          self.module.exit_json(**result)
+        except proxmoxer.core.ResourceException:
+            result = dict(changed=False)
+            result["proxmox_users"] = []
+            self.module.exit_json(**result)
+        except Exception as e:
+            self.module.fail_json(msg=f"Getting specific user '{userid}' failed: {e}")
         user["userid"] = userid
         return ProxmoxUser(user)
 
