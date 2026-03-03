@@ -71,6 +71,12 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
         "keys": "",
     }
 
+    TESTS_SCENARIOS = [
+        {"args": {"userid": "testuser@pam"}, "expected": EXPECTED_USER},
+        {"args": {"user": "testuser"}, "expected": EXPECTED_USER},
+        {"args": {"domain": "pam"}, "expected": EXPECTED_USER},
+        {"args": {"userid": "nobody@pam"}, "expected": []},
+    ]
 
     def setUp(self):
         super().setUp()
@@ -92,45 +98,15 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
         args.update(kwargs)
         return args
 
-    def test_user_info_by_userid(self):
-        """Test basic user info retrieval, specifying the userid."""
-        module_args = self._create_module_args(userid="testuser@pam")
+    def test_user_info(self):
+        """Test user info retrieval."""
+        for scenario in self.TESTS_SCENARIOS:
+            with self.subTest(scenario=scenario):
+                module_args = self._create_module_args(**scenario["args"])
 
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(module_args):
-            self.module.main()
+                with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(module_args):
+                    self.module.main()
 
-            result = exc_info.value.args[0]
-            assert not result["changed"]
-            assert result["proxmox_users"] == [self.EXPECTED_USER]
-    
-    def test_user_info_by_user(self):
-        """Test basic user info retrieval, specifying the user name."""
-        module_args = self._create_module_args(user="testuser")
-
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(module_args):
-            self.module.main()
-
-            result = exc_info.value.args[0]
-            assert not result["changed"]
-            assert result["proxmox_users"] == [self.EXPECTED_USER]
-
-    def test_user_info_by_domain(self):
-        """Test basic user info retrieval, specifying the domain."""
-        module_args = self._create_module_args(domain="pam")
-
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(module_args):
-            self.module.main()
-
-            result = exc_info.value.args[0]
-            assert not result["changed"]
-            assert result["proxmox_users"] == [self.EXPECTED_USER]
-    
-    def test_user_info_not_found(self):
-        """Test user info retrieval when user is not found."""
-        module_args = self._create_module_args(userid="nobody@pam")
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(module_args):
-            self.module.main()
-
-            result = exc_info.value.args[0]
-            assert not result["changed"]
-            assert result["proxmox_users"] == []
+                    result = exc_info.value.args[0]
+                    assert not result["changed"]
+                    assert result["proxmox_users"] == [scenario["expected"]]
