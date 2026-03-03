@@ -71,7 +71,7 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
         "keys": "",
     }
 
-    TESTS_SCENARIOS = [
+    TEST_SCENARIOS = [
         {"args": {"userid": "testuser@pam"}, "expected": EXPECTED_USER},
         {"args": {"user": "testuser"}, "expected": EXPECTED_USER},
         {"args": {"domain": "pam"}, "expected": EXPECTED_USER},
@@ -100,7 +100,7 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
 
     def test_user_info(self):
         """Test user info retrieval."""
-        for scenario in self.TESTS_SCENARIOS:
+        for scenario in self.TEST_SCENARIOS:
             with self.subTest(scenario=scenario):
                 module_args = self._create_module_args(**scenario["args"])
 
