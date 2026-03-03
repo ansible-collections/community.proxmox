@@ -109,4 +109,5 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
 
                     result = exc_info.value.args[0]
                     assert not result["changed"]
+                    assert not result["failed"]
                     assert result["proxmox_users"] == [scenario["expected"]]
