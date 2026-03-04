@@ -18,12 +18,6 @@ attributes:
   diff_mode:
     support: none
 options:
-  nodes:
-    description:
-      - A list of Proxmox VE nodes on which the target storage is enabled.
-    type: list
-    elements: str
-    required: false
   name:
     description:
       - The name of the storage displayed in the storage list.
@@ -38,8 +32,29 @@ options:
     description:
       - The storage type/protocol to use when adding the storage.
     type: str
-    required: true
     choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool']
+    required: true
+  nodes:
+    description:
+      - A list of nodes where this storage is available.
+      - Required when C(state=present).
+    type: list
+    elements: str
+    required: false
+  content:
+    description:
+      - The content types that can be stored on this storage.
+      - V(backup) VM backups.
+      - V(images) VM disk images.
+      - V(import) VM disk images for import.
+      - V(iso) ISO images.
+      - V(rootdir) container root directories.
+      - V(snippets) cloud-init, hook scripts, etc.
+      - V(vztmpl) container templates.
+    type: list
+    required: false
+    elements: str
+    choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -140,17 +155,17 @@ options:
     suboptions:
       server:
         description:
-          - The hostname or IP address of the remote storage system.
+          - The IP address or DNS name of the NFS server.
         type: str
         required: false
       export:
         description:
-          - The required NFS export path.
+          - The path of the NFS export.
         type: str
         required: false
       options:
         description:
-          - Additional NFS related mount options (e.g., version, pNFS).
+          - The options to pass to the NFS service. (e.g., version, pNFS).
         type: str
         required: false
   iscsi_options:
@@ -217,13 +232,6 @@ options:
         description:
           - Use ZFS thin-provisioning.
         type: bool
-  content:
-    description:
-      - The desired content that should be used with this storage type.
-    type: list
-    required: false
-    elements: str
-    choices: ["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -324,9 +332,9 @@ STORAGE_BACKENDS = {
     },
     "cifs": {
         "server": ("server", True),
-        "share": ("share", True),
         "username": ("username", True),
         "password": ("password", True),
+        "share": ("share", True),
         "smb_version": ("smbversion", False),
         "domain": ("domain", False),
         "subdir": ("subdir", False),
@@ -340,11 +348,11 @@ STORAGE_BACKENDS = {
     },
     "pbs": {
         "server": ("server", True),
+        "datastore": ("datastore", True),
         "username": ("username", True),
         "password": ("password", True),
-        "datastore": ("datastore", True),
-        "fingerprint": ("fingerprint", False),
         "namespace": ("namespace", False),
+        "fingerprint": ("fingerprint", False),
     },
     "zfspool": {
         "pool": ("pool", True),
@@ -475,13 +483,16 @@ def main():
     module_args = proxmox_auth_argument_spec()
 
     storage_args = dict(
+        name=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"]),
+        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        content=dict(
+            type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
+        ),
         nodes=dict(
             type="list",
             elements="str",
         ),
-        name=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"]),
-        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
         dir_options=dict(type="dict", options={"path": dict(type="str")}),
         cephfs_options=dict(
             type="dict",
@@ -531,9 +542,6 @@ def main():
         zfspool_options=dict(
             type="dict",
             options={"pool": dict(type="str"), "sparse": dict(type="bool")},
-        ),
-        content=dict(
-            type="list", elements="str", choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
         ),
     )
 
