@@ -68,12 +68,12 @@ options:
         required: false
       username:
         description:
-          - The required username for the storage system.
+          - The username for the storage system.
         type: str
         required: false
       password:
         description:
-          - The required password for the storage system.
+          - The password for the storage system.
         type: str
         required: false
       path:
@@ -105,7 +105,7 @@ options:
     suboptions:
       server:
         description:
-          - The hostname or IP address of the remote storage system.
+          - The required hostname or IP address of the remote storage system.
         type: str
         required: false
       username:
@@ -120,7 +120,7 @@ options:
         required: false
       share:
         description:
-          - The share to be used from the remote storage system.
+          - The required share to be used from the remote storage system.
         type: str
         required: false
       domain:
@@ -145,7 +145,7 @@ options:
     suboptions:
       path:
         description:
-          - The path of the direcotry on the node(s).
+          - The required path of the direcotry on the node(s).
         type: str
         required: false
   nfs_options:
@@ -155,12 +155,12 @@ options:
     suboptions:
       server:
         description:
-          - The IP address or DNS name of the NFS server.
+          - The required IP address or DNS name of the NFS server.
         type: str
         required: false
       export:
         description:
-          - The path of the NFS export.
+          - The required path of the NFS export.
         type: str
         required: false
       options:
@@ -175,7 +175,7 @@ options:
     suboptions:
       portal:
         description:
-          - The hostname or IP address of the remote storage system as the portal address.
+          - The required hostname or IP address of the remote storage system as the portal address.
         type: str
         required: false
       target:
@@ -215,7 +215,7 @@ options:
         required: false
       fingerprint:
         description:
-          - The required fingerprint of the Proxmox Backup Server system.
+          - The fingerprint of the Proxmox Backup Server system.
         type: str
         required: false
   zfspool_options:
@@ -225,7 +225,7 @@ options:
     suboptions:
       pool:
         description:
-          - The name of the ZFS pool to use.
+          - The required name of the ZFS pool to use.
         type: str
         required: false
       sparse:
