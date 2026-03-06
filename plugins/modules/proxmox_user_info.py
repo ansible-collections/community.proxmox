@@ -153,6 +153,8 @@ proxmox_users:
 """
 
 
+import traceback
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
@@ -160,8 +162,6 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_auth_argument_spec,
     proxmox_to_ansible_bool,
 )
-
-import traceback
 
 try:
     import proxmoxer
@@ -171,6 +171,7 @@ except ImportError:
 else:
     PROXMOXER_LIBRARY = True
     PROXMOXER_LIBRARY_IMPORT_ERROR = None
+
 
 class ProxmoxUserInfoAnsible(ProxmoxAnsible):
     def get_user(self, userid):

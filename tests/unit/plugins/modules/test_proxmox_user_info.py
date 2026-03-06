@@ -21,9 +21,10 @@ from ansible_collections.community.proxmox.plugins.modules import (
     proxmox_user_info,
 )
 
+
 class TestProxmoxUserInfoModule(ModuleTestCase):
     """Test cases for proxmox_user_info module using ModuleTestCase pattern."""
-    
+
     # Common test data
     BASIC_MODULE_ARGS = {
         "api_host": "test.proxmox.com",
@@ -40,13 +41,7 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
         "firstname": "John",
         "lastname": "Doe",
         "groups": ["admins"],
-        "tokens": [
-            {
-                "expire": 0,
-                "privsep": 0,
-                "tokenid": "test"
-            }
-        ],
+        "tokens": [{"expire": 0, "privsep": 0, "tokenid": "test"}],
         "keys": "",
     }
 
@@ -61,13 +56,7 @@ class TestProxmoxUserInfoModule(ModuleTestCase):
         "firstname": "John",
         "lastname": "Doe",
         "groups": ["admins"],
-        "tokens": [
-            {
-                "expire": 0,
-                "privsep": False,
-                "tokenid": "test"
-            }
-        ],
+        "tokens": [{"expire": 0, "privsep": False, "tokenid": "test"}],
         "keys": "",
     }
 
