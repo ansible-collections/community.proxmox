@@ -12,6 +12,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 [![Codecov](https://img.shields.io/codecov/c/github/ansible-collections/community.proxmox)](https://codecov.io/gh/ansible-collections/community.proxmox)
 [![REUSE status](https://api.reuse.software/badge/github.com/ansible-collections/community.proxmox)](https://api.reuse.software/info/github.com/ansible-collections/community.proxmox)
 -->
+
+You can find [documentation for this collection on the Ansible docs site](https://docs.ansible.com/projects/ansible/latest/collections/community/proxmox/index.html).
+
 ## Our mission
 
 The Ansible Proxmox community team's mission is to make automating Proxmox with Ansible nicer, better and more automated then ever!
