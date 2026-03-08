@@ -817,7 +817,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             if re.search(bare_ip_match, cidr_entry):
                 # /32 and /128 → plain address
                 if cidr_entry.endswith(("/32", "/128")):
-                    return str(ipaddress.ip_address(cidr_entry.split("/")[0]))
+                    return str(ipaddress.ip_address(cidr_entry.split("/", maxsplit=1)[0]))
                 # bare address → itself
                 if "/" not in cidr_entry:
                     return str(ipaddress.ip_address(cidr_entry))
