@@ -420,6 +420,7 @@ group:
 """
 
 import ipaddress
+import re
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -810,14 +811,19 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
         def _normalise(cidr_entry: str) -> str:
             """Return Proxmox-compatible string for a single CIDR."""
-            # /32 and /128 → plain address
-            if cidr_entry.endswith(("/32", "/128")):
-                return str(ipaddress.ip_address(cidr_entry.split("/")[0]))
-            # bare address → itself
-            if "/" not in cidr_entry:
-                return str(ipaddress.ip_address(cidr_entry))
-            # real network → compressed network string
-            return str(ipaddress.ip_network(cidr_entry, strict=False))
+            # check if we deal with an alias, an arbitrary string, or something which resembles an ip addres
+            # which we need to validate, to keep idempotence
+            bare_ip_match = re.compile(r"(^\d+\.\d+\.\d+\.\d+(/\d+)?$)|(^.*:(.*)?:.*(/\d+)?$)")
+            if re.search(bare_ip_match, cidr_entry):
+                # /32 and /128 → plain address
+                if cidr_entry.endswith(("/32", "/128")):
+                    return str(ipaddress.ip_address(cidr_entry.split("/", maxsplit=1)[0]))
+                # bare address → itself
+                if "/" not in cidr_entry:
+                    return str(ipaddress.ip_address(cidr_entry))
+                # real network → compressed network string
+                return str(ipaddress.ip_network(cidr_entry, strict=False))
+            return cidr_entry
 
         try:
             for ipset in ip_sets:
@@ -844,7 +850,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                     param,
                     value,
                 ) in fw_rule_at0.get().items():
-                    if param in rule.keys() and param != "pos" and value != rule.get(param):
+                    if param in rule and param != "pos" and value != rule.get(param):
                         self.module.warn(
                             msg=f"Skipping workaround for rule placement. "
                             f"Verify rule is at correct pos "
