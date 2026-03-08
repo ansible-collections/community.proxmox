@@ -1,3 +1,0 @@
----
-breaking_changes:
-  - proxmox - set ``state`` as not ``optional`` and assign default value ``present`` (https://github.com/ansible-collections/community.proxmox/pull/292).
