@@ -90,10 +90,13 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         :return: bool - is pool exists?
         """
         try:
-            pools = self.proxmox_api.pools.get()
-            return any(pool["poolid"] == poolid for pool in pools)
+            self.proxmox_api.pools(poolid).get()
+            return True
         except Exception as e:
-            self.module.fail_json(msg=f"Unable to retrieve pools: {e}")
+            error_str = str(e).lower()
+            if "does not exist" in error_str:
+                return False
+            self.module.fail_json(msg=f"Unable to retrieve pool {poolid}: {e}")
 
     def is_pool_empty(self, poolid):
         """Check whether pool has members
