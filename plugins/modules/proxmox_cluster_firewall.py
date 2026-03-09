@@ -8,7 +8,7 @@
 DOCUMENTATION = r"""
 module: proxmox_cluster_firewall
 short_description: Cluster-level firewall options management for Proxmox VE cluster
-version_added: "1.6.0"
+version_added: "2.0.0"
 author:
   - Clément Cruau (@PendaGTP)
 description:
