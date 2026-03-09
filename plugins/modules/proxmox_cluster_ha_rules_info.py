@@ -29,7 +29,7 @@ options:
       - Target rules affecting the specified resource.
     type: str
 seealso:
-  - module: community.proxmox.proxmox_ha_rules
+  - module: community.proxmox.proxmox_cluster_ha_rules
     description: Management of HA rules
   - name: Proxmox HA rules configuration
     description:  Complete reference of Proxmox VE HA rules
