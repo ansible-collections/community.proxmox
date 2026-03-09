@@ -61,7 +61,7 @@ options:
       - Currently defaults to V(false) and changes default to V(true) with community.proxmox 2.0.0.
       - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
     type: bool
-requirements: ["proxmoxer >= 2.0", "requests"]
+requirements: ["proxmoxer >= 2.3", "requests"]
 """
 
     SELECTION = r"""

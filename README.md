@@ -30,7 +30,7 @@ you are encouraged to contribute, share insights, and collaborate with fellow en
 In order to use the modules in this collection, you'll need:
 
   * Python >= 3.7
-  * Proxmoxer >= 2.0
+  * Proxmoxer >= 2.3
   * requests
 
 To install these dependencies, you'll need to run `pip install proxmoxer>=2.0 requests` or 
