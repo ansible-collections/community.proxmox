@@ -365,7 +365,7 @@ class ProxmoxAnsible:
             dict: Pool information.
         """
         try:
-            return self.proxmox_api.pools(poolid).get()
+            return self.proxmox_api.pools.get(poolid=poolid)
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve pool {poolid} information: {e}")
 
