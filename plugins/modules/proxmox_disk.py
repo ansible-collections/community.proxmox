@@ -29,9 +29,9 @@ options:
     type: int
   disk:
     description:
-      - The disk key (V(unused[n]), V(ide[n]), V(sata[n]), V(scsi[n]) or V(virtio[n])) you want to operate on.
+      - The disk key (V(unused[n]), V(ide[n]), V(sata[n]), V(scsi[n]), V(virtio[n]), V(efidisk[n]) or V(tpmstate[n])) you want to operate on.
       - Disk buses (IDE, SATA and so on) have fixed ranges of V(n) that accepted by Proxmox API.
-      - 'For IDE: 0-3; for SCSI: 0-30; for SATA: 0-5; for VirtIO: 0-15; for Unused: 0-255.'
+      - 'For IDE: 0-3; for SCSI: 0-30; for SATA: 0-5; for VirtIO: 0-15; for Unused: 0-255; for EFI disk: 0; for TPM state: 0.'
     type: str
     required: true
   state:
@@ -533,7 +533,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         "wwn",
     ]
     supported_bus_num_ranges = dict(
-        ide=range(0, 4), scsi=range(0, 31), sata=range(0, 6), virtio=range(0, 16), unused=range(0, 256)
+        ide=range(0, 4), scsi=range(0, 31), sata=range(0, 6), virtio=range(0, 16), unused=range(0, 256), efidisk=range(0, 1), tpmstate=range(0, 1)
     )
 
     def get_create_attributes(self):
