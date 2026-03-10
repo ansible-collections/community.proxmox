@@ -33,7 +33,7 @@ In order to use the modules in this collection, you'll need:
   * Proxmoxer >= 2.3
   * requests
 
-To install these dependencies, you'll need to run `pip install proxmoxer>=2.0 requests` or 
+To install these dependencies, you'll need to run `pip install proxmoxer>=2.0 requests` or
 a similar command with your preferred python package manager in your current working environment.
 
 This collection is tested with ansible-core 2.17-2.20 and the current development version of ansible-core.
