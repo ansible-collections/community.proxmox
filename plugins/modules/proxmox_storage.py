@@ -237,7 +237,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02"]
     state: present
     name: backup-backupserver01
@@ -255,7 +254,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02"]
     state: present
     name: net-nfsshare01
@@ -269,7 +267,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02", "de-cgn01-virt03"]
     state: present
     type: iscsi
@@ -283,7 +280,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     state: absent
     name: net-nfsshare01
     type: nfs
@@ -292,7 +288,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     state: present
     name: zfspool-storage
     type: zfspool
