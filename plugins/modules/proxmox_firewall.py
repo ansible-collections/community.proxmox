@@ -249,7 +249,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     level: cluster
     state: present
     rules:
@@ -271,7 +270,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     level: cluster
     state: present
     update: true
@@ -294,7 +292,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     level: cluster
     state: absent
     pos: 10
@@ -305,7 +302,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     group_conf: true
     state: present
     group: test
@@ -316,7 +312,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     group_conf: true
     state: absent
     group: test
@@ -327,7 +322,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: present
     aliases:
       - name: test1
@@ -341,7 +335,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: present
     update: true
     aliases:
@@ -356,7 +349,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: absent
     aliases:
       - name: test1
@@ -368,7 +360,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     ip_sets:
       - name: hypervisors
         comment: PVE hosts
@@ -391,7 +382,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: absent
     ip_sets:
       - name: hypervisors
@@ -402,7 +392,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: absent
     ip_sets:
       - name: test

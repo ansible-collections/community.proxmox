@@ -76,7 +76,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     vnet: anstest
     zone: ans1
     state: present
@@ -87,7 +86,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     vnet: anstest
     zone: ans1
     alias: anst
@@ -100,7 +98,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     vnet: anstest
     zone: ans1
     state: absent

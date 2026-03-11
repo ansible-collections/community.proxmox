@@ -162,7 +162,6 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     type: simple
     zone: ansible
     state: present
@@ -172,7 +171,6 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     type: vlan
     zone: ansible
     state: present
@@ -183,7 +181,6 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     type: vxlan
     zone: myvxlan
     fabric: my_fabric
@@ -194,7 +191,6 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     type: vxlan
     zone: myvxlan
     peers: "192.168.0.1,192.168.0.2,192.168.0.3"
@@ -205,7 +201,6 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     type: simple
     zone: ansible
     state: absent
