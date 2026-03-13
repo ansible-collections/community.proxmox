@@ -187,15 +187,15 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert "Failed to create storage" in result["msg"]
 
     def test_remove_storage_get_api_failure(self):
-        self.mock_api_storage.get.side_effect = Exception()
+        self.mock_api_storage.get.side_effect = Exception("connection failed")
 
         result = self._run_module(build_module_args(state="absent", name="nfs-share", type="nfs"))
 
         assert result["failed"] is True
-        assert "Failed to delete storage" in result["msg"]
+        assert "Failed to retrieve storage" in result["msg"]
 
     def test_remove_storage_delete_api_failure(self):
-        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+        self.mock_api_storage.get.return_value = {"storage": "nfs-share"}
         self.mock_api_storage.return_value.delete.side_effect = Exception()
 
         result = self._run_module(build_module_args(state="absent", name="nfs-share", type="nfs"))
@@ -284,7 +284,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert "already present" in result["msg"]
 
     def test_add_storage_check_mode_new(self):
-        self.mock_api_storage.get.return_value = [{"storage": "other-storage"}]
+        self.mock_api_storage.get.side_effect = Exception("storage does not exist")
 
         result = self._run_module(self._check_mode(**NFS_ARGS))
 
@@ -293,7 +293,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert not self.mock_api_storage.post.called
 
     def test_add_storage_check_mode_already_exists(self):
-        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+        self.mock_api_storage.get.return_value = {"storage": "nfs-share"}
 
         result = self._run_module(self._check_mode(**NFS_ARGS))
 
@@ -340,7 +340,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
     # -- state=absent
 
     def test_remove_existing_storage(self):
-        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+        self.mock_api_storage.get.return_value = {"storage": "nfs-share"}
 
         result = self._run_module(build_module_args(state="absent", name="nfs-share", type="nfs"))
 
@@ -350,7 +350,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
         self.mock_api_storage.return_value.delete.assert_called_once_with()
 
     def test_remove_nonexistent_storage(self):
-        self.mock_api_storage.get.return_value = [{"storage": "other-storage"}]
+        self.mock_api_storage.get.side_effect = Exception("storage does not exist")
 
         result = self._run_module(build_module_args(state="absent", name="nonexistent", type="nfs"))
 
@@ -359,7 +359,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
         self.mock_api_storage.return_value.delete.assert_not_called()
 
     def test_remove_storage_check_mode_existing(self):
-        self.mock_api_storage.get.return_value = [{"storage": "nfs-share"}]
+        self.mock_api_storage.get.return_value = {"storage": "nfs-share"}
 
         result = self._run_module(self._check_mode(state="absent", name="nfs-share", type="nfs"))
 
@@ -368,7 +368,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
         self.mock_api_storage.return_value.delete.assert_not_called()
 
     def test_remove_storage_check_mode_nonexistent(self):
-        self.mock_api_storage.get.return_value = [{"storage": "other-storage"}]
+        self.mock_api_storage.get.side_effect = Exception("storage does not exist")
 
         result = self._run_module(self._check_mode(state="absent", name="nonexistent", type="nfs"))
 

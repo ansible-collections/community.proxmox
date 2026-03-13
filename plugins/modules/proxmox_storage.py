@@ -28,6 +28,7 @@ options:
       - The state of the defined storage type to perform.
     choices: ["present", "absent"]
     type: str
+    default: present
   type:
     description:
       - The storage type/protocol to use when adding the storage.
@@ -362,121 +363,100 @@ STORAGE_BACKENDS = {
 
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
-    def _build_type_payload(self, storage_type, payload):
+    def __init__(self, module):
+        super().__init__(module)
+        self.params = module.params
+
+    def _get_storage(self, storage_name):
+        try:
+            return self.proxmox_api.storage.get(storage_name)
+        except Exception as e:
+            error_str = str(e).lower()
+            if "does not exist" in error_str:
+                return None
+            self.module.fail_json(msg=f"Failed to retrieve storage {storage_name}: {e}")
+
+    def _validate_storage_params(self, storage_type, params):
         backend = STORAGE_BACKENDS.get(storage_type, {})
-        options = self.module.params.get(f"{storage_type}_options") or {}
         missing_required = []
-
-        for ansible_key, (proxmox_key, required) in backend.items():
-            value = options.get(ansible_key)
-
-            if value is None:
-                if required:
-                    missing_required.append(ansible_key)
-                continue
-
-            if isinstance(value, bool):
-                value = ansible_to_proxmox_bool(value)
-
-            payload[proxmox_key] = value
-
+        for ansible_key, (_, required) in backend.items():
+            value = params.get(ansible_key)
+            if value is None and required:
+                missing_required.append(ansible_key)
         if missing_required:
             self.module.fail_json(
                 msg=f"{storage_type} storage is missing required option(s): {', '.join(missing_required)}"
             )
 
-        return payload
+    def _normalize_storage_params(self, storage_type, backend_params):
+        backend = STORAGE_BACKENDS.get(storage_type, {})
+        result = {}
+        for ansible_key, (proxmox_key, _) in backend.items():
+            value = backend_params.get(ansible_key)
+            if value is not None:
+                normalized = ansible_to_proxmox_bool(value) if isinstance(value, bool) else value
+                result[proxmox_key] = normalized
+        return result
 
-    def add_storage(self):
-        changed = False
-        result = "Unchanged"
+    def run(self):
+        state = self.params.get("state")
 
-        storage_name = self.module.params["name"]
-        storage_type = self.module.params["type"]
-        nodes = self.module.params.get("nodes")
-        content = self.module.params.get("content")
+        storage_params = {
+            "storage": self.params.get("name"),
+            "type": self.params.get("type"),
+        }
 
-        payload = {"storage": storage_name, "type": storage_type}
-        if nodes:
-            payload["nodes"] = nodes
+        if self.params.get("nodes") is not None:
+            storage_params["nodes"] = self.params.get("nodes")
+        if self.params.get("content") is not None:
+            storage_params["content"] = self.params.get("content")
 
-        if content:
-            payload["content"] = content
+        storage_type = self.params.get("type")
+        storage_backend_params = self.params.get(f"{storage_type}_options") or {}
 
-        self._build_type_payload(storage_type, payload)
+        if state == "present":
+            self._validate_storage_params(storage_type, storage_backend_params)
+            storage_params.update(self._normalize_storage_params(storage_type, storage_backend_params))
+            self.add_storage(storage_params)
+        elif state == "absent":
+            self.remove_storage(storage_params)
 
-        # Check Mode validation
+    def add_storage(self, storage_params):
+        name = storage_params["storage"]
+
         if self.module.check_mode:
-            try:
-                existing_storages = self.proxmox_api.storage.get()
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+            current_storage = self._get_storage(name)
+            if current_storage:
+                self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' would be created.")
 
-            for storage in existing_storages:
-                if storage.get("storage") == storage_name:
-                    changed = False
-                    function_result = f"Storage '{storage_name}' already present."
-                    result = {"changed": changed, "msg": function_result}
-                    self.module.exit_json(**result)
-
-                changed = True
-                function_result = f"Storage '{storage_name}' would be created."
-                result = {"changed": changed, "msg": function_result}
-                self.module.exit_json(**result)
-
-        # Add storage
         try:
-            self.proxmox_api.storage.post(**payload)
-            changed = True
-            result = f"Storage '{storage_name}' created successfully."
+            self.proxmox_api.storage.post(**storage_params)
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' created successfully.")
         except Exception as e:
             error_msg = str(e)
             if "already defined" in error_msg:
-                changed = False
-                result = f"Storage '{storage_name}' already present."
-            else:
-                self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
+                self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
+            self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
 
-        return changed, result
+    def remove_storage(self, storage_params):
+        name = storage_params["storage"]
 
-    def remove_storage(self):
-        changed = False
-        result = "Unchanged"
-        storage_name = self.module.params["name"]
-
-        # Check Mode validation
         if self.module.check_mode:
-            try:
-                existing_storages = self.proxmox_api.storage.get()
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+            current_storage = self._get_storage(name)
+            if current_storage:
+                self.module.exit_json(changed=True, msg=f"Storage '{name}' would be deleted.")
+            self.module.exit_json(changed=False, msg=f"Storage '{name}' does not exist.")
 
-            for storage in existing_storages:
-                if storage.get("storage") == storage_name:
-                    changed = True
-                    result = {"changed": changed, "msg": f"Storage '{storage_name}' would be deleted."}
-                    self.module.exit_json(**result)
+        current_storage = self._get_storage(name)
+        if not current_storage:
+            self.module.exit_json(changed=False, msg=f"Storage '{name}' does not exist.")
 
-            changed = False
-            result = {"changed": changed, "msg": f"Storage '{storage_name}' does not exist."}
-            self.module.exit_json(**result)
-
-        # Remove storage
         try:
-            existing_storages = self.proxmox_api.storage.get()
-            if not any(s.get("storage") == storage_name for s in existing_storages):
-                changed = False
-                result = f"Storage '{storage_name}' does not exist."
-                return changed, result
-
-            self.proxmox_api.storage(storage_name).delete()
-            changed = True
-            result = f"Storage '{storage_name}' removed successfully."
-
+            self.proxmox_api.storage(name).delete()
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' removed successfully.")
         except Exception as e:
-            self.module.fail_json(msg=f"Failed to delete storage '{storage_name}': {e}")
-
-        return changed, result
+            self.module.fail_json(msg=f"Failed to delete storage '{name}': {e}")
 
 
 def main():
@@ -484,7 +464,7 @@ def main():
 
     storage_args = dict(
         name=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"]),
+        state=dict(choices=["present", "absent"], default="present"),
         type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
@@ -557,18 +537,7 @@ def main():
     # Initialize objects and avoid re-polling the current
     # nodes in the cluster in each function call.
     proxmox = ProxmoxNodeAnsible(module)
-    result = {"changed": False, "result": ""}
-
-    # Actions
-    if module.params.get("state") == "present":
-        changed, function_result = proxmox.add_storage()
-        result = {"changed": changed, "msg": function_result}
-
-    if module.params.get("state") == "absent":
-        changed, function_result = proxmox.remove_storage()
-        result = {"changed": changed, "msg": function_result}
-
-    module.exit_json(**result)
+    proxmox.run()
 
 
 if __name__ == "__main__":
