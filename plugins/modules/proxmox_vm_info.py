@@ -151,13 +151,26 @@ proxmox_vms:
       ]
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
+
+
+def module_args():
+    return dict(
+        node=dict(type="str", required=False),
+        type=dict(type="str", choices=["lxc", "qemu", "all"], default="all", required=False),
+        vmid=dict(type="int", required=False),
+        name=dict(type="str", required=False),
+        config=dict(type="str", choices=["none", "current", "pending"], default="none", required=False),
+        network=dict(type="bool", default=False, required=False),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxVmInfoAnsible(ProxmoxAnsible):
@@ -222,25 +235,9 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    vm_info_args = dict(
-        node=dict(type="str", required=False),
-        type=dict(type="str", choices=["lxc", "qemu", "all"], default="all", required=False),
-        vmid=dict(type="int", required=False),
-        name=dict(type="str", required=False),
-        config=dict(type="str", choices=["none", "current", "pending"], default="none", required=False),
-        network=dict(type="bool", default=False, required=False),
-    )
-    module_args.update(vm_info_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True,
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxVmInfoAnsible(module)
+
     node = module.params["node"]
     type = module.params["type"]
     vmid = module.params["vmid"]

@@ -919,13 +919,12 @@ import re
 import time
 from urllib.parse import quote
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.parsing.convert_bool import boolean
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
@@ -936,6 +935,159 @@ def parse_mac(netstr):
 
 def parse_dev(devstr):
     return re.search("(.*?)(,|$)", devstr).group(1)
+
+
+def module_args():
+    return dict(
+        archive=dict(type="str"),
+        acpi=dict(type="bool"),
+        agent=dict(type="str"),
+        args=dict(type="str"),
+        audio=dict(type="dict"),
+        autostart=dict(type="bool"),
+        balloon=dict(type="int"),
+        bios=dict(choices=["seabios", "ovmf"]),
+        boot=dict(type="str"),
+        bootdisk=dict(type="str"),
+        cicustom=dict(type="str"),
+        cipassword=dict(type="str", no_log=True),
+        citype=dict(type="str", choices=["nocloud", "configdrive2"]),
+        ciupgrade=dict(type="bool"),
+        ciuser=dict(type="str"),
+        clone=dict(type="str"),
+        cores=dict(type="int"),
+        cpu=dict(type="str"),
+        cpulimit=dict(type="int"),
+        cpuunits=dict(type="int"),
+        delete=dict(type="str"),
+        description=dict(type="str"),
+        digest=dict(type="str"),
+        efidisk0=dict(
+            type="dict",
+            options=dict(
+                storage=dict(type="str"),
+                format=dict(type="str"),
+                efitype=dict(type="str", choices=["2m", "4m"]),
+                pre_enrolled_keys=dict(type="bool"),
+            ),
+        ),
+        force=dict(type="bool"),
+        format=dict(type="str", choices=["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]),
+        freeze=dict(type="bool"),
+        full=dict(type="bool", default=True),
+        hookscript=dict(type="str"),
+        hostpci=dict(type="dict"),
+        hotplug=dict(type="str"),
+        hugepages=dict(choices=["any", "2", "1024"]),
+        ide=dict(type="dict"),
+        ipconfig=dict(type="dict"),
+        keyboard=dict(type="str"),
+        kvm=dict(type="bool"),
+        localtime=dict(type="bool"),
+        lock=dict(choices=["migrate", "backup", "snapshot", "rollback"]),
+        machine=dict(type="str"),
+        memory=dict(type="int"),
+        migrate=dict(type="bool", default=False),
+        migrate_downtime=dict(type="int"),
+        migrate_speed=dict(type="int"),
+        name=dict(type="str"),
+        nameservers=dict(type="list", elements="str"),
+        net=dict(type="dict"),
+        newid=dict(type="int"),
+        node=dict(),
+        numa=dict(type="dict"),
+        numa_enabled=dict(type="bool"),
+        onboot=dict(type="bool"),
+        ostype=dict(
+            choices=[
+                "other",
+                "wxp",
+                "w2k",
+                "w2k3",
+                "w2k8",
+                "wvista",
+                "win7",
+                "win8",
+                "win10",
+                "win11",
+                "l24",
+                "l26",
+                "solaris",
+            ]
+        ),
+        parallel=dict(type="dict"),
+        pool=dict(type="str"),
+        protection=dict(type="bool"),
+        purge=dict(type="bool", default=False),
+        reboot=dict(type="bool"),
+        revert=dict(type="str"),
+        rng0=dict(type="str"),
+        sata=dict(type="dict"),
+        scsi=dict(type="dict"),
+        scsihw=dict(choices=["lsi", "lsi53c810", "virtio-scsi-pci", "virtio-scsi-single", "megasas", "pvscsi"]),
+        serial=dict(type="dict"),
+        searchdomains=dict(type="list", elements="str"),
+        shares=dict(type="int"),
+        skiplock=dict(type="bool"),
+        smbios=dict(type="str"),
+        snapname=dict(type="str"),
+        sockets=dict(type="int"),
+        sshkeys=dict(type="str", no_log=False),
+        startdate=dict(type="str"),
+        startup=dict(),
+        state=dict(
+            default="present",
+            choices=[
+                "present",
+                "absent",
+                "stopped",
+                "started",
+                "restarted",
+                "current",
+                "template",
+                "paused",
+                "hibernated",
+            ],
+        ),
+        storage=dict(type="str"),
+        tablet=dict(type="bool"),
+        tags=dict(type="list", elements="str"),
+        target=dict(type="str"),
+        tdf=dict(type="bool"),
+        template=dict(type="bool"),
+        timeout=dict(type="int", default=30),
+        tpmstate0=dict(
+            type="dict",
+            options=dict(
+                storage=dict(type="str", required=True), version=dict(type="str", choices=["2.0", "1.2"], default="2.0")
+            ),
+        ),
+        usb=dict(type="dict"),
+        update=dict(type="bool", default=False),
+        update_unsafe=dict(type="bool", default=False),
+        vcpus=dict(type="int"),
+        vga=dict(type="str"),
+        virtio=dict(type="dict"),
+        vmid=dict(type="int"),
+        watchdog=dict(),
+        with_local_disks=dict(type="bool", default=False),
+    )
+
+
+def module_options():
+    return dict(
+        supports_check_mode=False,
+        mutually_exclusive=[
+            ("delete", "revert"),
+            ("delete", "update"),
+            ("revert", "update"),
+            ("clone", "update"),
+            ("clone", "delete"),
+            ("clone", "revert"),
+        ],
+        required_one_of=[("name", "vmid")],
+        required_if=[("state", "present", ["node"])],
+    )
 
 
 class ProxmoxKvmAnsible(ProxmoxAnsible):
@@ -1249,157 +1401,8 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    kvm_args = dict(
-        archive=dict(type="str"),
-        acpi=dict(type="bool"),
-        agent=dict(type="str"),
-        args=dict(type="str"),
-        audio=dict(type="dict"),
-        autostart=dict(type="bool"),
-        balloon=dict(type="int"),
-        bios=dict(choices=["seabios", "ovmf"]),
-        boot=dict(type="str"),
-        bootdisk=dict(type="str"),
-        cicustom=dict(type="str"),
-        cipassword=dict(type="str", no_log=True),
-        citype=dict(type="str", choices=["nocloud", "configdrive2"]),
-        ciupgrade=dict(type="bool"),
-        ciuser=dict(type="str"),
-        clone=dict(type="str"),
-        cores=dict(type="int"),
-        cpu=dict(type="str"),
-        cpulimit=dict(type="int"),
-        cpuunits=dict(type="int"),
-        delete=dict(type="str"),
-        description=dict(type="str"),
-        digest=dict(type="str"),
-        efidisk0=dict(
-            type="dict",
-            options=dict(
-                storage=dict(type="str"),
-                format=dict(type="str"),
-                efitype=dict(type="str", choices=["2m", "4m"]),
-                pre_enrolled_keys=dict(type="bool"),
-            ),
-        ),
-        force=dict(type="bool"),
-        format=dict(type="str", choices=["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]),
-        freeze=dict(type="bool"),
-        full=dict(type="bool", default=True),
-        hookscript=dict(type="str"),
-        hostpci=dict(type="dict"),
-        hotplug=dict(type="str"),
-        hugepages=dict(choices=["any", "2", "1024"]),
-        ide=dict(type="dict"),
-        ipconfig=dict(type="dict"),
-        keyboard=dict(type="str"),
-        kvm=dict(type="bool"),
-        localtime=dict(type="bool"),
-        lock=dict(choices=["migrate", "backup", "snapshot", "rollback"]),
-        machine=dict(type="str"),
-        memory=dict(type="int"),
-        migrate=dict(type="bool", default=False),
-        migrate_downtime=dict(type="int"),
-        migrate_speed=dict(type="int"),
-        name=dict(type="str"),
-        nameservers=dict(type="list", elements="str"),
-        net=dict(type="dict"),
-        newid=dict(type="int"),
-        node=dict(),
-        numa=dict(type="dict"),
-        numa_enabled=dict(type="bool"),
-        onboot=dict(type="bool"),
-        ostype=dict(
-            choices=[
-                "other",
-                "wxp",
-                "w2k",
-                "w2k3",
-                "w2k8",
-                "wvista",
-                "win7",
-                "win8",
-                "win10",
-                "win11",
-                "l24",
-                "l26",
-                "solaris",
-            ]
-        ),
-        parallel=dict(type="dict"),
-        pool=dict(type="str"),
-        protection=dict(type="bool"),
-        purge=dict(type="bool", default=False),
-        reboot=dict(type="bool"),
-        revert=dict(type="str"),
-        rng0=dict(type="str"),
-        sata=dict(type="dict"),
-        scsi=dict(type="dict"),
-        scsihw=dict(choices=["lsi", "lsi53c810", "virtio-scsi-pci", "virtio-scsi-single", "megasas", "pvscsi"]),
-        serial=dict(type="dict"),
-        searchdomains=dict(type="list", elements="str"),
-        shares=dict(type="int"),
-        skiplock=dict(type="bool"),
-        smbios=dict(type="str"),
-        snapname=dict(type="str"),
-        sockets=dict(type="int"),
-        sshkeys=dict(type="str", no_log=False),
-        startdate=dict(type="str"),
-        startup=dict(),
-        state=dict(
-            default="present",
-            choices=[
-                "present",
-                "absent",
-                "stopped",
-                "started",
-                "restarted",
-                "current",
-                "template",
-                "paused",
-                "hibernated",
-            ],
-        ),
-        storage=dict(type="str"),
-        tablet=dict(type="bool"),
-        tags=dict(type="list", elements="str"),
-        target=dict(type="str"),
-        tdf=dict(type="bool"),
-        template=dict(type="bool"),
-        timeout=dict(type="int", default=30),
-        tpmstate0=dict(
-            type="dict",
-            options=dict(
-                storage=dict(type="str", required=True), version=dict(type="str", choices=["2.0", "1.2"], default="2.0")
-            ),
-        ),
-        usb=dict(type="dict"),
-        update=dict(type="bool", default=False),
-        update_unsafe=dict(type="bool", default=False),
-        vcpus=dict(type="int"),
-        vga=dict(type="str"),
-        virtio=dict(type="dict"),
-        vmid=dict(type="int"),
-        watchdog=dict(),
-        with_local_disks=dict(type="bool", default=False),
-    )
-    module_args.update(kvm_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        mutually_exclusive=[
-            ("delete", "revert"),
-            ("delete", "update"),
-            ("revert", "update"),
-            ("clone", "update"),
-            ("clone", "delete"),
-            ("clone", "revert"),
-        ],
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("name", "vmid"), ("api_password", "api_token_id")],
-        required_if=[("state", "present", ["node"])],
-    )
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxKvmAnsible(module)
 
     clone = module.params["clone"]
     cpu = module.params["cpu"]
@@ -1420,8 +1423,6 @@ def main():
 
     if module.params["format"] == "unspecified":
         module.params["format"] = None
-
-    proxmox = ProxmoxKvmAnsible(module)
 
     # If vmid is not defined then retrieve its value from the vm name,
     # the cloned vm name or retrieve the next free VM id from ProxmoxAPI.

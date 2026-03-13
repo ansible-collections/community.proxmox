@@ -435,11 +435,9 @@ msg:
 
 from re import compile, match, sub
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
@@ -485,6 +483,105 @@ def disk_conf_str_to_dict(config_string):
         config_current[k] = v
 
     return config_current
+
+
+def module_args():
+    return dict(
+        # Proxmox native parameters
+        aio=dict(type="str", choices=["native", "threads", "io_uring"]),
+        backup=dict(type="bool"),
+        bps_max_length=dict(type="int"),
+        bps_rd_max_length=dict(type="int"),
+        bps_wr_max_length=dict(type="int"),
+        cache=dict(type="str", choices=["none", "writethrough", "writeback", "unsafe", "directsync"]),
+        cyls=dict(type="int"),
+        detect_zeroes=dict(type="bool"),
+        discard=dict(type="str", choices=["ignore", "on"]),
+        format=dict(type="str", choices=["raw", "cow", "qcow", "qed", "qcow2", "vmdk", "cloop"]),
+        heads=dict(type="int"),
+        import_from=dict(type="str"),
+        iops=dict(type="int"),
+        iops_max=dict(type="int"),
+        iops_max_length=dict(type="int"),
+        iops_rd=dict(type="int"),
+        iops_rd_max=dict(type="int"),
+        iops_rd_max_length=dict(type="int"),
+        iops_wr=dict(type="int"),
+        iops_wr_max=dict(type="int"),
+        iops_wr_max_length=dict(type="int"),
+        iothread=dict(type="bool"),
+        iso_image=dict(type="str"),
+        mbps=dict(type="float"),
+        mbps_max=dict(type="float"),
+        mbps_rd=dict(type="float"),
+        mbps_rd_max=dict(type="float"),
+        mbps_wr=dict(type="float"),
+        mbps_wr_max=dict(type="float"),
+        media=dict(type="str", choices=["cdrom", "disk"]),
+        queues=dict(type="int"),
+        replicate=dict(type="bool"),
+        rerror=dict(type="str", choices=["ignore", "report", "stop"]),
+        ro=dict(type="bool"),
+        scsiblock=dict(type="bool"),
+        secs=dict(type="int"),
+        serial=dict(type="str"),
+        shared=dict(type="bool"),
+        snapshot=dict(type="bool"),
+        ssd=dict(type="bool"),
+        trans=dict(type="str", choices=["auto", "lba", "none"]),
+        werror=dict(type="str", choices=["enospc", "ignore", "report", "stop"]),
+        wwn=dict(type="str"),
+        # Disk moving relates parameters
+        bwlimit=dict(type="int"),
+        target_storage=dict(type="str"),
+        target_disk=dict(type="str"),
+        target_vmid=dict(type="int"),
+        delete_moved=dict(type="bool"),
+        timeout=dict(type="int", default="600"),
+        # Module related parameters
+        name=dict(type="str"),
+        vmid=dict(type="int"),
+        disk=dict(type="str", required=True),
+        storage=dict(type="str"),
+        size=dict(type="str"),
+        state=dict(type="str", choices=["present", "resized", "detached", "moved", "absent"], default="present"),
+        create=dict(type="str", choices=["disabled", "regular", "forced"], default="regular"),
+    )
+
+
+def module_options():
+    return dict(
+        required_one_of=[("name", "vmid")],
+        required_if=[
+            ("create", "forced", ["storage"]),
+            ("state", "resized", ["size"]),
+        ],
+        required_by={
+            "target_disk": "target_vmid",
+            "mbps_max": "mbps",
+            "mbps_rd_max": "mbps_rd",
+            "mbps_wr_max": "mbps_wr",
+            "bps_max_length": "mbps_max",
+            "bps_rd_max_length": "mbps_rd_max",
+            "bps_wr_max_length": "mbps_wr_max",
+            "iops_max": "iops",
+            "iops_rd_max": "iops_rd",
+            "iops_wr_max": "iops_wr",
+            "iops_max_length": "iops_max",
+            "iops_rd_max_length": "iops_rd_max",
+            "iops_wr_max_length": "iops_wr_max",
+            "iso_image": "media",
+        },
+        supports_check_mode=False,
+        mutually_exclusive=[
+            ("target_vmid", "target_storage"),
+            ("mbps", "mbps_rd"),
+            ("mbps", "mbps_wr"),
+            ("iops", "iops_rd"),
+            ("iops", "iops_wr"),
+            ("import_from", "size"),
+        ],
+    )
 
 
 class ProxmoxDiskAnsible(ProxmoxAnsible):
@@ -726,106 +823,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    disk_args = dict(
-        # Proxmox native parameters
-        aio=dict(type="str", choices=["native", "threads", "io_uring"]),
-        backup=dict(type="bool"),
-        bps_max_length=dict(type="int"),
-        bps_rd_max_length=dict(type="int"),
-        bps_wr_max_length=dict(type="int"),
-        cache=dict(type="str", choices=["none", "writethrough", "writeback", "unsafe", "directsync"]),
-        cyls=dict(type="int"),
-        detect_zeroes=dict(type="bool"),
-        discard=dict(type="str", choices=["ignore", "on"]),
-        format=dict(type="str", choices=["raw", "cow", "qcow", "qed", "qcow2", "vmdk", "cloop"]),
-        heads=dict(type="int"),
-        import_from=dict(type="str"),
-        iops=dict(type="int"),
-        iops_max=dict(type="int"),
-        iops_max_length=dict(type="int"),
-        iops_rd=dict(type="int"),
-        iops_rd_max=dict(type="int"),
-        iops_rd_max_length=dict(type="int"),
-        iops_wr=dict(type="int"),
-        iops_wr_max=dict(type="int"),
-        iops_wr_max_length=dict(type="int"),
-        iothread=dict(type="bool"),
-        iso_image=dict(type="str"),
-        mbps=dict(type="float"),
-        mbps_max=dict(type="float"),
-        mbps_rd=dict(type="float"),
-        mbps_rd_max=dict(type="float"),
-        mbps_wr=dict(type="float"),
-        mbps_wr_max=dict(type="float"),
-        media=dict(type="str", choices=["cdrom", "disk"]),
-        queues=dict(type="int"),
-        replicate=dict(type="bool"),
-        rerror=dict(type="str", choices=["ignore", "report", "stop"]),
-        ro=dict(type="bool"),
-        scsiblock=dict(type="bool"),
-        secs=dict(type="int"),
-        serial=dict(type="str"),
-        shared=dict(type="bool"),
-        snapshot=dict(type="bool"),
-        ssd=dict(type="bool"),
-        trans=dict(type="str", choices=["auto", "lba", "none"]),
-        werror=dict(type="str", choices=["enospc", "ignore", "report", "stop"]),
-        wwn=dict(type="str"),
-        # Disk moving relates parameters
-        bwlimit=dict(type="int"),
-        target_storage=dict(type="str"),
-        target_disk=dict(type="str"),
-        target_vmid=dict(type="int"),
-        delete_moved=dict(type="bool"),
-        timeout=dict(type="int", default="600"),
-        # Module related parameters
-        name=dict(type="str"),
-        vmid=dict(type="int"),
-        disk=dict(type="str", required=True),
-        storage=dict(type="str"),
-        size=dict(type="str"),
-        state=dict(type="str", choices=["present", "resized", "detached", "moved", "absent"], default="present"),
-        create=dict(type="str", choices=["disabled", "regular", "forced"], default="regular"),
-    )
-
-    module_args.update(disk_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("name", "vmid"), ("api_password", "api_token_id")],
-        required_if=[
-            ("create", "forced", ["storage"]),
-            ("state", "resized", ["size"]),
-        ],
-        required_by={
-            "target_disk": "target_vmid",
-            "mbps_max": "mbps",
-            "mbps_rd_max": "mbps_rd",
-            "mbps_wr_max": "mbps_wr",
-            "bps_max_length": "mbps_max",
-            "bps_rd_max_length": "mbps_rd_max",
-            "bps_wr_max_length": "mbps_wr_max",
-            "iops_max": "iops",
-            "iops_rd_max": "iops_rd",
-            "iops_wr_max": "iops_wr",
-            "iops_max_length": "iops_max",
-            "iops_rd_max_length": "iops_rd_max",
-            "iops_wr_max_length": "iops_wr_max",
-            "iso_image": "media",
-        },
-        supports_check_mode=False,
-        mutually_exclusive=[
-            ("target_vmid", "target_storage"),
-            ("mbps", "mbps_rd"),
-            ("mbps", "mbps_wr"),
-            ("iops", "iops_rd"),
-            ("iops", "iops_wr"),
-            ("import_from", "size"),
-        ],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxDiskAnsible(module)
 
     disk = module.params["disk"]

@@ -91,12 +91,10 @@ new_acls:
     returned: when changed
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
 
@@ -131,6 +129,27 @@ def _build_put_payload(ace_data, delete=False):
     if delete:
         payload["delete"] = 1
     return payload
+
+
+def module_args():
+    return dict(
+        state=dict(choices=["present", "absent"], default="present"),
+        path=dict(type="str", required=False),
+        roleid=dict(type="str", required=False),
+        type=dict(type="str", choices=["user", "group", "token"]),
+        ugid=dict(type="str"),
+        propagate=dict(type="bool", default=True),
+    )
+
+
+def module_options():
+    return dict(
+        supports_check_mode=False,
+        required_if=[
+            ["state", "present", ["path", "roleid", "type", "ugid"]],
+            ["state", "absent", ["path"]],
+        ],
+    )
 
 
 class ProxmoxAccessACLAnsible(ProxmoxAnsible):
@@ -182,33 +201,7 @@ class ProxmoxAccessACLAnsible(ProxmoxAnsible):
 
 
 def run_module():
-    module_args = proxmox_auth_argument_spec()
-
-    acl_args = dict(
-        state=dict(choices=["present", "absent"], default="present"),
-        path=dict(type="str", required=False),
-        roleid=dict(type="str", required=False),
-        type=dict(type="str", choices=["user", "group", "token"]),
-        ugid=dict(type="str"),
-        propagate=dict(type="bool", default=True),
-    )
-
-    module_args.update(acl_args)
-
-    result = dict(
-        changed=False,
-        old_acls=[],
-    )
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=False,
-        required_if=[
-            ["state", "present", ["path", "roleid", "type", "ugid"]],
-            ["state", "absent", ["path"]],
-        ],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxAccessACLAnsible(module)
 
     state = module.params.get("state")
@@ -217,6 +210,11 @@ def run_module():
     ace_type = module.params["type"]
     ugid = module.params["ugid"]
     propagate = module.params["propagate"]
+
+    result = dict(
+        changed=False,
+        old_acls=[],
+    )
 
     try:
         result["old_acls"] = existing_acls = proxmox._get_acls()
