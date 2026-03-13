@@ -113,4 +113,4 @@ The following parameters can be used for authentication:
 - ``api_token_secret``: Token secret (can also be sourced from ``PROXMOX_TOKEN_SECRET``).
 - ``validate_certs``: Validate TLS certificates (can also be sourced from ``PROXMOX_VALIDATE_CERTS``). Defaults to false prior v2.0.0.
 - ``ca_path``: Path to a CA certificate file used to validate the Proxmox VE TLS certificate.
-- ``api_timeout``: Request timeout in seconds. Defaults to 5 seconds.
+- ``api_timeout``: Request timeout in seconds. Defaults to 5 seconds. Might need to be increased for long running queries on larger setups.
