@@ -3,11 +3,10 @@
   GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
   SPDX-License-Identifier: GPL-3.0-or-later
 
-.. _ansible_collections.community.proxmox.docsite.guide_proxmox_module_authentication:
+.. _ansible_collections.community.proxmox.docsite.authentication:
 
-*********************************
-Proxmox Authentication in Modules
-*********************************
+Authentification
+================
 
 Modules in this collection need to authenticate to the Proxmox Virtual Environment API.
 
@@ -22,7 +21,7 @@ Avoid hard-coding credentials in playbooks or inventory. Prefer Ansible Vault, e
     Some operations are not supported with API token authentication (e.g container bind-mounts configuration).
 
 Minimal Example
-===============
+---------------
 
 Examples below show authentication variables as you would typically define them in group/host vars, role defaults, or play vars.
 
@@ -43,7 +42,7 @@ Examples below show authentication variables as you would typically define them 
    api_password: a-strong-password
 
 Example Playbook Task
-=====================
+---------------------
 
 Most modules in this collection accept the same authentication parameters. A common pattern is to define them once at play level and reuse them across tasks:
 
@@ -66,7 +65,7 @@ Most modules in this collection accept the same authentication parameters. A com
            validate_certs: "{{ validate_certs }}"
 
 Optional Parameters
-===================
+-------------------
 
 Here are optional configuration parameters:
 
@@ -78,7 +77,7 @@ Here are optional configuration parameters:
    ca_path: ./verify-tls-connection-with-this-authority.pem
 
 Environment Variables
-=====================
+---------------------
 
 Credentials can also be provided via environment variables.
 
@@ -102,7 +101,7 @@ Credentials can also be provided via environment variables.
      - ``PROXMOX_VALIDATE_CERTS``
 
 Parameters Reference
-=====================
+--------------------
 
 The following parameters can be used for authentication:
 
