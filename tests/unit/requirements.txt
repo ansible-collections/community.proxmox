@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 paramiko
-proxmoxer >= 2.0.0
+proxmoxer >= 2.3.0

@@ -365,7 +365,6 @@ EXAMPLES = r"""
 # ---------------------------------------------
 # plugin: community.proxmox.proxmox
 # url: https://10.0.0.10:8006
-# validate_certs: false
 # user: ansible@pam
 # token_id: ansible
 # token_secret: !vault |
