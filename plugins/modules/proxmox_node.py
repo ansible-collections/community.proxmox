@@ -108,7 +108,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     node_name: de-cgn01-virt01
     power_state: online
 - name: Update SSL certificates on a Proxmox VE Node
@@ -116,7 +115,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     node_name: de-cgn01-virt01
     certificates:
         key: /opt/ansible/key.pem
@@ -128,7 +126,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     node_name: de-cgn01-virt01
     subscription:
         state: present
