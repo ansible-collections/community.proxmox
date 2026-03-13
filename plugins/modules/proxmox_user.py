@@ -151,17 +151,16 @@ tokens:
   type: list
   elements: dict
   contains:
-  tokenid:
-    description: Token name.
-    returned: success
-    type: str
-    sample: MyToken
-  secret:
-    description: Token secret.
-    returned: on creation
-    type: str
-    sample: "17b3a680-1007-4891-ba2e-75f2dfb8e287"
-    no_log: true
+    tokenid:
+      description: Token name.
+      returned: success
+      type: str
+      sample: MyToken
+    secret:
+      description: Token secret.
+      returned: on creation
+      type: str
+      sample: "17b3a680-1007-4891-ba2e-75f2dfb8e287"
 msg:
   description: A short message on what the module did.
   returned: always
@@ -298,23 +297,17 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                         if value is not None:
                             update_params[field] = value
                     self.proxmox_api.access.users(userid).put(**update_params)
-                    self.module.exit_json(changed=True, userid=userid, msg=f"User {userid} updated")
-                except Exception as e:
-                    self.module.fail_json(
-                        changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
-                    )
 
-                try:
-                    # Handle tokens separately since they require a different API endpoint
+                    result_tokens = []
                     for token in tokens:
                         if len(existing_tokens) == 0 or token.tokenid not in [t.tokenid for t in existing_tokens]:
-                            self.proxmox_api.access.users(userid).tokens.post(
+                            resp = self.proxmox_api.access.users(userid).tokens.post(
                                 tokenid=token.tokenid,
                                 comment=token.comment,
                                 expire=token.expire,
                                 privsep=token.privsep,
                             )
-                            self.module.exit_json(changed=True, userid=userid, msg=f"New token {token.tokenid} added to user {userid}")
+                            result_tokens.append({"full-tokenid": resp["full-tokenid"], "secret": resp["value"]})
                         else:
                             for existing_token in existing_tokens:
                                 if existing_token.tokenid == token.tokenid:
@@ -324,25 +317,15 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                                             expire=token.expire,
                                             privsep=token.privsep,
                                         )
-                                        self.module.exit_json(changed=True, userid=userid, msg=f"Token {token.tokenid} updated for user {userid}")
-                except Exception as e:
-                    self.module.fail_json(
-                        changed=False,
-                        userid=userid,
-                        msg=f"Failed to update user tokens for user ID {userid}: {e}",
-                    )
 
-                try:
-                    # Handle token deletions - if any existing token is not in the new tokens list, we delete it
                     for existing_token in existing_tokens:
                         if existing_token.tokenid not in [t.tokenid for t in tokens]:
                             self.proxmox_api.access.users(userid).tokens(existing_token.tokenid).delete()
-                            self.module.exit_json(changed=True, userid=userid, msg=f"Token {existing_token.tokenid} deleted for user {userid}")
+
+                    self.module.exit_json(changed=True, userid=userid, tokens=tokens, msg=f"User {userid} updated")
                 except Exception as e:
                     self.module.fail_json(
-                        changed=False,
-                        userid=userid,
-                        msg=f"Failed to delete user tokens for user ID {userid}: {e}",
+                        changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
                     )
 
             # We have no way of testing if the user's password needs to be changed
