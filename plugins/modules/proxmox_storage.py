@@ -21,7 +21,6 @@ options:
   nodes:
     description:
       - A list of Proxmox VE nodes on which the target storage is enabled.
-      - Required when C(state=present).
     type: list
     elements: str
     required: false
@@ -220,7 +219,6 @@ options:
   content:
     description:
       - The desired content that should be used with this storage type.
-      - Required when C(state=present).
     type: list
     required: false
     elements: str
@@ -315,16 +313,15 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 STORAGE_REQUIRED_OPTIONS = {
-    "cephfs": (["content"], "CephFS storage requires 'content' option."),
     "cifs": (["server", "share"], "CIFS storage requires 'server' and 'share' options."),
-    "dir": (["path", "content"], "Directory storage requires 'path' and 'content' options."),
+    "dir": (["path"], "Directory storage requires 'path' option."),
     "iscsi": (["portal", "target"], "iSCSI storage requires 'portal' and 'target' options."),
     "nfs": (["server", "export"], "NFS storage requires 'server' and 'export' options."),
     "pbs": (
         ["server", "username", "password", "datastore"],
         "PBS storage requires 'server', 'username', 'password' and 'datastore' options.",
     ),
-    "zfspool": (["pool", "content"], "ZFS storage requires 'pool' and 'content' options."),
+    "zfspool": (["pool"], "ZFS storage requires 'pool' option."),
 }
 
 
@@ -346,7 +343,13 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         content = self.module.params.get("content")
 
         # Create payload for storage creation
-        payload = {"storage": storage_name, "type": storage_type, "nodes": nodes, "content": content}
+        payload = {"storage": storage_name, "type": storage_type}
+
+        if nodes:
+            payload["nodes"] = nodes
+
+        if content:
+            payload["content"] = content
 
         # Validate required parameters based on storage type
         if storage_type == "cephfs":
@@ -589,7 +592,6 @@ def main():
         required_one_of=[("api_password", "api_token_id")],
         required_together=[("api_token_id", "api_token_secret")],
         supports_check_mode=True,
-        required_if=[["state", "present", ["nodes", "content"]]],
     )
 
     # Initialize objects and avoid re-polling the current
