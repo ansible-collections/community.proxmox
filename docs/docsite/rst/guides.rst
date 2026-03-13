@@ -5,7 +5,7 @@
 
 .. _ansible_collections.community.proxmox.docsite.authentication:
 
-Authentification
+Authentication
 ================
 
 Modules in this collection need to authenticate to the Proxmox Virtual Environment API.
