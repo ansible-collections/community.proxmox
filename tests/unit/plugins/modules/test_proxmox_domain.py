@@ -98,45 +98,49 @@ def build_base_arg(state, realm, check=False):
 
 def build_ldap_arg(state, realm, check=False):
     args = build_base_arg(state, realm, check)
-    args["base_dn"] = "cn=accounts,dc=example,dc=test"
-    args["bind_dn"] = "uid=sa-proxmox,cn=users,cn=accounts,dc=example,dc=test"
+    args["ldap_base_dn"] = "cn=accounts,dc=example,dc=test"
+    args["ldap_bind_dn"] = "uid=sa-proxmox,cn=users,cn=accounts,dc=example,dc=test"
     args["default"] = True
-    args["filter"] = "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
-    args["group_filter"] = "cn=admins-proxmox"
-    args["group_name_attr"] = "cn"
-    args["mode"] = "ldaps"
-    args["password"] = "password"
-    args["server1"] = "ipa.example.test"
+    args["ldap_filter"] = "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
+    args["ldap_group_filter"] = "cn=admins-proxmox"
+    args["ldap_group_name_attr"] = "cn"
+    args["ldap_mode"] = "ldaps"
+    args["ldap_password"] = "password"
+    args["ldap_primary_server"] = "ipa.example.test"
     args["type"] = "ldap"
-    args["user_attr"] = "uid"
-    args["verify"] = False
-    args["sync_defaults_options"] = {"scope": "both", "enable_new": True, "remove_vanished": "acl;properties;entry"}
+    args["ldap_user_attr"] = "uid"
+    args["ldap_validate_certs"] = False
+    args["ldap_sync_defaults_options"] = {
+        "scope": "both",
+        "enable_new": True,
+        "remove_vanished": "acl;properties;entry",
+    }
     return args
 
 
 def build_openid_arg(state, realm, check=False):
     args = build_base_arg(state, realm, check)
     args["type"] = "openid"
-    args["client_id"] = "idoftheclient"
-    args["client_key"] = "keyoftheclient"
-    args["issuer_url"] = "https://example.test/openid-server"
+    args["openid_client_id"] = "idoftheclient"
+    args["openid_client_key"] = "keyoftheclient"
+    args["openid_issuer_url"] = "https://example.test/openid-server"
     return args
 
 
 def build_ad_arg(state, realm, check=False):
     args = build_base_arg(state, realm, check)
     args["type"] = "ad"
-    args["group_filter"] = "cn=admins-proxmox"
-    args["filter"] = "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
+    args["ad_group_filter"] = "cn=admins-proxmox"
+    args["ad_filter"] = "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
     args["comment"] = "ad domain"
-    args["server1"] = "srv-ad.example.test"
-    args["group_name_attr"] = "cn"
-    args["mode"] = "ldap"
-    args["domain"] = "ADDOMAINNAME"
-    args["sync_defaults_options"] = {"scope": "both", "enable_new": True, "remove_vanished": "acl;properties;entry"}
-    args["bind_dn"] = "uid=sa-ad,cn=users,cn=accounts,dc=example,dc=test"
-    args["case_sensitive"] = True
-    args["verify"] = False
+    args["ad_primary_server"] = "srv-ad.example.test"
+    args["ad_group_name_attr"] = "cn"
+    args["ad_mode"] = "ldap"
+    args["ad_domain"] = "ADDOMAINNAME"
+    args["ad_sync_defaults_options"] = {"scope": "both", "enable_new": True, "remove_vanished": "acl;properties;entry"}
+    args["ad_bind_dn"] = "uid=sa-ad,cn=users,cn=accounts,dc=example,dc=test"
+    args["ad_case_sensitive"] = True
+    args["ad_validate_certs"] = False
     args["type"] = "ad"
     return args
 
@@ -207,7 +211,7 @@ class TestProxmoxDomain(ModuleTestCase):
         self.mock_obj.access.domains.get.side_effect = [RAW_DOMAINS, RAW_LDAP]
 
         args = build_ldap_arg("present", "example.test", True)
-        args["mode"] = "ldap"
+        args["ad_mode"] = "ldap"
         with set_module_args(args), pytest.raises(SystemExit) as exc_info:
             proxmox_domain.main()
 
@@ -220,7 +224,7 @@ class TestProxmoxDomain(ModuleTestCase):
         self.mock_obj.access.domains.get.side_effect = [RAW_DOMAINS, RAW_LDAP]
 
         args = build_ldap_arg("present", "example.test", False)
-        args["mode"] = "ldap"
+        args["ad_mode"] = "ldap"
         with set_module_args(args), pytest.raises(SystemExit) as exc_info:
             proxmox_domain.main()
 
@@ -293,7 +297,7 @@ class TestProxmoxDomain(ModuleTestCase):
         self.mock_obj.access.domains.get.side_effect = [RAW_DOMAINS, RAW_OPENID]
 
         args = build_openid_arg("present", "openid", False)
-        args["issuer_url"] = "https://example.test/openid-server2"
+        args["openid_issuer_url"] = "https://example.test/openid-server2"
         with set_module_args(args), pytest.raises(SystemExit) as exc_info:
             proxmox_domain.main()
 
@@ -330,7 +334,7 @@ class TestProxmoxDomain(ModuleTestCase):
         self.mock_obj.access.domains.get.side_effect = [RAW_DOMAINS, RAW_AD]
 
         args = build_ad_arg("present", "ad", False)
-        args["case_sensitive"] = False
+        args["ad_case_sensitive"] = False
         with set_module_args(args), pytest.raises(SystemExit) as exc_info:
             proxmox_domain.main()
 
