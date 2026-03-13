@@ -39,7 +39,7 @@ options:
       - The storage type/protocol to use when adding the storage.
     type: str
     required: true
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd, 'zfspool']
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -202,6 +202,16 @@ options:
           - The required fingerprint of the Proxmox Backup Server system.
         type: str
         required: false
+  rbd_options:
+    description:
+      - Extended information for adding RBD storage.
+    type: dict
+    suboptions:
+      pool:
+        description:
+          - The required RBD pool name.
+        type: str
+        required: true
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
@@ -326,7 +336,8 @@ STORAGE_REQUIRED_OPTIONS = {
         ["server", "username", "password", "datastore"],
         "PBS storage requires 'server', 'username', 'password' and 'datastore' options.",
     ),
-    "zfspool": (["pool"], "ZFS storage requires 'pool' option."),
+    "rbd": (["pool"], "RBD storage requires 'pool' option."),
+    "zfspool": (["pool", "content"], "ZFS storage requires 'pool' and 'content' options."),
 }
 
 
@@ -425,6 +436,11 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             payload["export"] = export
             if options:
                 payload["options"] = options
+
+        if storage_type == "rbd":
+            rbd_options = self.module.params.get(f"{storage_type}_options", {})
+            pool = rbd_options.get("pool")
+            payload["pool"] = pool
 
         if storage_type == "pbs":
             pbs_options = self.module.params.get(f"{storage_type}_options", {})
@@ -534,7 +550,7 @@ def main():
         ),
         name=dict(type="str", required=True),
         state=dict(choices=["present", "absent"]),
-        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "rbd", "zfspool"], required=True),
         dir_options=dict(type="dict", options={"path": dict(type="str")}),
         cephfs_options=dict(
             type="dict",
@@ -581,6 +597,7 @@ def main():
                 "namespace": dict(type="str"),
             },
         ),
+        rbd_options=dict(type="dict", options={"pool": dict(type="str")}),
         zfspool_options=dict(
             type="dict",
             options={"pool": dict(type="str"), "sparse": dict(type="bool")},
