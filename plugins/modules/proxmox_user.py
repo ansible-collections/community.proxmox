@@ -78,6 +78,29 @@ options:
       - Only for PVE Authentication Realm users.
       - Parameter is ignored when user already exists or O(state=absent).
     type: str
+  tokens:
+    description: List of API tokens associated to the user.
+    type: list
+    elements: dict
+    suboptions:
+      comment:
+        description: Short description of the token.
+        type: str
+      expire:
+        description: Expiration date in seconds since EPOCH. Zero means no expiration.
+        type: int
+        default: 0
+      privsep:
+        description: Describe if the API token is further restricted with ACLs (true) or is fully privileged (false).
+        type: bool
+        default: false
+      tokenid:
+        description:
+          - Token name.
+          - Case sensitive and must be unique per user.
+        type: str
+        aliases: ["name"]
+        required: true
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -100,6 +123,11 @@ EXAMPLES = r"""
     groups:
       - admins
     password: GoBananas!
+    tokens:
+      - tokenid: MyToken
+        comment: Expires on 2026-01-01 00:00:00
+        expire: 1767222000
+        privsep: false
     lastname: Some Guy
 
 - name: Delete a Proxmox VE user
@@ -117,6 +145,23 @@ userid:
   returned: success
   type: str
   sample: test
+tokens:
+  description: List of API tokens associated to the user.
+  returned: success
+  type: list
+  elements: dict
+  contains:
+  tokenid:
+    description: Token name.
+    returned: success
+    type: str
+    sample: MyToken
+  secret:
+    description: Token secret.
+    returned: on creation
+    type: str
+    sample: "17b3a680-1007-4891-ba2e-75f2dfb8e287"
+    no_log: true
 msg:
   description: A short message on what the module did.
   returned: always
@@ -173,6 +218,23 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
         return False
 
+    def _tokens_need_update(self, existing_tokens, new_tokens):
+        """Check if tokens need updating by comparing current vs desired state"""
+        if existing_tokens is None:
+            existing_tokens = []
+        if new_tokens is None:
+            new_tokens = []
+
+        # If the number of tokens is different, we need an update
+        if len(existing_tokens) != len(new_tokens):
+            return True
+
+        # Check tokens - If any token is different or missing, we consider an update is needed.
+        if not sorted(new_tokens, key=lambda x: x["tokenid"]) == sorted(existing_tokens, key=lambda x: x["tokenid"]):
+            return True
+
+        return False
+
     def create_update_user(
         self,
         userid,
@@ -183,6 +245,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         firstname=None,
         groups=None,
         password=None,
+        tokens=None,
         keys=None,
         lastname=None,
     ):
@@ -196,6 +259,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         :param firstname: str, optional - First name of the user
         :param groups: list, optional - Groups that the user should be a member of
         :param password: str, optional - Password of the user, PVE realm only
+        :param tokens: list, optional - API tokens associated to the user
         :param keys: str, optional - 2FA keys for the user
         :param lastname: str, optional - Lastname of the user
         :return: None
@@ -207,7 +271,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         if existing_user:
             needs_update = self._user_needs_update(
                 existing_user, comment, email, enable, expire, firstname, lastname, groups, keys
-            )
+            ) or self._tokens_need_update(existing_user.get("tokens"), tokens)
             if not needs_update and not password:
                 self.module.exit_json(changed=False, userid=userid, msg=f"User {userid} already up to date")
             if self.module.check_mode:
@@ -218,6 +282,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                 )
 
             if needs_update:
+                existing_tokens = existing_user.get("tokens", [])
                 try:
                     # Build update parameters - only include non-None values
                     update_params = {"enable": enable}
@@ -237,6 +302,47 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                 except Exception as e:
                     self.module.fail_json(
                         changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
+                    )
+
+                try:
+                    # Handle tokens separately since they require a different API endpoint
+                    for token in tokens:
+                        if len(existing_tokens) == 0 or token.tokenid not in [t.tokenid for t in existing_tokens]:
+                            self.proxmox_api.access.users(userid).tokens.post(
+                                tokenid=token.tokenid,
+                                comment=token.comment,
+                                expire=token.expire,
+                                privsep=token.privsep,
+                            )
+                            self.module.exit_json(changed=True, userid=userid, msg=f"New token {token.tokenid} added to user {userid}")
+                        else:
+                            for existing_token in existing_tokens:
+                                if existing_token.tokenid == token.tokenid:
+                                    if existing_token != token:
+                                        self.proxmox_api.access.users(userid).tokens(existing_token.tokenid).put(
+                                            comment=token.comment,
+                                            expire=token.expire,
+                                            privsep=token.privsep,
+                                        )
+                                        self.module.exit_json(changed=True, userid=userid, msg=f"Token {token.tokenid} updated for user {userid}")
+                except Exception as e:
+                    self.module.fail_json(
+                        changed=False,
+                        userid=userid,
+                        msg=f"Failed to update user tokens for user ID {userid}: {e}",
+                    )
+
+                try:
+                    # Handle token deletions - if any existing token is not in the new tokens list, we delete it
+                    for existing_token in existing_tokens:
+                        if existing_token.tokenid not in [t.tokenid for t in tokens]:
+                            self.proxmox_api.access.users(userid).tokens(existing_token.tokenid).delete()
+                            self.module.exit_json(changed=True, userid=userid, msg=f"Token {existing_token.tokenid} deleted for user {userid}")
+                except Exception as e:
+                    self.module.fail_json(
+                        changed=False,
+                        userid=userid,
+                        msg=f"Failed to delete user tokens for user ID {userid}: {e}",
                     )
 
             # We have no way of testing if the user's password needs to be changed
@@ -305,6 +411,12 @@ def main():
         lastname=dict(type="str"),
         keys=dict(type="str", no_log=True),
         password=dict(type="str", no_log=True),
+        tokens=dict(type="list", no_log=False, elements="dict", options=dict(
+            tokenid=dict(type="str", aliases=["name"], no_log=False, required=True),
+            comment=dict(type="str"),
+            expire=dict(type="int", default=0),
+            privsep=dict(type="bool", default=False),
+        )),
         state=dict(default="present", choices=["present", "absent"]),
     )
 
