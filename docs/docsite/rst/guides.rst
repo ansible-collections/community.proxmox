@@ -111,6 +111,6 @@ The following parameters can be used for authentication:
 - ``api_password``: Password (can also be sourced from ``PROXMOX_PASSWORD``).
 - ``api_token_id``: Token identifier in the form ``username@realm!tokenid`` (can also be sourced from ``PROXMOX_TOKEN_ID``).
 - ``api_token_secret``: Token secret (can also be sourced from ``PROXMOX_TOKEN_SECRET``).
-- ``validate_certs``: Validate TLS certificates (can also be sourced from ``PROXMOX_VALIDATE_CERTS``). Defaults to false and changes default to true with community.proxmox 2.0.0.
+- ``validate_certs``: Validate TLS certificates (can also be sourced from ``PROXMOX_VALIDATE_CERTS``). Defaults to false prior v2.0.0.
 - ``ca_path``: Path to a CA certificate file used to validate the Proxmox VE TLS certificate.
 - ``api_timeout``: Request timeout in seconds. Defaults to 5 seconds.
