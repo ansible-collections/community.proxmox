@@ -225,15 +225,17 @@ options:
     type: dict
   ipconfig:
     description:
-      - 'Cloud-init: Set the IP configuration.'
-      - A hash/dictionary of network IP configurations. O(ipconfig='{"key":"value", "key":"value"}').
-      - Keys allowed are - V(ipconfig[n]) where 0 ≤ n ≤ network interfaces.
-      - Values allowed are - V("[gw=<GatewayIPv4>] [,gw6=<GatewayIPv6>] [,ip=<IPv4Format/CIDR>] [,ip6=<IPv6Format/CIDR>]").
-      - 'Cloud-init: Specify IP addresses and gateways for the corresponding interface.'
-      - IP addresses use CIDR notation, gateways are optional but they should be in the same subnet of specified IP address.
-      - The special string V(dhcp) can be used for IP addresses to use DHCP, in which case no explicit gateway should be provided.
-      - For IPv6 the special string V(auto) can be used to use stateless autoconfiguration.
-      - If cloud-init is enabled and neither an IPv4 nor an IPv6 address is specified, it defaults to using dhcp on IPv4.
+      - 'Cloud-init: IP configuration for network interfaces.'
+      - Maps to C(net[n]) interfaces (e.g. C(ipconfig0) for C(net0)).
+      - Keys must be C(ipconfig[n]) where 0 ≤ n ≤ 31.
+      - Values are comma-separated options in the format V(ip=<addr>[,gw=<gateway>][,ip6=<addr>][,gw6=<gateway>]).
+      - 'Options:'
+      - '  - V(ip): IPv4 address in CIDR notation (e.g. V(192.168.1.10/24)) or V(dhcp) for DHCP.'
+      - '  - V(gw): IPv4 gateway (requires V(ip)); omit when using V(ip=dhcp).'
+      - '  - V(ip6): IPv6 address in CIDR notation, V(dhcp), or V(auto) for SLAAC.'
+      - '  - V(gw6): IPv6 gateway (requires V(ip6)); omit when using V(ip6=dhcp) or V(ip6=auto).'
+      - 'Examples: V(ip=dhcp) for DHCP; V(ip=192.168.1.10/24,gw=192.168.1.1) for static IPv4.'
+      - If cloud-init is enabled and no address is specified, IPv4 defaults to DHCP.
     type: dict
   keyboard:
     description:
