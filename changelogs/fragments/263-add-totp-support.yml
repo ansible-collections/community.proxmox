@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - proxmox - add ``totp`` authentification support (https://github.com/ansible-collections/community.proxmox/pull/265).
+  - proxmox - update ``proxmoxer`` required dependencies to ``>=2.3`` (https://github.com/ansible-collections/community.proxmox/pull/265).

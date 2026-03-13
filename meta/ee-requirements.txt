@@ -10,4 +10,4 @@
 # to learn how to test your configuration.
 # Do not delete this file even if the collection has no dependencies!
 
-proxmoxer>=2.0
+proxmoxer>=2.3
