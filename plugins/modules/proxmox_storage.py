@@ -39,7 +39,7 @@ options:
       - The storage type/protocol to use when adding the storage.
     type: str
     required: true
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd, 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd', 'zfspool']
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -211,7 +211,7 @@ options:
         description:
           - The required RBD pool name.
         type: str
-        required: true
+        required: false
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
