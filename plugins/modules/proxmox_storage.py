@@ -379,7 +379,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
     def _validate_storage_params(self, storage_type, params):
         backend = STORAGE_BACKENDS.get(storage_type, {})
         missing_required = []
-        for ansible_key, (_, required) in backend.items():
+        for ansible_key, (_proxmox_key, required) in backend.items():
             value = params.get(ansible_key)
             if value is None and required:
                 missing_required.append(ansible_key)
@@ -391,7 +391,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
     def _normalize_storage_params(self, storage_type, backend_params):
         backend = STORAGE_BACKENDS.get(storage_type, {})
         result = {}
-        for ansible_key, (proxmox_key, _) in backend.items():
+        for ansible_key, (proxmox_key, _required) in backend.items():
             value = backend_params.get(ansible_key)
             if value is not None:
                 normalized = ansible_to_proxmox_bool(value) if isinstance(value, bool) else value
