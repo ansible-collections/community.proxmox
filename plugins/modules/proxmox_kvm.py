@@ -427,6 +427,12 @@ options:
     description:
       - Sets the number of CPU sockets. (1 - N).
     type: int
+  spice_enhancements:
+    description:
+      - Configure additional SPICE enhancements.
+      - Value is a comma-separated list of options in the format V(foldersharing=<0|1>[,videostreaming=<off|all|filter>]).
+      - For more information, see U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_spice_enhancements).
+    type: str
   sshkeys:
     description:
       - 'Cloud-init: SSH public key(s) to assign to the default user.'
@@ -1344,6 +1350,7 @@ def main():
         smbios=dict(type="str"),
         snapname=dict(type="str"),
         sockets=dict(type="int"),
+        spice_enhancements=dict(type="str"),
         sshkeys=dict(type="str", no_log=False),
         startdate=dict(type="str"),
         startup=dict(),
@@ -1565,6 +1572,7 @@ def main():
                 scsihw=module.params["scsihw"],
                 serial=module.params["serial"],
                 shares=module.params["shares"],
+                spice_enhancements=module.params["spice_enhancements"],
                 skiplock=module.params["skiplock"],
                 smbios1=module.params["smbios"],
                 snapname=module.params["snapname"],
