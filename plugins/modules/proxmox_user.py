@@ -219,18 +219,24 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
     def _tokens_need_update(self, existing_tokens, new_tokens):
         """Check if tokens need updating by comparing current vs desired state"""
-        if existing_tokens is None:
-            existing_tokens = []
-        if new_tokens is None:
-            new_tokens = []
+        existing_tokens = existing_tokens or {}
+        new_tokens = new_tokens or []
 
         # If the number of tokens is different, we need an update
-        if len(existing_tokens) != len(new_tokens):
+        if len(existing_tokens.keys()) != len(new_tokens):
             return True
 
         # Check tokens - If any token is different or missing, we consider an update is needed.
-        if not sorted(new_tokens, key=lambda x: x["tokenid"]) == sorted(existing_tokens, key=lambda x: x["tokenid"]):
-            return True
+        for token in new_tokens:
+            existing_token = existing_tokens.get(token["tokenid"])
+            if not existing_token:
+                return True
+            if (
+                existing_token.get("comment", "") != token["comment"]
+                or existing_token.get("expire", 0) != token["expire"]
+                or existing_token.get("privsep", False) != token["privsep"]
+            ):
+                return True
 
         return False
 
@@ -267,6 +273,8 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         enable = int(enable)
         groups = ",".join(groups) if groups else None
         existing_user = self.is_user_existing(userid)
+        if tokens is None:
+            tokens = []
         if existing_user:
             needs_update = self._user_needs_update(
                 existing_user, comment, email, enable, expire, firstname, lastname, groups, keys
@@ -281,7 +289,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                 )
 
             if needs_update:
-                existing_tokens = existing_user.get("tokens", [])
+                existing_tokens = existing_user.get("tokens") or {}
                 try:
                     # Build update parameters - only include non-None values
                     update_params = {"enable": enable}
@@ -298,31 +306,28 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                             update_params[field] = value
                     self.proxmox_api.access.users(userid).put(**update_params)
 
-                    result_tokens = []
+                    result_tokens = {}
                     for token in tokens:
-                        if len(existing_tokens) == 0 or token.tokenid not in [t.tokenid for t in existing_tokens]:
-                            resp = self.proxmox_api.access.users(userid).tokens.post(
-                                tokenid=token.tokenid,
-                                comment=token.comment,
-                                expire=token.expire,
-                                privsep=token.privsep,
+                        if len(existing_tokens) == 0 or token["tokenid"] not in existing_tokens.keys():
+                            resp = self.proxmox_api.access.users(userid).token(token["tokenid"]).post(
+                                tokenid=token["tokenid"],
+                                comment=token["comment"],
+                                expire=token["expire"],
+                                privsep=(1 if token["privsep"] else 0),
                             )
-                            result_tokens.append({"full-tokenid": resp["full-tokenid"], "secret": resp["value"]})
+                            result_tokens[resp["full-tokenid"]] = resp["value"]
                         else:
-                            for existing_token in existing_tokens:
-                                if existing_token.tokenid == token.tokenid:
-                                    if existing_token != token:
-                                        self.proxmox_api.access.users(userid).tokens(existing_token.tokenid).put(
-                                            comment=token.comment,
-                                            expire=token.expire,
-                                            privsep=token.privsep,
-                                        )
+                            self.proxmox_api.access.users(userid).token(token["tokenid"]).put(
+                                comment=token["comment"],
+                                expire=token["expire"],
+                                privsep=(1 if token["privsep"] else 0),
+                            )
+                    new_token_ids = [t["tokenid"] for t in tokens]
+                    for existing_token in existing_tokens.keys():
+                        if existing_token not in new_token_ids:
+                            self.proxmox_api.access.users(userid).token(existing_token).delete()
 
-                    for existing_token in existing_tokens:
-                        if existing_token.tokenid not in [t.tokenid for t in tokens]:
-                            self.proxmox_api.access.users(userid).tokens(existing_token.tokenid).delete()
-
-                    self.module.exit_json(changed=True, userid=userid, tokens=tokens, msg=f"User {userid} updated")
+                    self.module.exit_json(changed=True, userid=userid, tokens=result_tokens, msg=f"User {userid} updated")
                 except Exception as e:
                     self.module.fail_json(
                         changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
@@ -358,7 +363,18 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                 keys=keys,
                 lastname=lastname,
             )
-            self.module.exit_json(changed=True, userid=userid, msg=f"Created user {userid}")
+
+            result_tokens = {}
+            for token in tokens:
+                resp = self.proxmox_api.access.users(userid).token(token["tokenid"]).post(
+                    tokenid=token["tokenid"],
+                    comment=token["comment"],
+                    expire=token["expire"],
+                    privsep=(1 if token["privsep"] else 0),
+                )
+                result_tokens[resp["full-tokenid"]] = resp["value"]
+
+            self.module.exit_json(changed=True, userid=userid, tokens=result_tokens, msg=f"Created user {userid}")
         except Exception as e:
             self.module.fail_json(msg=f"Failed to create user with ID {userid}: {e}")
 
@@ -422,6 +438,7 @@ def main():
     lastname = module.params["lastname"]
     keys = module.params["keys"]
     password = module.params["password"]
+    tokens = module.params["tokens"]
     state = module.params["state"]
 
     proxmox = ProxmoxUserAnsible(module)
@@ -432,7 +449,7 @@ def main():
             locals()[param] = None
 
     if state == "present":
-        proxmox.create_update_user(userid, comment, email, enable, expire, firstname, groups, password, keys, lastname)
+        proxmox.create_update_user(userid, comment, email, enable, expire, firstname, groups, password, tokens, keys, lastname)
     else:
         proxmox.delete_user(userid)
 
