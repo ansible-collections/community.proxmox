@@ -297,11 +297,15 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     result_tokens = {}
                     for token in tokens:
                         if len(existing_tokens) == 0 or token["tokenid"] not in existing_tokens.keys():
-                            resp = self.proxmox_api.access.users(userid).token(token["tokenid"]).post(
-                                tokenid=token["tokenid"],
-                                comment=token["comment"],
-                                expire=token["expire"],
-                                privsep=(1 if token["privsep"] else 0),
+                            resp = (
+                                self.proxmox_api.access.users(userid)
+                                .token(token["tokenid"])
+                                .post(
+                                    tokenid=token["tokenid"],
+                                    comment=token["comment"],
+                                    expire=token["expire"],
+                                    privsep=(1 if token["privsep"] else 0),
+                                )
                             )
                             result_tokens[resp["full-tokenid"]] = resp["value"]
                         else:
@@ -315,7 +319,9 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                         if existing_token not in new_token_ids:
                             self.proxmox_api.access.users(userid).token(existing_token).delete()
 
-                    self.module.exit_json(changed=True, userid=userid, secrets=result_tokens, msg=f"User {userid} updated")
+                    self.module.exit_json(
+                        changed=True, userid=userid, secrets=result_tokens, msg=f"User {userid} updated"
+                    )
                 except Exception as e:
                     self.module.fail_json(
                         changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
@@ -354,11 +360,15 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
             result_tokens = {}
             for token in tokens:
-                resp = self.proxmox_api.access.users(userid).token(token["tokenid"]).post(
-                    tokenid=token["tokenid"],
-                    comment=token["comment"],
-                    expire=token["expire"],
-                    privsep=(1 if token["privsep"] else 0),
+                resp = (
+                    self.proxmox_api.access.users(userid)
+                    .token(token["tokenid"])
+                    .post(
+                        tokenid=token["tokenid"],
+                        comment=token["comment"],
+                        expire=token["expire"],
+                        privsep=(1 if token["privsep"] else 0),
+                    )
                 )
                 result_tokens[resp["full-tokenid"]] = resp["value"]
 
@@ -398,12 +408,17 @@ def main():
         lastname=dict(type="str"),
         keys=dict(type="str", no_log=True),
         password=dict(type="str", no_log=True),
-        tokens=dict(type="list", no_log=False, elements="dict", options=dict(
-            tokenid=dict(type="str", aliases=["name"], no_log=False, required=True),
-            comment=dict(type="str"),
-            expire=dict(type="int", default=0),
-            privsep=dict(type="bool", default=True),
-        )),
+        tokens=dict(
+            type="list",
+            no_log=False,
+            elements="dict",
+            options=dict(
+                tokenid=dict(type="str", aliases=["name"], no_log=False, required=True),
+                comment=dict(type="str"),
+                expire=dict(type="int", default=0),
+                privsep=dict(type="bool", default=True),
+            ),
+        ),
         state=dict(default="present", choices=["present", "absent"]),
     )
 
@@ -437,7 +452,9 @@ def main():
             locals()[param] = None
 
     if state == "present":
-        proxmox.create_update_user(userid, comment, email, enable, expire, firstname, groups, password, tokens, keys, lastname)
+        proxmox.create_update_user(
+            userid, comment, email, enable, expire, firstname, groups, password, tokens, keys, lastname
+        )
     else:
         proxmox.delete_user(userid)
 
