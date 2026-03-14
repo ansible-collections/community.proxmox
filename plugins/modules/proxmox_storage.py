@@ -108,22 +108,22 @@ options:
         description:
           - The required hostname or IP address of the remote storage system.
         type: str
-        required: false
+        required: true
       username:
         description:
           - The required username for the storage system.
         type: str
-        required: false
+        required: true
       password:
         description:
           - The required password for the storage system.
         type: str
-        required: false
+        required: true
       share:
         description:
           - The required share to be used from the remote storage system.
         type: str
-        required: false
+        required: true
       domain:
         description:
           - The required domain for the CIFS share.
@@ -148,7 +148,7 @@ options:
         description:
           - The required path of the direcotry on the node(s).
         type: str
-        required: false
+        required: true
   nfs_options:
     description:
       - Extended information for adding NFS storage.
@@ -158,12 +158,12 @@ options:
         description:
           - The required IP address or DNS name of the NFS server.
         type: str
-        required: false
+        required: true
       export:
         description:
           - The required path of the NFS export.
         type: str
-        required: false
+        required: true
       options:
         description:
           - The options to pass to the NFS service. (e.g., version, pNFS).
@@ -178,12 +178,12 @@ options:
         description:
           - The required hostname or IP address of the remote storage system as the portal address.
         type: str
-        required: false
+        required: true
       target:
         description:
           - The required iSCSI target.
         type: str
-        required: false
+        required: true
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -193,22 +193,22 @@ options:
         description:
           - The hostname or IP address of the Proxmox Backup Server.
         type: str
-        required: false
+        required: true
       username:
         description:
           - The required username for the Proxmox Backup Server.
         type: str
-        required: false
+        required: true
       password:
         description:
           - The required password for the Proxmox Backup Server.
         type: str
-        required: false
+        required: true
       datastore:
         description:
           - The required datastore to use from the Proxmox Backup Server.
         type: str
-        required: false
+        required: true
       namespace:
         description:
           - The namespace to use from the Proxmox Backup Server.
@@ -228,11 +228,12 @@ options:
         description:
           - The required name of the ZFS pool to use.
         type: str
-        required: false
+        required: true
       sparse:
         description:
           - Use ZFS thin-provisioning.
         type: bool
+        required: false
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -473,7 +474,7 @@ def main():
             type="list",
             elements="str",
         ),
-        dir_options=dict(type="dict", options={"path": dict(type="str")}),
+        dir_options=dict(type="dict", options={"path": dict(type="str", required=True)}),
         cephfs_options=dict(
             type="dict",
             options={
@@ -493,10 +494,10 @@ def main():
         cifs_options=dict(
             type="dict",
             options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "share": dict(type="str"),
+                "server": dict(type="str", required=True),
+                "username": dict(type="str", required=True),
+                "password": dict(type="str", no_log=True, required=True),
+                "share": dict(type="str", required=True),
                 "domain": dict(type="str"),
                 "smb_version": dict(type="str"),
                 "subdir": dict(
@@ -505,23 +506,30 @@ def main():
             },
         ),
         nfs_options=dict(
-            type="dict", options={"server": dict(type="str"), "export": dict(type="str"), "options": dict(type="str")}
+            type="dict",
+            options={
+                "server": dict(type="str", required=True),
+                "export": dict(type="str", required=True),
+                "options": dict(type="str"),
+            },
         ),
-        iscsi_options=dict(type="dict", options={"portal": dict(type="str"), "target": dict(type="str")}),
+        iscsi_options=dict(
+            type="dict", options={"portal": dict(type="str", required=True), "target": dict(type="str", required=True)}
+        ),
         pbs_options=dict(
             type="dict",
             options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "datastore": dict(type="str"),
+                "server": dict(type="str", required=True),
+                "username": dict(type="str", required=True),
+                "password": dict(type="str", no_log=True, required=True),
+                "datastore": dict(type="str", required=True),
                 "fingerprint": dict(type="str"),
                 "namespace": dict(type="str"),
             },
         ),
         zfspool_options=dict(
             type="dict",
-            options={"pool": dict(type="str"), "sparse": dict(type="bool")},
+            options={"pool": dict(type="str", required=True), "sparse": dict(type="bool")},
         ),
     )
 
