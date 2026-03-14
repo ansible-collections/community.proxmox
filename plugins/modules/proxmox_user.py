@@ -180,7 +180,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             else:
                 self.module.fail_json(msg=f"Unable to retrieve user {userid}: {e}")
 
-    def _user_needs_update(self, existing_user, comment, email, enable, expire, firstname, lastname, groups, keys): # noqa: PLR0913
+    def _user_needs_update(self, existing_user, comment, email, enable, expire, firstname, lastname, groups, keys):  # noqa: PLR0913
         """Check if user needs updating by comparing current vs desired state"""
         # Check standard fields
         fields = [
@@ -228,7 +228,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
         return False
 
-    def create_update_user( # noqa: PLR0912, PLR0913
+    def create_update_user(  # noqa: PLR0912, PLR0913
         self,
         userid,
         comment=None,
