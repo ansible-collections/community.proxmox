@@ -232,9 +232,9 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             if not existing_token:
                 return True
             if (
-                existing_token.get("comment", "") != token["comment"]
+                existing_token.get("comment", "") != (token["comment"] or "")
                 or existing_token.get("expire", 0) != token["expire"]
-                or existing_token.get("privsep", False) != token["privsep"]
+                or existing_token.get("privsep") != token["privsep"]
             ):
                 return True
 

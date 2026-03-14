@@ -137,10 +137,10 @@ class TestProxmoxUserInternals:
         "firstname": "John",
         "lastname": "Doe",
         "groups": ["admins"],
-        "tokens": [
-            {"tokenid": "token1", "comment": "Token 1", "expire": 0, "privsep": 0},
-            {"tokenid": "token2", "comment": "Token 2", "expire": 0, "privsep": 0},
-        ],
+        "tokens": {
+            "token1": {"comment": "Token 1", "expire": 0, "privsep": False},
+            "token2": {"comment": "Token 2", "expire": 0, "privsep": True},
+        },
         "keys": "",
     }
 
