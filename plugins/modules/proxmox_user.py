@@ -93,7 +93,7 @@ options:
       privsep:
         description: Describe if the API token is further restricted with ACLs (true) or is fully privileged (false).
         type: bool
-        default: false
+        default: true
       tokenid:
         description:
           - Token name.
@@ -145,22 +145,10 @@ userid:
   returned: success
   type: str
   sample: test
-tokens:
-  description: List of API tokens associated to the user.
+secrets:
+  description: Dictionary of API tokens associated with their secret.
   returned: success
-  type: list
-  elements: dict
-  contains:
-    tokenid:
-      description: Token name.
-      returned: success
-      type: str
-      sample: MyToken
-    secret:
-      description: Token secret.
-      returned: on creation
-      type: str
-      sample: "17b3a680-1007-4891-ba2e-75f2dfb8e287"
+  type: dict
 msg:
   description: A short message on what the module did.
   returned: always
@@ -234,7 +222,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             if (
                 existing_token.get("comment", "") != (token["comment"] or "")
                 or existing_token.get("expire", 0) != token["expire"]
-                or existing_token.get("privsep") != token["privsep"]
+                or bool(existing_token.get("privsep")) != token["privsep"]
             ):
                 return True
 
@@ -327,7 +315,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                         if existing_token not in new_token_ids:
                             self.proxmox_api.access.users(userid).token(existing_token).delete()
 
-                    self.module.exit_json(changed=True, userid=userid, tokens=result_tokens, msg=f"User {userid} updated")
+                    self.module.exit_json(changed=True, userid=userid, secrets=result_tokens, msg=f"User {userid} updated")
                 except Exception as e:
                     self.module.fail_json(
                         changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
@@ -374,7 +362,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                 )
                 result_tokens[resp["full-tokenid"]] = resp["value"]
 
-            self.module.exit_json(changed=True, userid=userid, tokens=result_tokens, msg=f"Created user {userid}")
+            self.module.exit_json(changed=True, userid=userid, secrets=result_tokens, msg=f"Created user {userid}")
         except Exception as e:
             self.module.fail_json(msg=f"Failed to create user with ID {userid}: {e}")
 
@@ -414,7 +402,7 @@ def main():
             tokenid=dict(type="str", aliases=["name"], no_log=False, required=True),
             comment=dict(type="str"),
             expire=dict(type="int", default=0),
-            privsep=dict(type="bool", default=False),
+            privsep=dict(type="bool", default=True),
         )),
         state=dict(default="present", choices=["present", "absent"]),
     )
