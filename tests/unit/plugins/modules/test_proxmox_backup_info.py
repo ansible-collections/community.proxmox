@@ -186,7 +186,7 @@ EXPECTED_BACKUP_JOBS_OUTPUT = [
 
 class TestProxmoxBackupInfoModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxBackupInfoModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_backup_info
         self.connect_mock = patch(
@@ -197,7 +197,7 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxBackupInfoModule, self).tearDown()
+        super().tearDown()
 
     def test_module_fail_when_required_args_missing(self):
         with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):

@@ -221,7 +221,7 @@ def return_task_status_api(node, *args, **kwargs):
 
 class TestProxmoxBackup(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxBackup, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_backup
         self.connect_mock = patch(
@@ -245,7 +245,7 @@ class TestProxmoxBackup(ModuleTestCase):
         self.mock_get_permissions.stop()
         self.mock_get_storages.stop()
         self.mock_get_resources.stop()
-        super(TestProxmoxBackup, self).tearDown()
+        super().tearDown()
 
     def test_proxmox_backup_without_argument(self):
         with set_module_args({}), pytest.raises(AnsibleFailJson):

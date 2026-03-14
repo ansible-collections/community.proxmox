@@ -32,7 +32,6 @@ EXAMPLES = r"""
     api_token_id: "{{ proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ proxmox.api_host }}"
-    validate_certs: false
 
 - name: Get details for vnet - test
   community.proxmox.proxmox_vnet_info:
@@ -41,7 +40,6 @@ EXAMPLES = r"""
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ proxmox.api_host }}"
     vnet: test
-    validate_certs: false
 """
 
 RETURN = r"""

@@ -36,7 +36,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
 
 - name: Get all IPs under pve IPAM
   community.proxmox.proxmox_ipam_info:
@@ -44,7 +43,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     ipam: pve
 
 - name: Get IP under IPAM of vmid 102
@@ -53,7 +51,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     vmid: 102
 """
 
@@ -157,7 +154,7 @@ def get_ansible_module():
 
 class ProxmoxIpamInfoAnsible(ProxmoxAnsible):
     def __init__(self, module):
-        super(ProxmoxIpamInfoAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

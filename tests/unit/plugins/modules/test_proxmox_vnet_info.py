@@ -140,7 +140,7 @@ def get_module_args(vnet=None):
 
 class TestProxmoxVnetInfoModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxVnetInfoModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_vnet_info
         self.fail_json_patcher = patch(
@@ -168,7 +168,7 @@ class TestProxmoxVnetInfoModule(ModuleTestCase):
         self.connect_mock.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
-        super(TestProxmoxVnetInfoModule, self).tearDown()
+        super().tearDown()
 
     def test_get_vnets(self):
         with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args()):

@@ -91,10 +91,7 @@ class ProxmoxGroupAnsible(ProxmoxAnsible):
         """
         try:
             groups = self.proxmox_api.access.groups.get()
-            for group in groups:
-                if group["groupid"] == groupid:
-                    return True
-            return False
+            return any(group["groupid"] == groupid for group in groups)
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve groups: {e}")
 

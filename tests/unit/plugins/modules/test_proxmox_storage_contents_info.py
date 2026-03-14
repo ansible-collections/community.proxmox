@@ -57,7 +57,7 @@ def get_module_args(node, storage, content="all", vmid=None):
 
 class TestProxmoxStorageContentsInfo(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxStorageContentsInfo, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_storage_contents_info
         self.connect_mock = patch(
@@ -70,7 +70,7 @@ class TestProxmoxStorageContentsInfo(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxStorageContentsInfo, self).tearDown()
+        super().tearDown()
 
     def test_module_fail_when_required_args_missing(self):
         with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):

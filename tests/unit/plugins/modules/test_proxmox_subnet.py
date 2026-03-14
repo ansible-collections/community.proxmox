@@ -69,7 +69,7 @@ def get_module_args(vnet, subnet, zone, state="present", dhcp_range=None, snat=0
 
 class TestProxmoxSubnetModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxSubnetModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_subnet
         self.fail_json_patcher = patch(
@@ -92,7 +92,7 @@ class TestProxmoxSubnetModule(ModuleTestCase):
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
         self.version_mock.stop()
-        super(TestProxmoxSubnetModule, self).tearDown()
+        super().tearDown()
 
     def test_subnet_create(self):
         # Create new Zone

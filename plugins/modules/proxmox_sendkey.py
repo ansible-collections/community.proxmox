@@ -412,7 +412,7 @@ class ProxmoxSendkeyAnsible(ProxmoxAnsible):
     }
 
     def __init__(self, module):
-        super(ProxmoxSendkeyAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
         self.total_keys = []
         self.completed_keys = []

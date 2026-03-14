@@ -37,14 +37,12 @@ EXAMPLES = r"""
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
 
 - name: Get all simple zones
   community.proxmox.proxmox_zone_info:
     api_user: "root@pam"
     api_password: "{{ vault.proxmox.root_password }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     type: simple
   register: zones
 """
@@ -116,7 +114,7 @@ def get_ansible_module():
 
 class ProxmoxZoneInfoAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxZoneInfoAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def run(self):

@@ -4,6 +4,56 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v1.6.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Major Changes
+-------------
+
+- proxmox - Add ca_path option to specify a ca-certificate for tls validation (https://github.com/ansible-collections/community.proxmox/pull/256).
+
+Minor Changes
+-------------
+
+- inventory plugin - add want_post_filtering_facts to delay fact gathering until filtering has completed (https://github.com/ansible-collections/community.proxmox/pull/261).
+- proxmox - Add api_timeout option for all modules (https://github.com/ansible-collections/community.proxmox/pull/253).
+- proxmox_role - add role's privs on the return data (https://github.com/ansible-collections/community.proxmox/pull/283).
+- proxmox_storage - Add support for ZFS thin-provisioning (https://github.com/ansible-collections/community.proxmox/pull/265).
+- proxmox_storage - Add the option namespace for PBS storage (https://github.com/ansible-collections/community.proxmox/pull/282)
+- proxmox_storage - refactor the validation of storage options (https://github.com/ansible-collections/community.proxmox/pull/266).
+- proxmox_storage_contents_info - Add support for content type ``import`` (https://github.com/ansible-collections/community.proxmox/pull/260).
+- proxmox_zone, proxmox_vnet, proxmox_subnet - make sdn modules compatible with pve8 (https://github.com/ansible-collections/community.proxmox/pull/254).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- proxmox - set ``state`` as not ``optional`` and assign default value ``present`` (https://github.com/ansible-collections/community.proxmox/pull/292).
+
+Deprecated Features
+-------------------
+
+- proxmox - Certificate verification default changes from ``false`` to ``true`` with version 2.0.0 (https://github.com/ansible-collections/community.proxmox/pull/256).
+
+Bugfixes
+--------
+
+- proxmox_cluster - make cluster join idempotent (https://github.com/ansible-collections/community.proxmox/pull/244).
+- proxmox_disk - make none iso disk idempotent (https://github.com/ansible-collections/community.proxmox/pull/288).
+- proxmox_firewall - Enable ipsets on vm level and fix bugs regarding the cidr notation the proxmox api expects (https://github.com/ansible-collections/community.proxmox/pull/248).
+- proxmox_role - when privs is omitted, keep existing role privileges unchanged instead of treating it as no privileges (https://github.com/ansible-collections/community.proxmox/pull/284).
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_role - Role management for Proxmox VE cluster.
+
 v1.5.0
 ======
 
@@ -165,7 +215,7 @@ Bugfixes
 New Modules
 -----------
 
-- community.proxmox.proxmox_access_acl - Management of ACLs for objects in Proxmox VE Cluster.
+- community.proxmox.proxmox_access_acl - Manages ACLs on the Proxmox PVE cluster.
 - community.proxmox.proxmox_cluster_ha_groups - Management of HA groups in Proxmox VE Cluster.
 - community.proxmox.proxmox_cluster_ha_resources - Management of HA groups in Proxmox VE Cluster.
 

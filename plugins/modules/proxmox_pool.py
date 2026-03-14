@@ -90,13 +90,13 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         :return: bool - is pool exists?
         """
         try:
-            pools = self.proxmox_api.pools.get()
-            for pool in pools:
-                if pool["poolid"] == poolid:
-                    return True
-            return False
+            self.proxmox_api.pools.get(poolid=poolid)
+            return True
         except Exception as e:
-            self.module.fail_json(msg=f"Unable to retrieve pools: {e}")
+            error_str = str(e).lower()
+            if "does not exist" in error_str:
+                return False
+            self.module.fail_json(msg=f"Unable to retrieve pool {poolid}: {e}")
 
     def is_pool_empty(self, poolid):
         """Check whether pool has members
@@ -104,7 +104,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         :param poolid: str - name of the pool
         :return: bool - is pool empty?
         """
-        return True if not self.get_pool(poolid)["members"] else False
+        return bool(not (self.get_pool(poolid)["members"]))
 
     def create_pool(self, poolid, comment=None):
         """Create Proxmox VE pool
@@ -138,7 +138,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
                 return
 
             try:
-                self.proxmox_api.pools(poolid).delete()
+                self.proxmox_api.pools.delete(poolid=poolid)
             except Exception as e:
                 self.module.fail_json(msg=f"Failed to delete pool with ID {poolid}: {e}")
         else:

@@ -9,54 +9,50 @@
 DOCUMENTATION = r"""
 ---
 module: proxmox_access_acl
-
-short_description: Management of ACLs for objects in Proxmox VE Cluster
-
+short_description: Manages ACLs on the Proxmox PVE cluster
 version_added: "1.1.0"
-
+author:
+  - Markus Kötter (@commonism)
 description:
   - Setting ACLs via C(/access/acls) to grant permission to interact with objects.
-
 attributes:
   check_mode:
     support: none
   diff_mode:
     support: none
-
 options:
-    state:
-        description: create or delete
-        required: true
-        choices: ['present', 'absent']
-        type: str
-    path:
-        description: Access Control Path
-        required: false
-        type: str
-    roleid:
-        description: name of the role
-        required: false
-        type: str
-    type:
-        description: type of access control
-        choices: ["user", "group", "token"]
-        required: false
-        type: str
-    ugid:
-        description: id of user or group
-        required: false
-        type: str
-    propagate:
-        description: Allow to propagate (inherit) permissions.
-        required: false
-        type: bool
-        default: 1
+  state:
+    description:
+      - Indicate desired state of the ACL.
+    type: str
+    choices: ["present", "absent"]
+    default: present
+  path:
+    description:
+      - Access Control Path.
+    type: str
+  roleid:
+    description:
+        - The name of the role.
+    type: str
+  type:
+    description:
+        - Type of access control.
+    choices: ["user", "group", "token"]
+    type: str
+  ugid:
+    description:
+      - The ID of user or group.
+    type: str
+  propagate:
+    description:
+      - Allow to propagate (inherit) permissions.
+    type: bool
+    default: true
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
-author:
-    - Markus Kötter (@commonism)
 """
 
 EXAMPLES = r"""
@@ -99,65 +95,97 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
+    ansible_to_proxmox_bool,
     proxmox_auth_argument_spec,
+    proxmox_to_ansible_bool,
 )
 
 
-class ProxmoxAccessACLAnsible(ProxmoxAnsible):
-    def _get(self):
-        acls = self.proxmox_api.access.acl.get()
-        return acls
+def _ace_matches(ace, desired):
+    if ace["path"] != desired["path"]:
+        return False
+    roleid = desired.get("roleid")
+    if roleid and ace["roleid"] != roleid:
+        return False
+    ace_type = desired.get("type")
+    if ace_type and ace["type"] != ace_type:
+        return False
+    ugid = desired.get("ugid")
+    if ugid and ace["ugid"] != ugid:
+        return False
+    propagate = desired.get("propagate")
+    if propagate:
+        ace_propagate = proxmox_to_ansible_bool(ace.get("propagate", 1))
+        if ace_propagate != propagate:
+            return False
+    return True
 
-    def _put(self, **data):
+
+def _build_put_payload(ace_data, delete=False):
+    payload = {
+        "path": ace_data["path"],
+        "roles": ace_data["roleid"],
+        "propagate": ace_data["propagate"],
+        f"{ace_data['type']}s": ace_data["ugid"],
+    }
+    if delete:
+        payload["delete"] = 1
+    return payload
+
+
+class ProxmoxAccessACLAnsible(ProxmoxAnsible):
+    def _get_acls(self):
+        return self.proxmox_api.access.acl.get()
+
+    def _put_acl(self, **data):
         return self.proxmox_api.access.acl.put(**data)
 
-    def create(self, acls, path, roleid, type, ugid, propagate):
-        for ace in acls:
-            if (ace["path"], ace["roleid"], ace["type"], ace["ugid"], bool(ace.get("propagate", 1))) == (
-                path,
-                roleid,
-                type,
-                ugid,
-                propagate,
-            ):
-                return False
+    def _filter_matching_aces(self, existing_acls, desired):
+        return [ace for ace in existing_acls if _ace_matches(ace, desired)]
 
-        data = {"path": path, "roles": roleid, "propagate": int(propagate), f"{type}s": ugid}
+    def create(self, existing_acls, desired):
+        if self._filter_matching_aces(existing_acls, desired):
+            return False
 
-        self._put(**data)
+        payload = _build_put_payload(
+            {
+                "path": desired["path"],
+                "roleid": desired["roleid"],
+                "type": desired["type"],
+                "ugid": desired["ugid"],
+                "propagate": ansible_to_proxmox_bool(desired["propagate"]),
+            },
+            delete=False,
+        )
+        self._put_acl(**payload)
         return True
 
-    def delete(self, acls, path, roleid, type, ugid, propagate):
-        changed = False
-        for ace in acls:
-            if path != ace["path"]:
-                continue
-            if roleid and roleid != ace["roleid"]:
-                continue
-            if type and type != ace["type"]:
-                continue
-            if ugid and ace["ugid"] != ugid:
-                continue
-            if propagate and bool(ace.get("propagate", 1)) != propagate:
-                continue
+    def delete(self, existing_acls, desired):
+        to_remove = self._filter_matching_aces(existing_acls, desired)
 
-            data = {
-                "path": ace["path"],
-                "roles": ace["roleid"],
-                "propagate": ace["propagate"],
-                f"{ace['type']}s": ace["ugid"],
-            }
+        if not to_remove:
+            return False
 
-            self._put(**data, delete="1")
-            changed = True
-        return changed
+        for ace in to_remove:
+            payload = _build_put_payload(
+                {
+                    "path": ace["path"],
+                    "roleid": ace["roleid"],
+                    "type": ace["type"],
+                    "ugid": ace["ugid"],
+                    "propagate": ace.get("propagate", 1),
+                },
+                delete=True,
+            )
+            self._put_acl(**payload)
+        return True
 
 
 def run_module():
     module_args = proxmox_auth_argument_spec()
 
     acl_args = dict(
-        state=dict(choices=["present", "absent"], required=True),
+        state=dict(choices=["present", "absent"], default="present"),
         path=dict(type="str", required=False),
         roleid=dict(type="str", required=False),
         type=dict(type="str", choices=["user", "group", "token"]),
@@ -172,37 +200,36 @@ def run_module():
         old_acls=[],
     )
 
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
-
-    if module.params["state"] == "present":
-        required = frozenset({"path", "roleid", "type", "ugid"})
-        exists = frozenset(map(lambda x: x[0], filter(lambda x: x[1] is not None, module.params.items())))
-        if len(required - exists) > 0:
-            result["failed"] = True
-            result["missing_parameters"] = required - exists
-            module.fail_json(
-                msg=f"The following required parameters are not provided {sorted(required - exists)}", **result
-            )
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=False,
+        required_if=[
+            ["state", "present", ["path", "roleid", "type", "ugid"]],
+            ["state", "absent", ["path"]],
+        ],
+    )
 
     proxmox = ProxmoxAccessACLAnsible(module)
 
+    state = module.params.get("state")
     path = module.params["path"]
     roleid = module.params["roleid"]
-    type = module.params["type"]
+    ace_type = module.params["type"]
     ugid = module.params["ugid"]
     propagate = module.params["propagate"]
 
     try:
-        result["old_acls"] = acls = proxmox._get()
+        result["old_acls"] = existing_acls = proxmox._get_acls()
+        desired_ace = dict(path=path, roleid=roleid, type=ace_type, ugid=ugid, propagate=propagate)
 
-        if module.params["state"] == "present":
-            r = proxmox.create(acls, path, roleid, type, ugid, propagate)
-        else:
-            r = proxmox.delete(acls, path, roleid, type, ugid, propagate)
+        if state == "present":
+            r = proxmox.create(existing_acls, desired_ace)
+        elif state == "absent":
+            r = proxmox.delete(existing_acls, desired_ace)
 
         result["changed"] = r
         if r:
-            result["new_acls"] = proxmox._get()
+            result["new_acls"] = proxmox._get_acls()
     except Exception as e:
         module.fail_json(msg=str(e), **result)
 

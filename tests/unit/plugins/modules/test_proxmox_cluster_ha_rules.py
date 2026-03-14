@@ -24,7 +24,7 @@ proxmoxer = pytest.importorskip("proxmoxer")
 
 class TestProxmoxClusterHARules(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxClusterHARules, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_cluster_ha_rules
         self.connect_mock = patch(
@@ -41,7 +41,7 @@ class TestProxmoxClusterHARules(ModuleTestCase):
         self.mock_post.stop()
         self.mock_put.stop()
         self.mock_delete.stop()
-        super(TestProxmoxClusterHARules, self).tearDown()
+        super().tearDown()
 
     @staticmethod
     def build_module_params(params):

@@ -80,7 +80,7 @@ def get_module_args_zone(zone_type, zone, state="present", update=True, bridge=N
 
 class TestProxmoxZoneInfoModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxZoneInfoModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_zone_info
         self.fail_json_patcher = patch(
@@ -105,7 +105,7 @@ class TestProxmoxZoneInfoModule(ModuleTestCase):
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
         self.version_mock.stop()
-        super(TestProxmoxZoneInfoModule, self).tearDown()
+        super().tearDown()
 
     def test_get_zones(self):
         with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_state_none()):

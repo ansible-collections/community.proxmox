@@ -249,7 +249,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     level: cluster
     state: present
     rules:
@@ -271,7 +270,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     level: cluster
     state: present
     update: true
@@ -294,7 +292,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     level: cluster
     state: absent
     pos: 10
@@ -305,7 +302,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     group_conf: true
     state: present
     group: test
@@ -316,7 +312,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     group_conf: true
     state: absent
     group: test
@@ -327,7 +322,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: present
     aliases:
       - name: test1
@@ -341,7 +335,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: present
     update: true
     aliases:
@@ -356,7 +349,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: absent
     aliases:
       - name: test1
@@ -368,7 +360,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     ip_sets:
       - name: hypervisors
         comment: PVE hosts
@@ -391,7 +382,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: absent
     ip_sets:
       - name: hypervisors
@@ -402,7 +392,6 @@ EXAMPLES = r"""
     api_token_id: "{{ pc.proxmox.api_token_id }}"
     api_token_secret: "{{ vault.proxmox.api_token_secret }}"
     api_host: "{{ pc.proxmox.api_host }}"
-    validate_certs: false
     state: absent
     ip_sets:
       - name: test
@@ -420,6 +409,7 @@ group:
 """
 
 import ipaddress
+import re
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -524,7 +514,7 @@ def get_ansible_module():
 
 class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
     def __init__(self, module):
-        super(ProxmoxFirewallAnsible, self).__init__(module)
+        super().__init__(module)
         self.params = module.params
 
     def validate_params(self):
@@ -810,14 +800,19 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
 
         def _normalise(cidr_entry: str) -> str:
             """Return Proxmox-compatible string for a single CIDR."""
-            # /32 and /128 → plain address
-            if cidr_entry.endswith(("/32", "/128")):
-                return str(ipaddress.ip_address(cidr_entry.split("/")[0]))
-            # bare address → itself
-            if "/" not in cidr_entry:
-                return str(ipaddress.ip_address(cidr_entry))
-            # real network → compressed network string
-            return str(ipaddress.ip_network(cidr_entry, strict=False))
+            # check if we deal with an alias, an arbitrary string, or something which resembles an ip addres
+            # which we need to validate, to keep idempotence
+            bare_ip_match = re.compile(r"(^\d+\.\d+\.\d+\.\d+(/\d+)?$)|(^.*:(.*)?:.*(/\d+)?$)")
+            if re.search(bare_ip_match, cidr_entry):
+                # /32 and /128 → plain address
+                if cidr_entry.endswith(("/32", "/128")):
+                    return str(ipaddress.ip_address(cidr_entry.split("/", maxsplit=1)[0]))
+                # bare address → itself
+                if "/" not in cidr_entry:
+                    return str(ipaddress.ip_address(cidr_entry))
+                # real network → compressed network string
+                return str(ipaddress.ip_network(cidr_entry, strict=False))
+            return cidr_entry
 
         try:
             for ipset in ip_sets:
@@ -844,7 +839,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                     param,
                     value,
                 ) in fw_rule_at0.get().items():
-                    if param in rule.keys() and param != "pos" and value != rule.get(param):
+                    if param in rule and param != "pos" and value != rule.get(param):
                         self.module.warn(
                             msg=f"Skipping workaround for rule placement. "
                             f"Verify rule is at correct pos "

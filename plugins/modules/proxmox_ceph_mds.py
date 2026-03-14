@@ -84,10 +84,7 @@ class ProxmoxCephMdsAnsible(ProxmoxAnsible):
 
     def check_mds(self, node):
         mds = self.proxmox_api.nodes(node).ceph.mds.get()
-        for server in mds:
-            if server["name"] == node:
-                return True
-        return False
+        return any(server["name"] == node for server in mds)
 
     def add_mds(self, mds):
         self.check_node(mds)

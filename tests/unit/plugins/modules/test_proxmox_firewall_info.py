@@ -127,7 +127,7 @@ def get_module_args(level="cluster", vmid=None, node=None, vnet=None, group=None
 
 class TestProxmoxFirewallModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxFirewallModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_firewall_info
         self.mock_module_helper = patch.multiple(basic.AnsibleModule, exit_json=exit_json, fail_json=fail_json)
@@ -163,7 +163,7 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         self.connect_mock.stop()
         self.mock_module_helper.stop()
         self.version_mock.stop()
-        super(TestProxmoxFirewallModule, self).tearDown()
+        super().tearDown()
 
     def test_cluster_level_info(self):
         with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args()):

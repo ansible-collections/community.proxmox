@@ -44,7 +44,7 @@ def get_module_args_sendkey(name=None, vmid=None, keys_send=None, string_send=No
 
 class TestProxmoxSendkeyModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxSendkeyModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_sendkey
         self.connect_mock = patch(
@@ -60,7 +60,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
         self.get_vm_mock.stop()
         self.get_node_mock.stop()
         self.connect_mock.stop()
-        super(TestProxmoxSendkeyModule, self).tearDown()
+        super().tearDown()
 
     def test_module_fail_when_required_args_missing(self):
         args = get_module_args_sendkey()

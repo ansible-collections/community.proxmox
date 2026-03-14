@@ -61,7 +61,7 @@ RAW_VNETS = [
 
 class TestProxmoxVnetModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxVnetModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_vnet
         self.fail_json_patcher = patch(
@@ -86,7 +86,7 @@ class TestProxmoxVnetModule(ModuleTestCase):
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
         self.version_mock.stop()
-        super(TestProxmoxVnetModule, self).tearDown()
+        super().tearDown()
 
     def test_vnet_present(self):
         # Create new Vnet

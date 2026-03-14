@@ -23,7 +23,7 @@ from ansible_collections.community.proxmox.plugins.modules import proxmox_templa
 
 class TestProxmoxTemplateModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxTemplateModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_template
         self.connect_mock = patch(
@@ -33,7 +33,7 @@ class TestProxmoxTemplateModule(ModuleTestCase):
 
     def tearDown(self):
         self.connect_mock.stop()
-        super(TestProxmoxTemplateModule, self).tearDown()
+        super().tearDown()
 
     @patch("os.stat")
     @patch.multiple(os.path, exists=Mock(return_value=True), isfile=Mock(return_value=True))

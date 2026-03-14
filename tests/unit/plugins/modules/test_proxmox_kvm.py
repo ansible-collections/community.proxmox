@@ -23,7 +23,7 @@ from ansible_collections.community.proxmox.plugins.modules import proxmox_kvm
 
 class TestProxmoxKvmModule(ModuleTestCase):
     def setUp(self):
-        super(TestProxmoxKvmModule, self).setUp()
+        super().setUp()
         proxmox_utils.HAS_PROXMOXER = True
         self.module = proxmox_kvm
         self.connect_mock = patch(
@@ -38,7 +38,7 @@ class TestProxmoxKvmModule(ModuleTestCase):
         self.get_vm_mock.stop()
         self.get_node_mock.stop()
         self.connect_mock.stop()
-        super(TestProxmoxKvmModule, self).tearDown()
+        super().tearDown()
 
     def test_module_fail_when_required_args_missing(self):
         with self.assertRaises(AnsibleFailJson), set_module_args({}):
