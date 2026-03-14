@@ -299,7 +299,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
                     result_tokens = {}
                     for token in tokens:
-                        if len(existing_tokens) == 0 or token["tokenid"] not in existing_tokens.keys():
+                        if len(existing_tokens) == 0 or token["tokenid"] not in existing_tokens:
                             resp = (
                                 self.proxmox_api.access.users(userid)
                                 .token(token["tokenid"])
@@ -318,7 +318,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                                 privsep=(1 if token["privsep"] else 0),
                             )
                     new_token_ids = [t["tokenid"] for t in tokens]
-                    for existing_token in existing_tokens.keys():
+                    for existing_token in existing_tokens:
                         if existing_token not in new_token_ids:
                             self.proxmox_api.access.users(userid).token(existing_token).delete()
 
