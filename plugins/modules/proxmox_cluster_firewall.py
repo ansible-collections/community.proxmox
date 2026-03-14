@@ -85,6 +85,9 @@ seealso:
   - name: Proxmox VE Firewall configuration
     description: Complete reference of Proxmox VE Firewall
     link: https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html
+  - name: Proxmox VE cluster-wide configuration
+    description: Complete reference of Proxmox VE Firewall
+    link: https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html#pve_firewall_cluster_wide_setup
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
