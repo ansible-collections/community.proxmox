@@ -146,7 +146,10 @@ userid:
   type: str
   sample: test
 secrets:
-  description: Dictionary of API tokens associated with their secret.
+  description:
+    - Dictionary of API tokens associated with their secret.
+    - key: The token ID
+    - value: The secret
   returned: success
   type: dict
 msg:
@@ -307,7 +310,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                                     privsep=(1 if token["privsep"] else 0),
                                 )
                             )
-                            result_tokens[resp["full-tokenid"]] = resp["value"]
+                            result_tokens[token["tokenid"]] = resp["value"]
                         else:
                             self.proxmox_api.access.users(userid).token(token["tokenid"]).put(
                                 comment=token["comment"],
@@ -370,7 +373,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                         privsep=(1 if token["privsep"] else 0),
                     )
                 )
-                result_tokens[resp["full-tokenid"]] = resp["value"]
+                result_tokens[token["tokenid"]] = resp["value"]
 
             self.module.exit_json(changed=True, userid=userid, secrets=result_tokens, msg=f"Created user {userid}")
         except Exception as e:
