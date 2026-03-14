@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_storage - Add support for RBD (RADOS Block Device) storage (https://github.com/ansible-collections/community.proxmox/issues/326).
