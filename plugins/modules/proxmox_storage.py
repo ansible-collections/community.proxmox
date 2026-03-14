@@ -32,8 +32,8 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    type: str
     choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool']
+    type: str
     required: true
   nodes:
     description:
@@ -41,7 +41,6 @@ options:
       - Required when C(state=present).
     type: list
     elements: str
-    required: false
   content:
     description:
       - The content types that can be stored on this storage.
@@ -53,7 +52,6 @@ options:
       - V(snippets) cloud-init, hook scripts, etc.
       - V(vztmpl) container templates.
     type: list
-    required: false
     elements: str
     choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
   cephfs_options:
@@ -61,44 +59,37 @@ options:
       - Extended information for adding CephFS storage.
     type: dict
     suboptions:
+      path:
+        description:
+          - The path to be used within the CephFS.
+        default: '/'
+        type: str
       monhost:
         description:
           - The hostname or IP address of the monhost.
         type: list
         elements: str
-        required: false
-      username:
-        description:
-          - The username for the storage system.
-        type: str
-        required: false
-      password:
-        description:
-          - The password for the storage system.
-        type: str
-        required: false
-      path:
-        description:
-          - The path to be used within the CephFS.
-        type: str
-        default: '/'
-        required: false
       subdir:
         description:
           - The subdir to be used within the CephFS.
           - The Proxmox default is '/'.
         type: str
-        required: false
+      username:
+        description:
+          - The username for the storage system.
+        type: str
+      password:
+        description:
+          - The password for the storage system.
+        type: str
       client_keyring:
         description:
           - The client keyring to be used.
         type: str
-        required: false
       fs_name:
         description:
           - The Ceph filesystem name
         type: str
-        required: false
   cifs_options:
     description:
       - Extended information for adding CIFS storage.
@@ -107,6 +98,11 @@ options:
       server:
         description:
           - The required hostname or IP address of the remote storage system.
+        type: str
+        required: true
+      share:
+        description:
+          - The required share to be used from the remote storage system.
         type: str
         required: true
       username:
@@ -119,26 +115,18 @@ options:
           - The required password for the storage system.
         type: str
         required: true
-      share:
-        description:
-          - The required share to be used from the remote storage system.
-        type: str
-        required: true
       domain:
         description:
           - The required domain for the CIFS share.
         type: str
-        required: false
-      smb_version:
-        description:
-          - The minimum SMB version to use for.
-        type: str
-        required: false
       subdir:
         description:
           - The subdir to be used within the CIFS.
         type: str
-        required: false
+      smb_version:
+        description:
+          - The minimum SMB version to use for.
+        type: str
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -147,6 +135,21 @@ options:
       path:
         description:
           - The required path of the direcotry on the node(s).
+        type: str
+        required: true
+  iscsi_options:
+    description:
+      - Extended information for adding iSCSI storage.
+    type: dict
+    suboptions:
+      portal:
+        description:
+          - The required hostname or IP address of the remote storage system as the portal address.
+        type: str
+        required: true
+      target:
+        description:
+          - The required iSCSI target.
         type: str
         required: true
   nfs_options:
@@ -168,22 +171,6 @@ options:
         description:
           - The options to pass to the NFS service. (e.g., version, pNFS).
         type: str
-        required: false
-  iscsi_options:
-    description:
-      - Extended information for adding iSCSI storage.
-    type: dict
-    suboptions:
-      portal:
-        description:
-          - The required hostname or IP address of the remote storage system as the portal address.
-        type: str
-        required: true
-      target:
-        description:
-          - The required iSCSI target.
-        type: str
-        required: true
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -192,6 +179,11 @@ options:
       server:
         description:
           - The hostname or IP address of the Proxmox Backup Server.
+        type: str
+        required: true
+      datastore:
+        description:
+          - The required datastore to use from the Proxmox Backup Server.
         type: str
         required: true
       username:
@@ -204,21 +196,14 @@ options:
           - The required password for the Proxmox Backup Server.
         type: str
         required: true
-      datastore:
-        description:
-          - The required datastore to use from the Proxmox Backup Server.
-        type: str
-        required: true
       namespace:
         description:
           - The namespace to use from the Proxmox Backup Server.
         type: str
-        required: false
       fingerprint:
         description:
           - The fingerprint of the Proxmox Backup Server system.
         type: str
-        required: false
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
@@ -233,7 +218,6 @@ options:
         description:
           - Use ZFS thin-provisioning.
         type: bool
-        required: false
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -258,6 +242,7 @@ EXAMPLES = r"""
       fingerprint: "F3:04:D2:C1:33:B7:35:B9:88:D8:7A:24:85:21:DC:75:EE:7C:A5:2A:55:2D:99:38:6B:48:5E:CA:0D:E3:FE:66"
       export: "/mnt/storage01/b01pbs01"
     content: ["backup"]
+
 - name: Add NFS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
@@ -271,6 +256,7 @@ EXAMPLES = r"""
       server: 10.10.10.94
       export: "/mnt/storage01/s01nfs01"
     content: ["rootdir", "images"]
+
 - name: Add iSCSI storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
@@ -284,6 +270,7 @@ EXAMPLES = r"""
       portal: 10.10.10.94
       target: "iqn.2005-10.org.freenas.ctl:s01-isci01"
     content: ["rootdir", "images"]
+
 - name: Remove storage from Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
@@ -292,6 +279,7 @@ EXAMPLES = r"""
     state: absent
     name: net-nfsshare01
     type: nfs
+
 - name: Add ZFS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
@@ -334,12 +322,12 @@ STORAGE_BACKENDS = {
     },
     "cifs": {
         "server": ("server", True),
+        "share": ("share", True),
         "username": ("username", True),
         "password": ("password", True),
-        "share": ("share", True),
-        "smb_version": ("smbversion", False),
         "domain": ("domain", False),
         "subdir": ("subdir", False),
+        "smb_version": ("smbversion", False),
     },
     "dir": {"path": ("path", True)},
     "iscsi": {"portal": ("portal", True), "target": ("target", True)},
@@ -465,8 +453,8 @@ def main():
 
     storage_args = dict(
         name=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"], default="present"),
-        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        state=dict(type="str", choices=["present", "absent"], default="present"),
+        type=dict(type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
         ),
@@ -474,7 +462,6 @@ def main():
             type="list",
             elements="str",
         ),
-        dir_options=dict(type="dict", options={"path": dict(type="str", required=True)}),
         cephfs_options=dict(
             type="dict",
             options={
@@ -482,12 +469,8 @@ def main():
                 "username": dict(type="str"),
                 "password": dict(type="str", no_log=True),
                 "path": dict(type="str", default="/"),
-                "subdir": dict(
-                    type="str",
-                ),
-                "fs_name": dict(
-                    type="str",
-                ),
+                "subdir": dict(type="str"),
+                "fs_name": dict(type="str"),
                 "client_keyring": dict(type="str", no_log=True),
             },
         ),
@@ -495,15 +478,21 @@ def main():
             type="dict",
             options={
                 "server": dict(type="str", required=True),
+                "share": dict(type="str", required=True),
                 "username": dict(type="str", required=True),
                 "password": dict(type="str", no_log=True, required=True),
-                "share": dict(type="str", required=True),
                 "domain": dict(type="str"),
+                "subdir": dict(type="str"),
                 "smb_version": dict(type="str"),
-                "subdir": dict(
-                    type="str",
-                ),
             },
+        ),
+        dir_options=dict(
+            type="dict",
+            options={"path": dict(type="str", required=True)},
+        ),
+        iscsi_options=dict(
+            type="dict",
+            options={"portal": dict(type="str", required=True), "target": dict(type="str", required=True)},
         ),
         nfs_options=dict(
             type="dict",
@@ -513,23 +502,23 @@ def main():
                 "options": dict(type="str"),
             },
         ),
-        iscsi_options=dict(
-            type="dict", options={"portal": dict(type="str", required=True), "target": dict(type="str", required=True)}
-        ),
         pbs_options=dict(
             type="dict",
             options={
                 "server": dict(type="str", required=True),
                 "username": dict(type="str", required=True),
-                "password": dict(type="str", no_log=True, required=True),
+                "password": dict(type="str", required=True, no_log=True),
                 "datastore": dict(type="str", required=True),
-                "fingerprint": dict(type="str"),
                 "namespace": dict(type="str"),
+                "fingerprint": dict(type="str"),
             },
         ),
         zfspool_options=dict(
             type="dict",
-            options={"pool": dict(type="str", required=True), "sparse": dict(type="bool")},
+            options={
+                "pool": dict(type="str", required=True),
+                "sparse": dict(type="bool"),
+            },
         ),
     )
 
