@@ -146,10 +146,7 @@ userid:
   type: str
   sample: test
 secrets:
-  description:
-    - Dictionary of API tokens associated with their secret.
-    - key: The token ID
-    - value: The secret
+  description: Dictionary of API tokens associated with their secret (key: token ID, value: secret)
   returned: success
   type: dict
 msg:
