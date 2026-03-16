@@ -365,15 +365,16 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         elif private_key_raw:
             key_content = private_key_raw
 
-        our_fingerprints = self.get_certificate_fingerprints_file(cert_content)
-        if not our_fingerprints:
+        certificate_fingerprints = self.get_certificate_fingerprints_file(cert_content)
+        if not certificate_fingerprints:
             self.module.fail_json(msg="Failed to parse certificate: no valid PEM certificate found.")
-        our_fingerprint = our_fingerprints[0]
+
+        leaf_certificate_fingerprint = certificate_fingerprints[0]
 
         existing_certificates = self._get_custom_certificates(node)
         existing_fingerprints = self.get_certificate_fingerprints_api(existing_certificates)
 
-        certificate_already_present = our_fingerprint in existing_fingerprints
+        certificate_already_present = leaf_certificate_fingerprint in existing_fingerprints
 
         if certificate_already_present and not force:
             return False, f"Certificate for node '{node}' is already present."
