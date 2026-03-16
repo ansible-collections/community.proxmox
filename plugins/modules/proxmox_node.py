@@ -260,17 +260,27 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to read certificate or key file '{file_path}': {e}")
 
     def get_certificate_fingerprints_file(self, pem_data, hash_alg="sha256"):
-        certs = re.findall(r"-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", pem_data, re.DOTALL)
+        certs = re.findall(
+            r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----",
+            pem_data,
+            re.DOTALL,
+        )
 
         fingerprints = []
-        for cert_body in certs:
-            full_pem = f"-----BEGIN CERTIFICATE-----{cert_body}-----END CERTIFICATE-----"
-            der = ssl.PEM_cert_to_DER_cert(full_pem)
-            digest = getattr(hashlib, hash_alg)(der).hexdigest()
-            # Format the fingerprint as uppercase hex pairs separated by colons to match Proxmox's output
-            # e.g., "A1:B2:C3:D4:E5:F6:G7:H8:I9:J0:K1:L2:M3:N4:O5:P6:Q7:R8:S9:T0"
-            formatted = ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
-            fingerprints.append(formatted)
+
+        for cert in certs:
+            try:
+                der = ssl.PEM_cert_to_DER_cert(cert.strip())
+                digest = getattr(hashlib, hash_alg)(der).hexdigest()
+
+                # Format as colon-separated uppercase hex pairs
+                formatted = ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
+
+                fingerprints.append(formatted)
+
+            except Exception:
+                continue
+
         return fingerprints
 
     def get_certificate_fingerprints_api(self, certificates):
