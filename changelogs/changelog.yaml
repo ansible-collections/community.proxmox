@@ -90,7 +90,7 @@ releases:
       - 108--disable_lookups.yml
       - 119-validate-cluster-name-lengths.yml
     modules:
-      - description: Management of ACLs for objects in Proxmox VE Cluster.
+      - description: Manages ACLs on the Proxmox PVE cluster.
         name: proxmox_access_acl
         namespace: ''
       - description: Management of HA groups in Proxmox VE Cluster.
@@ -299,3 +299,59 @@ releases:
         name: proxmox_sendkey
         namespace: ''
     release_date: '2025-12-27'
+  1.6.0:
+    changes:
+      breaking_changes:
+        - proxmox - set ``state`` as not ``optional`` and assign default value ``present``
+          (https://github.com/ansible-collections/community.proxmox/pull/292).
+      bugfixes:
+        - proxmox_cluster - make cluster join idempotent (https://github.com/ansible-collections/community.proxmox/pull/244).
+        - proxmox_disk - make none iso disk idempotent (https://github.com/ansible-collections/community.proxmox/pull/288).
+        - proxmox_firewall - Enable ipsets on vm level and fix bugs regarding the
+          cidr notation the proxmox api expects (https://github.com/ansible-collections/community.proxmox/pull/248).
+        - proxmox_role - when privs is omitted, keep existing role privileges unchanged
+          instead of treating it as no privileges (https://github.com/ansible-collections/community.proxmox/pull/284).
+      deprecated_features:
+        - proxmox - Certificate verification default changes from ``false`` to ``true``
+          with version 2.0.0 (https://github.com/ansible-collections/community.proxmox/pull/256).
+      major_changes:
+        - proxmox - Add ca_path option to specify a ca-certificate for tls validation
+          (https://github.com/ansible-collections/community.proxmox/pull/256).
+      minor_changes:
+        - inventory plugin - add want_post_filtering_facts to delay fact gathering
+          until filtering has completed (https://github.com/ansible-collections/community.proxmox/pull/261).
+        - proxmox - Add api_timeout option for all modules (https://github.com/ansible-collections/community.proxmox/pull/253).
+        - proxmox_role - add role's privs on the return data (https://github.com/ansible-collections/community.proxmox/pull/283).
+        - proxmox_storage - Add support for ZFS thin-provisioning (https://github.com/ansible-collections/community.proxmox/pull/265).
+        - proxmox_storage - Add the option namespace for PBS storage (https://github.com/ansible-collections/community.proxmox/pull/282)
+        - proxmox_storage - refactor the validation of storage options (https://github.com/ansible-collections/community.proxmox/pull/266).
+        - proxmox_storage_contents_info - Add support for content type ``import``
+          (https://github.com/ansible-collections/community.proxmox/pull/260).
+        - proxmox_zone, proxmox_vnet, proxmox_subnet - make sdn modules compatible
+          with pve8 (https://github.com/ansible-collections/community.proxmox/pull/254).
+      release_summary: 'This is the minor release of the ``community.proxmox`` collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.'
+    fragments:
+      - 244-update-cluster-join.yml
+      - 248-proxmox-firewall-fix-ipset-cidr-handling.yaml
+      - 252-make-sdn-modules-compatible-with-pve8.yaml
+      - 253-global-api-timeout-option.yaml
+      - 256-add-ca-path-option.yaml
+      - 261-want_post_filter_facts.yml
+      - 265-add-support-for-zfs-thin-provisioning.yaml
+      - 266-refactor-storage-options-validation.yml
+      - 282-add-option-namespace-for-pbs-storage.yml
+      - 283-add-role-privileges-on-returned-data.yml
+      - 284-proxmox-role-omitted-privs.yml
+      - 288-fix-idem-iso-disk.yml
+      - 292-set-state-present-as-default-on-acl-module.yml
+      - pr270.yml
+      - release-1-6-0.yml
+    modules:
+      - description: Role management for Proxmox VE cluster.
+        name: proxmox_role
+        namespace: ''
+    release_date: '2026-03-08'

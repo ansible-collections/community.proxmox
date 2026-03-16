@@ -188,7 +188,6 @@ plugin: community.proxmox.proxmox
 url: http://192.168.1.2:8006
 user: ansible@pve
 password: secure
-validate_certs: false  # only do this when you trust the network!
 want_facts: true
 want_proxmox_nodes_ansible_host: false
 compose:
