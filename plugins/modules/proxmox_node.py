@@ -52,7 +52,6 @@ options:
         description:
           - Defines the actions for the certificate.
         choices: ["present", "absent"]
-        default: present
         type: str
       restart:
         description:
