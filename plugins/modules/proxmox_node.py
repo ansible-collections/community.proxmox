@@ -223,9 +223,9 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return nodes
 
     def validate_node_name(self, nodes):
-        node_name = self.params.get("node_name")
-        if node_name not in nodes["nodes"]:
-            self.module.fail_json(msg=f"Node '{node_name}' not found in the Proxmox cluster.")
+        node = self.params.get("node_name")
+        if node not in nodes["nodes"]:
+            self.module.fail_json(msg=f"Node '{node}' not found in the Proxmox cluster.")
 
     def read_file(self, file_path):
         try:
@@ -268,43 +268,43 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return any(d1.get(k) != d2.get(k) for k in keys)
 
     def power_state(self, nodes):
-        node_power_state = self.params.get("power_state")
-        node_name = self.params.get("node_name")
+        state = self.params.get("power_state")
+        node = self.params.get("node_name")
         changed = False
-        result_power_state = "Unchanged"
+        result = "Unchanged"
 
-        if node_power_state == "online":
-            if nodes["nodes"][node_name]["status"] == "online":
+        if state == "online":
+            if nodes["nodes"][node]["status"] == "online":
                 changed = False
-                result_power_state = f"Node '{node_name}' is already online."
+                result = f"Node '{node}' is already online."
             else:
                 if not self.module.check_mode:
-                    self.proxmox_api.nodes(node_name).wakeonlan.post(node_name=node_name)
+                    self.proxmox_api.nodes(node).wakeonlan.post(node_name=node)
                 changed = True
-                result_power_state = f"Node '{node_name}' has been powered on."
+                result = f"Node '{node}' has been powered on."
 
-        if node_power_state == "offline":
-            if nodes["nodes"][node_name]["status"] != "online":
+        if state == "offline":
+            if nodes["nodes"][node]["status"] != "online":
                 changed = False
-                result_power_state = f"Node '{node_name}' is already offline."
+                result = f"Node '{node}' is already offline."
             else:
                 if not self.module.check_mode:
-                    self.proxmox_api.nodes(node_name).status.post(command="shutdown")
+                    self.proxmox_api.nodes(node).status.post(command="shutdown")
                 changed = True
-                result_power_state = f"Node '{node_name}' has been powered off."
+                result = f"Node '{node}' has been powered off."
 
-        return changed, result_power_state
+        return changed, result
 
     def certificates(self):
-        node_certificate_state = self.params.get("certificates", {}).get("state", "show")
-        node_name = self.params.get("node_name")
+        state = self.params.get("certificates", {}).get("state", "show")
+        node = self.params.get("node_name")
         force = self.bool_to_int(self.params.get("certificates", {}).get("force", False))
         changed = False
-        result_certificates = "Unchanged"
+        result = "Unchanged"
         upload_cert = False
 
         try:
-            all_certs = self.proxmox_api.nodes(node_name).certificates.info.get()
+            all_certs = self.proxmox_api.nodes(node).certificates.info.get()
             # Filter out default Proxmox certificates (pve-root-ca.pem, pve-ssl.pem)
             # Keep only custom certificates
             current_cert = [
@@ -317,7 +317,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to get certificate information: {str(e)}")
 
-        if node_certificate_state == "present":
+        if state == "present":
             cert_path = self.params.get("certificates", {}).get("cert")
             key_path = self.params.get("certificates", {}).get("key")
             cert = self.read_file(cert_path)
@@ -330,12 +330,12 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
                 # Compare only the leaf certificate (first in chain), not the certificates of the chain
                 if (fingerprints_file and fingerprints_file[0] in fingerprints_api) and not force:
-                    result_certificates = f"Certificate for node '{node_name}' is already present and matches."
+                    result = f"Certificate for node '{node}' is already present and matches."
                 else:
                     # Certificate exists but is different, need to upload
                     upload_cert = True
                     changed = True
-                    result_certificates = f"Certificate for node '{node_name}' updated."
+                    result = f"Certificate for node '{node}' updated."
             else:
                 changed = True
                 if not self.module.check_mode:
@@ -343,18 +343,18 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
             if (not self.module.check_mode) and (upload_cert):
                 try:
-                    self.proxmox_api.nodes(node_name).certificates.custom.post(certificates=cert, key=key, force=force)
-                    result_certificates = f"Certificate for node '{node_name}' has been uploaded."
+                    self.proxmox_api.nodes(node).certificates.custom.post(certificates=cert, key=key, force=force)
+                    result = f"Certificate for node '{node}' has been uploaded."
                 except Exception as e:
                     error_msg = str(e)
                     self.module.fail_json(msg=f"Failed to upload certificate: {error_msg}")
 
-        if node_certificate_state == "absent" and has_custom_cert:
+        if state == "absent" and has_custom_cert:
             changed = True
             if not self.module.check_mode:
                 try:
-                    self.proxmox_api.nodes(node_name).certificates.custom.delete()
-                    result_certificates = f"Certificate for node '{node_name}' has been removed."
+                    self.proxmox_api.nodes(node).certificates.custom.delete()
+                    result = f"Certificate for node '{node}' has been removed."
                 except Exception as e:
                     error_msg = str(e)
                     self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
@@ -362,12 +362,12 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         restart = self.params.get("certificates", {}).get("restart", False)
         if changed and restart and not self.module.check_mode:
             try:
-                self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
-                result_certificates += " pveproxy service restarted."
+                self.proxmox_api.nodes(node).services("pveproxy").restart.post()
+                result += " pveproxy service restarted."
             except Exception as e:
                 self.module.warn(f"Failed to restart pveproxy: {str(e)}")
 
-        return changed, result_certificates
+        return changed, result
 
     def dns(self):
         node_name = self.params.get("node_name")
