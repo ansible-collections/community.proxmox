@@ -25,6 +25,7 @@ options:
     description:
       - The targeted node to perform actions on.
     type: str
+    aliases: ["node"]
     required: true
   power_state:
     description:
