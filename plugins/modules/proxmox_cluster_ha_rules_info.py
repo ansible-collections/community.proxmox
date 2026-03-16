@@ -198,9 +198,9 @@ class ProxmoxClusterHARuleInfoAnsible(ProxmoxAnsible):
 
     def _list(self, rule_type=None, resource=None):
         params = {}
-        if rule_type is not None:
+        if rule_type:
             params["type"] = rule_type
-        if resource is not None:
+        if resource:
             params["resource"] = resource
         try:
             rules = self.proxmox_api.cluster.ha.rules.get(**params)
