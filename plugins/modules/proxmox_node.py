@@ -40,11 +40,13 @@ options:
     suboptions:
       cert:
         description:
-          - The public certificate file (including chain) in PEM format.
+          - The public certificate file path (including chain) in PEM format.
         type: str
+        aliases: ["certificate_file_path"]
       key:
         description:
-          - The private key file in PEM format.
+          - The private key file path in PEM format.
+        aliases: ["private_key_file_path"]
         type: str
       state:
         description:
@@ -118,8 +120,8 @@ EXAMPLES = r"""
     api_password: password123
     node_name: de-cgn01-virt01
     certificates:
-        key: /opt/ansible/key.pem
-        cert: /opt/ansible/cert.pem
+        private_key_file_path: /opt/ansible/key.pem
+        certificate_file_path: /opt/ansible/cert.pem
         state: present
         force: false
 - name: Place a subscription license on a Proxmox VE Node
