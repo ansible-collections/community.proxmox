@@ -209,6 +209,10 @@ def module_options():
 
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
+    def __init__(self, module):
+      super().__init__(module)
+      self.params = module.params
+
     def get_nodes(self):
         nodes = {"nodes": {}}
         for node in self.proxmox_api.nodes.get():
@@ -218,7 +222,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return nodes
 
     def validate_node_name(self, nodes):
-        node_name = self.module.params.get("node_name")
+        node_name = self.params.get("node_name")
         if node_name not in nodes["nodes"]:
             self.module.fail_json(msg=f"Node '{node_name}' not found in the Proxmox cluster.")
 
@@ -263,8 +267,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return any(d1.get(k) != d2.get(k) for k in keys)
 
     def power_state(self, nodes):
-        node_power_state = self.module.params.get("power_state")
-        node_name = self.module.params.get("node_name")
+        node_power_state = self.params.get("power_state")
+        node_name = self.params.get("node_name")
         changed = False
         result_power_state = "Unchanged"
 
@@ -291,9 +295,9 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return changed, result_power_state
 
     def certificates(self):
-        node_certificate_state = self.module.params.get("certificates", {}).get("state", "show")
-        node_name = self.module.params.get("node_name")
-        force = self.bool_to_int(self.module.params.get("certificates", {}).get("force", False))
+        node_certificate_state = self.params.get("certificates", {}).get("state", "show")
+        node_name = self.params.get("node_name")
+        force = self.bool_to_int(self.params.get("certificates", {}).get("force", False))
         changed = False
         result_certificates = "Unchanged"
         upload_cert = False
@@ -313,8 +317,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to get certificate information: {str(e)}")
 
         if node_certificate_state == "present":
-            cert_path = self.module.params.get("certificates", {}).get("cert")
-            key_path = self.module.params.get("certificates", {}).get("key")
+            cert_path = self.params.get("certificates", {}).get("cert")
+            key_path = self.params.get("certificates", {}).get("key")
             cert = self.read_file(cert_path)
             key = self.read_file(key_path)
             fingerprints_file = self.get_certificate_fingerprints_file(cert)
@@ -355,7 +359,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                         error_msg = str(e)
                         self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
 
-        restart = self.module.params.get("certificates", {}).get("restart", False)
+        restart = self.params.get("certificates", {}).get("restart", False)
         if changed and restart:
             if not self.module.check_mode:
                 try:
@@ -367,11 +371,11 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return changed, result_certificates
 
     def dns(self):
-        node_name = self.module.params.get("node_name")
-        dns1 = self.module.params.get("dns", {}).get("dns1", None)
-        dns2 = self.module.params.get("dns", {}).get("dns2", None)
-        dns3 = self.module.params.get("dns", {}).get("dns3", None)
-        search = self.module.params.get("dns", {}).get("search", None)
+        node_name = self.params.get("node_name")
+        dns1 = self.params.get("dns", {}).get("dns1", None)
+        dns2 = self.params.get("dns", {}).get("dns2", None)
+        dns3 = self.params.get("dns", {}).get("dns3", None)
+        search = self.params.get("dns", {}).get("search", None)
         dns_config_current = self.proxmox_api.nodes(node_name).dns.get()
         changed = False
         result_dns = "Unchanged"
@@ -395,14 +399,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         return changed, result_dns
 
     def subscription(self):
-        subscription_state = self.module.params.get("subscription", {}).get("state")
-        node_name = self.module.params.get("node_name")
+        subscription_state = self.params.get("subscription", {}).get("state")
+        node_name = self.params.get("node_name")
         subscription_current = self.proxmox_api.nodes(node_name).subscription.get()
         changed = False
         result_subscription = "Unchanged"
 
         if subscription_state == "present":
-            license_key = self.module.params.get("subscription", {}).get("key", None)
+            license_key = self.params.get("subscription", {}).get("key", None)
             if subscription_current.get("key", None) != license_key:
                 if not self.module.check_mode:
                     try:
