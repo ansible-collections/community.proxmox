@@ -361,6 +361,10 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                     error_msg = str(e)
                     self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
 
+        if state == "absent" and not has_custom_cert:
+            changed = False
+            result = f"Custom certificate on node '{node} is already removed."
+
         restart = self.params.get("certificates", {}).get("restart", False)
         if changed and restart and not self.module.check_mode:
             try:
