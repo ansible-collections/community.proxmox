@@ -7,7 +7,7 @@
 
 DOCUMENTATION = r"""
 module: proxmox_domain_sync
-version_added: 1.6.0
+version_added: 2.0.0
 short_description: Sync realms.
 description: Sync domain realms, LDAP or AD.
 author: Vial Nicolas (@teslamania)

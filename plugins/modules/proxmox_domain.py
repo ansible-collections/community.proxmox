@@ -7,7 +7,7 @@
 
 DOCUMENTATION = r"""
 module: proxmox_domain
-version_added: 1.6.0
+version_added: 2.0.0
 short_description: Manage authentication realms.
 description:
   - Add, modify or delete domain authentication realms.
