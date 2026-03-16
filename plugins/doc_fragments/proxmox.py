@@ -60,6 +60,7 @@ options:
       - Validate the TLS certificates used for the connection to the Proxmox VE API.
       - May be set through the environment variable E(PROXMOX_VALIDATE_CERTS).
     type: bool
+    default: true
 requirements: ["proxmoxer >= 2.3", "requests"]
 """
 
