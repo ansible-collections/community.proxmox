@@ -22,6 +22,7 @@ action_groups:
     - proxmox_ceph_mgr
     - proxmox_ceph_mon
     - proxmox_ceph_osd
+    - proxmox_ceph_pool
     - proxmox_cluster
     - proxmox_cluster_firewall
     - proxmox_cluster_ha_resources
