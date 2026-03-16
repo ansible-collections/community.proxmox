@@ -259,29 +259,30 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to read certificate or key file '{file_path}': {e}")
 
-    def get_certificate_fingerprints_file(self, pem_data, hash_alg="sha256"):
+    def get_leaf_certificate_fingerprint(self, pem_data, hash_alg="sha256"):
+        """
+        Extract the fingerprint of the leaf (first) certificate from a PEM bundle.
+        """
         certs = re.findall(
             r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----",
             pem_data,
             re.DOTALL,
         )
 
-        fingerprints = []
+        if not certs:
+            return None
 
-        for cert in certs:
-            try:
-                der = ssl.PEM_cert_to_DER_cert(cert.strip())
-                digest = getattr(hashlib, hash_alg)(der).hexdigest()
+        leaf_cert = certs[0]
 
-                # Format as colon-separated uppercase hex pairs
-                formatted = ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
+        try:
+            der = ssl.PEM_cert_to_DER_cert(leaf_cert.strip())
+            digest = getattr(hashlib, hash_alg)(der).hexdigest()
 
-                fingerprints.append(formatted)
-
-            except Exception:
-                continue
-
-        return fingerprints
+            return ":".join(
+                digest[i : i + 2].upper() for i in range(0, len(digest), 2)
+            )
+        except Exception:
+            return None
 
     def get_certificate_fingerprints_api(self, certificates):
         fingerprints = []
@@ -375,11 +376,9 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         elif private_key_raw:
             key_content = private_key_raw
 
-        certificate_fingerprints = self.get_certificate_fingerprints_file(cert_content)
-        if not certificate_fingerprints:
+        leaf_certificate_fingerprint = self.get_leaf_certificate_fingerprint(cert_content)
+        if not leaf_certificate_fingerprint:
             self.module.fail_json(msg="Failed to parse certificate: no valid PEM certificate found.")
-
-        leaf_certificate_fingerprint = certificate_fingerprints[0]
 
         existing_certificates = self._get_custom_certificates(node)
         existing_fingerprints = self.get_certificate_fingerprints_api(existing_certificates)

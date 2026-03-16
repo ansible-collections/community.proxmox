@@ -196,8 +196,8 @@ class TestProxmoxNodeCertificate(ModuleTestCase):
         ).start()
         self.mock_get_fingerprints_file = patch.object(
             proxmox_node.ProxmoxNodeAnsible,
-            "get_certificate_fingerprints_file",
-            return_value=["AA:BB:CC:DD"],
+            "get_leaf_certificate_fingerprint",
+            return_value="AA:BB:CC:DD",
         ).start()
         self.mock_get_fingerprints_api = patch.object(
             proxmox_node.ProxmoxNodeAnsible,
@@ -347,26 +347,23 @@ class TestProxmoxNodeCertificate(ModuleTestCase):
 
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)
-def test_get_certificate_fingerprints_file_single_cert(mock_init):
+def test_get_leaf_certificate_fingerprint_single_cert(mock_init):
     module = MagicMock(spec=AnsibleModule)
     module.params = {}
 
     proxmox = proxmox_node.ProxmoxNodeAnsible(module)
 
-    fingerprints = proxmox.get_certificate_fingerprints_file(SAMPLE_PEM_CERT)
+    fingerprint = proxmox.get_leaf_certificate_fingerprint(SAMPLE_PEM_CERT)
 
-    assert isinstance(fingerprints, list)
-    assert len(fingerprints) == 1
+    assert fingerprint is not None
+    assert ":" in fingerprint
 
-    fp = fingerprints[0]
-
-    assert ":" in fp
-    parts = fp.split(":")
-    assert all(len(p) == 2 for p in parts)  # noqa:PLR2004
+    parts = fingerprint.split(":")
+    assert all(len(p) == 2 for p in parts)  # noqa: PLR2004
 
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)
-def test_get_certificate_fingerprints_file_multiple_certs(mock_init):
+def test_get_leaf_certificate_fingerprint_multiple_certs(mock_init):
     module = MagicMock(spec=AnsibleModule)
     module.params = {}
 
@@ -374,18 +371,19 @@ def test_get_certificate_fingerprints_file_multiple_certs(mock_init):
 
     pem_chain = SAMPLE_PEM_CERT + "\n" + SAMPLE_PEM_CERT
 
-    fingerprints = proxmox.get_certificate_fingerprints_file(pem_chain)
+    fingerprint = proxmox.get_leaf_certificate_fingerprint(pem_chain)
 
-    assert len(fingerprints) == 2
+    assert fingerprint is not None
+    assert ":" in fingerprint
 
 
 @patch.object(ProxmoxAnsible, "__init__", return_value=None)
-def test_get_certificate_fingerprints_file_invalid_pem(mock_init):
+def test_get_leaf_certificate_fingerprint_invalid_pem(mock_init):
     module = MagicMock(spec=AnsibleModule)
     module.params = {}
 
     proxmox = proxmox_node.ProxmoxNodeAnsible(module)
 
-    fingerprints = proxmox.get_certificate_fingerprints_file("invalid cert")
+    fingerprint = proxmox.get_leaf_certificate_fingerprint("invalid cert")
 
-    assert fingerprints == []
+    assert fingerprint is None
