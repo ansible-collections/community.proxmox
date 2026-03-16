@@ -278,9 +278,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             der = ssl.PEM_cert_to_DER_cert(leaf_cert.strip())
             digest = getattr(hashlib, hash_alg)(der).hexdigest()
 
-            return ":".join(
-                digest[i : i + 2].upper() for i in range(0, len(digest), 2)
-            )
+            return ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
         except Exception:
             return None
 
