@@ -349,25 +349,23 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                     error_msg = str(e)
                     self.module.fail_json(msg=f"Failed to upload certificate: {error_msg}")
 
-        if node_certificate_state == "absent":
-            if has_custom_cert:
-                changed = True
-                if not self.module.check_mode:
-                    try:
-                        self.proxmox_api.nodes(node_name).certificates.custom.delete()
-                        result_certificates = f"Certificate for node '{node_name}' has been removed."
-                    except Exception as e:
-                        error_msg = str(e)
-                        self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
-
-        restart = self.params.get("certificates", {}).get("restart", False)
-        if changed and restart:
+        if node_certificate_state == "absent" and has_custom_cert:
+            changed = True
             if not self.module.check_mode:
                 try:
-                    self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
-                    result_certificates += " pveproxy service restarted."
+                    self.proxmox_api.nodes(node_name).certificates.custom.delete()
+                    result_certificates = f"Certificate for node '{node_name}' has been removed."
                 except Exception as e:
-                    self.module.warn(f"Failed to restart pveproxy: {str(e)}")
+                    error_msg = str(e)
+                    self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
+
+        restart = self.params.get("certificates", {}).get("restart", False)
+        if changed and restart and not self.module.check_mode:
+            try:
+                self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
+                result_certificates += " pveproxy service restarted."
+            except Exception as e:
+                self.module.warn(f"Failed to restart pveproxy: {str(e)}")
 
         return changed, result_certificates
 
