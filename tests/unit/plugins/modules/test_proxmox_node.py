@@ -344,3 +344,48 @@ class TestProxmoxNodeCertificate(ModuleTestCase):
         assert "would be deleted" in result["certificates"]
         node_mock = self.connect_mock.return_value.nodes.return_value
         node_mock.certificates.custom.delete.assert_not_called()
+
+
+@patch.object(ProxmoxAnsible, "__init__", return_value=None)
+def test_get_certificate_fingerprints_file_single_cert(mock_init):
+    module = MagicMock(spec=AnsibleModule)
+    module.params = {}
+
+    proxmox = proxmox_node.ProxmoxNodeAnsible(module)
+
+    fingerprints = proxmox.get_certificate_fingerprints_file(SAMPLE_PEM_CERT)
+
+    assert isinstance(fingerprints, list)
+    assert len(fingerprints) == 1
+
+    fp = fingerprints[0]
+
+    assert ":" in fp
+    parts = fp.split(":")
+    assert all(len(p) == 2 for p in parts)  # noqa:PLR2004
+
+
+@patch.object(ProxmoxAnsible, "__init__", return_value=None)
+def test_get_certificate_fingerprints_file_multiple_certs(mock_init):
+    module = MagicMock(spec=AnsibleModule)
+    module.params = {}
+
+    proxmox = proxmox_node.ProxmoxNodeAnsible(module)
+
+    pem_chain = SAMPLE_PEM_CERT + "\n" + SAMPLE_PEM_CERT
+
+    fingerprints = proxmox.get_certificate_fingerprints_file(pem_chain)
+
+    assert len(fingerprints) == 2
+
+
+@patch.object(ProxmoxAnsible, "__init__", return_value=None)
+def test_get_certificate_fingerprints_file_invalid_pem(mock_init):
+    module = MagicMock(spec=AnsibleModule)
+    module.params = {}
+
+    proxmox = proxmox_node.ProxmoxNodeAnsible(module)
+
+    fingerprints = proxmox.get_certificate_fingerprints_file("invalid cert")
+
+    assert fingerprints == []
