@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - proxmox_node - add new parameters ``certificate`` and ``private_key`` to pass raw PEM encoded certificate and private key (https://github.com/ansible-collections/community.proxmox/pull/331).
+  - proxmox_node - add aliases ``certificate_file_path`` for ``cert`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+  - proxmox_node - add aliases ``private_key_file_path`` for ``key`` (https://github.com/ansible-collections/community.proxmox/pull/331).
