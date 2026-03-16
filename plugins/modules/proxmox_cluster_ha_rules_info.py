@@ -11,7 +11,7 @@ module: proxmox_cluster_ha_rules_info
 short_description: Retrieve Proxmox VE HA rules
 description:
   - Retreive Proxmox VE High Availability managed resources rules
-version_added: 1.6.0
+version_added: 2.0.0
 author: Clément Cruau (@PendaGTP)
 options:
   rule:
