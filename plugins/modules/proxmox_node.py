@@ -295,6 +295,19 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
         return changed, result
 
+    def _get_certificates_info(self, node):
+        try:
+            certs = self.proxmox_api.nodes(node).certificates.info.get()
+            # Filter out default Proxmox certificates (pve-root-ca.pem, pve-ssl.pem)
+            # Keep only custom certificates
+            custom_certs = [
+                cert for cert in certs if cert.get("filename") not in ["pve-root-ca.pem", "pve-ssl.pem"]
+            ]
+            return custom_certs
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to get certificate information: {str(e)}")
+
+
     def certificates(self):
         state = self.params.get("certificates", {}).get("state", "show")
         node = self.params.get("node_name")
@@ -303,19 +316,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         result = "Unchanged"
         upload_cert = False
 
-        try:
-            all_certs = self.proxmox_api.nodes(node).certificates.info.get()
-            # Filter out default Proxmox certificates (pve-root-ca.pem, pve-ssl.pem)
-            # Keep only custom certificates
-            current_cert = [
-                cert for cert in all_certs if cert.get("filename") not in ["pve-root-ca.pem", "pve-ssl.pem"]
-            ]
-            if not current_cert:
-                current_cert = []
-
-            has_custom_cert = len(current_cert) > 0
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to get certificate information: {str(e)}")
+        custom_certificates = self._get_certificates_info(node)
+        has_custom_cert = len(custom_certificates > 0)
 
         if state == "present":
             cert_path = self.params.get("certificates", {}).get("cert")
@@ -326,7 +328,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
             # Check if custom certificate already exists
             if has_custom_cert:
-                fingerprints_api = self.get_certificate_fingerprints_api(current_cert)
+                fingerprints_api = self.get_certificate_fingerprints_api(custom_certificates)
 
                 # Compare only the leaf certificate (first in chain), not the certificates of the chain
                 if (fingerprints_file and fingerprints_file[0] in fingerprints_api) and not force:
