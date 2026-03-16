@@ -113,6 +113,7 @@ EXAMPLES = r"""
     api_password: password123
     node_name: de-cgn01-virt01
     power_state: online
+
 - name: Update SSL certificates on a Proxmox VE Node
   community.proxmox.node:
     api_host: proxmoxhost
@@ -124,6 +125,7 @@ EXAMPLES = r"""
         certificate_file_path: /opt/ansible/cert.pem
         state: present
         force: false
+
 - name: Place a subscription license on a Proxmox VE Node
   community.proxmox.node:
     api_host: proxmoxhost
