@@ -405,7 +405,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             return True, "The service pveproxy would be restarted."
 
         try:
-            self.proxmox_api.nodes(node).service("pveproxy").restart.pos()
+            self.proxmox_api.nodes(node).service("pveproxy").restart.post()
             return True, "The service pveproxy has been restarted."
         except Exception as e:
             self.module.warn(f"Failed to restart the service pveproxy: {str(e)}")
