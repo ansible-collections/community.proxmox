@@ -22,7 +22,7 @@ attributes:
 options:
     openid_acr_values:
         description:
-            - Specifies the Authentication Context Class Reference values that theAuthorization Server is being requested to use for the Auth Request.
+            - Specifies the Authentication Context Class Reference values that the Authorization Server is being requested to use for the Authentication Request.
             - Supported for O(type=openid).
         type: str
     openid_autocreate:
