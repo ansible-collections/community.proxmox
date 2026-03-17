@@ -58,9 +58,9 @@ options:
   validate_certs:
     description:
       - Validate the TLS certificates used for the connection to the Proxmox VE API.
-      - Currently defaults to V(false) and changes default to V(true) with community.proxmox 2.0.0.
-      - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
+      - May be set through the environment variable E(PROXMOX_VALIDATE_CERTS).
     type: bool
+    default: true
 requirements: ["proxmoxer >= 2.3", "requests"]
 """
 
