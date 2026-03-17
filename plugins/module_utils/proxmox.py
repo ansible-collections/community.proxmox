@@ -163,6 +163,8 @@ class ProxmoxAnsible:
         api_otp = self.module.params["api_otp"]
         api_token_id = self.module.params["api_token_id"]
         api_token_secret = self.module.params["api_token_secret"]
+        # Only push the cert path as a string to proxmoxer, if validation is required
+        # verify_ssl supports True, False or Path as values
         if self.module.params["ca_path"] and self.module.params["validate_certs"]:
             validate_certs = self.module.params["ca_path"]
         else:
