@@ -36,6 +36,22 @@ options:
       - Specify the description for the pool.
       - Parameter is ignored when pool already exists or O(state=absent).
     type: str
+  vms:
+    description:
+      - List of VM IDs or names to add or remove from the pool.
+    type: list
+    elements: str
+  storage:
+    description:
+      - List of storage IDs to add or remove from the pool.
+    type: list
+    elements: str
+  members_state:
+    description:
+      - Indicate desired state of the members provided.
+    choices: ['present', 'absent']
+    default: present
+    type: str
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -150,9 +166,9 @@ def module_args():
         poolid=dict(type="str", aliases=["name"], required=True),
         comment=dict(type="str"),
         state=dict(default="present", choices=["present", "absent"]),
-        vms=dict(type="list"),
-        storage=dict(type="list"),
-        members_state=dict(default="present", choices=["present", "absent"])
+        vms=dict(type="list", elements="str"),
+        storage=dict(type="list", elements="str"),
+        members_state=dict(default="present", choices=["present", "absent"]),
     )
 
 
@@ -194,7 +210,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
                 vms.append(member["vmid"])
 
         return (vms, storage)
-    
+
     def flush_pool_members(self, poolid):
         if self.module.check_mode:
             return
@@ -233,8 +249,8 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=False, poolid=poolid, msg=f"Pool {poolid} doesn't exist")
 
         if self.module.check_mode:
-                return
-        
+            return
+
         if not self.is_pool_empty(poolid):
             self.flush_pool_members(poolid)
 
@@ -249,40 +265,26 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         intersect_storage = set(existing_storage) & set(storage)
         return not (
             (  # Nothing to add
-                members_state == "present" and
-                intersect_vms == set(vms) and
-                intersect_storage == set(storage)
-                )
-                or
-                (  # Nothing to remove
-                    members_state == "absent" and
-                    intersect_vms == set() and
-                    intersect_storage == set()
-                )
+                members_state == "present" and intersect_vms == set(vms) and intersect_storage == set(storage)
             )
+            or (  # Nothing to remove
+                members_state == "absent" and intersect_vms == set() and intersect_storage == set()
+            )
+        )
 
     def update_pool(self, poolid, vms, storage, members_state):
         existing_vms, existing_storage = self.pool_members(poolid)
         payload = {"poolid": poolid}
-        
+
         if members_state == "present":
-            payload.update(
-                {
-                    "vms": set(vms) - set(existing_vms),
-                    "storage": set(storage) - set(existing_storage)
-                }
-            )
+            payload.update({"vms": set(vms) - set(existing_vms), "storage": set(storage) - set(existing_storage)})
             try:
                 self.proxmox_api.pools.put(payload)
             except Exception as e:
                 self.module.fail_json(msg=f"Failed to add members to pool with ID {poolid}: {e}")
         else:
             payload.update(
-                {
-                    "delete": 1,
-                    "vms": set(vms) & set(existing_vms),
-                    "storage": set(storage) & set(existing_storage)
-                }
+                {"delete": 1, "vms": set(vms) & set(existing_vms), "storage": set(storage) & set(existing_storage)}
             )
             try:
                 self.proxmox_api.pools.put(payload)
@@ -290,6 +292,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
                 self.module.fail_json(msg=f"Failed to remove members to pool with ID {poolid}: {e}")
 
         return self.pool_members(poolid)
+
 
 def main():
     module = create_proxmox_module(module_args(), **module_options())
@@ -307,14 +310,26 @@ def main():
             proxmox.create_pool(poolid, comment)
             if members_state == "present":
                 vms_members, storage_members = proxmox.update_pool(poolid, vms, storage, members_state)
-            
-            module.exit_json(changed=True, poolid=poolid, members=vms_members+storage_members, msg=f"Pool {poolid} successfully created")
+
+            module.exit_json(
+                changed=True,
+                poolid=poolid,
+                members=vms_members + storage_members,
+                msg=f"Pool {poolid} successfully created",
+            )
         elif proxmox.pool_needs_update(poolid, vms, storage, members_state):
             vms_members, storage_members = proxmox.update_pool(poolid, vms, storage, members_state)
-            
-            module.exit_json(changed=True, poolid=poolid, members=vms_members+storage_members, msg=f"Pool {poolid} successfully updated")
+
+            module.exit_json(
+                changed=True,
+                poolid=poolid,
+                members=vms_members + storage_members,
+                msg=f"Pool {poolid} successfully updated",
+            )
         else:
-            module.exit_json(changed=False, poolid=poolid, members=vms+storage, msg=f"Pool {poolid} already up to date")
+            module.exit_json(
+                changed=False, poolid=poolid, members=vms + storage, msg=f"Pool {poolid} already up to date"
+            )
     else:
         if not proxmox.is_pool_empty(poolid):
             proxmox.flush_pool_members(poolid)
