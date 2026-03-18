@@ -1041,6 +1041,7 @@ def module_args():
         snapname=dict(type="str"),
         sockets=dict(type="int"),
         sshkeys=dict(type="str", no_log=False),
+        spice_enhancements=dict(type="str"),
         startdate=dict(type="str"),
         startup=dict(),
         state=dict(
