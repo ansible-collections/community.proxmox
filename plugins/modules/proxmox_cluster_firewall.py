@@ -170,13 +170,12 @@ msg:
 
 import re
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
 
@@ -225,19 +224,7 @@ def _build_log_ratelimit_string(enabled, burst, rate):
     return ",".join(parts) if parts else None
 
 
-def _validate_args(module):
-    lr = module.params.get("log_ratelimit")
-    if not lr or lr.get("rate") is None:
-        return
-    lr_rate = lr["rate"]
-    if not _validate_log_ratelimit_rate(lr_rate):
-        module.fail_json(
-            msg="log_ratelimit.rate must be a valid rate expression, e.g. '1/second'",
-            rate=lr_rate,
-        )
-
-
-def _module_args():
+def module_args():
     return dict(
         state=dict(choices=["enabled", "disabled"], default="disabled"),
         ebtables=dict(type="bool", default=True),
@@ -255,16 +242,8 @@ def _module_args():
     )
 
 
-def _module_options():
-    return dict(supports_check_mode=True)
-
-
-def ansible_module():
-    args = proxmox_auth_argument_spec()
-    args.update(_module_args())
-    module = AnsibleModule(argument_spec=args, **_module_options())
-    _validate_args(module)
-    return module
+def module_options():
+    return dict()
 
 
 class ProxmoxClusterFirewallAnsible(ProxmoxAnsible):
@@ -274,6 +253,17 @@ class ProxmoxClusterFirewallAnsible(ProxmoxAnsible):
 
     def run(self):
         self._apply()
+
+    def validate_params(self):
+        lr = self.params.get("log_ratelimit")
+        if not lr or lr.get("rate") is None:
+            return
+        lr_rate = lr["rate"]
+        if not _validate_log_ratelimit_rate(lr_rate):
+            self.fail_json(
+                msg="log_ratelimit.rate must be a valid rate expression, e.g. '1/second'",
+                rate=lr_rate,
+            )
 
     def _get_fw_options(self):
         try:
@@ -375,8 +365,9 @@ class ProxmoxClusterFirewallAnsible(ProxmoxAnsible):
 
 
 def main():
-    module = ansible_module()
+    module = create_proxmox_module(module_args(), **module_options)
     proxmox = ProxmoxClusterFirewallAnsible(module)
+    proxmox.validate_params()
 
     try:
         proxmox.run()
