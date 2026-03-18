@@ -243,7 +243,7 @@ def module_args():
 
 
 def module_options():
-    return dict()
+    return {}
 
 
 class ProxmoxClusterFirewallAnsible(ProxmoxAnsible):
@@ -365,7 +365,7 @@ class ProxmoxClusterFirewallAnsible(ProxmoxAnsible):
 
 
 def main():
-    module = create_proxmox_module(module_args(), **module_options)
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxClusterFirewallAnsible(module)
     proxmox.validate_params()
 

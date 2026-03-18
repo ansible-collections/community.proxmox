@@ -87,7 +87,7 @@ def module_args():
 
 
 def module_options():
-    return dict()
+    return {}
 
 
 class ProxmoxDomainSyncAnsible(ProxmoxAnsible):
