@@ -69,13 +69,25 @@ msg:
     returned: always
 """
 
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        enable_new=dict(type="bool"),
+        realm=dict(type="str", required=True),
+        remove_vanished=dict(type="str"),
+        scope=dict(choices=["users", "groups", "both"]),
+    )
+
+
+def module_options():
+    return dict()
 
 
 class ProxmoxDomainSyncAnsible(ProxmoxAnsible):
@@ -113,23 +125,9 @@ class ProxmoxDomainSyncAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    domain_args = dict(
-        enable_new=dict(type="bool"),
-        realm=dict(type="str", required=True),
-        remove_vanished=dict(type="str"),
-        scope=dict(choices=["users", "groups", "both"]),
-    )
-
-    module_args.update(domain_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-    )
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxDomainSyncAnsible(module)
+
     try:
         proxmox.sync_domain()
     except Exception as e:
