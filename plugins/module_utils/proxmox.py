@@ -36,10 +36,11 @@ def proxmox_auth_argument_spec():
         api_port=dict(type="int", fallback=(env_fallback, ["PROXMOX_PORT"])),
         api_user=dict(type="str", required=True, fallback=(env_fallback, ["PROXMOX_USER"])),
         api_password=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_PASSWORD"])),
+        api_otp=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_OTP"])),
         api_token_id=dict(type="str", no_log=False, fallback=(env_fallback, ["PROXMOX_TOKEN_ID"])),
         api_token_secret=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_TOKEN_SECRET"])),
         ca_path=dict(type="path", fallback=(env_fallback, ["PROXMOX_CA_PATH"])),
-        validate_certs=dict(type="bool", fallback=(env_fallback, ["PROXMOX_VALIDATE_CERTS"])),
+        validate_certs=dict(type="bool", default=True, fallback=(env_fallback, ["PROXMOX_VALIDATE_CERTS"])),
         api_timeout=dict(type="int", default=5, fallback=(env_fallback, ["PROXMOX_API_TIMEOUT"])),
     )
 
@@ -142,8 +143,8 @@ class ProxmoxAnsible:
     def __init__(self, module):
         if not HAS_PROXMOXER:
             module.fail_json(msg=missing_required_lib("proxmoxer"), exception=PROXMOXER_IMP_ERR)
-        if proxmoxer_version < LooseVersion("2.0"):
-            module.fail_json(f"Requires proxmoxer 2.0 or newer; found version {proxmoxer_version}")
+        if proxmoxer_version < LooseVersion("2.3"):
+            module.fail_json(f"Requires proxmoxer 2.3 or newer; found version {proxmoxer_version}")
 
         self.module = module
         self.proxmoxer_version = proxmoxer_version
@@ -159,24 +160,15 @@ class ProxmoxAnsible:
         api_port = self.module.params["api_port"]
         api_user = self.module.params["api_user"]
         api_password = self.module.params["api_password"]
+        api_otp = self.module.params["api_otp"]
         api_token_id = self.module.params["api_token_id"]
         api_token_secret = self.module.params["api_token_secret"]
-        if self.module.params["validate_certs"] is None:
-            self.module.deprecate(
-                "The connection setting `validate_certs` was not provided and "
-                "defaults to `false`. This default will change to `true` in"
-                "in community.proxmox 2.0.0.",
-                version="2.0.0",
-                collection_name="community.proxmox",
-            )
-            self.module.params["validate_certs"] = False
         # Only push the cert path as a string to proxmoxer, if validation is required
         # verify_ssl supports True, False or Path as values
         if self.module.params["ca_path"] and self.module.params["validate_certs"]:
             validate_certs = self.module.params["ca_path"]
         else:
             validate_certs = self.module.params["validate_certs"]
-        validate_certs = self.module.params["validate_certs"]
         api_timeout = self.module.params["api_timeout"]
         auth_args = {"user": api_user}
 
@@ -189,6 +181,8 @@ class ProxmoxAnsible:
             auth_args["token_name"] = api_token_id
             auth_args["token_value"] = api_token_secret
 
+        if api_otp:
+            auth_args["otp"] = api_otp
         try:
             return ProxmoxAPI(api_host, timeout=api_timeout, verify_ssl=validate_certs, **auth_args)
         except Exception as e:

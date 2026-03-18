@@ -68,7 +68,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     link0: 10.10.1.1
     link1: 10.10.2.1
     cluster_name: "devcluster"

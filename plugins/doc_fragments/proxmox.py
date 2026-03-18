@@ -30,6 +30,11 @@ options:
       - Specify the password to authenticate with.
       - Uses the E(PROXMOX_PASSWORD) environment variable if not specified.
     type: str
+  api_otp:
+    description:
+      - Specify the OTP.
+      - Uses the E(PROXMOX_OTP) environment variable if not specified.
+    type: str
   api_token_id:
     description:
       - Specify the token ID.
@@ -53,10 +58,10 @@ options:
   validate_certs:
     description:
       - Validate the TLS certificates used for the connection to the Proxmox VE API.
-      - Currently defaults to V(false) and changes default to V(true) with community.proxmox 2.0.0.
-      - Uses the E(PROXMOX_VALIDATE_CERTS) environment variable if not specified.
+      - May be set through the environment variable E(PROXMOX_VALIDATE_CERTS).
     type: bool
-requirements: ["proxmoxer >= 2.0", "requests"]
+    default: true
+requirements: ["proxmoxer >= 2.3", "requests"]
 """
 
     SELECTION = r"""

@@ -18,12 +18,6 @@ attributes:
   diff_mode:
     support: none
 options:
-  nodes:
-    description:
-      - A list of Proxmox VE nodes on which the target storage is enabled.
-    type: list
-    elements: str
-    required: false
   name:
     description:
       - The name of the storage displayed in the storage list.
@@ -34,54 +28,68 @@ options:
       - The state of the defined storage type to perform.
     choices: ["present", "absent"]
     type: str
+    default: present
   type:
     description:
       - The storage type/protocol to use when adding the storage.
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd', 'zfspool']
     type: str
     required: true
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd', 'zfspool']
+  nodes:
+    description:
+      - A list of nodes where this storage is available.
+      - Required when C(state=present).
+    type: list
+    elements: str
+  content:
+    description:
+      - The content types that can be stored on this storage.
+      - V(backup) VM backups.
+      - V(images) VM disk images.
+      - V(import) VM disk images for import.
+      - V(iso) ISO images.
+      - V(rootdir) container root directories.
+      - V(snippets) cloud-init, hook scripts, etc.
+      - V(vztmpl) container templates.
+    type: list
+    elements: str
+    choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
     type: dict
     suboptions:
+      path:
+        description:
+          - The path to be used within the CephFS.
+        default: '/'
+        type: str
       monhost:
         description:
           - The hostname or IP address of the monhost.
         type: list
         elements: str
-        required: false
-      username:
-        description:
-          - The required username for the storage system.
-        type: str
-        required: false
-      password:
-        description:
-          - The required password for the storage system.
-        type: str
-        required: false
-      path:
-        description:
-          - The path to be used within the CephFS.
-        type: str
-        default: '/'
-        required: false
       subdir:
         description:
           - The subdir to be used within the CephFS.
+          - The Proxmox default is '/'.
         type: str
-        required: false
+      username:
+        description:
+          - The username for the storage system.
+        type: str
+      password:
+        description:
+          - The password for the storage system.
+        type: str
       client_keyring:
         description:
           - The client keyring to be used.
         type: str
-        required: false
       fs_name:
         description:
           - The Ceph filesystem name
         type: str
-        required: false
   cifs_options:
     description:
       - Extended information for adding CIFS storage.
@@ -89,39 +97,36 @@ options:
     suboptions:
       server:
         description:
-          - The hostname or IP address of the remote storage system.
+          - The required hostname or IP address of the remote storage system.
         type: str
-        required: false
+        required: true
+      share:
+        description:
+          - The required share to be used from the remote storage system.
+        type: str
+        required: true
       username:
         description:
           - The required username for the storage system.
         type: str
-        required: false
+        required: true
       password:
         description:
           - The required password for the storage system.
         type: str
-        required: false
-      share:
-        description:
-          - The share to be used from the remote storage system.
-        type: str
-        required: false
+        required: true
       domain:
         description:
           - The required domain for the CIFS share.
         type: str
-        required: false
-      smb_version:
-        description:
-          - The minimum SMB version to use for.
-        type: str
-        required: false
       subdir:
         description:
           - The subdir to be used within the CIFS.
         type: str
-        required: false
+      smb_version:
+        description:
+          - The minimum SMB version to use for.
+        type: str
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -129,29 +134,9 @@ options:
     suboptions:
       path:
         description:
-          - The path of the direcotry on the node(s).
+          - The required path of the direcotry on the node(s).
         type: str
-        required: false
-  nfs_options:
-    description:
-      - Extended information for adding NFS storage.
-    type: dict
-    suboptions:
-      server:
-        description:
-          - The hostname or IP address of the remote storage system.
-        type: str
-        required: false
-      export:
-        description:
-          - The required NFS export path.
-        type: str
-        required: false
-      options:
-        description:
-          - Additional NFS related mount options (e.g., version, pNFS).
-        type: str
-        required: false
+        required: true
   iscsi_options:
     description:
       - Extended information for adding iSCSI storage.
@@ -159,14 +144,33 @@ options:
     suboptions:
       portal:
         description:
-          - The hostname or IP address of the remote storage system as the portal address.
+          - The required hostname or IP address of the remote storage system as the portal address.
         type: str
-        required: false
+        required: true
       target:
         description:
           - The required iSCSI target.
         type: str
-        required: false
+        required: true
+  nfs_options:
+    description:
+      - Extended information for adding NFS storage.
+    type: dict
+    suboptions:
+      server:
+        description:
+          - The required IP address or DNS name of the NFS server.
+        type: str
+        required: true
+      export:
+        description:
+          - The required path of the NFS export.
+        type: str
+        required: true
+      options:
+        description:
+          - The options to pass to the NFS service. (e.g., version, pNFS).
+        type: str
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -176,32 +180,30 @@ options:
         description:
           - The hostname or IP address of the Proxmox Backup Server.
         type: str
-        required: false
-      username:
-        description:
-          - The required username for the Proxmox Backup Server.
-        type: str
-        required: false
-      password:
-        description:
-          - The required password for the Proxmox Backup Server.
-        type: str
-        required: false
+        required: true
       datastore:
         description:
           - The required datastore to use from the Proxmox Backup Server.
         type: str
-        required: false
+        required: true
+      username:
+        description:
+          - The required username for the Proxmox Backup Server.
+        type: str
+        required: true
+      password:
+        description:
+          - The required password for the Proxmox Backup Server.
+        type: str
+        required: true
       namespace:
         description:
           - The namespace to use from the Proxmox Backup Server.
         type: str
-        required: false
       fingerprint:
         description:
-          - The required fingerprint of the Proxmox Backup Server system.
+          - The fingerprint of the Proxmox Backup Server system.
         type: str
-        required: false
   rbd_options:
     description:
       - Extended information for adding RBD storage.
@@ -219,20 +221,13 @@ options:
     suboptions:
       pool:
         description:
-          - The name of the ZFS pool to use.
+          - The required name of the ZFS pool to use.
         type: str
-        required: false
+        required: true
       sparse:
         description:
           - Use ZFS thin-provisioning.
         type: bool
-  content:
-    description:
-      - The desired content that should be used with this storage type.
-    type: list
-    required: false
-    elements: str
-    choices: ["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -245,7 +240,6 @@ EXAMPLES = r"""
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02"]
     state: present
     name: backup-backupserver01
@@ -258,12 +252,12 @@ EXAMPLES = r"""
       fingerprint: "F3:04:D2:C1:33:B7:35:B9:88:D8:7A:24:85:21:DC:75:EE:7C:A5:2A:55:2D:99:38:6B:48:5E:CA:0D:E3:FE:66"
       export: "/mnt/storage01/b01pbs01"
     content: ["backup"]
+
 - name: Add NFS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02"]
     state: present
     name: net-nfsshare01
@@ -272,12 +266,12 @@ EXAMPLES = r"""
       server: 10.10.10.94
       export: "/mnt/storage01/s01nfs01"
     content: ["rootdir", "images"]
+
 - name: Add iSCSI storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02", "de-cgn01-virt03"]
     state: present
     type: iscsi
@@ -286,21 +280,21 @@ EXAMPLES = r"""
       portal: 10.10.10.94
       target: "iqn.2005-10.org.freenas.ctl:s01-isci01"
     content: ["rootdir", "images"]
+
 - name: Remove storage from Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     state: absent
     name: net-nfsshare01
     type: nfs
+
 - name: Add ZFS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
-    validate_certs: false
     state: present
     name: zfspool-storage
     type: zfspool
@@ -319,239 +313,168 @@ storage:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.common.text.converters import to_native
-from ansible.module_utils.errors import AnsibleValidationError
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
+    ansible_to_proxmox_bool,
     proxmox_auth_argument_spec,
 )
 
-STORAGE_REQUIRED_OPTIONS = {
-    "cifs": (["server", "share"], "CIFS storage requires 'server' and 'share' options."),
-    "dir": (["path"], "Directory storage requires 'path' option."),
-    "iscsi": (["portal", "target"], "iSCSI storage requires 'portal' and 'target' options."),
-    "nfs": (["server", "export"], "NFS storage requires 'server' and 'export' options."),
-    "pbs": (
-        ["server", "username", "password", "datastore"],
-        "PBS storage requires 'server', 'username', 'password' and 'datastore' options.",
-    ),
-    "rbd": (["pool"], "RBD storage requires 'pool' option."),
-    "zfspool": (["pool", "content"], "ZFS storage requires 'pool' and 'content' options."),
+STORAGE_BACKENDS = {
+    "cephfs": {
+        "path": ("path", False),
+        "monhost": ("monhost", False),
+        "subdir": ("subdir", False),
+        "username": ("username", False),
+        "password": ("password", False),
+        "client_keyring": ("keyring", False),
+        "fs_name": ("fs-name", False),
+    },
+    "cifs": {
+        "server": ("server", True),
+        "share": ("share", True),
+        "username": ("username", True),
+        "password": ("password", True),
+        "domain": ("domain", False),
+        "subdir": ("subdir", False),
+        "smb_version": ("smbversion", False),
+    },
+    "dir": {"path": ("path", True)},
+    "iscsi": {"portal": ("portal", True), "target": ("target", True)},
+    "nfs": {
+        "server": ("server", True),
+        "export": ("export", True),
+        "options": ("options", False),
+    },
+    "pbs": {
+        "server": ("server", True),
+        "datastore": ("datastore", True),
+        "username": ("username", True),
+        "password": ("password", True),
+        "namespace": ("namespace", False),
+        "fingerprint": ("fingerprint", False),
+    },
+    "rbd": {
+      "pool" : ("pool", True),
+    },
+    "zfspool": {
+        "pool": ("pool", True),
+        "sparse": ("sparse", False),
+    },
 }
 
 
-def validate_storage_type_options(storage_type, options):
-    if storage_type not in STORAGE_REQUIRED_OPTIONS:
-        return
-    required_fields, error_msg = STORAGE_REQUIRED_OPTIONS[storage_type]
-    if not all(options.get(field) for field in required_fields):
-        raise AnsibleValidationError(error_msg)
-
-
 class ProxmoxNodeAnsible(ProxmoxAnsible):
-    def add_storage(self):
-        changed = False
-        result = "Unchanged"
-        storage_name = self.module.params["name"]
-        storage_type = self.module.params["type"]
-        nodes = self.module.params["nodes"]
-        content = self.module.params.get("content")
+    def __init__(self, module):
+        super().__init__(module)
+        self.params = module.params
 
-        # Create payload for storage creation
-        payload = {"storage": storage_name, "type": storage_type}
-
-        if nodes:
-            payload["nodes"] = nodes
-
-        if content:
-            payload["content"] = content
-
-        # Validate required parameters based on storage type
-        if storage_type == "cephfs":
-            cephfs_options = self.module.params.get(f"{storage_type}_options", {})
-            monhost = cephfs_options.get("monhost", "")
-            username = cephfs_options.get("username")
-            password = cephfs_options.get("password")
-            path = cephfs_options.get("path", "/")
-            subdir = cephfs_options.get("subdir", None)
-            client_keyring = cephfs_options.get("client_keyring")
-            fs_name = cephfs_options.get("fs_name")
-
-            if monhost != "":
-                payload["monhost"] = monhost
-            if username:
-                payload["username"] = username
-            if password:
-                payload["password"] = password
-            payload["path"] = path
-            payload["subdir"] = subdir
-            if client_keyring:
-                payload["client_keyring"] = client_keyring
-            if fs_name:
-                payload["fs_name"] = fs_name
-
-        if storage_type == "cifs":
-            cifs_options = self.module.params.get(f"{storage_type}_options", {})
-            server = cifs_options.get("server")
-            share = cifs_options.get("share")
-            username = cifs_options.get("username")
-            password = cifs_options.get("password")
-            smb_version = cifs_options.get("smb_version")
-            domain = cifs_options.get("domain")
-            subdir = cifs_options.get("subdir")
-
-            if username:
-                payload["username"] = username
-            if password:
-                payload["password"] = password
-            if smb_version:
-                payload["smbversion"] = smb_version
-            if domain:
-                payload["domain"] = domain
-            if subdir:
-                payload["subdir"] = subdir
-
-            payload["server"] = server
-            payload["share"] = share
-
-        if storage_type == "dir":
-            dir_options = self.module.params.get(f"{storage_type}_options", {})
-            path = dir_options.get("path")
-            payload["path"] = path
-
-        if storage_type == "iscsi":
-            iscsi_options = self.module.params.get(f"{storage_type}_options", {})
-            portal = iscsi_options.get("portal")
-            target = iscsi_options.get("target")
-            payload["portal"] = portal
-            payload["target"] = target
-
-        if storage_type == "nfs":
-            nfs_options = self.module.params.get(f"{storage_type}_options", {})
-            server = nfs_options.get("server")
-            export = nfs_options.get("export")
-            options = nfs_options.get("options")
-            payload["server"] = server
-            payload["export"] = export
-            if options:
-                payload["options"] = options
-
-        if storage_type == "rbd":
-            rbd_options = self.module.params.get(f"{storage_type}_options", {})
-            pool = rbd_options.get("pool")
-            payload["pool"] = pool
-
-        if storage_type == "pbs":
-            pbs_options = self.module.params.get(f"{storage_type}_options", {})
-            server = pbs_options.get("server")
-            username = pbs_options.get("username")
-            password = pbs_options.get("password")
-            datastore = pbs_options.get("datastore")
-            fingerprint = pbs_options.get("fingerprint")
-            namespace = pbs_options.get("namespace")
-            payload["server"] = server
-            payload["username"] = username
-            payload["password"] = password
-            payload["datastore"] = datastore
-            if fingerprint:
-                payload["fingerprint"] = fingerprint
-            if namespace:
-                payload["namespace"] = namespace
-
-        if storage_type == "zfspool":
-            zfspool_options = self.module.params.get(f"{storage_type}_options", {})
-            pool = zfspool_options.get("pool")
-            payload["pool"] = pool
-
-            payload["sparse"] = 1 if zfspool_options.get("sparse") else 0
-
-        # Check Mode validation
-        if self.module.check_mode:
-            try:
-                existing_storages = self.proxmox_api.storage.get()
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
-
-            for storage in existing_storages:
-                if storage.get("storage") == storage_name:
-                    changed = False
-                    function_result = f"Storage '{storage_name}' already present."
-                    result = {"changed": changed, "msg": function_result}
-                    self.module.exit_json(**result)
-
-                changed = True
-                function_result = f"Storage '{storage_name}' would be created."
-                result = {"changed": changed, "msg": function_result}
-                self.module.exit_json(**result)
-
-        # Add storage
+    def _get_storage(self, storage_name):
         try:
-            self.proxmox_api.storage.post(**payload)
-            changed = True
-            result = f"Storage '{storage_name}' created successfully."
+            return self.proxmox_api.storage.get(storage_name)
+        except Exception as e:
+            error_str = str(e).lower()
+            if "does not exist" in error_str:
+                return None
+            self.module.fail_json(msg=f"Failed to retrieve storage {storage_name}: {e}")
+
+    def _validate_storage_params(self, storage_type, params):
+        backend = STORAGE_BACKENDS.get(storage_type, {})
+        missing_required = []
+        for ansible_key, (_proxmox_key, required) in backend.items():
+            value = params.get(ansible_key)
+            if value is None and required:
+                missing_required.append(ansible_key)
+        if missing_required:
+            self.module.fail_json(
+                msg=f"{storage_type} storage is missing required option(s): {', '.join(missing_required)}"
+            )
+
+    def _normalize_storage_params(self, storage_type, backend_params):
+        backend = STORAGE_BACKENDS.get(storage_type, {})
+        result = {}
+        for ansible_key, (proxmox_key, _required) in backend.items():
+            value = backend_params.get(ansible_key)
+            if value is not None:
+                normalized = ansible_to_proxmox_bool(value) if isinstance(value, bool) else value
+                result[proxmox_key] = normalized
+        return result
+
+    def run(self):
+        state = self.params.get("state")
+
+        storage_params = {
+            "storage": self.params.get("name"),
+            "type": self.params.get("type"),
+        }
+
+        if self.params.get("nodes") is not None:
+            storage_params["nodes"] = self.params.get("nodes")
+        if self.params.get("content") is not None:
+            storage_params["content"] = self.params.get("content")
+
+        storage_type = self.params.get("type")
+        storage_backend_params = self.params.get(f"{storage_type}_options") or {}
+
+        if state == "present":
+            self._validate_storage_params(storage_type, storage_backend_params)
+            storage_params.update(self._normalize_storage_params(storage_type, storage_backend_params))
+            self.add_storage(storage_params)
+        elif state == "absent":
+            self.remove_storage(storage_params)
+
+    def add_storage(self, storage_params):
+        name = storage_params["storage"]
+
+        if self.module.check_mode:
+            current_storage = self._get_storage(name)
+            if current_storage:
+                self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' would be created.")
+
+        try:
+            self.proxmox_api.storage.post(**storage_params)
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' created successfully.")
         except Exception as e:
             error_msg = str(e)
             if "already defined" in error_msg:
-                changed = False
-                result = f"Storage '{storage_name}' already present."
-            else:
-                self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
+                self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
+            self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
 
-        return changed, result
+    def remove_storage(self, storage_params):
+        name = storage_params["storage"]
 
-    def remove_storage(self):
-        changed = False
-        result = "Unchanged"
-        storage_name = self.module.params["name"]
-
-        # Check Mode validation
         if self.module.check_mode:
-            try:
-                existing_storages = self.proxmox_api.storage.get()
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed to retrieve storage list: {e}")
+            current_storage = self._get_storage(name)
+            if current_storage:
+                self.module.exit_json(changed=True, msg=f"Storage '{name}' would be deleted.")
+            self.module.exit_json(changed=False, msg=f"Storage '{name}' does not exist.")
 
-            for storage in existing_storages:
-                if storage.get("storage") == storage_name:
-                    changed = True
-                    result = {"changed": changed, "msg": f"Storage '{storage_name}' would be deleted."}
-                    self.module.exit_json(**result)
+        current_storage = self._get_storage(name)
+        if not current_storage:
+            self.module.exit_json(changed=False, msg=f"Storage '{name}' does not exist.")
 
-            changed = False
-            result = {"changed": changed, "msg": f"Storage '{storage_name}' does not exist."}
-            self.module.exit_json(**result)
-
-        # Remove storage
         try:
-            existing_storages = self.proxmox_api.storage.get()
-            if not any(s.get("storage") == storage_name for s in existing_storages):
-                changed = False
-                result = f"Storage '{storage_name}' does not exist."
-                return changed, result
-
-            self.proxmox_api.storage(storage_name).delete()
-            changed = True
-            result = f"Storage '{storage_name}' removed successfully."
-
+            self.proxmox_api.storage(name).delete()
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' removed successfully.")
         except Exception as e:
-            self.module.fail_json(msg=f"Failed to delete storage '{storage_name}': {e}")
-
-        return changed, result
+            self.module.fail_json(msg=f"Failed to delete storage '{name}': {e}")
 
 
 def main():
     module_args = proxmox_auth_argument_spec()
 
     storage_args = dict(
+        name=dict(type="str", required=True),
+        state=dict(type="str", choices=["present", "absent"], default="present"),
+        type=dict(type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        content=dict(
+            type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
+        ),
         nodes=dict(
             type="list",
             elements="str",
         ),
-        name=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"]),
-        type=dict(choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "rbd", "zfspool"], required=True),
-        dir_options=dict(type="dict", options={"path": dict(type="str")}),
         cephfs_options=dict(
             type="dict",
             options={
@@ -559,51 +482,57 @@ def main():
                 "username": dict(type="str"),
                 "password": dict(type="str", no_log=True),
                 "path": dict(type="str", default="/"),
-                "subdir": dict(
-                    type="str",
-                ),
-                "fs_name": dict(
-                    type="str",
-                ),
+                "subdir": dict(type="str"),
+                "fs_name": dict(type="str"),
                 "client_keyring": dict(type="str", no_log=True),
             },
         ),
         cifs_options=dict(
             type="dict",
             options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "share": dict(type="str"),
+                "server": dict(type="str", required=True),
+                "share": dict(type="str", required=True),
+                "username": dict(type="str", required=True),
+                "password": dict(type="str", no_log=True, required=True),
                 "domain": dict(type="str"),
+                "subdir": dict(type="str"),
                 "smb_version": dict(type="str"),
-                "subdir": dict(
-                    type="str",
-                ),
             },
         ),
-        nfs_options=dict(
-            type="dict", options={"server": dict(type="str"), "export": dict(type="str"), "options": dict(type="str")}
+        dir_options=dict(
+            type="dict",
+            options={"path": dict(type="str", required=True)},
         ),
-        iscsi_options=dict(type="dict", options={"portal": dict(type="str"), "target": dict(type="str")}),
+        iscsi_options=dict(
+            type="dict",
+            options={"portal": dict(type="str", required=True), "target": dict(type="str", required=True)},
+        ),
+        nfs_options=dict(
+            type="dict",
+            options={
+                "server": dict(type="str", required=True),
+                "export": dict(type="str", required=True),
+                "options": dict(type="str"),
+            },
+        ),
         pbs_options=dict(
             type="dict",
             options={
-                "server": dict(type="str"),
-                "username": dict(type="str"),
-                "password": dict(type="str", no_log=True),
-                "datastore": dict(type="str"),
-                "fingerprint": dict(type="str"),
+                "server": dict(type="str", required=True),
+                "username": dict(type="str", required=True),
+                "password": dict(type="str", required=True, no_log=True),
+                "datastore": dict(type="str", required=True),
                 "namespace": dict(type="str"),
+                "fingerprint": dict(type="str"),
             },
         ),
         rbd_options=dict(type="dict", options={"pool": dict(type="str")}),
         zfspool_options=dict(
             type="dict",
-            options={"pool": dict(type="str"), "sparse": dict(type="bool")},
-        ),
-        content=dict(
-            type="list", elements="str", choices=["images", "snippets", "import", "iso", "backup", "rootdir", "vztmpl"]
+            options={
+                "pool": dict(type="str", required=True),
+                "sparse": dict(type="bool"),
+            },
         ),
     )
 
@@ -619,27 +548,7 @@ def main():
     # Initialize objects and avoid re-polling the current
     # nodes in the cluster in each function call.
     proxmox = ProxmoxNodeAnsible(module)
-    result = {"changed": False, "result": ""}
-
-    # Actions
-    if module.params.get("state") == "present":
-        storage_type = module.params.get("type")
-        options_key = f"{storage_type}_options"
-        options = module.params.get(options_key) or {}
-
-        try:
-            validate_storage_type_options(storage_type, options)
-        except AnsibleValidationError as e:
-            module.fail_json(msg=to_native(e))
-
-        changed, function_result = proxmox.add_storage()
-        result = {"changed": changed, "msg": function_result}
-
-    if module.params.get("state") == "absent":
-        changed, function_result = proxmox.remove_storage()
-        result = {"changed": changed, "msg": function_result}
-
-    module.exit_json(**result)
+    proxmox.run()
 
 
 if __name__ == "__main__":
