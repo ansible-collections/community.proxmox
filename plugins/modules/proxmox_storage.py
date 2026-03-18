@@ -355,7 +355,7 @@ STORAGE_BACKENDS = {
         "fingerprint": ("fingerprint", False),
     },
     "rbd": {
-      "pool" : ("pool", True),
+        "pool" : ("pool", True),
     },
     "zfspool": {
         "pool": ("pool", True),
@@ -467,7 +467,7 @@ def main():
     storage_args = dict(
         name=dict(type="str", required=True),
         state=dict(type="str", choices=["present", "absent"], default="present"),
-        type=dict(type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        type=dict(type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "rbd", "zfspool"], required=True),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
         ),
