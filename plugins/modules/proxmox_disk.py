@@ -630,7 +630,13 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         "wwn",
     ]
     supported_bus_num_ranges = dict(
-        ide=range(0, 4), scsi=range(0, 31), sata=range(0, 6), virtio=range(0, 16), unused=range(0, 256), efidisk=range(0, 1), tpmstate=range(0, 1)
+        ide=range(0, 4),
+        scsi=range(0, 31),
+        sata=range(0, 6),
+        virtio=range(0, 16),
+        unused=range(0, 256),
+        efidisk=range(0, 1),
+        tpmstate=range(0, 1),
     )
 
     def get_create_attributes(self):
