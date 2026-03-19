@@ -40,7 +40,7 @@ options:
     suboptions:
       cert:
         description:
-          - The public certificate file path (including chain) in PEM format.
+          - The public certificate file path (including chain) in PEM format on the Ansible Controller.
           - Mutually exclusive with O(certificates.certificate).
         type: str
         aliases: ["certificate_file_path"]
