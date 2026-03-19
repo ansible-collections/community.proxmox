@@ -148,11 +148,10 @@ rules:
       type: int
 """
 
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
 
@@ -181,14 +180,7 @@ def module_args():
 def module_options():
     return dict(
         mutually_exclusive=[("rule", "type"), ("rule", "resource")],
-        supports_check_mode=True,
     )
-
-
-def create_proxmox_module():
-    spec = {**proxmox_auth_argument_spec(), **module_args()}
-    options = module_options()
-    return AnsibleModule(argument_spec=spec, **options)
 
 
 class ProxmoxClusterHARuleInfoAnsible(ProxmoxAnsible):
@@ -229,8 +221,9 @@ class ProxmoxClusterHARuleInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-    module = create_proxmox_module()
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxClusterHARuleInfoAnsible(module)
+
     result = dict(changed=False)
 
     result["rules"] = proxmox.run()

@@ -300,13 +300,74 @@ msg:
     returned: always
 """
 
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        realm=dict(type="str", required=True),
+        state=dict(choices=["present", "absent"], required=True),
+        type=dict(choices=["ad", "ldap", "openid"]),
+        comment=dict(type="str"),
+        default=dict(type="bool"),
+        ad_domain=dict(type="str"),
+        ad_case_sensitive=dict(type="bool", default=True),
+        ldap_base_dn=dict(type="str"),
+        ldap_user_attr=dict(type="str"),
+        ldap_bind_dn=dict(aliases=["ad_bind_dn"], type="str"),
+        ldap_filter=dict(aliases=["ad_filter"], type="str"),
+        ldap_group_filter=dict(aliases=["ad_group_filter"], type="str"),
+        ldap_group_classes=dict(aliases=["ad_group_classes"], type="str"),
+        ldap_group_name_attr=dict(aliases=["ad_group_name_attr"], type="str"),
+        ldap_mode=dict(aliases=["ad_mode"], choices=["ldap", "ldaps", "ldap+starttls"]),
+        ldap_password=dict(aliases=["ad_password"], type="str", no_log=True),
+        ldap_port=dict(aliases=["ad_port"], type="int"),
+        ldap_primary_server=dict(aliases=["ad_primary_server"], type="str"),
+        ldap_secondary_server=dict(aliases=["ad_secondary_server"], type="str"),
+        ldap_user_classes=dict(aliases=["ad_user_classes"], type="str"),
+        ldap_validate_certs=dict(aliases=["ad_validate_certs"], type="bool"),
+        ldap_sync_defaults_options=dict(
+            aliases=["ad_sync_defaults_options"],
+            type="dict",
+            options={
+                "enable_new": dict(type="bool"),
+                "remove_vanished": dict(type="str"),
+                "scope": dict(choices=["users", "groups", "both"]),
+            },
+        ),
+        openid_acr_values=dict(type="str"),
+        openid_autocreate=dict(type="bool"),
+        openid_client_id=dict(type="str"),
+        openid_client_key=dict(type="str", no_log=True),
+        openid_groups_autocreate=dict(type="bool"),
+        openid_groups_claim=dict(type="str"),
+        openid_groups_overwrite=dict(type="bool"),
+        openid_issuer_url=dict(type="str"),
+        openid_prompt=dict(type="str"),
+        openid_query_userinfo=dict(type="bool"),
+        openid_scopes=dict(type="str"),
+        openid_username_claim=dict(type="str"),
+    )
+
+
+def module_options():
+    return dict(
+        required_if=[
+            ("type", "ldap", ["ldap_base_dn"]),
+            ("type", "ldap", ["ldap_user_attr"]),
+            ("type", "ldap", ["ldap_primary_server"]),
+            ("type", "ad", ["ldap_primary_server"]),
+            ("type", "ad", ["ad_domain"]),
+            ("type", "openid", ["openid_issuer_url"]),
+            ("type", "openid", ["openid_client_id"]),
+            ("state", "present", ["type"]),
+        ],
+    )
 
 
 class ProxmoxDomainAnsible(ProxmoxAnsible):
@@ -472,71 +533,7 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    domain_args = dict(
-        realm=dict(type="str", required=True),
-        state=dict(choices=["present", "absent"], required=True),
-        type=dict(choices=["ad", "ldap", "openid"]),
-        comment=dict(type="str"),
-        default=dict(type="bool"),
-        ad_domain=dict(type="str"),
-        ad_case_sensitive=dict(type="bool", default=True),
-        ldap_base_dn=dict(type="str"),
-        ldap_user_attr=dict(type="str"),
-        ldap_bind_dn=dict(aliases=["ad_bind_dn"], type="str"),
-        ldap_filter=dict(aliases=["ad_filter"], type="str"),
-        ldap_group_filter=dict(aliases=["ad_group_filter"], type="str"),
-        ldap_group_classes=dict(aliases=["ad_group_classes"], type="str"),
-        ldap_group_name_attr=dict(aliases=["ad_group_name_attr"], type="str"),
-        ldap_mode=dict(aliases=["ad_mode"], choices=["ldap", "ldaps", "ldap+starttls"]),
-        ldap_password=dict(aliases=["ad_password"], type="str", no_log=True),
-        ldap_port=dict(aliases=["ad_port"], type="int"),
-        ldap_primary_server=dict(aliases=["ad_primary_server"], type="str"),
-        ldap_secondary_server=dict(aliases=["ad_secondary_server"], type="str"),
-        ldap_user_classes=dict(aliases=["ad_user_classes"], type="str"),
-        ldap_validate_certs=dict(aliases=["ad_validate_certs"], type="bool"),
-        ldap_sync_defaults_options=dict(
-            aliases=["ad_sync_defaults_options"],
-            type="dict",
-            options={
-                "enable_new": dict(type="bool"),
-                "remove_vanished": dict(type="str"),
-                "scope": dict(choices=["users", "groups", "both"]),
-            },
-        ),
-        openid_acr_values=dict(type="str"),
-        openid_autocreate=dict(type="bool"),
-        openid_client_id=dict(type="str"),
-        openid_client_key=dict(type="str", no_log=True),
-        openid_groups_autocreate=dict(type="bool"),
-        openid_groups_claim=dict(type="str"),
-        openid_groups_overwrite=dict(type="bool"),
-        openid_issuer_url=dict(type="str"),
-        openid_prompt=dict(type="str"),
-        openid_query_userinfo=dict(type="bool"),
-        openid_scopes=dict(type="str"),
-        openid_username_claim=dict(type="str"),
-    )
-
-    module_args.update(domain_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        required_if=[
-            ("type", "ldap", ["ldap_base_dn"]),
-            ("type", "ldap", ["ldap_user_attr"]),
-            ("type", "ldap", ["ldap_primary_server"]),
-            ("type", "ad", ["ldap_primary_server"]),
-            ("type", "ad", ["ad_domain"]),
-            ("type", "openid", ["openid_issuer_url"]),
-            ("type", "openid", ["openid_client_id"]),
-            ("state", "present", ["type"]),
-        ],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxDomainAnsible(module)
     state = module.params["state"]
 

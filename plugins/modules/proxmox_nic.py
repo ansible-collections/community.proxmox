@@ -139,12 +139,50 @@ msg:
   sample: "Nic net0 unchanged on VM with vmid 103"
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        bridge=dict(type="str"),
+        firewall=dict(type="bool", default=False),
+        interface=dict(type="str", required=True),
+        link_down=dict(type="bool", default=False),
+        mac=dict(type="str"),
+        model=dict(
+            choices=[
+                "e1000",
+                "e1000-82540em",
+                "e1000-82544gc",
+                "e1000-82545em",
+                "i82551",
+                "i82557b",
+                "i82559er",
+                "ne2k_isa",
+                "ne2k_pci",
+                "pcnet",
+                "rtl8139",
+                "virtio",
+                "vmxnet3",
+            ],
+            default="virtio",
+        ),
+        mtu=dict(type="int"),
+        name=dict(type="str"),
+        queues=dict(type="int"),
+        rate=dict(type="float"),
+        state=dict(default="present", choices=["present", "absent"]),
+        tag=dict(type="int"),
+        trunks=dict(type="list", elements="int"),
+        vmid=dict(type="int"),
+    )
+
+
+def module_options():
+    return dict(required_one_of=[("name", "vmid")])
 
 
 class ProxmoxNicAnsible(ProxmoxAnsible):
@@ -249,49 +287,7 @@ class ProxmoxNicAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    nic_args = dict(
-        bridge=dict(type="str"),
-        firewall=dict(type="bool", default=False),
-        interface=dict(type="str", required=True),
-        link_down=dict(type="bool", default=False),
-        mac=dict(type="str"),
-        model=dict(
-            choices=[
-                "e1000",
-                "e1000-82540em",
-                "e1000-82544gc",
-                "e1000-82545em",
-                "i82551",
-                "i82557b",
-                "i82559er",
-                "ne2k_isa",
-                "ne2k_pci",
-                "pcnet",
-                "rtl8139",
-                "virtio",
-                "vmxnet3",
-            ],
-            default="virtio",
-        ),
-        mtu=dict(type="int"),
-        name=dict(type="str"),
-        queues=dict(type="int"),
-        rate=dict(type="float"),
-        state=dict(default="present", choices=["present", "absent"]),
-        tag=dict(type="int"),
-        trunks=dict(type="list", elements="int"),
-        vmid=dict(type="int"),
-    )
-    module_args.update(nic_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("name", "vmid"), ("api_password", "api_token_id")],
-        supports_check_mode=True,
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxNicAnsible(module)
 
     interface = module.params["interface"]
