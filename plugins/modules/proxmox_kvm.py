@@ -139,9 +139,9 @@ options:
         type: str
       format:
         description:
-          - V(format) is the drive's backing file's data format. Please refer to the Proxmox VE Administrator Guide, section
-            Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version, tables
-            3 to 14) to find out format supported by the provided storage backend.
+          - V(format) is the drive's backing file's data format.
+          - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html), tables
+            3 to 14, to find out format supported by the provided storage backend.
         type: str
       efitype:
         description:
@@ -171,8 +171,8 @@ options:
       - Target drive's backing file's data format.
       - Used only with clone.
       - Use O(format=unspecified) and O(full=false) for a linked clone.
-      - Please refer to the Proxmox VE Administrator Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html)
-        for the latest version, tables 3 to 14) to find out format supported by the provided storage backend.
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html), tables
+        3 to 14, to find out format supported by the provided storage backend.
       - Not specifying this option is equivalent to setting it to V(unspecified).
     type: str
     choices: ["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]
@@ -220,8 +220,7 @@ options:
       - Keys must be C(ide[n]) where 0 ≤ n ≤ 3.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation
-        (look for "ide[n]:") at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=ide,-[n]%3A).
     type: dict
   ipconfig:
     description:
@@ -300,8 +299,7 @@ options:
         for a rate-limited VLAN interface with firewall enabled.'
       - V(macaddr=XX:XX:XX:XX:XX:XX) must be a unique MAC address.
         If not specified, a unique MAC address is automatically generated.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "net[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html\#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=net,-[n]%3A).
     type: dict
   newid:
     description:
@@ -366,8 +364,7 @@ options:
       - Keys must be C(sata[n]) where 0 ≤ n ≤ 5.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=sata,-[n]%3A).
     type: dict
   scsi:
     description:
@@ -375,8 +372,7 @@ options:
       - Keys must be C(scsi[n]) where 0 ≤ n ≤ 30.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=scsi,-[n]%3A).
     type: dict
   scsihw:
     description:
@@ -433,7 +429,7 @@ options:
     description:
       - Configure additional SPICE enhancements.
       - Value is a comma-separated list of options in the format V(foldersharing=<0|1>[,videostreaming=<off|all|filter>]).
-      - For more information, see U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_spice_enhancements).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_spice_enhancements).
     type: str
   sshkeys:
     description:
@@ -546,8 +542,7 @@ options:
   vga:
     description:
       - Select VGA type. If you want to use high resolution modes (>= 1280x1024x16) then you should use option V(std) or V(vmware).
-      - Please refer to the Proxmox VE Administrator Guide, section QEMU/KVM Virtual Machines (see
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options)) for more information on possible values.
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=vga%3A).
     type: str
   virtio:
     description:
@@ -555,8 +550,7 @@ options:
       - Keys must be C(virtio[n]) where 0 ≤ n ≤ 15.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=virtio,-[n]%3A).
     type: dict
   watchdog:
     description:
