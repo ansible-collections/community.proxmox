@@ -494,15 +494,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 changed = True
                 result_subscription = f"License subscription for node '{node_name}' has been uploaded."
 
-        if subscription_state == "absent":
-            if subscription_current.get("status", None) != "notfound":
-                if not self.module.check_mode:
-                    try:
-                        self.proxmox_api.nodes(node_name).subscription.delete()
-                    except Exception as e:
-                        self.module.fail_json(msg=f"Failed to delete subscription key: {e}")
-                changed = True
-                result_subscription = f"License subscription for node '{node_name}' has been deleted."
+        if subscription_state == "absent" and subscription_current.get("status", None) != "notfound":
+            changed = True
+            result_subscription = f"License subscription for node '{node_name}' has been deleted."
+            if not self.module.check_mode:
+                try:
+                    self.proxmox_api.nodes(node_name).subscription.delete()
+                except Exception as e:
+                    self.module.fail_json(msg=f"Failed to delete subscription key: {e}")
 
         return changed, result_subscription
 

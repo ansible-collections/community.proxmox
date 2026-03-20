@@ -390,14 +390,13 @@ def main():
                         msg=f"failed to delete template with volid={storage}:{content_type}/{template}",
                     )
 
-            if checksum:
-                if proxmox.fetch_and_verify(
-                    node, storage, url, content_type, timeout, checksum, checksum_algorithm, template
-                ):
-                    module.exit_json(
-                        changed=True,
-                        msg=f"Checksum verified, template with volid={storage}:{content_type}/{template} uploaded",
-                    )
+            if checksum and proxmox.fetch_and_verify(
+                node, storage, url, content_type, timeout, checksum, checksum_algorithm, template
+            ):
+                module.exit_json(
+                    changed=True,
+                    msg=f"Checksum verified, template with volid={storage}:{content_type}/{template} uploaded",
+                )
             if proxmox.fetch_template(node, storage, content_type, url, timeout, template):
                 module.exit_json(changed=True, msg=f"template with volid={storage}:{content_type}/{template} uploaded")
 
