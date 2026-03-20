@@ -225,7 +225,7 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["backup_info"] == expected_output
-        assert len(result["backup_info"]) == 2
+        assert len(result["backup_info"]) == len(expected_output)
 
     def test_get_specific_backup_information_by_vmid(self):
         with pytest.raises(AnsibleExitJson) as exc_info:

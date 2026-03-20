@@ -291,7 +291,7 @@ class TestProxmoxBackup(ModuleTestCase):
         for backup_result in result["backups"]:
             assert backup_result["upid"] in {VZDUMP_API_RETURN[key] for key in VZDUMP_API_RETURN}
         assert self.mock_get_taskok.call_count == 0
-        assert self.mock_post_vzdump.call_count == 3
+        assert self.mock_post_vzdump.call_count == len(VZDUMP_API_RETURN)
 
     def test_create_backup_include_mode_with_wait(self):
         with set_module_args(
