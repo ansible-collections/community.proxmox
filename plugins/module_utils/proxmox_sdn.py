@@ -20,7 +20,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
         super().__init__(module)
         self.module = module
         pve_major_version = self.version().version[0]
-        self._is_lock_and_rollback_supported = pve_major_version >= 9
+        self._is_lock_and_rollback_supported = pve_major_version >= 9  # noqa: PLR2004
 
     @property
     def is_lock_and_rollback_supported(self) -> bool:

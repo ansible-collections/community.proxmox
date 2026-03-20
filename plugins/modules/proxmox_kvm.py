@@ -1180,19 +1180,19 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         pve_major_version = 3 if version < LooseVersion("4.0") else version.version[0]
 
         # The features work only on PVE 4+
-        if pve_major_version < 4:
+        if pve_major_version < 4:  # noqa: PLR2004
             for p in only_v4:
                 if p in kwargs:
                     del kwargs[p]
 
         # The features work only on PVE 6
-        if pve_major_version < 6:
+        if pve_major_version < 6:  # noqa: PLR2004
             for p in only_v6:
                 if p in kwargs:
                     del kwargs[p]
 
         # The features work only on PVE 8
-        if pve_major_version < 8:
+        if pve_major_version < 8:  # noqa: PLR2004
             for p in only_v8:
                 if p in kwargs:
                     del kwargs[p]

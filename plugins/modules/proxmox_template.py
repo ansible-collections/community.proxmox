@@ -197,6 +197,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 REQUESTS_TOOLBELT_ERR = None
+MAX_FILE_SIZE_WITHOUT_REQUESTS_TOOLBELT = 256 * 1024 * 1024  # 256 MB
+
 try:
     # requests_toolbelt is used internally by proxmoxer module
     import requests_toolbelt  # noqa: F401, pylint: disable=unused-import
@@ -263,7 +265,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
 
     def upload_template(self, node, storage, content_type, realpath, timeout):
         stats = os.stat(realpath)
-        if stats.st_size > 268435456 and not HAS_REQUESTS_TOOLBELT:
+        if stats.st_size > MAX_FILE_SIZE_WITHOUT_REQUESTS_TOOLBELT and not HAS_REQUESTS_TOOLBELT:
             self.module.fail_json(
                 msg=missing_required_lib("requests_toolbelt", reason="to upload files larger than 256MB"),
                 exception=REQUESTS_TOOLBELT_ERR,
