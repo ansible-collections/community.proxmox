@@ -196,14 +196,46 @@ msg:
     returned: always
 """
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        node=dict(type="str", required=True),
+        state=dict(choices=["present", "absent", "in", "out", "scrub", "start", "stop", "restart"], required=True),
+        dev=dict(type="str"),
+        osdid=dict(type="int"),
+        cleanup=dict(type="bool", default=False),
+        crush_device_class=dict(type="str"),
+        db_dev=dict(type="str"),
+        db_dev_size=dict(type="int"),
+        deep=dict(type="bool", default=False),
+        encrypted=dict(type="bool", default=False),
+        osds_per_device=dict(type="int"),
+        wal_dev=dict(type="str"),
+        wal_dev_size=dict(type="int"),
+    )
+
+
+def module_options():
+    return dict(
+        required_if=[
+            ("state", "present", ["dev"]),
+            ("state", "absent", ["osdid"]),
+            ("state", "in", ["osdid"]),
+            ("state", "out", ["osdid"]),
+            ("state", "scrub", ["osdid"]),
+            ("state", "start", ["osdid"]),
+            ("state", "stop", ["osdid"]),
+            ("state", "restart", ["osdid"]),
+        ],
+    )
 
 
 class ProxmoxCephOsdAnsible(ProxmoxAnsible):
@@ -410,43 +442,9 @@ def get_present_optional_args(args):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    osd_args = dict(
-        node=dict(type="str", required=True),
-        state=dict(choices=["present", "absent", "in", "out", "scrub", "start", "stop", "restart"], required=True),
-        dev=dict(type="str"),
-        osdid=dict(type="int"),
-        cleanup=dict(type="bool", default=False),
-        crush_device_class=dict(type="str"),
-        db_dev=dict(type="str"),
-        db_dev_size=dict(type="int"),
-        deep=dict(type="bool", default=False),
-        encrypted=dict(type="bool", default=False),
-        osds_per_device=dict(type="int"),
-        wal_dev=dict(type="str"),
-        wal_dev_size=dict(type="int"),
-    )
-
-    module_args.update(osd_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        required_if=[
-            ("state", "present", ["dev"]),
-            ("state", "absent", ["osdid"]),
-            ("state", "in", ["osdid"]),
-            ("state", "out", ["osdid"]),
-            ("state", "scrub", ["osdid"]),
-            ("state", "start", ["osdid"]),
-            ("state", "stop", ["osdid"]),
-            ("state", "restart", ["osdid"]),
-        ],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxCephOsdAnsible(module)
+
     state = module.params["state"]
 
     if state == "present":

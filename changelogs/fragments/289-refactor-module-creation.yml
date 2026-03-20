@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox - add a new helper `create_proxmox_module()` which adds generic auth args and constraints, and merges in the module-specific args and options (https://github.com/ansible-collections/community.proxmox/pull/289).

@@ -110,11 +110,9 @@ cluster_join:
 
 import traceback
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 
 try:
@@ -127,6 +125,14 @@ else:
     PROXMOXER_LIBRARY_IMPORT_ERROR = None
 
 
+def module_args():
+    return dict()
+
+
+def module_options():
+    return {}
+
+
 class ProxmoxClusterJoinInfoAnsible(ProxmoxAnsible):
     def get_cluster_join(self):
         try:
@@ -137,24 +143,11 @@ class ProxmoxClusterJoinInfoAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Error obtaining cluster join information: {str(e)}")
 
 
-def proxmox_cluster_join_info_argument_spec():
-    return dict()
-
-
 def main():
-    module_args = proxmox_auth_argument_spec()
-    cluster_join_info_args = proxmox_cluster_join_info_argument_spec()
-    module_args.update(cluster_join_info_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        supports_check_mode=True,
-    )
-    result = dict(changed=False)
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxClusterJoinInfoAnsible(module)
+
+    result = dict(changed=False)
 
     cluster_join = proxmox.get_cluster_join()
     result["cluster_join"] = cluster_join
