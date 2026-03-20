@@ -192,19 +192,22 @@ import ssl
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
+    ansible_to_proxmox_bool,
     create_proxmox_module,
 )
 
 
 def module_args():
     return dict(
-        node_name=dict(type="str", required=True),
+        node_name=dict(type="str", aliases=["node"], required=True),
         power_state=dict(choices=["online", "offline"]),
         certificates=dict(
             type="dict",
             options=dict(
-                cert=dict(type="str", required=False, no_log=True),
-                key=dict(type="str", required=False, no_log=True),
+                cert=dict(type="str", required=False, aliases=["certificate_file_path"], no_log=True),
+                certificate=dict(type="str", required=False, aliases=["certificate_raw"], no_log=True),
+                key=dict(type="str", required=False, aliases=["private_key_file_path"], no_log=True),
+                private_key=dict(type="str", required=False, aliases=["private_key_raw"], no_log=True),
                 state=dict(type="str", required=False, choices=["present", "absent"]),
                 restart=dict(type="bool", default=False, required=False),
                 force=dict(type="bool", default=False, required=False),
