@@ -49,7 +49,7 @@ def fake_api(mocker):
 
 
 def test_proxmox_snap_without_argument(capfd):
-    with set_module_args({}), pytest.raises(SystemExit) as results:
+    with set_module_args({}), pytest.raises(SystemExit):
         proxmox_snap.main()
 
     out, err = capfd.readouterr()
@@ -74,7 +74,7 @@ def test_create_snapshot_check_mode(connect_mock, capfd, mocker):
     ):
         proxmox_utils.HAS_PROXMOXER = True
         connect_mock.side_effect = lambda: fake_api(mocker)
-        with pytest.raises(SystemExit) as results:
+        with pytest.raises(SystemExit):
             proxmox_snap.main()
 
     out, err = capfd.readouterr()
@@ -99,7 +99,7 @@ def test_remove_snapshot_check_mode(connect_mock, capfd, mocker):
     ):
         proxmox_utils.HAS_PROXMOXER = True
         connect_mock.side_effect = lambda: fake_api(mocker)
-        with pytest.raises(SystemExit) as results:
+        with pytest.raises(SystemExit):
             proxmox_snap.main()
 
     out, err = capfd.readouterr()
@@ -124,7 +124,7 @@ def test_rollback_snapshot_check_mode(connect_mock, capfd, mocker):
     ):
         proxmox_utils.HAS_PROXMOXER = True
         connect_mock.side_effect = lambda: fake_api(mocker)
-        with pytest.raises(SystemExit) as results:
+        with pytest.raises(SystemExit):
             proxmox_snap.main()
 
     out, err = capfd.readouterr()

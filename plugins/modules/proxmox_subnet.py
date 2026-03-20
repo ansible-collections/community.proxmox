@@ -223,7 +223,6 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
 
     def run(self):
         state = self.params.get("state")
-        update = self.params.get("update")
 
         subnet_params = {
             "subnet": self.params.get("subnet"),

@@ -122,7 +122,7 @@ class TestProxmoxSendkeyModule(ModuleTestCase):
 
     @patch.object(time, "sleep")
     def test_sleep_key_delay(self, time_sleep_mock):
-        with self.assertRaises(AnsibleExitJson) as exc_info:
+        with self.assertRaises(AnsibleExitJson):
             args = get_module_args_sendkey(vmid=100, keys_send=["ctrl-alt-delete"], delay=1.0)
             with set_module_args(args):
                 self.module.main()

@@ -1167,8 +1167,6 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         # valid clone parameters
         valid_clone_params = ["format", "full", "pool", "snapname", "storage", "target"]
         clone_params = {}
-        # Default args for vm. Note: -args option is for experts only. It allows you to pass arbitrary arguments to kvm.
-        vm_args = f"-serial unix:/var/run/qemu-server/{vmid}.serial,server,nowait"
 
         proxmox_node = self.proxmox_api.nodes(node)
 
@@ -1428,7 +1426,6 @@ def main():
     update = bool(module.params["update"])
     update_unsafe = bool(module.params["update_unsafe"])
     vmid = module.params["vmid"]
-    validate_certs = module.params["validate_certs"]
 
     if module.params["format"] == "unspecified":
         module.params["format"] = None
