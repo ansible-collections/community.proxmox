@@ -260,7 +260,7 @@ class ProxmoxClusterFirewallAnsible(ProxmoxAnsible):
             return
         lr_rate = lr["rate"]
         if not _validate_log_ratelimit_rate(lr_rate):
-            self.fail_json(
+            self.module.fail_json(
                 msg="log_ratelimit.rate must be a valid rate expression, e.g. '1/second'",
                 rate=lr_rate,
             )
