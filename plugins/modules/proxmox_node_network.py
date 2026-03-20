@@ -590,6 +590,12 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_to_ansible_bool,
 )
 
+MIN_VLAN_ID = 1
+MAX_VLAN_ID = 4094
+MAX_BOND_NUMBER = 9999
+MIN_MTU = 1280
+MAX_MTU = 65520
+
 # Single source of truth for all parameter definitions
 PARAMETER_DEFINITIONS = {
     "node": {
@@ -770,7 +776,7 @@ def _is_valid_cidr(cidr):
         return False
     try:
         iface = ip_interface(cidr)
-        return iface.version == 4
+        return iface.version == 4  # noqa: PLR2004
     except Exception:
         return False
 
@@ -781,7 +787,7 @@ def _is_valid_cidr6(cidr):
         return False
     try:
         iface = ip_interface(cidr)
-        return iface.version == 6
+        return iface.version == 6  # noqa: PLR2004
     except Exception:
         return False
 
@@ -791,7 +797,7 @@ def _is_valid_ipv4(addr):
     if not addr:
         return False
     try:
-        return ip_address(addr).version == 4
+        return ip_address(addr).version == 4  # noqa: PLR2004
     except Exception:
         return False
 
@@ -801,7 +807,7 @@ def _is_valid_ipv6(addr):
     if not addr:
         return False
     try:
-        return ip_address(addr).version == 6
+        return ip_address(addr).version == 6  # noqa: PLR2004
     except Exception:
         return False
 
@@ -944,8 +950,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         if mtu_value is not None:
             try:
                 mtu = int(mtu_value)
-                if not (1280 <= mtu <= 65520):
-                    errors.append("mtu must be between 1280 and 65520")
+                if not (MIN_MTU <= mtu <= MAX_MTU):
+                    errors.append(f"mtu must be between {MIN_MTU} and {MAX_MTU}")
             except (ValueError, TypeError):
                 errors.append("mtu must be an integer")
 
@@ -1092,8 +1098,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         if ovs_tag_value is not None:
             try:
                 ovs_tag = int(ovs_tag_value)
-                if not (1 <= ovs_tag <= 4094):
-                    errors.append("ovs_tag must be between 1 and 4094")
+                if not (MIN_VLAN_ID <= ovs_tag <= MAX_VLAN_ID):
+                    errors.append(f"ovs_tag must be between {MIN_VLAN_ID} and {MAX_VLAN_ID}")
             except (ValueError, TypeError):
                 errors.append("ovs_tag must be an integer")
 
@@ -1111,8 +1117,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         if ovs_tag_value is not None:
             try:
                 ovs_tag = int(ovs_tag_value)
-                if not (1 <= ovs_tag <= 4094):
-                    errors.append("ovs_tag must be between 1 and 4094")
+                if not (MIN_VLAN_ID <= ovs_tag <= MAX_VLAN_ID):
+                    errors.append(f"ovs_tag must be between {MIN_VLAN_ID} and {MAX_VLAN_ID}")
             except (ValueError, TypeError):
                 errors.append("ovs_tag must be an integer")
 
@@ -1189,16 +1195,16 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         if not iface or not iface_type:
             return errors
 
-        # Bond interfaces must follow bondX format (X = 0-9999)
+        # Bond interfaces must follow bondX format (X = 0-MAX_BOND_NUMBER)
         if iface_type in ["bond", "OVSBond"]:
             if not re.match(r"^bond\d{1,5}$", iface):
                 errors.append(
-                    f"Interface name '{iface}' for type '{iface_type}' must follow format 'bondX' where X is a number between 0 and 9999"
+                    f"Interface name '{iface}' for type '{iface_type}' must follow format 'bondX' where X is a number between 0 and {MAX_BOND_NUMBER}"
                 )
             else:
                 bond_number = int(iface[4:])
-                if bond_number > 9999:
-                    errors.append(f"bond interface number must be between 0 and 9999, got {bond_number}")
+                if bond_number > MAX_BOND_NUMBER:
+                    errors.append(f"bond interface number must be between 0 and {MAX_BOND_NUMBER}, got {bond_number}")
 
         # VLAN interfaces support two formats: eth0.100 and vlan100
         elif iface_type == "vlan":
@@ -1212,8 +1218,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                         vlan_id = int(iface[4:])
                     else:
                         vlan_id = int(iface.split(".")[-1])
-                    if not (1 <= vlan_id <= 4094):
-                        errors.append(f"vlan_id must be between 1 and 4094, got {vlan_id}")
+                    if not (MIN_VLAN_ID <= vlan_id <= MAX_VLAN_ID):
+                        errors.append(f"vlan_id must be between {MIN_VLAN_ID} and {MAX_VLAN_ID}, got {vlan_id}")
                 except (ValueError, TypeError):
                     errors.append("vlan_id must be a valid integer")
 

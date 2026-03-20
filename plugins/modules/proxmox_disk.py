@@ -809,7 +809,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         # Resize disk API endpoint has changed at v8.0: PUT method become async.
         version = self.version()
         pve_major_version = 3 if version < LooseVersion("4.0") else version.version[0]
-        if pve_major_version >= 8:
+        if pve_major_version >= 8:  # noqa: PLR2004
             current_task_id = self.proxmox_api.nodes(vm["node"]).qemu(vmid).resize.set(disk=disk, size=size)
             task_success, fail_reason = self.api_task_complete(
                 vm["node"], current_task_id, self.module.params["timeout"]
