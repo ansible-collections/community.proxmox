@@ -180,9 +180,7 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve VMs information from cluster resources: {e}")
 
-    def get_vms_from_nodes(
-        self, cluster_machines, resource_type, vmid=None, name=None, node=None, config=None, network=False
-    ):
+    def get_vms_from_nodes(self, cluster_machines, resource_type, vmid=None, name=None, node=None, config=None, network=False):  # noqa: PLR0913
         # Leave in dict only machines that user wants to know about
         filtered_vms = {
             vm: info
@@ -223,13 +221,13 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
 
         return filtered_vms
 
-    def get_qemu_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):
+    def get_qemu_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):  # noqa: PLR0913
         try:
             return self.get_vms_from_nodes(cluster_machines, "qemu", vmid, name, node, config, network)
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve QEMU VMs information: {e}")
 
-    def get_lxc_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):
+    def get_lxc_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):  # noqa: PLR0913
         try:
             return self.get_vms_from_nodes(cluster_machines, "lxc", vmid, name, node, config, network)
         except Exception as e:

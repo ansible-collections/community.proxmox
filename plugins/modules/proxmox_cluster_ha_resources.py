@@ -153,7 +153,7 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
     def _delete(self, sid):
         return self.proxmox_api.cluster.ha.resources(sid).delete()
 
-    def create(self, resources, sid, comment, group, max_relocate, max_restart, state):
+    def create(self, resources, sid, comment, group, max_relocate, max_restart, state):  # noqa: PLR0913
         data = {
             "comment": comment,
             "group": group,

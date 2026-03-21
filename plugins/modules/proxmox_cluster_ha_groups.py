@@ -130,7 +130,7 @@ class ProxmoxClusterHAGroupsAnsible(ProxmoxAnsible):
     def _delete(self, name):
         return self.proxmox_api.cluster.ha.groups(name).delete()
 
-    def create(self, groups, name, comment, nodes, nofailback, restricted):
+    def create(self, groups, name, comment, nodes, nofailback, restricted):  # noqa: PLR0913
         data = {
             "comment": comment,
             "nodes": ",".join(nodes),

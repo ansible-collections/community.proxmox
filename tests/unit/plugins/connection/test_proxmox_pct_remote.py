@@ -495,7 +495,7 @@ def test_close_lock_file_time_out_error_handling(mock_exists, mock_unlink, conne
 @patch("os.chown")
 @patch("os.rename")
 @patch("os.path.exists")
-def test_tempfile_creation_and_move(
+def test_tempfile_creation_and_move(  # noqa: PLR0913
     mock_exists, mock_rename, mock_chown, mock_chmod, mock_tempfile, mock_lock_file, connection
 ):
     """Test tempfile creation and move during close"""

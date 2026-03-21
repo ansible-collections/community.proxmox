@@ -434,7 +434,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
         tasks.extend(ok_tasks)
         return tasks
 
-    def permission_check(self, storage, mode, node, bandwidth, performance_tweaks, retention, pool, vmids):
+    def permission_check(self, storage, mode, node, bandwidth, performance_tweaks, retention, pool, vmids):  # noqa: PLR0913
         permissions = self._get_permissions()
         self.check_if_storage_exists(storage, node)
         self.check_storage_permissions(permissions, storage, bandwidth, performance_tweaks, retention)
