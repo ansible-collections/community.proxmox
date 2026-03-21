@@ -956,29 +956,25 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 errors.append("mtu must be an integer")
 
         cidr_value = self.get_effective_value(self.params.get("cidr"), "cidr")
-        if cidr_value:
-            if not _is_valid_cidr(cidr_value):
-                errors.append("Invalid IPv4 cidr format")
+        if cidr_value and not _is_valid_cidr(cidr_value):
+            errors.append("Invalid IPv4 cidr format")
 
         cidr6_value = self.get_effective_value(self.params.get("cidr6"), "cidr6")
-        if cidr6_value:
-            if not _is_valid_cidr6(cidr6_value):
-                errors.append("Invalid IPv6 cidr format")
+        if cidr6_value and not _is_valid_cidr6(cidr6_value):
+            errors.append("Invalid IPv6 cidr format")
 
         # Gateway requires corresponding CIDR to be defined
         gateway_value = self.get_effective_value(self.params.get("gateway"), "gateway")
         if gateway_value and not cidr_value:
             errors.append("gateway cannot be set when cidr is not defined")
-        elif gateway_value:
-            if not _is_valid_ipv4(gateway_value):
-                errors.append("gateway must be a valid IPv4 address")
+        elif gateway_value and not _is_valid_ipv4(gateway_value):
+            errors.append("gateway must be a valid IPv4 address")
 
         gateway6_value = self.get_effective_value(self.params.get("gateway6"), "gateway6")
         if gateway6_value and not cidr6_value:
             errors.append("gateway6 cannot be set when cidr6 is not defined")
-        elif gateway6_value:
-            if not _is_valid_ipv6(gateway6_value):
-                errors.append("gateway6 must be a valid IPv6 address")
+        elif gateway6_value and not _is_valid_ipv6(gateway6_value):
+            errors.append("gateway6 must be a valid IPv6 address")
 
         return errors
 
@@ -993,9 +989,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
 
         # bridge_vids requires bridge_vlan_aware to be enabled
         bridge_vids_value = self.get_effective_value(self.params.get("bridge_vids"), "bridge_vids")
-        if bridge_vids_value is not None:
-            if not self.params.get("bridge_vlan_aware"):
-                errors.append("bridge_vids should not be defined if bridge_vlan_aware is not set or false")
+        if bridge_vids_value is not None and not self.params.get("bridge_vlan_aware"):
+            errors.append("bridge_vids should not be defined if bridge_vlan_aware is not set or false")
 
         return errors
 
@@ -1032,9 +1027,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 slaves = self.params.get("slaves", "").split()
                 if bond_primary not in slaves:
                     errors.append("bond_primary must be included in slaves for active-backup mode")
-        elif bond_mode in ["balance-xor", "802.3ad"]:
-            if not self.params.get("bond_xmit_hash_policy"):
-                errors.append("bond_xmit_hash_policy is required for balance-xor and 802.3ad modes")
+        elif bond_mode in ["balance-xor", "802.3ad"] and not self.params.get("bond_xmit_hash_policy"):
+            errors.append("bond_xmit_hash_policy is required for balance-xor and 802.3ad modes")
 
         # Validate parameter combinations based on bond mode
         if self.params.get("bond_primary") is not None and bond_mode != "active-backup":
@@ -1284,12 +1278,13 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                     converted_key = self.get_ansible_name(key)
                     if converted_key == "comments":
                         value = self.normalize_comment(value)
-                    elif isinstance(value, int) and value in [0, 1]:
-                        if (
-                            converted_key in PARAMETER_DEFINITIONS
-                            and PARAMETER_DEFINITIONS[converted_key]["type"] == "bool"
-                        ):
-                            value = proxmox_to_ansible_bool(value)
+                    elif (
+                        isinstance(value, int)
+                        and value in [0, 1]
+                        and converted_key in PARAMETER_DEFINITIONS
+                        and PARAMETER_DEFINITIONS[converted_key]["type"] == "bool"
+                    ):
+                        value = proxmox_to_ansible_bool(value)
                     converted_interface[converted_key] = value
                 converted_interfaces.append(converted_interface)
             return converted_interfaces
@@ -1478,9 +1473,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         current_config = self.get_interface_config()
 
         # Special handling for eth interfaces (check if actually deleted/inactive)
-        if iface_type == "eth" and current_config:
-            if self._is_eth_interface_deleted(current_config):
-                return {"changed": False, "msg": f"Interface {iface} does not exist"}
+        if iface_type == "eth" and current_config and self._is_eth_interface_deleted(current_config):
+            return {"changed": False, "msg": f"Interface {iface} does not exist"}
 
         if current_config:
             if not self.module.check_mode:
@@ -1663,9 +1657,8 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
 
         # Include only parameters that the user has set
         for param_name in self.get_all_valid_params():
-            if self.params.get(param_name) is not None:
-                if param_name in config:
-                    filtered_config[param_name] = config[param_name]
+            if self.params.get(param_name) is not None and param_name in config:
+                filtered_config[param_name] = config[param_name]
 
         return filtered_config
 

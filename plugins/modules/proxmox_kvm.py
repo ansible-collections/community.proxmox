@@ -1238,9 +1238,8 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
                 del kwargs["pool"]
 
         # Check that the bios option is set to ovmf if the efidisk0 option is present
-        if "efidisk0" in kwargs:
-            if ("bios" not in kwargs) or (kwargs["bios"] != "ovmf"):
-                self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
+        if "efidisk0" in kwargs and kwargs.get("bios") != "ovmf":
+            self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
 
         # Flatten efidisk0 option to a string so that it is a string which is what Proxmoxer and the API expect
         if "efidisk0" in kwargs:
