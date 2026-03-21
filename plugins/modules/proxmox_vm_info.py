@@ -241,7 +241,7 @@ def main():
     proxmox = ProxmoxVmInfoAnsible(module)
 
     node = module.params["node"]
-    type = module.params["type"]
+    resource_type = module.params["type"]
     vmid = module.params["vmid"]
     name = module.params["name"]
     config = module.params["config"]
@@ -256,9 +256,9 @@ def main():
     cluster_machines = {int(machine["vmid"]): machine for machine in vms_cluster_resources}
     vms = {}
 
-    if type == "lxc":
+    if resource_type == "lxc":
         vms = proxmox.get_lxc_vms(cluster_machines, vmid, name, node, config, network)
-    elif type == "qemu":
+    elif resource_type == "qemu":
         vms = proxmox.get_qemu_vms(cluster_machines, vmid, name, node, config, network)
     else:
         vms = proxmox.get_qemu_vms(cluster_machines, vmid, name, node, config, network)
