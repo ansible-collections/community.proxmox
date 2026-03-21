@@ -406,13 +406,13 @@ EXPECTED_VMS_OUTPUT = [
 ]
 
 
-def get_module_args(type="all", node=None, vmid=None, name=None, config="none"):
+def get_module_args(resource_type="all", node=None, vmid=None, name=None, config="none"):
     return {
         "api_host": "host",
         "api_user": "user",
         "api_password": "password",
         "node": node,
-        "type": type,
+        "type": resource_type,
         "vmid": vmid,
         "name": name,
         "config": config,
@@ -444,7 +444,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         assert result["msg"] == "missing required arguments: api_host, api_user"
 
     def test_get_lxc_vms_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(type="lxc")):
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(resource_type="lxc")):
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["type"] == "lxc"]
             self.module.main()
 
@@ -453,7 +453,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         assert result["proxmox_vms"] == expected_output
 
     def test_get_qemu_vms_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(type="qemu")):
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(resource_type="qemu")):
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["type"] == "qemu"]
             self.module.main()
 
@@ -468,7 +468,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         assert result["proxmox_vms"] == EXPECTED_VMS_OUTPUT
 
     def test_vmid_is_converted_to_int(self):
-        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(type="lxc")):
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(get_module_args(resource_type="lxc")):
             self.module.main()
 
         result = exc_info.value.args[0]
@@ -478,7 +478,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         with pytest.raises(AnsibleExitJson) as exc_info:
             vmid = 102
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["vmid"] == vmid and vm["type"] == "lxc"]
-            with set_module_args(get_module_args(type="lxc", vmid=vmid)):
+            with set_module_args(get_module_args(resource_type="lxc", vmid=vmid)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -488,7 +488,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         with pytest.raises(AnsibleExitJson) as exc_info:
             vmid = 100
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["vmid"] == vmid and vm["type"] == "qemu"]
-            with set_module_args(get_module_args(type="qemu", vmid=vmid)):
+            with set_module_args(get_module_args(resource_type="qemu", vmid=vmid)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -498,7 +498,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         with pytest.raises(AnsibleExitJson) as exc_info:
             vmid = 100
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["vmid"] == vmid]
-            with set_module_args(get_module_args(type="all", vmid=vmid)):
+            with set_module_args(get_module_args(resource_type="all", vmid=vmid)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -510,7 +510,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         with pytest.raises(AnsibleExitJson) as exc_info:
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["name"] == name]
-            with set_module_args(get_module_args(type="all", name=name)):
+            with set_module_args(get_module_args(resource_type="all", name=name)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -525,7 +525,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         with pytest.raises(AnsibleExitJson) as exc_info:
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["name"] == name]
-            with set_module_args(get_module_args(type="all", name=name)):
+            with set_module_args(get_module_args(resource_type="all", name=name)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -539,7 +539,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         with pytest.raises(AnsibleExitJson) as exc_info:
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["name"] == name]
-            with set_module_args(get_module_args(type="all", name=name)):
+            with set_module_args(get_module_args(resource_type="all", name=name)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -548,7 +548,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
     def test_get_all_lxc_vms_from_specific_node(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["node"] == NODE1 and vm["type"] == "lxc"]
-            with set_module_args(get_module_args(type="lxc", node=NODE1)):
+            with set_module_args(get_module_args(resource_type="lxc", node=NODE1)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -557,7 +557,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
     def test_get_all_qemu_vms_from_specific_node(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
             expected_output = [vm for vm in EXPECTED_VMS_OUTPUT if vm["node"] == NODE1 and vm["type"] == "qemu"]
-            with set_module_args(get_module_args(type="qemu", node=NODE1)):
+            with set_module_args(get_module_args(resource_type="qemu", node=NODE1)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -575,7 +575,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
     def test_module_returns_empty_list_when_vm_does_not_exist(self):
         with pytest.raises(AnsibleExitJson) as exc_info:
             vmid = 200
-            with set_module_args(get_module_args(type="all", vmid=vmid)):
+            with set_module_args(get_module_args(resource_type="all", vmid=vmid)):
                 self.module.main()
 
         result = exc_info.value.args[0]
@@ -585,7 +585,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         self.connect_mock.return_value.nodes.return_value.qemu.return_value.get.side_effect = OSError(
             "Some mocked connection error."
         )
-        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(type="qemu")):
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(resource_type="qemu")):
             self.module.main()
 
         result = exc_info.value.args[0]
@@ -595,7 +595,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         self.connect_mock.return_value.nodes.return_value.lxc.return_value.get.side_effect = OSError(
             "Some mocked connection error."
         )
-        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(type="lxc")):
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(resource_type="lxc")):
             self.module.main()
 
         result = exc_info.value.args[0]
@@ -612,7 +612,9 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
         assert "Failed to retrieve VMs information from cluster resources:" in result["msg"]
 
     def test_module_fail_when_node_does_not_exist(self):
-        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(get_module_args(type="all", node="NODE3")):
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            get_module_args(resource_type="all", node="NODE3")
+        ):
             self.module.main()
 
         result = exc_info.value.args[0]
@@ -623,7 +625,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible.get_vmid"
         ) as get_vmid_mock, pytest.raises(AnsibleExitJson):
             vmid = 100
-            with set_module_args(get_module_args(type="all", vmid=vmid, name="something")):
+            with set_module_args(get_module_args(resource_type="all", vmid=vmid, name="something")):
                 self.module.main()
 
         assert get_vmid_mock.call_count == 0
@@ -648,7 +650,7 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
             vmid = 101
             with set_module_args(
                 get_module_args(
-                    type="qemu",
+                    resource_type="qemu",
                     vmid=vmid,
                     config="current",
                 )

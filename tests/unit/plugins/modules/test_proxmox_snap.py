@@ -17,7 +17,7 @@ import ansible_collections.community.proxmox.plugins.module_utils.proxmox as pro
 from ansible_collections.community.proxmox.plugins.modules import proxmox_snap
 
 
-def get_resources(type):
+def get_resources(**_):
     return [
         {
             "diskwrite": 0,

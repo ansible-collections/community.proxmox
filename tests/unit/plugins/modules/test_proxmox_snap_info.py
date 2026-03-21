@@ -15,7 +15,7 @@ from ansible_collections.community.proxmox.plugins.modules import proxmox_snap_i
 proxmoxer = pytest.importorskip("proxmoxer")
 
 
-def get_resources(type):
+def get_resources(**_):
     return [{"vmid": 100, "node": "localhost", "type": "lxc", "name": "test-lxc"}]
 
 
