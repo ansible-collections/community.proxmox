@@ -1170,7 +1170,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             time.sleep(1)
         return False
 
-    def create_vm(self, vmid, newid, node, name, memory, cpu, cores, sockets, update, update_unsafe, **kwargs):
+    def create_vm(self, vmid, newid, node, name, memory, cpu, cores, sockets, update, update_unsafe, **kwargs):  # noqa: PLR0913
         # Available only in PVE 4
         only_v4 = ["force", "protection", "skiplock"]
         only_v6 = ["ciuser", "cipassword", "sshkeys", "ipconfig", "tags"]

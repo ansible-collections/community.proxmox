@@ -202,14 +202,14 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
                 mountpoints[key] = value
         return mountpoints
 
-    def _container_mp_disable(self, vm, vmid, timeout, unbind, mountpoints, vmstatus):
+    def _container_mp_disable(self, vm, vmid, timeout, unbind, mountpoints, vmstatus):  # noqa: PLR0913
         # shutdown container if running
         if vmstatus == "running":
             self.shutdown_instance(vm, vmid, timeout)
         # delete all mountpoints configs
         self.vmconfig(vm, vmid).put(delete=" ".join(mountpoints))
 
-    def _container_mp_restore(self, vm, vmid, timeout, unbind, mountpoints, vmstatus):
+    def _container_mp_restore(self, vm, vmid, timeout, unbind, mountpoints, vmstatus):  # noqa: PLR0913
         # NOTE: requires auth as `root@pam`, API tokens are not supported
         # see https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/lxc/{vmid}/config
         # restore original config
@@ -254,7 +254,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
             for snap in sorted(snapshots, key=lambda x: x["snaptime"])[: len(snapshots) - retention]:
                 self.snapshot(vm, vmid)(snap["name"]).delete()
 
-    def snapshot_create(self, vm, vmid, timeout, snapname, description, vmstate, unbind, retention):
+    def snapshot_create(self, vm, vmid, timeout, snapname, description, vmstate, unbind, retention):  # noqa: PLR0913
         if self.module.check_mode:
             return True
 

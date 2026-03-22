@@ -52,7 +52,13 @@ def fail_json(*args, **kwargs):
     raise SystemExit(kwargs)
 
 
-def get_module_args(vnet, subnet, zone, state="present", dhcp_range=None, snat=0, dhcp_range_update_mode="append"):
+def get_module_args(vnet, subnet, zone, **kwargs):
+    defaults = {
+        "state": "present",
+        "dhcp_range": None,
+        "snat": 0,
+        "dhcp_range_update_mode": "append",
+    }
     return {
         "api_host": "host",
         "api_user": "user",
@@ -60,10 +66,8 @@ def get_module_args(vnet, subnet, zone, state="present", dhcp_range=None, snat=0
         "vnet": vnet,
         "subnet": subnet,
         "zone": zone,
-        "state": state,
-        "dhcp_range": dhcp_range,
-        "snat": snat,
-        "dhcp_range_update_mode": dhcp_range_update_mode,
+        **defaults,
+        **kwargs,
     }
 
 
