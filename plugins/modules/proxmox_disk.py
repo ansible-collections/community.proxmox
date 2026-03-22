@@ -433,7 +433,7 @@ msg:
   sample: "Disk scsi3 created in VM 101"
 """
 
-from re import compile, match, sub
+import re
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
@@ -799,7 +799,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
             and the message to return to Ansible.
         """
         size = self.module.params["size"]
-        if not match(r"^\+?\d+(\.\d+)?[KMGT]?$", size):
+        if not re.match(r"^\+?\d+(\.\d+)?[KMGT]?$", size):
             self.module.fail_json(msg=f"Unrecognized size pattern for disk {disk}: {size}")
         disk_config = disk_conf_str_to_dict(vm_config[disk])
         actual_size = disk_config["size"]
@@ -834,9 +834,9 @@ def main():
 
     disk = module.params["disk"]
     # Verify disk name has appropriate name
-    disk_regex = compile(r"^([a-z]+)([0-9]+)$")
-    disk_bus = sub(disk_regex, r"\1", disk)
-    disk_number = int(sub(disk_regex, r"\2", disk))
+    disk_regex = re.compile(r"^([a-z]+)([0-9]+)$")
+    disk_bus = re.sub(disk_regex, r"\1", disk)
+    disk_number = int(re.sub(disk_regex, r"\2", disk))
     if disk_bus not in proxmox.supported_bus_num_ranges:
         proxmox.module.fail_json(msg=f"Unsupported disk bus: {disk_bus}")
     elif disk_number not in proxmox.supported_bus_num_ranges[disk_bus]:
