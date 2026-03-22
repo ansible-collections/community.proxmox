@@ -50,15 +50,6 @@ CLUSTER_STATUS = [
 ]
 
 
-@patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
-def test_without_required_parameters(connect_mock, capfd):
-    with set_module_args({}), pytest.raises(SystemExit):
-        proxmox_cluster_status_info.main()
-    out, err = capfd.readouterr()
-    assert not err
-    assert json.loads(out)["failed"]
-
-
 def mock_api_cluster_status(mocker):
     # Mock returns raw Proxmox API response with integers for booleans
     raw_response = [

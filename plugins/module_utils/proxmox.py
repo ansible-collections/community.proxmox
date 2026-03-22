@@ -32,9 +32,9 @@ def proxmox_auth_argument_spec():
         dict[str, dict]: Parameter names mapped to their configuration dictionaries.
     """
     return dict(
-        api_host=dict(type="str", required=True, fallback=(env_fallback, ["PROXMOX_HOST"])),
+        api_host=dict(type="str", fallback=(env_fallback, ["PROXMOX_HOST"])),
         api_port=dict(type="int", fallback=(env_fallback, ["PROXMOX_PORT"])),
-        api_user=dict(type="str", required=True, fallback=(env_fallback, ["PROXMOX_USER"])),
+        api_user=dict(type="str", default="root@pam", fallback=(env_fallback, ["PROXMOX_USER"])),
         api_password=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_PASSWORD"])),
         api_otp=dict(type="str", no_log=True, fallback=(env_fallback, ["PROXMOX_OTP"])),
         api_token_id=dict(type="str", no_log=False, fallback=(env_fallback, ["PROXMOX_TOKEN_ID"])),
@@ -59,10 +59,7 @@ def create_proxmox_module(argument_spec, **kwargs):
     spec = {**proxmox_auth_argument_spec(), **argument_spec}
     supports_check_mode = kwargs.pop("supports_check_mode", True)
 
-    for key, default in (
-        ("required_one_of", ("api_password", "api_token_id")),
-        ("required_together", ("api_token_id", "api_token_secret")),
-    ):
+    for key, default in (("required_together", ("api_token_id", "api_token_secret")),):
         kwargs[key] = [default] + list(kwargs.get(key, []))
 
     return AnsibleModule(argument_spec=spec, supports_check_mode=supports_check_mode, **kwargs)
@@ -94,6 +91,24 @@ def ansible_to_proxmox_bool(value):
         raise ValueError(f"{value} must be of type bool not {type(value)}")
 
     return 1 if value else 0
+
+
+def is_root_without_api_token(params):
+    """Check if the `api_user` is `root@pam` without API token."""
+    api_user = params.get("api_user")
+    api_password = params.get("api_password")
+    api_host = params.get("api_host")
+
+    if api_user == "root@pam":
+        # Either via API and password,
+        if api_password is not None:
+            return True
+
+        # or directly via `local` backend.
+        if api_host is None:
+            return True
+
+    return False
 
 
 def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
@@ -193,21 +208,34 @@ class ProxmoxAnsible:
         else:
             validate_certs = self.module.params["validate_certs"]
         api_timeout = self.module.params["api_timeout"]
-        auth_args = {"user": api_user}
 
-        if api_port:
-            auth_args["port"] = api_port
+        auth_args = {}
 
-        if api_password:
-            auth_args["password"] = api_password
+        if api_host:
+            auth_args["backend"] = "https"
+
+            api_host = [api_host]
+            if api_port:
+                auth_args["port"] = api_port
+
+            auth_args["user"] = api_user
+
+            if api_password:
+                auth_args["password"] = api_password
+            else:
+                auth_args["token_name"] = api_token_id
+                auth_args["token_value"] = api_token_secret
+
+            auth_args["verify_ssl"] = validate_certs
+
+            if api_otp:
+                auth_args["otp"] = api_otp
         else:
-            auth_args["token_name"] = api_token_id
-            auth_args["token_value"] = api_token_secret
+            api_host = []
+            auth_args["backend"] = "local"
 
-        if api_otp:
-            auth_args["otp"] = api_otp
         try:
-            return ProxmoxAPI(api_host, timeout=api_timeout, verify_ssl=validate_certs, **auth_args)
+            return ProxmoxAPI(*api_host, timeout=api_timeout, **auth_args)
         except Exception as e:
             self.module.fail_json(msg=f"{e}", exception=traceback.format_exc())
 

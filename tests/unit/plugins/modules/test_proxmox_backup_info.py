@@ -13,7 +13,6 @@ proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
     AnsibleExitJson,
-    AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
 )
@@ -199,17 +198,11 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
         self.connect_mock.stop()
         super().tearDown()
 
-    def test_module_fail_when_required_args_missing(self):
-        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args({}):
-            self.module.main()
-
-        result = exc_info.value.args[0]
-        assert result["msg"] == "missing required arguments: api_host, api_user"
-
     def test_get_all_backups_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret"}):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret"}
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["backup_info"] == EXPECTED_BACKUP_OUTPUT
