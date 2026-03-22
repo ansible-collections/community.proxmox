@@ -139,9 +139,9 @@ options:
         type: str
       format:
         description:
-          - V(format) is the drive's backing file's data format. Please refer to the Proxmox VE Administrator Guide, section
-            Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version, tables
-            3 to 14) to find out format supported by the provided storage backend.
+          - V(format) is the drive's backing file's data format.
+          - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html), tables
+            3 to 14, to find out format supported by the provided storage backend.
         type: str
       efitype:
         description:
@@ -171,8 +171,8 @@ options:
       - Target drive's backing file's data format.
       - Used only with clone.
       - Use O(format=unspecified) and O(full=false) for a linked clone.
-      - Please refer to the Proxmox VE Administrator Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html)
-        for the latest version, tables 3 to 14) to find out format supported by the provided storage backend.
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html), tables
+        3 to 14, to find out format supported by the provided storage backend.
       - Not specifying this option is equivalent to setting it to V(unspecified).
     type: str
     choices: ["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]
@@ -220,8 +220,7 @@ options:
       - Keys must be C(ide[n]) where 0 ≤ n ≤ 3.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation
-        (look for "ide[n]:") at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=ide,-[n]%3A).
     type: dict
   ipconfig:
     description:
@@ -300,8 +299,7 @@ options:
         for a rate-limited VLAN interface with firewall enabled.'
       - V(macaddr=XX:XX:XX:XX:XX:XX) must be a unique MAC address.
         If not specified, a unique MAC address is automatically generated.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "net[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html\#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=net,-[n]%3A).
     type: dict
   newid:
     description:
@@ -366,8 +364,7 @@ options:
       - Keys must be C(sata[n]) where 0 ≤ n ≤ 5.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=sata,-[n]%3A).
     type: dict
   scsi:
     description:
@@ -375,8 +372,7 @@ options:
       - Keys must be C(scsi[n]) where 0 ≤ n ≤ 30.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=scsi,-[n]%3A).
     type: dict
   scsihw:
     description:
@@ -433,7 +429,7 @@ options:
     description:
       - Configure additional SPICE enhancements.
       - Value is a comma-separated list of options in the format V(foldersharing=<0|1>[,videostreaming=<off|all|filter>]).
-      - For more information, see U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_spice_enhancements).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_spice_enhancements).
     type: str
   sshkeys:
     description:
@@ -527,15 +523,15 @@ options:
     description:
       - If V(true), the VM will be updated with new value.
       - Because of the operations of the API and security reasons, I have disabled the update of the following parameters
-        O(net), O(virtio), O(ide), O(sata), O(scsi). Per example updating O(net) update the MAC address and O(virtio) create
+        O(net), O(virtio), O(virtiofs), O(ide), O(sata), O(scsi). Per example updating O(net) update the MAC address and O(virtio) create
         always new disk... This security feature can be disabled by setting the O(update_unsafe) to V(true).
       - Update of O(pool) is disabled. It needs an additional API endpoint not covered by this module.
     type: bool
     default: false
   update_unsafe:
     description:
-      - If V(true), do not enforce limitations on parameters O(net), O(virtio), O(ide), O(sata), O(scsi), O(efidisk0), and
-        O(tpmstate0). Use this option with caution because an improper configuration might result in a permanent loss of data
+      - If V(true), do not enforce limitations on parameters O(net), O(virtio), O(virtiofs), O(ide), O(sata), O(scsi),
+        O(efidisk0), and O(tpmstate0). Use this option with caution because an improper configuration might result in a permanent loss of data
         (for example disk recreated).
     type: bool
     default: false
@@ -546,8 +542,7 @@ options:
   vga:
     description:
       - Select VGA type. If you want to use high resolution modes (>= 1280x1024x16) then you should use option V(std) or V(vmware).
-      - Please refer to the Proxmox VE Administrator Guide, section QEMU/KVM Virtual Machines (see
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options)) for more information on possible values.
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=vga%3A).
     type: str
   virtio:
     description:
@@ -555,9 +550,25 @@ options:
       - Keys must be C(virtio[n]) where 0 ≤ n ≤ 15.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=virtio,-[n]%3A).
     type: dict
+  virtiofs:
+    description:
+      - A hash/dictionary of Virtio-fs devices for sharing directories between host and guest.
+      - Keys must be C(virtiofs[n]) where 0 ≤ n ≤ 9.
+      - Values are strings containing comma-separated options. Requires a directory mapping to be created
+        first.
+      - 'Options:'
+      - '  - V(dirid): Identifier of the directory mapping.'
+      - '  - V(cache): Caching policy V(always), V(auto), V(metadata), or V(never).'
+      - '  - V(direct-io): Whether to allow direct I/O. V(0) or V(1).'
+      - '  - V(expose-acl): Whether to expose POSIX ACLs. V(0) or V(1). Implies xattr when enabled.'
+      - '  - V(expose-xattr): Enable support for extended attributes. V(0) or V(1).'
+      - 'Example: V("dirid=my-share,cache=always,direct-io=1,expose-acl=1,expose-xattr=1")'
+      - Available in Proxmox VE 8.4 and later.
+      - For more information, see U(https://pve.proxmox.com/pve-docs/qm.conf.5.html#:~:text=virtiofs,-[n]%3A).
+    type: dict
+
   watchdog:
     description:
       - Creates a virtual hardware watchdog device.
@@ -1077,6 +1088,7 @@ def module_args():
         vcpus=dict(type="int"),
         vga=dict(type="str"),
         virtio=dict(type="dict"),
+        virtiofs=dict(type="dict"),
         vmid=dict(type="int"),
         watchdog=dict(),
         with_local_disks=dict(type="bool", default=False),
@@ -1114,7 +1126,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
         # Convert all dict in kwargs to elements.
-        # For hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n]
+        # For hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n], virtiofs[n]
         for k in list(kwargs.keys()):
             if isinstance(kwargs[k], dict):
                 kwargs.update(kwargs[k])
@@ -1167,8 +1179,6 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         # valid clone parameters
         valid_clone_params = ["format", "full", "pool", "snapname", "storage", "target"]
         clone_params = {}
-        # Default args for vm. Note: -args option is for experts only. It allows you to pass arbitrary arguments to kvm.
-        vm_args = f"-serial unix:/var/run/qemu-server/{vmid}.serial,server,nowait"
 
         proxmox_node = self.proxmox_api.nodes(node)
 
@@ -1180,19 +1190,19 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         pve_major_version = 3 if version < LooseVersion("4.0") else version.version[0]
 
         # The features work only on PVE 4+
-        if pve_major_version < 4:
+        if pve_major_version < 4:  # noqa: PLR2004
             for p in only_v4:
                 if p in kwargs:
                     del kwargs[p]
 
         # The features work only on PVE 6
-        if pve_major_version < 6:
+        if pve_major_version < 6:  # noqa: PLR2004
             for p in only_v6:
                 if p in kwargs:
                     del kwargs[p]
 
         # The features work only on PVE 8
-        if pve_major_version < 8:
+        if pve_major_version < 8:  # noqa: PLR2004
             for p in only_v8:
                 if p in kwargs:
                     del kwargs[p]
@@ -1202,7 +1212,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             urlencoded_ssh_keys = quote(kwargs["sshkeys"], safe="")
             kwargs["sshkeys"] = str(urlencoded_ssh_keys)
 
-        # If update, don't update disk (virtio, efidisk0, tpmstate0, ide, sata, scsi) and network interface, unless update_unsafe=True
+        # If update, don't update disk (virtio, efidisk0, tpmstate0, ide, sata, scsi), virtiofs, and network interface, unless update_unsafe=True
         # pool parameter not supported by qemu/<vmid>/config endpoint on "update" (PVE 6.2) - only with "create"
         if update:
             if update_unsafe is False:
@@ -1220,15 +1230,16 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
                     del kwargs["tpmstate0"]
                 if "net" in kwargs:
                     del kwargs["net"]
+                if "virtiofs" in kwargs:
+                    del kwargs["virtiofs"]
             if "force" in kwargs:
                 del kwargs["force"]
             if "pool" in kwargs:
                 del kwargs["pool"]
 
         # Check that the bios option is set to ovmf if the efidisk0 option is present
-        if "efidisk0" in kwargs:
-            if ("bios" not in kwargs) or (kwargs["bios"] != "ovmf"):
-                self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
+        if "efidisk0" in kwargs and kwargs.get("bios") != "ovmf":
+            self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
 
         # Flatten efidisk0 option to a string so that it is a string which is what Proxmoxer and the API expect
         if "efidisk0" in kwargs:
@@ -1252,7 +1263,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             kwargs["tpmstate0"] = f"{tpm.get('storage')}:1,version=v{tpm.get('version')}"
 
         # Convert all dict in kwargs to elements.
-        # For audio[n], hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n], ipconfig[n], usb[n]
+        # For audio[n], hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n], virtiofs[n], ipconfig[n], usb[n]
         for k in list(kwargs.keys()):
             if isinstance(kwargs[k], dict):
                 kwargs.update(kwargs[k])
@@ -1428,7 +1439,6 @@ def main():
     update = bool(module.params["update"])
     update_unsafe = bool(module.params["update_unsafe"])
     vmid = module.params["vmid"]
-    validate_certs = module.params["validate_certs"]
 
     if module.params["format"] == "unspecified":
         module.params["format"] = None
@@ -1593,6 +1603,7 @@ def main():
                 vcpus=module.params["vcpus"],
                 vga=module.params["vga"],
                 virtio=module.params["virtio"],
+                virtiofs=module.params["virtiofs"],
                 watchdog=module.params["watchdog"],
             )
 

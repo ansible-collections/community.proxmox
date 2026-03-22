@@ -177,9 +177,9 @@ def compare_dhcp_ranges(existing_ranges, new_ranges):
         if tuple_dhcp_range not in existing_intervals:
             new_dhcp_ranges.append(dhcp_range)
         for start, end in existing_intervals:
-            if not (tuple_dhcp_range[1] < start or tuple_dhcp_range[0] > end):
-                if tuple_dhcp_range != (start, end):
-                    partial_overlap = True
+            ranges_overlap = not (tuple_dhcp_range[1] < start or tuple_dhcp_range[0] > end)
+            if ranges_overlap and tuple_dhcp_range != (start, end):
+                partial_overlap = True
     return new_dhcp_ranges, partial_overlap
 
 
@@ -223,7 +223,6 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
 
     def run(self):
         state = self.params.get("state")
-        update = self.params.get("update")
 
         subnet_params = {
             "subnet": self.params.get("subnet"),

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import os
+import stat
 from contextlib import ExitStack
 from io import StringIO
 from pathlib import Path
@@ -457,7 +458,7 @@ def test_close_with_lock_file(connection):
         assert os.path.exists(lock_file_path), "Lock file was not created"
 
         lock_stat = os.stat(lock_file_path)
-        assert lock_stat.st_mode & 0o777 == 0o600, "Incorrect lock file permissions"
+        assert stat.S_IMODE(lock_stat.st_mode) == (stat.S_IWRITE | stat.S_IREAD), "Incorrect lock file permissions"
     finally:
         Path(lock_file_path).unlink(missing_ok=True)
 
