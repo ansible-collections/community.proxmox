@@ -24,6 +24,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
 
     @property
     def is_lock_and_rollback_supported(self) -> bool:
+        """Whether the Proxmox node supports SDN lock and rollback (PVE 9+)."""
         return self._is_lock_and_rollback_supported
 
     def get_global_sdn_lock(self) -> str:
