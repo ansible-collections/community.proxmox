@@ -275,7 +275,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             taskid = (
                 self.proxmox_api.nodes(node)
                 .storage(storage)
-                .upload.post(content=content_type, filename=open(realpath, "rb"))
+                .upload.post(content=content_type, filename=open(realpath, "rb"))  # noqa: SIM115
             )
             return self.task_status(node, taskid, timeout)
         except Exception as e:
