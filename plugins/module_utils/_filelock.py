@@ -30,9 +30,7 @@ class FileLock:
 
     @contextmanager
     def lock_file(self, path, tmpdir, lock_timeout=None):
-        """
-        Context for lock acquisition.
-        """
+        """Context for lock acquisition."""
         try:
             self.set_lock(path, tmpdir, lock_timeout)
             yield
