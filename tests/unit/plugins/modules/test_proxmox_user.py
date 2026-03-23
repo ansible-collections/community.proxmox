@@ -137,6 +137,10 @@ class TestProxmoxUserInternals:
         "firstname": "John",
         "lastname": "Doe",
         "groups": ["admins"],
+        "tokens": {
+            "token1": {"comment": "Token 1", "expire": 0, "privsep": False},
+            "token2": {"comment": "Token 2", "expire": 0, "privsep": True},
+        },
         "keys": "",
     }
 
@@ -169,6 +173,39 @@ class TestProxmoxUserInternals:
             existing_user, "New comment", "old@example.com", 1, 0, "John", "Doe", "admins", ""
         )
         assert update_needed is True
+
+    def test_tokens_need_update_logic(self, user_manager):
+        """Test the _tokens_need_update comparison logic for various scenarios."""
+        existing_tokens = self.SAMPLE_EXISTING_USER.get("tokens", []).copy()
+        TEST_TOKENS = [
+            {"tokenid": "token1", "comment": "Token 1", "expire": 0, "privsep": False},
+            {"tokenid": "token2", "comment": "Token 2", "expire": 0, "privsep": True},
+            {"tokenid": "token3", "comment": "Token 3", "expire": 0, "privsep": False},
+        ]
+
+        # Test case: No update needed - identical tokens
+        assert user_manager._tokens_need_update(existing_tokens, TEST_TOKENS[0:2]) is False
+
+        # Test case: Update needed - missing tokenid
+        assert user_manager._tokens_need_update(existing_tokens, TEST_TOKENS[0]) is True
+
+        # Test case: Update needed - additional tokenid
+        assert user_manager._tokens_need_update(existing_tokens, TEST_TOKENS[0:3]) is True
+
+        # Test case: Update needed - different token comment
+        modified_token = TEST_TOKENS[0].copy()
+        modified_token["comment"] = "Modified Comment"
+        assert user_manager._tokens_need_update(existing_tokens, [modified_token, TEST_TOKENS[1]]) is True
+
+        # Test case: Update needed - different token expire
+        modified_token = TEST_TOKENS[0].copy()
+        modified_token["expire"] = 1767222000
+        assert user_manager._tokens_need_update(existing_tokens, [modified_token, TEST_TOKENS[1]]) is True
+
+        # Test case: Update needed - different token privsep
+        modified_token = TEST_TOKENS[0].copy()
+        modified_token["privsep"] = True
+        assert user_manager._tokens_need_update(existing_tokens, [modified_token, TEST_TOKENS[1]]) is True
 
     def test_groups_format_handling(self, user_manager):
         """Test groups comparison between API format (list) and module input format (string)."""
