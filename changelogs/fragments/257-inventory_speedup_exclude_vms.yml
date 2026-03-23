@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - inventory plugin - add exclude_qemu and exclude_lxc options (https://github.com/ansible-collections/community.proxmox/pull/257).
+  - inventory plugin - fetch nodes from /api2/json/cluster/status instead of /api2/json/nodes (https://github.com/ansible-collections/community.proxmox/pull/257).
