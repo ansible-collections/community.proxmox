@@ -207,9 +207,10 @@ class TestProxmoxBackupInfoModule(ModuleTestCase):
         assert result["msg"] == "missing required arguments: api_host, api_user"
 
     def test_get_all_backups_information(self):
-        with pytest.raises(AnsibleExitJson) as exc_info:
-            with set_module_args({"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret"}):
-                self.module.main()
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {"api_host": "proxmoxhost", "api_user": "root@pam", "api_password": "supersecret"}
+        ):
+            self.module.main()
 
         result = exc_info.value.args[0]
         assert result["backup_info"] == EXPECTED_BACKUP_OUTPUT
