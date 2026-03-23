@@ -56,7 +56,7 @@ class FileLock:
         l_wait = 0.1
         r_exception = BlockingIOError
 
-        self.lockfd = open(lock_path, "w")
+        self.lockfd = open(lock_path, "w")  # noqa: SIM115 - open is used to create a lock file
 
         if lock_timeout <= 0:
             fcntl.flock(self.lockfd, fcntl.LOCK_EX | fcntl.LOCK_NB)
