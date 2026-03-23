@@ -19,10 +19,10 @@ class LockTimeout(Exception):
 
 class FileLock:
     """
-    Currently FileLock is implemented via fcntl.flock on a lock file, however this
-    behaviour may change in the future. Avoid mixing lock types fcntl.flock,
-    fcntl.lockf and module_utils.common.file.FileLock as it will certainly cause
-    unwanted and/or unexpected behaviour.
+    Implementation uses fcntl.flock on a lock file; behaviour may change in the future.
+
+    Avoid mixing lock types fcntl.flock, fcntl.lockf and module_utils.common.file.FileLock
+    as it will certainly cause unwanted and/or unexpected behaviour.
     """
 
     def __init__(self):
@@ -41,8 +41,8 @@ class FileLock:
 
     def set_lock(self, path, tmpdir, lock_timeout=None):
         """
-        Create a lock file based on path with flock to prevent other processes
-        using given path.
+        Create a lock file based on path with flock to prevent other processes using given path.
+
         Please note that currently file locking only works when it is executed by
         the same user, for example single user scenarios.
 
@@ -87,8 +87,7 @@ class FileLock:
 
     def unlock(self):
         """
-        Make sure lock file is available for everyone and Unlock the file descriptor
-        locked by set_lock.
+        Make sure lock file is available for everyone and unlock the file descriptor locked by set_lock.
 
         :returns: True
         """
