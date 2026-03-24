@@ -2,9 +2,7 @@
 # Copyright (c) 2025, Jana Hoch <janahoch91@proton.me>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-
-from typing import Dict, List
+from __future__ import annotations
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
@@ -90,7 +88,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
                 msg=f"Failed to release lock - {e}. Manually clear lock by deleting /etc/pve/sdn/.lock"
             )
 
-    def get_zones(self, zone_type: str = None) -> List[Dict]:
+    def get_zones(self, zone_type: str = None) -> list[dict]:
         """Get Proxmox SDN zones.
 
         :param zone_type: Filter zones based on type.
