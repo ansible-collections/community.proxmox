@@ -551,7 +551,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             except Exception as e:  # pylint: disable=broad-except
                 message = f"Could not evaluate host filter {host_filter} for host {name} - {e}"
                 if self.strict:
-                    raise AnsibleError(message)
+                    raise AnsibleError(message) from e
                 display.warning(message)
         return True
 
