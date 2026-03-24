@@ -431,7 +431,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 result.append(
                     {
                         "name": iface["name"],
-                        "mac-address": iface["hardware-address"] if "hardware-address" in iface else "",
+                        "mac-address": iface.get("hardware-address", ""),
                         "ip-addresses": [f"{ip['ip-address']}/{ip['prefix']}" for ip in iface["ip-addresses"]]
                         if "ip-addresses" in iface
                         else [],
