@@ -145,20 +145,20 @@ from ansible.module_utils.errors import AnsibleValidationError
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    is_root_without_api_token,
 )
 
 
 def validate_params(params):
     # Validate unbind authentication requirements.
-    # Mountpoint configuration operations require root@pam with password authentication.
-    # API tokens are not supported for mountpoint operations, even for root@pam.
+    # Mountpoint configuration operations require `root@pam` with password authentication.
+    # API tokens are not supported for mountpoint operations, even for `root@pam`.
     # Without proper authentication, the operation would fail after mountpoints are removed,
     # leaving the container in a misconfigured state without its mountpoints.
-    if params.get("unbind"):
-        api_user = params.get("api_user")
-        api_password = params.get("api_password")
-        if api_user != "root@pam" or not api_password:
-            raise AnsibleValidationError("Parameter 'unbind=True' requires 'api_user' and 'api_password' options.")
+    if params.get("unbind") and not is_root_without_api_token(params):
+        raise AnsibleValidationError(
+            "Parameter 'unbind=True' requires 'api_user=root@pam' with 'api_password' or local backend."
+        )
 
 
 def module_args():

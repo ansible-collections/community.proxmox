@@ -49,15 +49,6 @@ JOIN_INFO = {
 }
 
 
-@patch("ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect")
-def test_without_required_parameters(connect_mock, capfd):
-    with set_module_args({}), pytest.raises(SystemExit):
-        proxmox_cluster_join_info.main()
-    out, err = capfd.readouterr()
-    assert not err
-    assert json.loads(out)["failed"]
-
-
 def mock_api_join_info(mocker):
     cluster = mocker.MagicMock()
     config = mocker.MagicMock()

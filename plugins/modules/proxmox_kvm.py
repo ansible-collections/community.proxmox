@@ -944,6 +944,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
     create_proxmox_module,
+    is_root_without_api_token,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
@@ -1300,25 +1301,24 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
                     self.module.fail_json(msg=f"{tag} is not a valid tag")
             kwargs["tags"] = ",".join(kwargs["tags"])
 
-        # -args and skiplock require root@pam user - but can not use api tokens
-        if self.module.params["api_user"] == "root@pam" and self.module.params["args"] is not None:
-            kwargs["args"] = self.module.params["args"]
-        elif self.module.params["api_user"] != "root@pam" and self.module.params["args"] is not None:
-            self.module.fail_json(msg="args parameter require root@pam user. ")
+        # `args` and `skiplock` require `root@pam` user but cannot use API tokens.
+        if is_root_without_api_token(self.module.params):
+            if self.module.params["args"] is not None:
+                kwargs["args"] = self.module.params["args"]
+        else:
+            if self.module.params["args"] is not None:
+                self.module.fail_json(msg="args parameter require root@pam user. ")
 
-        if self.module.params["api_user"] != "root@pam" and self.module.params["skiplock"] is not None:
-            self.module.fail_json(msg="skiplock parameter require root@pam user. ")
+            if self.module.params["skiplock"] is not None:
+                self.module.fail_json(msg="skiplock parameter require root@pam user. ")
 
         if update:
-            if (
+            return (
                 proxmox_node.qemu(vmid).config.set(
                     name=name, memory=memory, cpu=cpu, cores=cores, sockets=sockets, **kwargs
                 )
                 is None
-            ):
-                return True
-            else:
-                return False
+            )
         elif self.module.params["clone"] is not None:
             for param in valid_clone_params:
                 if self.module.params[param] is not None:

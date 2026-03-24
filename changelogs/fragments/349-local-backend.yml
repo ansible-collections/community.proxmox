@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - proxmox - make ``api_host`` optional to support ``local`` backend (https://github.com/ansible-collections/community.proxmox/pull/349).
+  - proxmox - make ``api_user`` optional and default to ``root@pam`` (https://github.com/ansible-collections/community.proxmox/pull/349).
+  - proxmox - use ``local`` backend if no ``api_host`` is specified (https://github.com/ansible-collections/community.proxmox/pull/349).
