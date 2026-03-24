@@ -483,9 +483,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 if config == "lxc":
                     out_val = {}
                     for k, v in value:
-                        if k.startswith("lxc."):
-                            k = k[len("lxc.") :]
-                        out_val[k] = v
+                        out_key = k[len("lxc.") :] if k.startswith("lxc.") else k
+                        out_val[out_key] = v
                     value = out_val
 
                 if (

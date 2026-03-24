@@ -1276,16 +1276,17 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
                 converted_interface = {}
                 for key, value in interface.items():
                     converted_key = self.get_ansible_name(key)
+                    normalized_value = value
                     if converted_key == "comments":
-                        value = self.normalize_comment(value)
+                        normalized_value = self.normalize_comment(value)
                     elif (
                         isinstance(value, int)
                         and value in [0, 1]
                         and converted_key in PARAMETER_DEFINITIONS
                         and PARAMETER_DEFINITIONS[converted_key]["type"] == "bool"
                     ):
-                        value = proxmox_to_ansible_bool(value)
-                    converted_interface[converted_key] = value
+                        normalized_value = proxmox_to_ansible_bool(value)
+                    converted_interface[converted_key] = normalized_value
                 converted_interfaces.append(converted_interface)
             return converted_interfaces
         except Exception as e:
