@@ -9,7 +9,6 @@
 import fcntl
 import os
 import stat
-import sys
 import time
 from contextlib import contextmanager
 
@@ -20,10 +19,10 @@ class LockTimeout(Exception):
 
 class FileLock:
     """
-    Currently FileLock is implemented via fcntl.flock on a lock file, however this
-    behaviour may change in the future. Avoid mixing lock types fcntl.flock,
-    fcntl.lockf and module_utils.common.file.FileLock as it will certainly cause
-    unwanted and/or unexpected behaviour
+    Implementation uses fcntl.flock on a lock file; behaviour may change in the future.
+
+    Avoid mixing lock types fcntl.flock, fcntl.lockf and module_utils.common.file.FileLock
+    as it will certainly cause unwanted and/or unexpected behaviour.
     """
 
     def __init__(self):
@@ -31,9 +30,7 @@ class FileLock:
 
     @contextmanager
     def lock_file(self, path, tmpdir, lock_timeout=None):
-        """
-        Context for lock acquisition
-        """
+        """Context for lock acquisition."""
         try:
             self.set_lock(path, tmpdir, lock_timeout)
             yield
@@ -42,10 +39,10 @@ class FileLock:
 
     def set_lock(self, path, tmpdir, lock_timeout=None):
         """
-        Create a lock file based on path with flock to prevent other processes
-        using given path.
+        Create a lock file based on path with flock to prevent other processes using given path.
+
         Please note that currently file locking only works when it is executed by
-        the same user, for example single user scenarios
+        the same user, for example single user scenarios.
 
         :kw path: Path (file) to lock
         :kw tmpdir: Path where to place the temporary .lock file
@@ -57,11 +54,9 @@ class FileLock:
         """
         lock_path = os.path.join(tmpdir, f"ansible-{os.path.basename(path)}.lock")
         l_wait = 0.1
-        r_exception = IOError
-        if sys.version_info[0] == 3:
-            r_exception = BlockingIOError
+        r_exception = BlockingIOError
 
-        self.lockfd = open(lock_path, "w")
+        self.lockfd = open(lock_path, "w")  # noqa: SIM115 - open is used to create a lock file
 
         if lock_timeout <= 0:
             fcntl.flock(self.lockfd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -90,8 +85,7 @@ class FileLock:
 
     def unlock(self):
         """
-        Make sure lock file is available for everyone and Unlock the file descriptor
-        locked by set_lock
+        Make sure lock file is available for everyone and unlock the file descriptor locked by set_lock.
 
         :returns: True
         """

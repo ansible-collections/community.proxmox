@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_cluster_firewall - error message for invalid log_ratelimit.rate parameter (https://github.com/ansible-collections/community.proxmox/pull/340).

@@ -25,6 +25,7 @@ options:
     description:
       - The targeted node to perform actions on.
     type: str
+    aliases: ["node"]
     required: true
   power_state:
     description:
@@ -39,12 +40,28 @@ options:
     suboptions:
       cert:
         description:
-          - The public certificate file (including chain) in PEM format.
+          - The public certificate file path (including chain) in PEM format on the Ansible Controller.
+          - Mutually exclusive with O(certificates.certificate).
         type: str
+        aliases: ["certificate_file_path"]
+      certificate:
+        description:
+          - The public certificate as a raw PEM encoded string (including chain).
+          - Mutually exclusive with O(certificates.cert).
+        type: str
+        aliases: ["certificate_raw"]
       key:
         description:
-          - The private key file in PEM format.
+          - The private key file path in PEM format.
+          - Mutually exclusive with O(certificates.private_key).
         type: str
+        aliases: ["private_key_file_path"]
+      private_key:
+        description:
+          - The private key as a raw PEM encoded string.
+          - Mutually exclusive with O(certificates.key).
+        type: str
+        aliases: ["private_key_raw"]
       state:
         description:
           - Defines the actions for the certificate.
@@ -110,17 +127,30 @@ EXAMPLES = r"""
     api_password: password123
     node_name: de-cgn01-virt01
     power_state: online
-- name: Update SSL certificates on a Proxmox VE Node
+
+- name: Update SSL certificates on a Proxmox VE Node (from files)
   community.proxmox.node:
     api_host: proxmoxhost
     api_user: root@pam
     api_password: password123
     node_name: de-cgn01-virt01
     certificates:
-        key: /opt/ansible/key.pem
-        cert: /opt/ansible/cert.pem
+        private_key_file_path: /opt/ansible/key.pem
+        certificate_file_path: /opt/ansible/cert.pem
         state: present
         force: false
+
+- name: Update SSL certificates on a Proxmox VE Node (raw PEM)
+  community.proxmox.node:
+    api_host: proxmoxhost
+    api_user: root@pam
+    api_password: password123
+    node_name: de-cgn01-virt01
+    certificates:
+        certificate: "{{ pve_node_certificate_content }}"
+        private_key: "{{ pve_node_private_key_content }}"
+        state: present
+
 - name: Place a subscription license on a Proxmox VE Node
   community.proxmox.node:
     api_host: proxmoxhost
@@ -160,242 +190,24 @@ import hashlib
 import re
 import ssl
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    ansible_to_proxmox_bool,
+    create_proxmox_module,
 )
 
 
-class ProxmoxNodeAnsible(ProxmoxAnsible):
-    def get_nodes(self):
-        nodes = {"nodes": {}}
-        for node in self.proxmox_api.nodes.get():
-            nodes["nodes"][node["node"]] = {}
-            nodes["nodes"][node["node"]]["name"] = node["node"]
-            nodes["nodes"][node["node"]]["status"] = node["status"]
-        return nodes
-
-    def validate_node_name(self, nodes):
-        node_name = self.module.params.get("node_name")
-        if node_name not in nodes["nodes"]:
-            self.module.fail_json(msg=f"Node '{node_name}' not found in the Proxmox cluster.")
-
-    def read_file(self, file_path):
-        try:
-            with open(file_path, "r") as file_handler:
-                file_content = file_handler.read()
-                return file_content
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to read certificate or key file: {e}")
-
-    def get_certificate_fingerprints_file(self, pem_data, hash_alg="sha256"):
-        certs = re.findall(r"-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", pem_data, re.DOTALL)
-
-        fingerprints = []
-        for cert_body in certs:
-            full_pem = f"-----BEGIN CERTIFICATE-----{cert_body}-----END CERTIFICATE-----"
-            der = ssl.PEM_cert_to_DER_cert(full_pem)
-            digest = getattr(hashlib, hash_alg)(der).hexdigest()
-            # Format the fingerprint as uppercase hex pairs separated by colons to match Proxmox's output
-            # e.g., "A1:B2:C3:D4:E5:F6:G7:H8:I9:J0:K1:L2:M3:N4:O5:P6:Q7:R8:S9:T0"
-            formatted = ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
-            fingerprints.append(formatted)
-        return fingerprints
-
-    def get_certificate_fingerprints_api(self, certificates):
-        fingerprints = []
-        for cert in certificates:
-            fingerprints.append(cert.get("fingerprint"))
-        return fingerprints
-
-    def bool_to_int(self, value):
-        if isinstance(value, bool):
-            return 1 if value else 0
-        elif isinstance(value, int):
-            return value
-        else:
-            self.module.fail_json(msg=f"Invalid boolean value: {value}. Expected a boolean or integer.")
-
-    def dicts_differ(self, d1, d2):
-        keys = set(d1) | set(d2)
-        return any(d1.get(k) != d2.get(k) for k in keys)
-
-    def power_state(self, nodes):
-        node_power_state = self.module.params.get("power_state")
-        node_name = self.module.params.get("node_name")
-        changed = False
-        result_power_state = "Unchanged"
-
-        if node_power_state == "online":
-            if nodes["nodes"][node_name]["status"] == "online":
-                changed = False
-                result_power_state = f"Node '{node_name}' is already online."
-            else:
-                if not self.module.check_mode:
-                    self.proxmox_api.nodes(node_name).wakeonlan.post(node_name=node_name)
-                changed = True
-                result_power_state = f"Node '{node_name}' has been powered on."
-
-        if node_power_state == "offline":
-            if nodes["nodes"][node_name]["status"] != "online":
-                changed = False
-                result_power_state = f"Node '{node_name}' is already offline."
-            else:
-                if not self.module.check_mode:
-                    self.proxmox_api.nodes(node_name).status.post(command="shutdown")
-                changed = True
-                result_power_state = f"Node '{node_name}' has been powered off."
-
-        return changed, result_power_state
-
-    def certificates(self):
-        node_certificate_state = self.module.params.get("certificates", {}).get("state", "show")
-        node_name = self.module.params.get("node_name")
-        force = self.bool_to_int(self.module.params.get("certificates", {}).get("force", False))
-        changed = False
-        result_certificates = "Unchanged"
-        upload_cert = False
-
-        try:
-            all_certs = self.proxmox_api.nodes(node_name).certificates.info.get()
-            # Filter out default Proxmox certificates (pve-root-ca.pem, pve-ssl.pem)
-            # Keep only custom certificates
-            current_cert = [
-                cert for cert in all_certs if cert.get("filename") not in ["pve-root-ca.pem", "pve-ssl.pem"]
-            ]
-            if not current_cert:
-                current_cert = []
-
-            has_custom_cert = len(current_cert) > 0
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to get certificate information: {str(e)}")
-
-        if node_certificate_state == "present":
-            cert_path = self.module.params.get("certificates", {}).get("cert")
-            key_path = self.module.params.get("certificates", {}).get("key")
-            cert = self.read_file(cert_path)
-            key = self.read_file(key_path)
-            fingerprints_file = self.get_certificate_fingerprints_file(cert)
-
-            # Check if custom certificate already exists
-            if has_custom_cert:
-                fingerprints_api = self.get_certificate_fingerprints_api(current_cert)
-
-                # Compare only the leaf certificate (first in chain), not the certificates of the chain
-                if (fingerprints_file and fingerprints_file[0] in fingerprints_api) and not force:
-                    result_certificates = f"Certificate for node '{node_name}' is already present and matches."
-                else:
-                    # Certificate exists but is different, need to upload
-                    upload_cert = True
-                    changed = True
-                    result_certificates = f"Certificate for node '{node_name}' updated."
-            else:
-                changed = True
-                if not self.module.check_mode:
-                    upload_cert = True
-
-            if (not self.module.check_mode) and (upload_cert):
-                try:
-                    self.proxmox_api.nodes(node_name).certificates.custom.post(certificates=cert, key=key, force=force)
-                    result_certificates = f"Certificate for node '{node_name}' has been uploaded."
-                except Exception as e:
-                    error_msg = str(e)
-                    self.module.fail_json(msg=f"Failed to upload certificate: {error_msg}")
-
-        if node_certificate_state == "absent":
-            if has_custom_cert:
-                changed = True
-                if not self.module.check_mode:
-                    try:
-                        self.proxmox_api.nodes(node_name).certificates.custom.delete()
-                        result_certificates = f"Certificate for node '{node_name}' has been removed."
-                    except Exception as e:
-                        error_msg = str(e)
-                        self.module.fail_json(msg=f"Failed to delete certificate: {error_msg}")
-
-        restart = self.module.params.get("certificates", {}).get("restart", False)
-        if changed and restart:
-            if not self.module.check_mode:
-                try:
-                    self.proxmox_api.nodes(node_name).services("pveproxy").restart.post()
-                    result_certificates += " pveproxy service restarted."
-                except Exception as e:
-                    self.module.warn(f"Failed to restart pveproxy: {str(e)}")
-
-        return changed, result_certificates
-
-    def dns(self):
-        node_name = self.module.params.get("node_name")
-        dns1 = self.module.params.get("dns", {}).get("dns1", None)
-        dns2 = self.module.params.get("dns", {}).get("dns2", None)
-        dns3 = self.module.params.get("dns", {}).get("dns3", None)
-        search = self.module.params.get("dns", {}).get("search", None)
-        dns_config_current = self.proxmox_api.nodes(node_name).dns.get()
-        changed = False
-        result_dns = "Unchanged"
-
-        dns_config = {}
-        if dns1:
-            dns_config["dns1"] = dns1
-        if dns2:
-            dns_config["dns2"] = dns2
-        if dns3:
-            dns_config["dns3"] = dns3
-        if search:
-            dns_config["search"] = search
-
-        if self.dicts_differ(dns_config_current, dns_config):
-            if not self.module.check_mode:
-                self.proxmox_api.nodes(node_name).dns.put(**dns_config)
-            changed = True
-            result_dns = f"DNS configuration for node '{node_name}' has been updated."
-
-        return changed, result_dns
-
-    def subscription(self):
-        subscription_state = self.module.params.get("subscription", {}).get("state")
-        node_name = self.module.params.get("node_name")
-        subscription_current = self.proxmox_api.nodes(node_name).subscription.get()
-        changed = False
-        result_subscription = "Unchanged"
-
-        if subscription_state == "present":
-            license_key = self.module.params.get("subscription", {}).get("key", None)
-            if subscription_current.get("key", None) != license_key:
-                if not self.module.check_mode:
-                    try:
-                        self.proxmox_api.nodes(node_name).subscription.put(key=license_key)
-                    except Exception as e:
-                        self.module.fail_json(msg=f"Failed to upload subscription key: {e}")
-                changed = True
-                result_subscription = f"License subscription for node '{node_name}' has been uploaded."
-
-        if subscription_state == "absent":
-            if subscription_current.get("status", None) != "notfound":
-                if not self.module.check_mode:
-                    try:
-                        self.proxmox_api.nodes(node_name).subscription.delete()
-                    except Exception as e:
-                        self.module.fail_json(msg=f"Failed to delete subscription key: {e}")
-                changed = True
-                result_subscription = f"License subscription for node '{node_name}' has been deleted."
-
-        return changed, result_subscription
-
-
-def main():
-    module_args = proxmox_auth_argument_spec()
-
-    node_args = dict(
-        node_name=dict(type="str", required=True),
+def module_args():
+    return dict(
+        node_name=dict(type="str", aliases=["node"], required=True),
         power_state=dict(choices=["online", "offline"]),
         certificates=dict(
             type="dict",
             options=dict(
-                cert=dict(type="str", required=False, no_log=True),
-                key=dict(type="str", required=False, no_log=True),
+                cert=dict(type="str", required=False, aliases=["certificate_file_path"], no_log=True),
+                certificate=dict(type="str", required=False, aliases=["certificate_raw"], no_log=True),
+                key=dict(type="str", required=False, aliases=["private_key_file_path"], no_log=True),
+                private_key=dict(type="str", required=False, aliases=["private_key_raw"], no_log=True),
                 state=dict(type="str", required=False, choices=["present", "absent"]),
                 restart=dict(type="bool", default=False, required=False),
                 force=dict(type="bool", default=False, required=False),
@@ -419,18 +231,287 @@ def main():
         ),
     )
 
-    module_args.update(node_args)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-        supports_check_mode=True,
-    )
+def module_options():
+    return {}
+
+
+class ProxmoxNodeAnsible(ProxmoxAnsible):
+    def __init__(self, module):
+        super().__init__(module)
+        self.params = module.params
+
+    def get_nodes(self):
+        nodes = {"nodes": {}}
+        for node in self.proxmox_api.nodes.get():
+            nodes["nodes"][node["node"]] = {}
+            nodes["nodes"][node["node"]]["name"] = node["node"]
+            nodes["nodes"][node["node"]]["status"] = node["status"]
+        return nodes
+
+    def validate_node_name(self, nodes):
+        node = self.params.get("node_name")
+        if node not in nodes["nodes"]:
+            self.module.fail_json(msg=f"Node '{node}' not found in the Proxmox cluster.")
+
+    def read_file(self, file_path):
+        try:
+            with open(file_path, "r") as file_handler:
+                file_content = file_handler.read()
+                return file_content
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to read certificate or key file '{file_path}': {e}")
+
+    def get_leaf_certificate_fingerprint(self, pem_data, hash_alg="sha256"):
+        """
+        Extract the fingerprint of the leaf (first) certificate from a PEM bundle.
+        """
+        certs = re.findall(
+            r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----",
+            pem_data,
+            re.DOTALL,
+        )
+
+        if not certs:
+            return None
+
+        leaf_cert = certs[0]
+
+        try:
+            der = ssl.PEM_cert_to_DER_cert(leaf_cert.strip())
+            digest = getattr(hashlib, hash_alg)(der).hexdigest()
+
+            return ":".join(digest[i : i + 2].upper() for i in range(0, len(digest), 2))
+        except Exception:
+            return None
+
+    def get_certificate_fingerprints_api(self, certificates):
+        fingerprints = []
+        for cert in certificates:
+            fingerprints.append(cert.get("fingerprint"))
+        return fingerprints
+
+    def dicts_differ(self, d1, d2):
+        keys = set(d1) | set(d2)
+        return any(d1.get(k) != d2.get(k) for k in keys)
+
+    def power_state(self, nodes):
+        state = self.params.get("power_state")
+        node = self.params.get("node_name")
+        changed = False
+        result = "Unchanged"
+
+        if state == "online":
+            if nodes["nodes"][node]["status"] == "online":
+                changed = False
+                result = f"Node '{node}' is already online."
+            else:
+                if not self.module.check_mode:
+                    self.proxmox_api.nodes(node).wakeonlan.post(node_name=node)
+                changed = True
+                result = f"Node '{node}' has been powered on."
+
+        if state == "offline":
+            if nodes["nodes"][node]["status"] != "online":
+                changed = False
+                result = f"Node '{node}' is already offline."
+            else:
+                if not self.module.check_mode:
+                    self.proxmox_api.nodes(node).status.post(command="shutdown")
+                changed = True
+                result = f"Node '{node}' has been powered off."
+
+        return changed, result
+
+    def _get_custom_certificates(self, node):
+        try:
+            certs = self.proxmox_api.nodes(node).certificates.info.get()
+            # Filter out default Proxmox certificates
+            custom_certs = [cert for cert in certs if cert.get("filename") not in ["pve-root-ca.pem", "pve-ssl.pem"]]
+            return custom_certs
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to get certificates information: {str(e)}")
+
+    def _certificate_absent(self, node, restart):
+        existing_certificates = self._get_custom_certificates(node)
+
+        if existing_certificates:
+            if self.module.check_mode:
+                return True, f"Certificate on node '{node}' would be deleted."
+            try:
+                self.proxmox_api.nodes(node).certificates.custom.delete(restart=ansible_to_proxmox_bool(restart))
+                return True, f"Certificate on node '{node}' deleted."
+            except Exception as e:
+                self.module.fail_json(changed=False, msg=f"Failed to delete certificate on node '{node}': {str(e)}")
+        else:
+            return False, f"Certificate on node '{node}' already absent."
+
+    def _certificate_present(self, node, restart, force):  # noqa:PLR0912
+        # Certificate: cert (file path) OR certificate (raw string) - at least one required for present
+        # Private key: key (file path) OR private_key (raw string) - both optional
+
+        certificate_params = self.params["certificates"]
+        certificate_file_path = certificate_params.get("cert")
+        certificate_raw = certificate_params.get("certificate")
+        private_key_file_path = certificate_params.get("key")
+        private_key_raw = certificate_params.get("private_key")
+
+        if certificate_file_path and certificate_raw:
+            self.module.fail_json(msg="Cannot specify both cert (file path) and certificate (raw string).")
+        if private_key_file_path and private_key_raw:
+            self.module.fail_json(msg="Cannot specify both key (file path) and private_key (raw string).")
+
+        if not certificate_file_path and not certificate_raw:
+            self.module.fail_json(
+                msg="Either cert (file path) or certificate (raw string) is required for state=present."
+            )
+
+        if certificate_file_path:
+            cert_content = self.read_file(certificate_file_path)
+        else:
+            cert_content = certificate_raw
+
+        key_content = None
+        if private_key_file_path:
+            key_content = self.read_file(private_key_file_path)
+        elif private_key_raw:
+            key_content = private_key_raw
+
+        leaf_certificate_fingerprint = self.get_leaf_certificate_fingerprint(cert_content)
+        if not leaf_certificate_fingerprint:
+            self.module.fail_json(msg="Failed to parse certificate: no valid PEM certificate found.")
+
+        existing_certificates = self._get_custom_certificates(node)
+        existing_fingerprints = self.get_certificate_fingerprints_api(existing_certificates)
+
+        certificate_already_present = leaf_certificate_fingerprint in existing_fingerprints
+
+        if certificate_already_present and not force:
+            return False, f"Certificate for node '{node}' is already present."
+
+        if self.module.check_mode:
+            if certificate_already_present and force:
+                return True, f"Certificate for node '{node}' would be overwritten."
+            return True, f"Certificate for node '{node}' would be updated."
+
+        post_params = {
+            "certificates": cert_content,
+            "force": ansible_to_proxmox_bool(force),
+            "restart": ansible_to_proxmox_bool(restart),
+        }
+        if key_content:
+            post_params["key"] = key_content
+
+        try:
+            self.proxmox_api.nodes(node).certificates.custom.post(**post_params)
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to upload certificate on node '{node}': {str(e)}")
+
+        if certificate_already_present and force:
+            return True, f"Certificate for node '{node}' has been overwritten."
+        return True, f"Certificate for node '{node}' has been updated."
+
+    def _restart_pve_proxy_service(self, node):
+        if self.module.check_mode:
+            return True, "The service pveproxy would be restarted."
+
+        try:
+            self.proxmox_api.nodes(node).service("pveproxy").restart.post()
+            return True, "The service pveproxy has been restarted."
+        except Exception as e:
+            self.module.warn(f"Failed to restart the service pveproxy: {str(e)}")
+
+    def certificates(self):
+        state = self.params["certificates"].get("state")
+        node = self.params["node_name"]
+        restart = self.params["certificates"]["restart"]
+        force = self.params["certificates"].get("force")
+
+        if force and state is None:
+            self.module.fail_json(msg="Force is only supported when state is present or absent.")
+            return False, "Unchanged"
+
+        if state == "absent":
+            changed, msg = self._certificate_absent(node, restart)
+        elif state == "present":
+            changed, msg = self._certificate_present(node, restart, force)
+        elif state is None and restart:
+            changed, msg = self._restart_pve_proxy_service(node)
+        elif state is None and force:
+            self.module.fail_json(msg="Force is only supported when state is present or absent.")
+            return False, "Unchanged"
+        else:
+            return False, "Unchanged"
+
+        if not changed:
+            return False, msg
+
+        return True, msg
+
+    def dns(self):
+        node_name = self.params.get("node_name")
+        dns1 = self.params.get("dns", {}).get("dns1", None)
+        dns2 = self.params.get("dns", {}).get("dns2", None)
+        dns3 = self.params.get("dns", {}).get("dns3", None)
+        search = self.params.get("dns", {}).get("search", None)
+        dns_config_current = self.proxmox_api.nodes(node_name).dns.get()
+        changed = False
+        result_dns = "Unchanged"
+
+        dns_config = {}
+        if dns1:
+            dns_config["dns1"] = dns1
+        if dns2:
+            dns_config["dns2"] = dns2
+        if dns3:
+            dns_config["dns3"] = dns3
+        if search:
+            dns_config["search"] = search
+
+        if self.dicts_differ(dns_config_current, dns_config):
+            if not self.module.check_mode:
+                self.proxmox_api.nodes(node_name).dns.put(**dns_config)
+            changed = True
+            result_dns = f"DNS configuration for node '{node_name}' has been updated."
+
+        return changed, result_dns
+
+    def subscription(self):
+        subscription_state = self.params.get("subscription", {}).get("state")
+        node_name = self.params.get("node_name")
+        subscription_current = self.proxmox_api.nodes(node_name).subscription.get()
+        changed = False
+        result_subscription = "Unchanged"
+
+        if subscription_state == "present":
+            license_key = self.params.get("subscription", {}).get("key", None)
+            if subscription_current.get("key", None) != license_key:
+                if not self.module.check_mode:
+                    try:
+                        self.proxmox_api.nodes(node_name).subscription.put(key=license_key)
+                    except Exception as e:
+                        self.module.fail_json(msg=f"Failed to upload subscription key: {e}")
+                changed = True
+                result_subscription = f"License subscription for node '{node_name}' has been uploaded."
+
+        if subscription_state == "absent" and subscription_current.get("status", None) != "notfound":
+            changed = True
+            result_subscription = f"License subscription for node '{node_name}' has been deleted."
+            if not self.module.check_mode:
+                try:
+                    self.proxmox_api.nodes(node_name).subscription.delete()
+                except Exception as e:
+                    self.module.fail_json(msg=f"Failed to delete subscription key: {e}")
+
+        return changed, result_subscription
+
+
+def main():
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxNodeAnsible(module)
 
     # Initialize objects and avoid re-polling the current
     # nodes in the cluster in each function call.
-    proxmox = ProxmoxNodeAnsible(module)
     nodes = proxmox.get_nodes()
     proxmox.validate_node_name(nodes)
     result = {"changed": False}
@@ -442,9 +523,9 @@ def main():
         result["power_state"] = power_result
 
     if module.params.get("certificates") is not None:
-        changed, cert_result = proxmox.certificates()
+        changed, certificates_result = proxmox.certificates()
         result["changed"] = result["changed"] or changed
-        result["certificates"] = cert_result
+        result["certificates"] = certificates_result
 
     if module.params.get("dns") is not None:
         changed, dns_result = proxmox.dns()

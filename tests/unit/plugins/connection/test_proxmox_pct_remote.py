@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import os
+import stat
 from contextlib import ExitStack
 from io import StringIO
 from pathlib import Path
@@ -457,7 +458,7 @@ def test_close_with_lock_file(connection):
         assert os.path.exists(lock_file_path), "Lock file was not created"
 
         lock_stat = os.stat(lock_file_path)
-        assert lock_stat.st_mode & 0o777 == 0o600, "Incorrect lock file permissions"
+        assert stat.S_IMODE(lock_stat.st_mode) == (stat.S_IWRITE | stat.S_IREAD), "Incorrect lock file permissions"
     finally:
         Path(lock_file_path).unlink(missing_ok=True)
 
@@ -494,7 +495,7 @@ def test_close_lock_file_time_out_error_handling(mock_exists, mock_unlink, conne
 @patch("os.chown")
 @patch("os.rename")
 @patch("os.path.exists")
-def test_tempfile_creation_and_move(
+def test_tempfile_creation_and_move(  # noqa: PLR0913
     mock_exists, mock_rename, mock_chown, mock_chmod, mock_tempfile, mock_lock_file, connection
 ):
     """Test tempfile creation and move during close"""

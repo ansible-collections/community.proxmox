@@ -94,6 +94,7 @@ EXPECTED_NETWORK_OUTPUT = [
     },
 ]
 
+
 # Mock pending changes response
 MOCK_PENDING_CHANGES = """--- /etc/network/interfaces
 +++ /etc/network/interfaces
@@ -129,9 +130,10 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
         mock_network_obj.get.return_value = RAW_NETWORK_OUTPUT
 
         mock_nodes.get.return_value = [{"node": "pve"}]
-
-        mock_network_obj.get.side_effect = lambda type=None: [
-            interface for interface in RAW_NETWORK_OUTPUT if type is None or interface["type"] == type
+        mock_network_obj.get.side_effect = lambda **kwargs: [
+            interface
+            for interface in RAW_NETWORK_OUTPUT
+            if kwargs.get("type") is None or interface["type"] == kwargs.get("type")
         ]
 
     def tearDown(self):
@@ -174,10 +176,6 @@ class TestProxmoxNodeNetworkInfo(ModuleTestCase):
 
     def test_filter_by_iface_type(self):
         """Test filtering by interface type."""
-        mock_network_obj = self.connect_mock.return_value.nodes.return_value.network.return_value
-        mock_network_obj.get.side_effect = lambda type=None: [
-            interface for interface in RAW_NETWORK_OUTPUT if type is None or interface["type"] == type
-        ]
 
         with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
             {

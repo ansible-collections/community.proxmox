@@ -151,13 +151,26 @@ proxmox_vms:
       ]
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
     proxmox_to_ansible_bool,
 )
+
+
+def module_args():
+    return dict(
+        node=dict(type="str", required=False),
+        type=dict(type="str", choices=["lxc", "qemu", "all"], default="all", required=False),
+        vmid=dict(type="int", required=False),
+        name=dict(type="str", required=False),
+        config=dict(type="str", choices=["none", "current", "pending"], default="none", required=False),
+        network=dict(type="bool", default=False, required=False),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxVmInfoAnsible(ProxmoxAnsible):
@@ -167,13 +180,15 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve VMs information from cluster resources: {e}")
 
-    def get_vms_from_nodes(self, cluster_machines, type, vmid=None, name=None, node=None, config=None, network=False):
+    def get_vms_from_nodes(
+        self, cluster_machines, resource_type, vmid=None, name=None, node=None, config=None, network=False
+    ):  # noqa: PLR0913
         # Leave in dict only machines that user wants to know about
         filtered_vms = {
             vm: info
             for vm, info in cluster_machines.items()
             if not (
-                type != info["type"]
+                resource_type != info["type"]
                 or (node and info.get("node") != node)
                 or (vmid and int(info.get("vmid", -1)) != vmid)
                 or (name is not None and info.get("name") != name)
@@ -182,8 +197,8 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         # Get list of unique node names and loop through it to get info about machines.
         nodes = frozenset([info["node"] for vm, info in filtered_vms.items() if "node" in info])
         for this_node in nodes:
-            # "type" is mandatory and can have only values of "qemu" or "lxc". Seems that use of reflection is safe.
-            call_vm_getter = getattr(self.proxmox_api.nodes(this_node), type)
+            # resource_type is "qemu" or "lxc" - matches Proxmox API nodes(node).qemu / nodes(node).lxc attributes.
+            call_vm_getter = getattr(self.proxmox_api.nodes(this_node), resource_type)
             vms_from_this_node = call_vm_getter().get()
             for detected_vm in vms_from_this_node:
                 this_vm_id = int(detected_vm["vmid"])
@@ -199,22 +214,22 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
                         # GET /nodes/{node}/qemu/{vmid}/config current=[0/1]
                         desired_vm["config"] = call_vm_getter(this_vm_id).config().get(current=config_type)
                     if network:
-                        if type == "qemu":
+                        if resource_type == "qemu":
                             desired_vm["network"] = (
                                 call_vm_getter(this_vm_id).agent("network-get-interfaces").get()["result"]
                             )
-                        elif type == "lxc":
+                        elif resource_type == "lxc":
                             desired_vm["network"] = call_vm_getter(this_vm_id).interfaces.get()
 
         return filtered_vms
 
-    def get_qemu_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):
+    def get_qemu_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):  # noqa: PLR0913
         try:
             return self.get_vms_from_nodes(cluster_machines, "qemu", vmid, name, node, config, network)
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve QEMU VMs information: {e}")
 
-    def get_lxc_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):
+    def get_lxc_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):  # noqa: PLR0913
         try:
             return self.get_vms_from_nodes(cluster_machines, "lxc", vmid, name, node, config, network)
         except Exception as e:
@@ -222,27 +237,11 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    vm_info_args = dict(
-        node=dict(type="str", required=False),
-        type=dict(type="str", choices=["lxc", "qemu", "all"], default="all", required=False),
-        vmid=dict(type="int", required=False),
-        name=dict(type="str", required=False),
-        config=dict(type="str", choices=["none", "current", "pending"], default="none", required=False),
-        network=dict(type="bool", default=False, required=False),
-    )
-    module_args.update(vm_info_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("api_password", "api_token_id")],
-        supports_check_mode=True,
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxVmInfoAnsible(module)
+
     node = module.params["node"]
-    type = module.params["type"]
+    resource_type = module.params["type"]
     vmid = module.params["vmid"]
     name = module.params["name"]
     config = module.params["config"]
@@ -257,9 +256,9 @@ def main():
     cluster_machines = {int(machine["vmid"]): machine for machine in vms_cluster_resources}
     vms = {}
 
-    if type == "lxc":
+    if resource_type == "lxc":
         vms = proxmox.get_lxc_vms(cluster_machines, vmid, name, node, config, network)
-    elif type == "qemu":
+    elif resource_type == "qemu":
         vms = proxmox.get_qemu_vms(cluster_machines, vmid, name, node, config, network)
     else:
         vms = proxmox.get_qemu_vms(cluster_machines, vmid, name, node, config, network)

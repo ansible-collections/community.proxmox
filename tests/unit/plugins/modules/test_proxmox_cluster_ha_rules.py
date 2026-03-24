@@ -129,7 +129,7 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
         assert result.get("changed") is True
         assert result.get("rule", {}).get("rule") == "my-rule"
-        assert self.mock_get.call_count == 2
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
         assert self.mock_put.call_count == 0
         assert self.mock_delete.call_count == 0
         self.mock_post.assert_called_once_with(
@@ -198,7 +198,7 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
         assert result.get("changed") is True
         assert result.get("rule", {}).get("rule") == "my-rule"
-        assert self.mock_get.call_count == 2
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
         assert self.mock_put.call_count == 0
         assert self.mock_delete.call_count == 0
         self.mock_post.assert_called_once_with(
@@ -234,7 +234,7 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
         assert result.get("changed") is True
         assert result.get("rule", {}).get("rule") == "my-rule"
-        assert self.mock_get.call_count == 2
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
         assert self.mock_put.call_count == 0
         assert self.mock_delete.call_count == 0
         self.mock_post.assert_called_once_with(
@@ -272,7 +272,7 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
         assert result.get("changed") is True
         assert result.get("rule", {}).get("rule") == "my-rule"
-        assert self.mock_get.call_count == 2
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
         assert self.mock_put.call_count == 0
         assert self.mock_delete.call_count == 0
         self.mock_post.assert_called_once_with(
@@ -485,7 +485,7 @@ class TestProxmoxClusterHARules(ModuleTestCase):
 
         assert result.get("changed") is True
         assert result.get("rule", {}).get("rule") == "my-rule"
-        assert self.mock_get.call_count == 2
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
         assert self.mock_put.call_count == 0
         assert self.mock_delete.call_count == 1
         self.mock_post.assert_called_once_with(

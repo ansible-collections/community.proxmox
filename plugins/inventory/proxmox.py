@@ -605,10 +605,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.inventory.add_child(node_type_group, name)
 
         item_status = item["status"]
-        if item_status == "running":
-            if want_facts and ittype == "qemu" and self.get_option("qemu_extended_statuses"):
-                # get more details about the status of the qemu VM
-                item_status = properties.get(self._fact("qmpstatus"), item_status)
+        if item_status == "running" and want_facts and ittype == "qemu" and self.get_option("qemu_extended_statuses"):
+            # get more details about the status of the qemu VM
+            item_status = properties.get(self._fact("qmpstatus"), item_status)
         self.inventory.add_child(self._group(f"all_{item_status}"), name)
 
         return name

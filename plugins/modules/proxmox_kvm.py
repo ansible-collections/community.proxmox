@@ -139,9 +139,9 @@ options:
         type: str
       format:
         description:
-          - V(format) is the drive's backing file's data format. Please refer to the Proxmox VE Administrator Guide, section
-            Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html) for the latest version, tables
-            3 to 14) to find out format supported by the provided storage backend.
+          - V(format) is the drive's backing file's data format.
+          - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html), tables
+            3 to 14, to find out format supported by the provided storage backend.
         type: str
       efitype:
         description:
@@ -171,8 +171,8 @@ options:
       - Target drive's backing file's data format.
       - Used only with clone.
       - Use O(format=unspecified) and O(full=false) for a linked clone.
-      - Please refer to the Proxmox VE Administrator Guide, section Proxmox VE Storage (see U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html)
-        for the latest version, tables 3 to 14) to find out format supported by the provided storage backend.
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-pvesm.html), tables
+        3 to 14, to find out format supported by the provided storage backend.
       - Not specifying this option is equivalent to setting it to V(unspecified).
     type: str
     choices: ["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]
@@ -220,20 +220,21 @@ options:
       - Keys must be C(ide[n]) where 0 ≤ n ≤ 3.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation
-        (look for "ide[n]:") at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=ide,-[n]%3A).
     type: dict
   ipconfig:
     description:
-      - 'Cloud-init: Set the IP configuration.'
-      - A hash/dictionary of network IP configurations. O(ipconfig='{"key":"value", "key":"value"}').
-      - Keys allowed are - V(ipconfig[n]) where 0 ≤ n ≤ network interfaces.
-      - Values allowed are - V("[gw=<GatewayIPv4>] [,gw6=<GatewayIPv6>] [,ip=<IPv4Format/CIDR>] [,ip6=<IPv6Format/CIDR>]").
-      - 'Cloud-init: Specify IP addresses and gateways for the corresponding interface.'
-      - IP addresses use CIDR notation, gateways are optional but they should be in the same subnet of specified IP address.
-      - The special string V(dhcp) can be used for IP addresses to use DHCP, in which case no explicit gateway should be provided.
-      - For IPv6 the special string V(auto) can be used to use stateless autoconfiguration.
-      - If cloud-init is enabled and neither an IPv4 nor an IPv6 address is specified, it defaults to using dhcp on IPv4.
+      - 'Cloud-init: IP configuration for network interfaces.'
+      - Maps to C(net[n]) interfaces (e.g. C(ipconfig0) for C(net0)).
+      - Keys must be C(ipconfig[n]) where 0 ≤ n ≤ 31.
+      - Values are comma-separated options in the format V(ip=<addr>[,gw=<gateway>][,ip6=<addr>][,gw6=<gateway>]).
+      - 'Options:'
+      - '  - V(ip): IPv4 address in CIDR notation (e.g. V(192.168.1.10/24)) or V(dhcp) for DHCP.'
+      - '  - V(gw): IPv4 gateway (requires V(ip)); omit when using V(ip=dhcp).'
+      - '  - V(ip6): IPv6 address in CIDR notation, V(dhcp), or V(auto) for SLAAC.'
+      - '  - V(gw6): IPv6 gateway (requires V(ip6)); omit when using V(ip6=dhcp) or V(ip6=auto).'
+      - 'Examples: V(ip=dhcp) for DHCP; V(ip=192.168.1.10/24,gw=192.168.1.1) for static IPv4.'
+      - If cloud-init is enabled and no address is specified, IPv4 defaults to DHCP.
     type: dict
   keyboard:
     description:
@@ -298,8 +299,7 @@ options:
         for a rate-limited VLAN interface with firewall enabled.'
       - V(macaddr=XX:XX:XX:XX:XX:XX) must be a unique MAC address.
         If not specified, a unique MAC address is automatically generated.
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "net[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html\#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=net,-[n]%3A).
     type: dict
   newid:
     description:
@@ -364,8 +364,7 @@ options:
       - Keys must be C(sata[n]) where 0 ≤ n ≤ 5.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "sata[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=sata,-[n]%3A).
     type: dict
   scsi:
     description:
@@ -373,8 +372,7 @@ options:
       - Keys must be C(scsi[n]) where 0 ≤ n ≤ 30.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "scsi[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=scsi,-[n]%3A).
     type: dict
   scsihw:
     description:
@@ -427,6 +425,12 @@ options:
     description:
       - Sets the number of CPU sockets. (1 - N).
     type: int
+  spice_enhancements:
+    description:
+      - Configure additional SPICE enhancements.
+      - Value is a comma-separated list of options in the format V(foldersharing=<0|1>[,videostreaming=<off|all|filter>]).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_spice_enhancements).
+    type: str
   sshkeys:
     description:
       - 'Cloud-init: SSH public key(s) to assign to the default user.'
@@ -519,15 +523,15 @@ options:
     description:
       - If V(true), the VM will be updated with new value.
       - Because of the operations of the API and security reasons, I have disabled the update of the following parameters
-        O(net), O(virtio), O(ide), O(sata), O(scsi). Per example updating O(net) update the MAC address and O(virtio) create
+        O(net), O(virtio), O(virtiofs), O(ide), O(sata), O(scsi). Per example updating O(net) update the MAC address and O(virtio) create
         always new disk... This security feature can be disabled by setting the O(update_unsafe) to V(true).
       - Update of O(pool) is disabled. It needs an additional API endpoint not covered by this module.
     type: bool
     default: false
   update_unsafe:
     description:
-      - If V(true), do not enforce limitations on parameters O(net), O(virtio), O(ide), O(sata), O(scsi), O(efidisk0), and
-        O(tpmstate0). Use this option with caution because an improper configuration might result in a permanent loss of data
+      - If V(true), do not enforce limitations on parameters O(net), O(virtio), O(virtiofs), O(ide), O(sata), O(scsi),
+        O(efidisk0), and O(tpmstate0). Use this option with caution because an improper configuration might result in a permanent loss of data
         (for example disk recreated).
     type: bool
     default: false
@@ -538,8 +542,7 @@ options:
   vga:
     description:
       - Select VGA type. If you want to use high resolution modes (>= 1280x1024x16) then you should use option V(std) or V(vmware).
-      - Please refer to the Proxmox VE Administrator Guide, section QEMU/KVM Virtual Machines (see
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options)) for more information on possible values.
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=vga%3A).
     type: str
   virtio:
     description:
@@ -547,9 +550,25 @@ options:
       - Keys must be C(virtio[n]) where 0 ≤ n ≤ 15.
       - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
       - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
-      - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "virtio[n]:")
-        at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
+      - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=virtio,-[n]%3A).
     type: dict
+  virtiofs:
+    description:
+      - A hash/dictionary of Virtio-fs devices for sharing directories between host and guest.
+      - Keys must be C(virtiofs[n]) where 0 ≤ n ≤ 9.
+      - Values are strings containing comma-separated options. Requires a directory mapping to be created
+        first.
+      - 'Options:'
+      - '  - V(dirid): Identifier of the directory mapping.'
+      - '  - V(cache): Caching policy V(always), V(auto), V(metadata), or V(never).'
+      - '  - V(direct-io): Whether to allow direct I/O. V(0) or V(1).'
+      - '  - V(expose-acl): Whether to expose POSIX ACLs. V(0) or V(1). Implies xattr when enabled.'
+      - '  - V(expose-xattr): Enable support for extended attributes. V(0) or V(1).'
+      - 'Example: V("dirid=my-share,cache=always,direct-io=1,expose-acl=1,expose-xattr=1")'
+      - Available in Proxmox VE 8.4 and later.
+      - For more information, see U(https://pve.proxmox.com/pve-docs/qm.conf.5.html#:~:text=virtiofs,-[n]%3A).
+    type: dict
+
   watchdog:
     description:
       - Creates a virtual hardware watchdog device.
@@ -919,13 +938,12 @@ import re
 import time
 from urllib.parse import quote
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.parsing.convert_bool import boolean
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
@@ -936,6 +954,161 @@ def parse_mac(netstr):
 
 def parse_dev(devstr):
     return re.search("(.*?)(,|$)", devstr).group(1)
+
+
+def module_args():
+    return dict(
+        archive=dict(type="str"),
+        acpi=dict(type="bool"),
+        agent=dict(type="str"),
+        args=dict(type="str"),
+        audio=dict(type="dict"),
+        autostart=dict(type="bool"),
+        balloon=dict(type="int"),
+        bios=dict(choices=["seabios", "ovmf"]),
+        boot=dict(type="str"),
+        bootdisk=dict(type="str"),
+        cicustom=dict(type="str"),
+        cipassword=dict(type="str", no_log=True),
+        citype=dict(type="str", choices=["nocloud", "configdrive2"]),
+        ciupgrade=dict(type="bool"),
+        ciuser=dict(type="str"),
+        clone=dict(type="str"),
+        cores=dict(type="int"),
+        cpu=dict(type="str"),
+        cpulimit=dict(type="int"),
+        cpuunits=dict(type="int"),
+        delete=dict(type="str"),
+        description=dict(type="str"),
+        digest=dict(type="str"),
+        efidisk0=dict(
+            type="dict",
+            options=dict(
+                storage=dict(type="str"),
+                format=dict(type="str"),
+                efitype=dict(type="str", choices=["2m", "4m"]),
+                pre_enrolled_keys=dict(type="bool"),
+            ),
+        ),
+        force=dict(type="bool"),
+        format=dict(type="str", choices=["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]),
+        freeze=dict(type="bool"),
+        full=dict(type="bool", default=True),
+        hookscript=dict(type="str"),
+        hostpci=dict(type="dict"),
+        hotplug=dict(type="str"),
+        hugepages=dict(choices=["any", "2", "1024"]),
+        ide=dict(type="dict"),
+        ipconfig=dict(type="dict"),
+        keyboard=dict(type="str"),
+        kvm=dict(type="bool"),
+        localtime=dict(type="bool"),
+        lock=dict(choices=["migrate", "backup", "snapshot", "rollback"]),
+        machine=dict(type="str"),
+        memory=dict(type="int"),
+        migrate=dict(type="bool", default=False),
+        migrate_downtime=dict(type="int"),
+        migrate_speed=dict(type="int"),
+        name=dict(type="str"),
+        nameservers=dict(type="list", elements="str"),
+        net=dict(type="dict"),
+        newid=dict(type="int"),
+        node=dict(),
+        numa=dict(type="dict"),
+        numa_enabled=dict(type="bool"),
+        onboot=dict(type="bool"),
+        ostype=dict(
+            choices=[
+                "other",
+                "wxp",
+                "w2k",
+                "w2k3",
+                "w2k8",
+                "wvista",
+                "win7",
+                "win8",
+                "win10",
+                "win11",
+                "l24",
+                "l26",
+                "solaris",
+            ]
+        ),
+        parallel=dict(type="dict"),
+        pool=dict(type="str"),
+        protection=dict(type="bool"),
+        purge=dict(type="bool", default=False),
+        reboot=dict(type="bool"),
+        revert=dict(type="str"),
+        rng0=dict(type="str"),
+        sata=dict(type="dict"),
+        scsi=dict(type="dict"),
+        scsihw=dict(choices=["lsi", "lsi53c810", "virtio-scsi-pci", "virtio-scsi-single", "megasas", "pvscsi"]),
+        serial=dict(type="dict"),
+        searchdomains=dict(type="list", elements="str"),
+        shares=dict(type="int"),
+        skiplock=dict(type="bool"),
+        smbios=dict(type="str"),
+        snapname=dict(type="str"),
+        sockets=dict(type="int"),
+        sshkeys=dict(type="str", no_log=False),
+        spice_enhancements=dict(type="str"),
+        startdate=dict(type="str"),
+        startup=dict(),
+        state=dict(
+            default="present",
+            choices=[
+                "present",
+                "absent",
+                "stopped",
+                "started",
+                "restarted",
+                "current",
+                "template",
+                "paused",
+                "hibernated",
+            ],
+        ),
+        storage=dict(type="str"),
+        tablet=dict(type="bool"),
+        tags=dict(type="list", elements="str"),
+        target=dict(type="str"),
+        tdf=dict(type="bool"),
+        template=dict(type="bool"),
+        timeout=dict(type="int", default=30),
+        tpmstate0=dict(
+            type="dict",
+            options=dict(
+                storage=dict(type="str", required=True), version=dict(type="str", choices=["2.0", "1.2"], default="2.0")
+            ),
+        ),
+        usb=dict(type="dict"),
+        update=dict(type="bool", default=False),
+        update_unsafe=dict(type="bool", default=False),
+        vcpus=dict(type="int"),
+        vga=dict(type="str"),
+        virtio=dict(type="dict"),
+        virtiofs=dict(type="dict"),
+        vmid=dict(type="int"),
+        watchdog=dict(),
+        with_local_disks=dict(type="bool", default=False),
+    )
+
+
+def module_options():
+    return dict(
+        supports_check_mode=False,
+        mutually_exclusive=[
+            ("delete", "revert"),
+            ("delete", "update"),
+            ("revert", "update"),
+            ("clone", "update"),
+            ("clone", "delete"),
+            ("clone", "revert"),
+        ],
+        required_one_of=[("name", "vmid")],
+        required_if=[("state", "present", ["node"])],
+    )
 
 
 class ProxmoxKvmAnsible(ProxmoxAnsible):
@@ -953,7 +1126,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
         # Convert all dict in kwargs to elements.
-        # For hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n]
+        # For hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n], virtiofs[n]
         for k in list(kwargs.keys()):
             if isinstance(kwargs[k], dict):
                 kwargs.update(kwargs[k])
@@ -997,7 +1170,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             time.sleep(1)
         return False
 
-    def create_vm(self, vmid, newid, node, name, memory, cpu, cores, sockets, update, update_unsafe, **kwargs):
+    def create_vm(self, vmid, newid, node, name, memory, cpu, cores, sockets, update, update_unsafe, **kwargs):  # noqa: PLR0913
         # Available only in PVE 4
         only_v4 = ["force", "protection", "skiplock"]
         only_v6 = ["ciuser", "cipassword", "sshkeys", "ipconfig", "tags"]
@@ -1006,8 +1179,6 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         # valid clone parameters
         valid_clone_params = ["format", "full", "pool", "snapname", "storage", "target"]
         clone_params = {}
-        # Default args for vm. Note: -args option is for experts only. It allows you to pass arbitrary arguments to kvm.
-        vm_args = f"-serial unix:/var/run/qemu-server/{vmid}.serial,server,nowait"
 
         proxmox_node = self.proxmox_api.nodes(node)
 
@@ -1019,19 +1190,19 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         pve_major_version = 3 if version < LooseVersion("4.0") else version.version[0]
 
         # The features work only on PVE 4+
-        if pve_major_version < 4:
+        if pve_major_version < 4:  # noqa: PLR2004
             for p in only_v4:
                 if p in kwargs:
                     del kwargs[p]
 
         # The features work only on PVE 6
-        if pve_major_version < 6:
+        if pve_major_version < 6:  # noqa: PLR2004
             for p in only_v6:
                 if p in kwargs:
                     del kwargs[p]
 
         # The features work only on PVE 8
-        if pve_major_version < 8:
+        if pve_major_version < 8:  # noqa: PLR2004
             for p in only_v8:
                 if p in kwargs:
                     del kwargs[p]
@@ -1041,7 +1212,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             urlencoded_ssh_keys = quote(kwargs["sshkeys"], safe="")
             kwargs["sshkeys"] = str(urlencoded_ssh_keys)
 
-        # If update, don't update disk (virtio, efidisk0, tpmstate0, ide, sata, scsi) and network interface, unless update_unsafe=True
+        # If update, don't update disk (virtio, efidisk0, tpmstate0, ide, sata, scsi), virtiofs, and network interface, unless update_unsafe=True
         # pool parameter not supported by qemu/<vmid>/config endpoint on "update" (PVE 6.2) - only with "create"
         if update:
             if update_unsafe is False:
@@ -1059,15 +1230,16 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
                     del kwargs["tpmstate0"]
                 if "net" in kwargs:
                     del kwargs["net"]
+                if "virtiofs" in kwargs:
+                    del kwargs["virtiofs"]
             if "force" in kwargs:
                 del kwargs["force"]
             if "pool" in kwargs:
                 del kwargs["pool"]
 
         # Check that the bios option is set to ovmf if the efidisk0 option is present
-        if "efidisk0" in kwargs:
-            if ("bios" not in kwargs) or (kwargs["bios"] != "ovmf"):
-                self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
+        if "efidisk0" in kwargs and kwargs.get("bios") != "ovmf":
+            self.module.fail_json(msg="efidisk0 cannot be used if bios is not set to ovmf. ")
 
         # Flatten efidisk0 option to a string so that it is a string which is what Proxmoxer and the API expect
         if "efidisk0" in kwargs:
@@ -1091,7 +1263,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             kwargs["tpmstate0"] = f"{tpm.get('storage')}:1,version=v{tpm.get('version')}"
 
         # Convert all dict in kwargs to elements.
-        # For audio[n], hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n], ipconfig[n], usb[n]
+        # For audio[n], hostpci[n], ide[n], net[n], numa[n], parallel[n], sata[n], scsi[n], serial[n], virtio[n], virtiofs[n], ipconfig[n], usb[n]
         for k in list(kwargs.keys()):
             if isinstance(kwargs[k], dict):
                 kwargs.update(kwargs[k])
@@ -1249,157 +1421,8 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    kvm_args = dict(
-        archive=dict(type="str"),
-        acpi=dict(type="bool"),
-        agent=dict(type="str"),
-        args=dict(type="str"),
-        audio=dict(type="dict"),
-        autostart=dict(type="bool"),
-        balloon=dict(type="int"),
-        bios=dict(choices=["seabios", "ovmf"]),
-        boot=dict(type="str"),
-        bootdisk=dict(type="str"),
-        cicustom=dict(type="str"),
-        cipassword=dict(type="str", no_log=True),
-        citype=dict(type="str", choices=["nocloud", "configdrive2"]),
-        ciupgrade=dict(type="bool"),
-        ciuser=dict(type="str"),
-        clone=dict(type="str"),
-        cores=dict(type="int"),
-        cpu=dict(type="str"),
-        cpulimit=dict(type="int"),
-        cpuunits=dict(type="int"),
-        delete=dict(type="str"),
-        description=dict(type="str"),
-        digest=dict(type="str"),
-        efidisk0=dict(
-            type="dict",
-            options=dict(
-                storage=dict(type="str"),
-                format=dict(type="str"),
-                efitype=dict(type="str", choices=["2m", "4m"]),
-                pre_enrolled_keys=dict(type="bool"),
-            ),
-        ),
-        force=dict(type="bool"),
-        format=dict(type="str", choices=["cloop", "cow", "qcow", "qcow2", "qed", "raw", "vmdk", "unspecified"]),
-        freeze=dict(type="bool"),
-        full=dict(type="bool", default=True),
-        hookscript=dict(type="str"),
-        hostpci=dict(type="dict"),
-        hotplug=dict(type="str"),
-        hugepages=dict(choices=["any", "2", "1024"]),
-        ide=dict(type="dict"),
-        ipconfig=dict(type="dict"),
-        keyboard=dict(type="str"),
-        kvm=dict(type="bool"),
-        localtime=dict(type="bool"),
-        lock=dict(choices=["migrate", "backup", "snapshot", "rollback"]),
-        machine=dict(type="str"),
-        memory=dict(type="int"),
-        migrate=dict(type="bool", default=False),
-        migrate_downtime=dict(type="int"),
-        migrate_speed=dict(type="int"),
-        name=dict(type="str"),
-        nameservers=dict(type="list", elements="str"),
-        net=dict(type="dict"),
-        newid=dict(type="int"),
-        node=dict(),
-        numa=dict(type="dict"),
-        numa_enabled=dict(type="bool"),
-        onboot=dict(type="bool"),
-        ostype=dict(
-            choices=[
-                "other",
-                "wxp",
-                "w2k",
-                "w2k3",
-                "w2k8",
-                "wvista",
-                "win7",
-                "win8",
-                "win10",
-                "win11",
-                "l24",
-                "l26",
-                "solaris",
-            ]
-        ),
-        parallel=dict(type="dict"),
-        pool=dict(type="str"),
-        protection=dict(type="bool"),
-        purge=dict(type="bool", default=False),
-        reboot=dict(type="bool"),
-        revert=dict(type="str"),
-        rng0=dict(type="str"),
-        sata=dict(type="dict"),
-        scsi=dict(type="dict"),
-        scsihw=dict(choices=["lsi", "lsi53c810", "virtio-scsi-pci", "virtio-scsi-single", "megasas", "pvscsi"]),
-        serial=dict(type="dict"),
-        searchdomains=dict(type="list", elements="str"),
-        shares=dict(type="int"),
-        skiplock=dict(type="bool"),
-        smbios=dict(type="str"),
-        snapname=dict(type="str"),
-        sockets=dict(type="int"),
-        sshkeys=dict(type="str", no_log=False),
-        startdate=dict(type="str"),
-        startup=dict(),
-        state=dict(
-            default="present",
-            choices=[
-                "present",
-                "absent",
-                "stopped",
-                "started",
-                "restarted",
-                "current",
-                "template",
-                "paused",
-                "hibernated",
-            ],
-        ),
-        storage=dict(type="str"),
-        tablet=dict(type="bool"),
-        tags=dict(type="list", elements="str"),
-        target=dict(type="str"),
-        tdf=dict(type="bool"),
-        template=dict(type="bool"),
-        timeout=dict(type="int", default=30),
-        tpmstate0=dict(
-            type="dict",
-            options=dict(
-                storage=dict(type="str", required=True), version=dict(type="str", choices=["2.0", "1.2"], default="2.0")
-            ),
-        ),
-        usb=dict(type="dict"),
-        update=dict(type="bool", default=False),
-        update_unsafe=dict(type="bool", default=False),
-        vcpus=dict(type="int"),
-        vga=dict(type="str"),
-        virtio=dict(type="dict"),
-        vmid=dict(type="int"),
-        watchdog=dict(),
-        with_local_disks=dict(type="bool", default=False),
-    )
-    module_args.update(kvm_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        mutually_exclusive=[
-            ("delete", "revert"),
-            ("delete", "update"),
-            ("revert", "update"),
-            ("clone", "update"),
-            ("clone", "delete"),
-            ("clone", "revert"),
-        ],
-        required_together=[("api_token_id", "api_token_secret")],
-        required_one_of=[("name", "vmid"), ("api_password", "api_token_id")],
-        required_if=[("state", "present", ["node"])],
-    )
+    module = create_proxmox_module(module_args(), **module_options())
+    proxmox = ProxmoxKvmAnsible(module)
 
     clone = module.params["clone"]
     cpu = module.params["cpu"]
@@ -1416,12 +1439,9 @@ def main():
     update = bool(module.params["update"])
     update_unsafe = bool(module.params["update_unsafe"])
     vmid = module.params["vmid"]
-    validate_certs = module.params["validate_certs"]
 
     if module.params["format"] == "unspecified":
         module.params["format"] = None
-
-    proxmox = ProxmoxKvmAnsible(module)
 
     # If vmid is not defined then retrieve its value from the vm name,
     # the cloned vm name or retrieve the next free VM id from ProxmoxAPI.
@@ -1565,6 +1585,7 @@ def main():
                 scsihw=module.params["scsihw"],
                 serial=module.params["serial"],
                 shares=module.params["shares"],
+                spice_enhancements=module.params["spice_enhancements"],
                 skiplock=module.params["skiplock"],
                 smbios1=module.params["smbios"],
                 snapname=module.params["snapname"],
@@ -1582,6 +1603,7 @@ def main():
                 vcpus=module.params["vcpus"],
                 vga=module.params["vga"],
                 virtio=module.params["virtio"],
+                virtiofs=module.params["virtiofs"],
                 watchdog=module.params["watchdog"],
             )
 

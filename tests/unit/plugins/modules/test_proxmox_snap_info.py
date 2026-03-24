@@ -15,7 +15,7 @@ from ansible_collections.community.proxmox.plugins.modules import proxmox_snap_i
 proxmoxer = pytest.importorskip("proxmoxer")
 
 
-def get_resources(type):
+def get_resources(**_):
     return [{"vmid": 100, "node": "localhost", "type": "lxc", "name": "test-lxc"}]
 
 
@@ -48,7 +48,7 @@ def test_list_all_snapshots(connect_mock, capfd, mocker):
 
     assert not err
     assert not result.get("failed")
-    assert len(result["snapshots"]) == 3
+    assert len(result["snapshots"]) == len(get_snapshots())
     assert result["snapshots"][1]["name"] == "before-upgrade"
 
 
