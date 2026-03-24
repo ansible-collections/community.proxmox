@@ -14,7 +14,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 
 class ProxmoxSdnAnsible(ProxmoxAnsible):
-    """Base Class for All Proxmox SDN Classes"""
+    """Base Class for All Proxmox SDN Classes."""
 
     def __init__(self, module):
         super().__init__(module)
@@ -24,6 +24,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
 
     @property
     def is_lock_and_rollback_supported(self) -> bool:
+        """Whether the Proxmox node supports SDN lock and rollback (PVE 9+)."""
         return self._is_lock_and_rollback_supported
 
     def get_global_sdn_lock(self) -> str:
@@ -76,7 +77,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             )
 
     def release_lock(self, lock: str, force: bool = False) -> None:
-        """Release Global SDN lock
+        """Release Global SDN lock.
 
         :param lock: Global SDN lock token
         :param force: if true, allow releasing lock without providing the token
@@ -90,7 +91,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             )
 
     def get_zones(self, zone_type: str = None) -> List[Dict]:
-        """Get Proxmox SDN zones
+        """Get Proxmox SDN zones.
 
         :param zone_type: Filter zones based on type.
         :return: list of all zones and their properties.
@@ -101,7 +102,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to retrieve zone information from cluster: {e}")
 
     def get_aliases(self, firewall_obj):
-        """Get aliases for IP/CIDR at given firewall endpoint level
+        """Get aliases for IP/CIDR at given firewall endpoint level.
 
         :param firewall_obj: Firewall endpoint as a ProxmoxResource e.g. self.proxmox_api.cluster().firewall
                             If it is None it'll return an empty list
@@ -115,7 +116,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to retrieve aliases - {e}")
 
     def get_fw_rules(self, rules_obj, pos=None):
-        """Get firewall rules at given rules endpoint level
+        """Get firewall rules at given rules endpoint level.
 
         :param rules_obj: Firewall Rules endpoint as a ProxmoxResource e.g. self.proxmox_api.cluster().firewall().rules
         :param pos: Rule position if it is None it'll return all rules
@@ -129,7 +130,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to retrieve firewall rules: {e}")
 
     def get_groups(self):
-        """Get firewall security groups
+        """Get firewall security groups.
 
         :return: list of groups
         """

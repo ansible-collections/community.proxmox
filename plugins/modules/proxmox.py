@@ -898,7 +898,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             force=force,
         )
 
-    def lxc_absent(self, vmid, hostname, node, timeout, purge, force):
+    def lxc_absent(self, vmid, hostname, node, timeout, purge, force):  # noqa: PLR0913
         try:
             lxc = self.get_lxc_resource(vmid, hostname)
         except LookupError:
@@ -1077,7 +1077,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         # update the config
         getattr(proxmox_node, self.VZ_TYPE)(vmid).config.put(vmid=vmid, node=node, **kwargs)
 
-    def new_lxc_instance(self, vmid, hostname, node, clone_from, ostemplate, force):
+    def new_lxc_instance(self, vmid, hostname, node, clone_from, ostemplate, force):  # noqa: PLR0913
         identifier = self.format_vm_identifier(vmid, hostname)
 
         if clone_from is not None:
@@ -1458,7 +1458,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         return disk_kwargs
 
-    def build_volume(
+    def build_volume(  # noqa: PLR0913
         self,
         vmid,
         node,

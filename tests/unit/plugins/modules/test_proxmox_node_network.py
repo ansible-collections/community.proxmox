@@ -67,8 +67,10 @@ class TestProxmoxNodeNetwork(ModuleTestCase):
 
         mock_nodes.get.return_value = [{"node": "pve"}]
 
-        mock_network_obj.get.side_effect = lambda type=None: [
-            interface for interface in EXISTING_NETWORK_OUTPUT if type is None or interface["type"] == type
+        mock_network_obj.get.side_effect = lambda **kwargs: [
+            interface
+            for interface in EXISTING_NETWORK_OUTPUT
+            if kwargs.get("type") is None or interface["type"] == kwargs.get("type")
         ]
 
     def tearDown(self):

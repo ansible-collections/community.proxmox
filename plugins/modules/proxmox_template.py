@@ -275,13 +275,13 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             taskid = (
                 self.proxmox_api.nodes(node)
                 .storage(storage)
-                .upload.post(content=content_type, filename=open(realpath, "rb"))
+                .upload.post(content=content_type, filename=open(realpath, "rb"))  # noqa: SIM115
             )
             return self.task_status(node, taskid, timeout)
         except Exception as e:
             self.module.fail_json(msg=f"Uploading template {realpath} failed with error: {e}")
 
-    def fetch_template(self, node, storage, content_type, url, timeout, template):
+    def fetch_template(self, node, storage, content_type, url, timeout, template):  # noqa: PLR0913
         """Fetch a template from a web url source using the proxmox download-url endpoint"""
         try:
             taskid = (
@@ -313,7 +313,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             time.sleep(1)
         return False
 
-    def fetch_and_verify(self, node, storage, url, content_type, timeout, checksum, checksum_algorithm, template):
+    def fetch_and_verify(self, node, storage, url, content_type, timeout, checksum, checksum_algorithm, template):  # noqa: PLR0913
         """Fetch a template from a web url, then verify it using a checksum."""
         data = {
             "url": url,
