@@ -1310,15 +1310,10 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             self.module.fail_json(msg="skiplock parameter require root@pam user. ")
 
         if update:
-            if (
-                proxmox_node.qemu(vmid).config.set(
-                    name=name, memory=memory, cpu=cpu, cores=cores, sockets=sockets, **kwargs
-                )
-                is None
-            ):
-                return True
-            else:
-                return False
+            result = proxmox_node.qemu(vmid).config.set(
+                name=name, memory=memory, cpu=cpu, cores=cores, sockets=sockets, **kwargs
+            )
+            return result is None
         elif self.module.params["clone"] is not None:
             for param in valid_clone_params:
                 if self.module.params[param] is not None:
