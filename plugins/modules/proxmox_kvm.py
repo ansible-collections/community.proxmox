@@ -1135,7 +1135,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         # Split information by type
         re_net = re.compile(r"net[0-9]")
         re_dev = re.compile(r"(virtio|ide|scsi|sata|efidisk)[0-9]")
-        for k in kwargs.keys():
+        for k in kwargs:
             if re_net.match(k):
                 mac[k] = parse_mac(vm[k])
             elif re_dev.match(k):
