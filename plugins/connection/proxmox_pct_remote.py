@@ -625,10 +625,9 @@ class Connection(ConnectionBase):
         return self
 
     def _any_keys_added(self) -> bool:
-        for hostname, keys in self.ssh._host_keys.items():
-            for keytype, key in keys.items():
-                added_this_time = getattr(key, "_added_by_ansible_this_time", False)
-                if added_this_time:
+        for keys in self.ssh._host_keys.values():
+            for key in keys.values():
+                if getattr(key, "_added_by_ansible_this_time", False):
                     return True
         return False
 
