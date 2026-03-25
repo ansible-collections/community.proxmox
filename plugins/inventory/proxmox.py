@@ -431,7 +431,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 result.append(
                     {
                         "name": iface["name"],
-                        "mac-address": iface["hardware-address"] if "hardware-address" in iface else "",
+                        "mac-address": iface.get("hardware-address", ""),
                         "ip-addresses": [f"{ip['ip-address']}/{ip['prefix']}" for ip in iface["ip-addresses"]]
                         if "ip-addresses" in iface
                         else [],
@@ -483,9 +483,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 if config == "lxc":
                     out_val = {}
                     for k, v in value:
-                        if k.startswith("lxc."):
-                            k = k[len("lxc.") :]
-                        out_val[k] = v
+                        out_key = k[len("lxc.") :] if k.startswith("lxc.") else k
+                        out_val[out_key] = v
                     value = out_val
 
                 if (
@@ -551,7 +550,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             except Exception as e:  # pylint: disable=broad-except
                 message = f"Could not evaluate host filter {host_filter} for host {name} - {e}"
                 if self.strict:
-                    raise AnsibleError(message)
+                    raise AnsibleError(message) from e
                 display.warning(message)
         return True
 

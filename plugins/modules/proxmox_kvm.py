@@ -1135,7 +1135,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         # Split information by type
         re_net = re.compile(r"net[0-9]")
         re_dev = re.compile(r"(virtio|ide|scsi|sata|efidisk)[0-9]")
-        for k in kwargs.keys():
+        for k in kwargs:
             if re_net.match(k):
                 mac[k] = parse_mac(vm[k])
             elif re_dev.match(k):
@@ -1310,15 +1310,10 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             self.module.fail_json(msg="skiplock parameter require root@pam user. ")
 
         if update:
-            if (
-                proxmox_node.qemu(vmid).config.set(
-                    name=name, memory=memory, cpu=cpu, cores=cores, sockets=sockets, **kwargs
-                )
-                is None
-            ):
-                return True
-            else:
-                return False
+            result = proxmox_node.qemu(vmid).config.set(
+                name=name, memory=memory, cpu=cpu, cores=cores, sockets=sockets, **kwargs
+            )
+            return result is None
         elif self.module.params["clone"] is not None:
             for param in valid_clone_params:
                 if self.module.params[param] is not None:
