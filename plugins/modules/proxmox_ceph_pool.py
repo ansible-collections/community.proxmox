@@ -93,7 +93,7 @@ EXAMPLES = r"""
     name: ceph-pool
     state: present
 
-- name: Add a ceph pool and the storage
+- name: Add a ceph pool and storage
   community.proxmox.proxmox_ceph_pool:
     api_host: proxmox
     api_user: root@pam
