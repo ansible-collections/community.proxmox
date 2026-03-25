@@ -394,7 +394,7 @@ def main():
                     continue
 
             if not snap_exist:
-                module.exit_json(changed=False, msg=f"Snapshot {snapname} does not exist")
+                module.fail_json(changed=False, msg=f"Snapshot {snapname} does not exist")
             if proxmox.snapshot_rollback(vm, vmid, timeout, snapname):
                 if module.check_mode:
                     module.exit_json(changed=True, msg=f"Snapshot {snapname} would be rolled back")
