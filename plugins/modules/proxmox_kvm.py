@@ -1113,8 +1113,6 @@ def module_options():
 
 class ProxmoxKvmAnsible(ProxmoxAnsible):
     def get_vminfo(self, node, vmid, **kwargs):
-        global results
-        results = {}
         mac = {}
         devices = {}
         try:
@@ -1141,9 +1139,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             elif re_dev.match(k):
                 devices[k] = parse_dev(vm[k])
 
-        results["mac"] = mac
-        results["devices"] = devices
-        results["vmid"] = int(vmid)
+        return {"mac": mac, "devices": devices, "vmid": int(vmid)}
 
     def settings(self, vmid, node, **kwargs):
         proxmox_node = self.proxmox_api.nodes(node)
@@ -1519,6 +1515,7 @@ def main():
         elif not proxmox.get_node(node):
             module.fail_json(msg=f"node '{node}' does not exist in cluster")
 
+        vminfo = {}
         try:
             proxmox.create_vm(
                 vmid,
@@ -1603,7 +1600,7 @@ def main():
             )
 
             if not clone:
-                proxmox.get_vminfo(
+                vminfo = proxmox.get_vminfo(
                     node,
                     vmid,
                     ide=module.params["ide"],
@@ -1629,7 +1626,7 @@ def main():
                 changed=True, vmid=newid, msg=f"VM {name} with newid {newid} cloned from vm with vmid {vmid}"
             )
         else:
-            module.exit_json(changed=True, msg=f"VM {name} with vmid {vmid} deployed", **results)
+            module.exit_json(changed=True, msg=f"VM {name} with vmid {vmid} deployed", **vminfo)
 
     elif state == "started":
         if not vmid:
