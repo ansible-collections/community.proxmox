@@ -20,7 +20,7 @@ attributes:
 
 options:
     add_storages:
-        description: If true, add the new pool to the cluster storage configuration.
+        description: Add the new pool to the cluster storage configuration.
         required: false
         type: bool
     crush_rule:
@@ -40,7 +40,7 @@ options:
         required: true
         type: str
     pg_autoscale_mode:
-        description: The automatic PG scaling mode of the pool.
+        description: The automatic placement groups scaling mode of the pool.
         required: false
         type: str
         choices: ["on", "off", "warn"]
@@ -61,12 +61,17 @@ options:
         description: Number of replicas per object.
         required: false
         type: int
+    timeout:
+        description: Timeout for operations.
+        default: 5
+        required: false
+        type: int
     target_size:
-        description: The estimated target size of the pool for the PG autoscaler.
+        description: The estimated target size of the pool for the placement groups autoscaler.
         required: false
         type: str
     target_size_ratio:
-        description: The estimated target ratio of the pool for the PG autoscaler.
+        description: The estimated target ratio of the pool for the placement groups autoscaler.
         required: false
         type: int
 
@@ -79,7 +84,7 @@ extends_documentation_fragment:
 
 
 EXAMPLES = r"""
-- name: Add a pool ceph
+- name: Add a ceph pool
   community.proxmox.proxmox_ceph_pool:
     api_host: proxmox
     api_user: root@pam
@@ -88,7 +93,7 @@ EXAMPLES = r"""
     name: ceph-pool
     state: present
 
-- name: Add a pool ceph and the storage
+- name: Add a ceph pool and the storage
   community.proxmox.proxmox_ceph_pool:
     api_host: proxmox
     api_user: root@pam
@@ -98,7 +103,7 @@ EXAMPLES = r"""
     state: present
     add_storages: true
 
-- name: Delete a pool ceph
+- name: Delete a ceph pool
   community.proxmox.proxmox_ceph_pool:
     api_host: proxmox
     api_user: root@pam
@@ -115,14 +120,35 @@ msg:
     returned: always
 """
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
-    proxmox_auth_argument_spec,
+    create_proxmox_module,
 )
+
+
+def module_args():
+    return dict(
+        add_storages=dict(type="bool"),
+        crush_rule=dict(type="str"),
+        min_size=dict(type="int"),
+        name=dict(type="str", required=True),
+        node=dict(type="str", required=True),
+        pg_autoscale_mode=dict(type="str", choices=["on", "off", "warn"]),
+        pg_num=dict(type="int"),
+        pg_num_min=dict(type="int"),
+        size=dict(type="int"),
+        timeout=dict(type="int", default=5),
+        target_size=dict(type="str"),
+        target_size_ratio=dict(type="int"),
+        state=dict(choices=["present", "absent"], required=True),
+    )
+
+
+def module_options():
+    return {}
 
 
 class ProxmoxCephPoolAnsible(ProxmoxAnsible):
@@ -154,11 +180,6 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def is_equal(self, params, current):
         return all(params[k] == current.get(k) for k in params if k not in ("add_storages", "node"))
 
-    def check_node(self, node):
-        nodes = self.proxmox_api.cluster.resources.get(type="node")
-        if node not in [item["node"] for item in nodes]:
-            self.module.fail_json(msg=f"Node {node} does not exist in the cluster.")
-
     def check_pool(self, node, name):
         pools = self.proxmox_api.nodes(node).ceph.pool.get()
         return any(pool["pool_name"] == name for pool in pools)
@@ -169,7 +190,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def add_pool(self):
         node = self.params["node"]
         name = self.params["name"]
-        self.check_node(node)
+        self.check_node_on_cluster(node)
         pool_params = self.get_params()
         if self.check_pool(node, name):
             pool_current = self.get_pool(node, name)
@@ -183,7 +204,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
                 else:
                     current_task_id = self.proxmox_api.nodes(node).ceph.pool(name).put(**pool_params)
                     task_success, fail_reason = self.api_task_complete(
-                        node, current_task_id, self.module.params["api_timeout"]
+                        node, current_task_id, self.module.params["timeout"]
                     )
                     if task_success:
                         self.module.exit_json(changed=True, msg=f"Ceph pool {name} updated.")
@@ -193,7 +214,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=True, msg=f"Ceph pool {name} would be added.")
         else:
             current_task_id = self.proxmox_api.nodes(node).ceph.pool.create(**pool_params)
-            task_success, fail_reason = self.api_task_complete(node, current_task_id, self.module.params["api_timeout"])
+            task_success, fail_reason = self.api_task_complete(node, current_task_id, self.module.params["timeout"])
             if task_success:
                 self.module.exit_json(changed=True, msg=f"Ceph pool {name} added.")
             else:
@@ -202,15 +223,13 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def del_pool(self):
         node = self.params["node"]
         name = self.params["name"]
-        self.check_node(node)
+        self.check_node_on_cluster(node)
         if self.check_pool(node, name):
             if self.module.check_mode:
                 self.module.exit_json(changed=True, msg=f"Ceph pool {name} would be deleted.")
             else:
                 current_task_id = self.proxmox_api.nodes(node).ceph.pool(name).delete()
-                task_success, fail_reason = self.api_task_complete(
-                    node, current_task_id, self.module.params["api_timeout"]
-                )
+                task_success, fail_reason = self.api_task_complete(node, current_task_id, self.module.params["timeout"])
                 if task_success:
                     self.module.exit_json(changed=True, msg=f"Ceph pool {name} deleted.")
                 else:
@@ -220,31 +239,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
 
 
 def main():
-    module_args = proxmox_auth_argument_spec()
-    pool_args = dict(
-        add_storages=dict(type="bool"),
-        crush_rule=dict(type="str"),
-        min_size=dict(type="int"),
-        name=dict(type="str", required=True),
-        node=dict(type="str", required=True),
-        pg_autoscale_mode=dict(type="str", choices=["on", "off", "warn"]),
-        pg_num=dict(type="int"),
-        pg_num_min=dict(type="int"),
-        size=dict(type="int"),
-        target_size=dict(type="str"),
-        target_size_ratio=dict(type="int"),
-        state=dict(choices=["present", "absent"], required=True),
-    )
-
-    module_args.update(pool_args)
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_one_of=[("api_password", "api_token_id")],
-        required_together=[("api_token_id", "api_token_secret")],
-    )
-
+    module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxCephPoolAnsible(module)
     state = module.params["state"]
 
