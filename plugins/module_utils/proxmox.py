@@ -418,3 +418,14 @@ class ProxmoxAnsible:
             return self.proxmox_api.nodes(node).storage(storage).content().get(content=content, vmid=vmid)
         except Exception as e:
             self.module.fail_json(msg=f"Unable to list content on {node}, {storage} for {content} and {vmid}: {e}")
+
+    def check_node_on_cluster(self, node):
+        """
+        Checks if the node is part of the cluster.
+
+        Args:
+            node(str): searched node.
+        """
+        nodes = self.proxmox_api.cluster.resources.get(type="node")
+        if node not in [item["node"] for item in nodes]:
+            self.module.fail_json(msg=f"Node {node} does not exist in the cluster.")
