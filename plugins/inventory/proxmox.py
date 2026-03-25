@@ -384,7 +384,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     def _get_lxc_interfaces(self, properties, node, vmid):
         status_key = self._fact("status")
 
-        if status_key not in properties or not properties[status_key] == "running":
+        if status_key not in properties or properties[status_key] != "running":
             return
 
         ret = self._get_json(f"{self.proxmox_url}/api2/json/nodes/{node}/lxc/{vmid}/interfaces", ignore_errors=[501])
