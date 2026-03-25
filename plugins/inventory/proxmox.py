@@ -273,7 +273,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         validate_certs = self.get_option("validate_certs")
 
         if validate_certs is False:
-            from requests.packages.urllib3 import disable_warnings
+            from requests.packages.urllib3 import disable_warnings  # noqa: PLC0415
 
             disable_warnings()
 
