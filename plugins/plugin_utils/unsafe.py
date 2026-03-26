@@ -18,7 +18,7 @@ _RE_TEMPLATE_CHARS = re.compile("[{}]")
 _RE_TEMPLATE_CHARS_BYTES = re.compile(b"[{}]")
 
 
-def make_unsafe(value):
+def make_unsafe(value):  # noqa: PLR0911
     """Make a value unsafe."""
     if value is None or isinstance(value, AnsibleUnsafe):
         return value
