@@ -694,7 +694,9 @@ class Connection(ConnectionBase):
         # to initialise from the calling environment when sudoable is enabled
         if self.get_option("pty") and sudoable:
             chan.get_pty(
-                term=os.getenv("TERM", "vt100"), width=int(os.getenv("COLUMNS", 0)), height=int(os.getenv("LINES", 0))
+                term=os.getenv("TERM", "vt100"),
+                width=int(os.getenv("COLUMNS", "0")),
+                height=int(os.getenv("LINES", "0")),
             )
 
         display.vvv(f"EXEC {cmd}", host=self.get_option("remote_addr"))
