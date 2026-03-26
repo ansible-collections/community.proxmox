@@ -6,7 +6,6 @@
     - <a href="#release-summary">Release Summary</a>
     - <a href="#major-changes">Major Changes</a>
     - <a href="#minor-changes">Minor Changes</a>
-    - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
     - <a href="#deprecated-features">Deprecated Features</a>
     - <a href="#bugfixes">Bugfixes</a>
     - <a href="#new-modules">New Modules</a>
@@ -40,7 +39,7 @@
 - <a href="#v1-0-0">v1\.0\.0</a>
     - <a href="#release-summary-7">Release Summary</a>
     - <a href="#minor-changes-7">Minor Changes</a>
-    - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
+    - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes-5">Bugfixes</a>
     - <a href="#new-modules-6">New Modules</a>
 - <a href="#v0-1-0">v0\.1\.0</a>
@@ -66,17 +65,13 @@ that have been made after the previous release\.
 
 * inventory plugin \- add want\_post\_filtering\_facts to delay fact gathering until filtering has completed \([https\://github\.com/ansible\-collections/community\.proxmox/pull/261](https\://github\.com/ansible\-collections/community\.proxmox/pull/261)\)\.
 * proxmox \- Add api\_timeout option for all modules \([https\://github\.com/ansible\-collections/community\.proxmox/pull/253](https\://github\.com/ansible\-collections/community\.proxmox/pull/253)\)\.
+* proxmox \- set <code>state</code> as not <code>required</code> and set default value <code>present</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/292](https\://github\.com/ansible\-collections/community\.proxmox/pull/292)\)\.
 * proxmox\_role \- add role\'s privs on the return data \([https\://github\.com/ansible\-collections/community\.proxmox/pull/283](https\://github\.com/ansible\-collections/community\.proxmox/pull/283)\)\.
 * proxmox\_storage \- Add support for ZFS thin\-provisioning \([https\://github\.com/ansible\-collections/community\.proxmox/pull/265](https\://github\.com/ansible\-collections/community\.proxmox/pull/265)\)\.
 * proxmox\_storage \- Add the option namespace for PBS storage \([https\://github\.com/ansible\-collections/community\.proxmox/pull/282](https\://github\.com/ansible\-collections/community\.proxmox/pull/282)\)
 * proxmox\_storage \- refactor the validation of storage options \([https\://github\.com/ansible\-collections/community\.proxmox/pull/266](https\://github\.com/ansible\-collections/community\.proxmox/pull/266)\)\.
 * proxmox\_storage\_contents\_info \- Add support for content type <code>import</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/260](https\://github\.com/ansible\-collections/community\.proxmox/pull/260)\)\.
 * proxmox\_zone\, proxmox\_vnet\, proxmox\_subnet \- make sdn modules compatible with pve8 \([https\://github\.com/ansible\-collections/community\.proxmox/pull/254](https\://github\.com/ansible\-collections/community\.proxmox/pull/254)\)\.
-
-<a id="breaking-changes--porting-guide"></a>
-### Breaking Changes / Porting Guide
-
-* proxmox \- set <code>state</code> as not <code>optional</code> and assign default value <code>present</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/292](https\://github\.com/ansible\-collections/community\.proxmox/pull/292)\)\.
 
 <a id="deprecated-features"></a>
 ### Deprecated Features
@@ -293,7 +288,7 @@ This is the first stable release of the <code>community\.proxmox</code> collecti
 * proxmox\_kvm \- remove redundant check for duplicate names as this is allowed by PVE API \([https\://github\.com/ansible\-collections/community\.proxmox/issues/97](https\://github\.com/ansible\-collections/community\.proxmox/issues/97)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/99](https\://github\.com/ansible\-collections/community\.proxmox/pull/99)\)\.
 * proxmox\_snap \- correctly handle proxmox\_snap timeout parameter \([https\://github\.com/ansible\-collections/community\.proxmox/issues/73](https\://github\.com/ansible\-collections/community\.proxmox/issues/73)\, [https\://github\.com/ansible\-collections/community\.proxmox/issues/95](https\://github\.com/ansible\-collections/community\.proxmox/issues/95)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/101](https\://github\.com/ansible\-collections/community\.proxmox/pull/101)\)\.
 
-<a id="breaking-changes--porting-guide-1"></a>
+<a id="breaking-changes--porting-guide"></a>
 ### Breaking Changes / Porting Guide
 
 * proxmox \- <code>update</code> and <code>force</code> are now mutually exclusive \([https\://github\.com/ansible\-collections/community\.proxmox/pull/92](https\://github\.com/ansible\-collections/community\.proxmox/pull/92)\)\.
