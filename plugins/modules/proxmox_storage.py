@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd', 'zfspool']
     type: str
     required: true
   nodes:
@@ -204,6 +204,16 @@ options:
         description:
           - The fingerprint of the Proxmox Backup Server system.
         type: str
+  rbd_options:
+    description:
+      - Extended information for adding RBD storage.
+    type: dict
+    suboptions:
+      pool:
+        description:
+          - The required RBD pool name.
+        type: str
+        required: false
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
@@ -343,6 +353,9 @@ STORAGE_BACKENDS = {
         "namespace": ("namespace", False),
         "fingerprint": ("fingerprint", False),
     },
+    "rbd": {
+        "pool": ("pool", True),
+    },
     "zfspool": {
         "pool": ("pool", True),
         "sparse": ("sparse", False),
@@ -354,7 +367,9 @@ def module_args():
     return dict(
         name=dict(type="str", required=True),
         state=dict(type="str", choices=["present", "absent"], default="present"),
-        type=dict(type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "zfspool"], required=True),
+        type=dict(
+            type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "rbd", "zfspool"], required=True
+        ),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
         ),
@@ -413,6 +428,7 @@ def module_args():
                 "fingerprint": dict(type="str"),
             },
         ),
+        rbd_options=dict(type="dict", options={"pool": dict(type="str")}),
         zfspool_options=dict(
             type="dict",
             options={
