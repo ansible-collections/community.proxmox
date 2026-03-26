@@ -523,23 +523,8 @@ class Connection(ConnectionBase):
 
         return sock_kwarg
 
-    def _connect(self) -> Connection:
-        """activates the connection object"""
-
-        if PARAMIKO_IMPORT_ERR is not None:
-            raise AnsibleError(f"paramiko is not installed: {to_native(PARAMIKO_IMPORT_ERR)}")
-
-        port = self.get_option("port")
-        display.vvv(
-            f"ESTABLISH PARAMIKO SSH CONNECTION FOR USER: {self.get_option('remote_user')} on PORT {to_text(port)} TO {self.get_option('remote_addr')}",
-            host=self.get_option("remote_addr"),
-        )
-
-        ssh = paramiko.SSHClient()
-
-        # Set pubkey and hostkey algorithms to disable, the only manipulation allowed currently
-        # is keeping or omitting rsa-sha2 algorithms
-        # default_keys: t.Tuple[str] = ()
+    def _build_paramiko_disabled_algorithms(self) -> dict[str, t.Iterable[str]]:
+        """Build dict of algorithms to disable when RSA-SHA2 is turned off."""
         paramiko_preferred_pubkeys = getattr(paramiko.Transport, "_preferred_pubkeys", ())
         paramiko_preferred_hostkeys = getattr(paramiko.Transport, "_preferred_keys", ())
         use_rsa_sha2_algorithms = self.get_option("use_rsa_sha2_algorithms")
@@ -549,34 +534,33 @@ class Connection(ConnectionBase):
                 disabled_algorithms["pubkeys"] = tuple(a for a in paramiko_preferred_pubkeys if "rsa-sha2" in a)
             if paramiko_preferred_hostkeys:
                 disabled_algorithms["keys"] = tuple(a for a in paramiko_preferred_hostkeys if "rsa-sha2" in a)
+        return disabled_algorithms
 
-        # override paramiko's default logger name
-        if self._log_channel is not None:
-            ssh.set_log_channel(self._log_channel)
-
-        self.keyfile = os.path.expanduser("~/.ssh/known_hosts")
-
-        if self.get_option("host_key_checking"):
-            for ssh_known_hosts in ("/etc/ssh/ssh_known_hosts", "/etc/openssh/ssh_known_hosts"):
-                try:
-                    ssh.load_system_host_keys(ssh_known_hosts)
-                    break
-                except OSError:
-                    pass  # file was not found, but not required to function
-                except paramiko.hostkeys.InvalidHostKey as e:
-                    raise AnsibleConnectionFailure(f"Invalid host key: {to_text(e.line)}") from e
+    def _load_paramiko_system_host_keys(self, ssh: paramiko.SSHClient) -> None:
+        """Load system and user host key files when host key checking is enabled."""
+        for ssh_known_hosts in ("/etc/ssh/ssh_known_hosts", "/etc/openssh/ssh_known_hosts"):
             try:
-                ssh.load_system_host_keys()
+                ssh.load_system_host_keys(ssh_known_hosts)
+                break
+            except OSError:
+                pass  # file was not found, but not required to function
             except paramiko.hostkeys.InvalidHostKey as e:
                 raise AnsibleConnectionFailure(f"Invalid host key: {to_text(e.line)}") from e
+        try:
+            ssh.load_system_host_keys()
+        except paramiko.hostkeys.InvalidHostKey as e:
+            raise AnsibleConnectionFailure(f"Invalid host key: {to_text(e.line)}") from e
 
-        ssh_connect_kwargs = self._parse_proxy_command(port)
-        ssh.set_missing_host_key_policy(MyAddPolicy(self))
+    def _paramiko_connect_ssh(
+        self,
+        ssh: paramiko.SSHClient,
+        port: int,
+        disabled_algorithms: dict[str, t.Iterable[str]],
+        ssh_connect_kwargs: dict[str, t.Any],
+    ) -> None:
+        """Complete Paramiko ssh.connect with version-specific kwargs and error translation."""
         conn_password = self.get_option("password")
-        allow_agent = True
-
-        if conn_password is not None:
-            allow_agent = False
+        allow_agent = conn_password is None
 
         try:
             key_filename = None
@@ -606,22 +590,37 @@ class Connection(ConnectionBase):
         except paramiko.ssh_exception.BadHostKeyException as e:
             raise AnsibleConnectionFailure(f"host key mismatch for {to_text(e.hostname)}") from e
         except paramiko.ssh_exception.AuthenticationException as e:
-            msg = f"Failed to authenticate: {e}"
-            raise AnsibleAuthenticationFailure(msg) from e
+            raise AnsibleAuthenticationFailure(f"Failed to authenticate: {e}") from e
         except Exception as e:
-            msg = to_text(e)
-            if "PID check failed" in msg:
-                raise AnsibleError(
-                    "paramiko version issue, please upgrade paramiko on the machine running ansible"
-                ) from e
-            elif "Private key file is encrypted" in msg:
-                msg = (
-                    f"ssh {self.get_option('remote_user')}@{self.get_options('remote_addr')}:{port} : "
-                    + f"{msg}\nTo connect as a different user, use -u <username>."
-                )
-                raise AnsibleConnectionFailure(msg) from e
-            else:
-                raise AnsibleConnectionFailure(msg) from e
+            self._raise_paramiko_connect_exception(e, port)
+
+    def _connect(self) -> Connection:
+        """Open an SSH session to the Proxmox host via Paramiko."""
+
+        if PARAMIKO_IMPORT_ERR is not None:
+            raise AnsibleError(f"paramiko is not installed: {to_native(PARAMIKO_IMPORT_ERR)}")
+
+        port = self.get_option("port")
+        display.vvv(
+            f"ESTABLISH PARAMIKO SSH CONNECTION FOR USER: {self.get_option('remote_user')} on PORT {to_text(port)} TO {self.get_option('remote_addr')}",
+            host=self.get_option("remote_addr"),
+        )
+
+        ssh = paramiko.SSHClient()
+        disabled_algorithms = self._build_paramiko_disabled_algorithms()
+
+        # override paramiko's default logger name
+        if self._log_channel is not None:
+            ssh.set_log_channel(self._log_channel)
+
+        self.keyfile = os.path.expanduser("~/.ssh/known_hosts")
+
+        if self.get_option("host_key_checking"):
+            self._load_paramiko_system_host_keys(ssh)
+
+        ssh_connect_kwargs = self._parse_proxy_command(port)
+        ssh.set_missing_host_key_policy(MyAddPolicy(self))
+        self._paramiko_connect_ssh(ssh, port, disabled_algorithms, ssh_connect_kwargs)
         self.ssh = ssh
         self._connected = True
         return self
