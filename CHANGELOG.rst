@@ -24,17 +24,13 @@ Minor Changes
 
 - inventory plugin - add want_post_filtering_facts to delay fact gathering until filtering has completed (https://github.com/ansible-collections/community.proxmox/pull/261).
 - proxmox - Add api_timeout option for all modules (https://github.com/ansible-collections/community.proxmox/pull/253).
+- proxmox - set ``state`` as not ``required`` and set default value ``present`` (https://github.com/ansible-collections/community.proxmox/pull/292).
 - proxmox_role - add role's privs on the return data (https://github.com/ansible-collections/community.proxmox/pull/283).
 - proxmox_storage - Add support for ZFS thin-provisioning (https://github.com/ansible-collections/community.proxmox/pull/265).
 - proxmox_storage - Add the option namespace for PBS storage (https://github.com/ansible-collections/community.proxmox/pull/282)
 - proxmox_storage - refactor the validation of storage options (https://github.com/ansible-collections/community.proxmox/pull/266).
 - proxmox_storage_contents_info - Add support for content type ``import`` (https://github.com/ansible-collections/community.proxmox/pull/260).
 - proxmox_zone, proxmox_vnet, proxmox_subnet - make sdn modules compatible with pve8 (https://github.com/ansible-collections/community.proxmox/pull/254).
-
-Breaking Changes / Porting Guide
---------------------------------
-
-- proxmox - set ``state`` as not ``optional`` and assign default value ``present`` (https://github.com/ansible-collections/community.proxmox/pull/292).
 
 Deprecated Features
 -------------------

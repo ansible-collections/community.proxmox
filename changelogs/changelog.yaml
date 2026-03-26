@@ -301,9 +301,6 @@ releases:
     release_date: '2025-12-27'
   1.6.0:
     changes:
-      breaking_changes:
-        - proxmox - set ``state`` as not ``optional`` and assign default value ``present``
-          (https://github.com/ansible-collections/community.proxmox/pull/292).
       bugfixes:
         - proxmox_cluster - make cluster join idempotent (https://github.com/ansible-collections/community.proxmox/pull/244).
         - proxmox_disk - make none iso disk idempotent (https://github.com/ansible-collections/community.proxmox/pull/288).
@@ -329,6 +326,8 @@ releases:
           (https://github.com/ansible-collections/community.proxmox/pull/260).
         - proxmox_zone, proxmox_vnet, proxmox_subnet - make sdn modules compatible
           with pve8 (https://github.com/ansible-collections/community.proxmox/pull/254).
+        - proxmox - set ``state`` as not ``required`` and set default value ``present``
+          (https://github.com/ansible-collections/community.proxmox/pull/292).
       release_summary: 'This is the minor release of the ``community.proxmox`` collection.
 
         This changelog contains all changes to the modules and plugins in this collection
