@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - proxmox_pool - add alias ``pool_id`` for param ``poolid`` (https://github.com/ansible-collections/community.proxmox/pull/374).
+  - proxmox_pool - add ``comment`` and ``members`` on module output (https://github.com/ansible-collections/community.proxmox/pull/374).
+  - proxmox_pool - add members pool management (https://github.com/ansible-collections/community.proxmox/pull/374).
