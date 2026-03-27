@@ -261,8 +261,9 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
         return False
 
-    def create_update_delete_tokens(self, userid: str, tokens: list = None) -> set:
+    def create_update_delete_tokens(self, userid: str, tokens: list) -> set:
         result_tokens = {}
+        existing_tokens = {}
         tokens = tokens or []
         candidate_token_ids = [t["tokenid"] for t in tokens]
 
