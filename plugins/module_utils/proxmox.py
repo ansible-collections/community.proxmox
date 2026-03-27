@@ -371,7 +371,7 @@ class ProxmoxAnsible:
                     return False, ProxmoxAnsible.TASK_TIMED_OUT
                 sleep(1)
 
-    def get_pool(self, poolid):
+    def get_pool(self, poolid) -> dict:
         """
         Retrieve pool information.
 
