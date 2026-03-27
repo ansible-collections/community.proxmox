@@ -35,7 +35,7 @@ options:
   members:
     description:
       - The pool members.
-      - Each list entry must set exactly one of O(vm_id) or O(storage_id).
+      - Each list entry must set exactly one of O(members[].vm_id) or O(members[].storage_id).
     type: list
     elements: dict
     suboptions:
