@@ -94,6 +94,7 @@ options:
         description: Describe if the API token is further restricted with ACLs or is fully privileged.
         type: bool
         default: true
+        aliases: ["privilege_separation"]
       tokenid:
         description:
           - Token name.
@@ -185,7 +186,7 @@ def module_args():
                 ),  # no_log is necessary to pass the CI
                 comment=dict(type="str"),
                 expire=dict(type="int", default=0),
-                privsep=dict(type="bool", default=True),
+                privsep=dict(type="bool", default=True, aliases="privilege_separation"),
             ),
         ),
         state=dict(default="present", choices=["present", "absent"]),
@@ -260,8 +261,9 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
         return False
 
-    def create_update_delete_tokens(self, userid: str, tokens: list = None) -> set:
+    def create_update_delete_tokens(self, userid: str, tokens: list) -> set:
         result_tokens = {}
+        existing_tokens = {}
         tokens = tokens or []
         candidate_token_ids = [t["tokenid"] for t in tokens]
 
