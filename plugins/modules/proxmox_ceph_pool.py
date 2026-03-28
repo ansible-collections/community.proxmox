@@ -147,10 +147,6 @@ def module_args():
     )
 
 
-def module_options():
-    return {}
-
-
 class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super().__init__(module)
@@ -190,7 +186,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def add_pool(self):
         node = self.params["node"]
         name = self.params["name"]
-        self.check_node_on_cluster(node)
+        self.node_in_cluster(node)
         pool_params = self.get_params()
         if self.check_pool(node, name):
             pool_current = self.get_pool(node, name)
@@ -223,7 +219,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def del_pool(self):
         node = self.params["node"]
         name = self.params["name"]
-        self.check_node_on_cluster(node)
+        self.node_in_cluster(node)
         if self.check_pool(node, name):
             if self.module.check_mode:
                 self.module.exit_json(changed=True, msg=f"Ceph pool {name} would be deleted.")
@@ -239,7 +235,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
 
 
 def main():
-    module = create_proxmox_module(module_args(), **module_options())
+    module = create_proxmox_module(module_args())
     proxmox = ProxmoxCephPoolAnsible(module)
     state = module.params["state"]
 

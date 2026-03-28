@@ -433,7 +433,7 @@ class ProxmoxAnsible:
         except Exception as e:
             self.module.fail_json(msg=f"Unable to list content on {node}, {storage} for {content} and {vmid}: {e}")
 
-    def check_node_on_cluster(self, node):
+    def node_in_cluster(self, node):
         """
         Checks if the node is part of the cluster.
 
