@@ -70,11 +70,15 @@ class TestProxmoxClusterAcmeAccountsInfo(ModuleTestCase):
             {"name": "staging"},
             {"name": "default"},
         ]
+
         result = self._run_module(build_args())
+
         assert result["changed"] is False
         assert result["accounts"] == ["default", "staging"]
 
     def test_list_empty(self):
         self.account_index.get.return_value = []
+
         result = self._run_module(build_args())
+
         assert result["accounts"] == []
