@@ -12,7 +12,6 @@ version_added: "2.1.0"
 author: Clément Cruau (@PendaGTP)
 description:
   - Create, update or delete an ACME account on the Proxmox VE cluster.
-  - If O(contact) is set and the API omits contact on GET, the module updates and warns that drift cannot be verified.
   - When an account already exists, only the contact email can be updated (Proxmox API limitation).
   - Requires C(root@pam) authentication.
 attributes:
@@ -149,7 +148,6 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_
 
 DIRECTORY_URL_PATTERN = re.compile(r"^https?://.*$")
 ACME_TASK_WAIT_SECONDS = 300
-# UPIDs are colon-separated; segment 0 is "UPID", segment 1 is the node name (needed for GET /nodes/{node}/tasks/...).
 _UPID_MIN_SEGMENTS = 2
 
 
@@ -284,7 +282,7 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         if existing is None:
             if not _contact_provided(self.params):
                 self.module.fail_json(
-                    msg="contact is required to create a new ACME account (required by Proxmox API)",
+                    msg="contact is required to create a new ACME account",
                     name=name,
                 )
             if self.module.check_mode:
