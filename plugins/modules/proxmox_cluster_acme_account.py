@@ -147,7 +147,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_
 )
 
 DIRECTORY_URL_PATTERN = re.compile(r"^https?://.*$")
-ACME_TASK_WAIT_SECONDS = 300
+ACME_TASK_WAIT_SECONDS = 30
 _UPID_MIN_SEGMENTS = 2
 
 
