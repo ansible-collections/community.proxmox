@@ -4,6 +4,58 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
+v2.0.0-beta1
+============
+
+Release Summary
+---------------
+
+This is the first beta major release of the ``community.proxmox`` collection.
+This changelog contains all changes to the modules and plugins in this collection
+that have been made after the previous release.
+
+Please note that this version of the collection now requires proxmoxer 2.3.0 or higher.
+
+Also note, this release is beta! We are working on a lot of refactoring, so please report any bugs you've found! :-)
+
+Minor Changes
+-------------
+
+- proxmox - add ``totp`` authentification support (https://github.com/ansible-collections/community.proxmox/pull/265).
+- proxmox - add a new helper `create_proxmox_module()` which adds generic auth args and constraints, and merges in the module-specific args and options (https://github.com/ansible-collections/community.proxmox/pull/289).
+- proxmox - update ``proxmoxer`` required dependencies to ``>=2.3`` (https://github.com/ansible-collections/community.proxmox/pull/265).
+- proxmox_kvm - add qemu parameter ``spice_enhancements`` (https://github.com/ansible-collections/community.proxmox/pull/324).
+- proxmox_kvm - add qemu parameter ``virtiofs`` (https://github.com/ansible-collections/community.proxmox/pull/336).
+- proxmox_node - add alias ``certificate_file_path`` for ``cert`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+- proxmox_node - add alias ``node`` for ``node_name`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+- proxmox_node - add alias ``private_key_file_path`` for ``key`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+- proxmox_node - add new parameter ``certificate`` to pass raw PEM encoded certificate (https://github.com/ansible-collections/community.proxmox/pull/331).
+- proxmox_node - add new parameter ``private_key`` to pass raw PEM encoded private key (https://github.com/ansible-collections/community.proxmox/pull/331).
+- proxmox_storage - Add support for RBD (RADOS Block Device) storage (https://github.com/ansible-collections/community.proxmox/issues/329).
+- proxmox_storage - enhanced error handling and parameters validation (https://github.com/ansible-collections/community.proxmox/pull/305).
+- proxmox_storage - the parameter ``state`` now has a default value of ``present`` (https://github.com/ansible-collections/community.proxmox/pull/305).
+- proxmox_storage - when ``state=present`` parameters ``content`` and ``nodes`` are now not required (https://github.com/ansible-collections/community.proxmox/pull/315).
+
+Bugfixes
+--------
+
+- proxmox_cluster_firewall - error message for invalid log_ratelimit.rate parameter (https://github.com/ansible-collections/community.proxmox/pull/340).
+- proxmox_disk - add support for efidisk and tpmstate disk bus types which previously caused module failure with "Unsupported disk bus" error (https://github.com/ansible-collections/community.proxmox/pull/319).
+- proxmox_pool - support nested pool (https://github.com/ansible-collections/community.proxmox/pull/316).
+- proxmox_snap - fail the task when a given snapname does not exist instead of exiting (https://github.com/ansible-collections/community.proxmox/pull/365).
+- proxmox_storage - backend ``cephfs``, ``dir`` and ``zfspool`` doesn't requires ``content`` parameter (https://github.com/ansible-collections/community.proxmox/pull/315).
+- proxmox_storage - the parameter ``client_keyring`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
+- proxmox_storage - the parameter ``fs_name`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
+- proxmox_storage - the parameter ``state`` was optional and without default value (https://github.com/ansible-collections/community.proxmox/pull/305).
+
+New Modules
+-----------
+
+- community.proxmox.proxmox_cluster_firewall - Cluster-level firewall options management for Proxmox VE cluster.
+- community.proxmox.proxmox_cluster_ha_rules_info - Retrieve Proxmox VE HA rules.
+- community.proxmox.proxmox_domain - Manage authentication realms.
+- community.proxmox.proxmox_domain_sync - Sync realms.
+
 v1.6.0
 ======
 
