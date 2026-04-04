@@ -72,20 +72,12 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create a vnet
   community.proxmox.proxmox_vnet:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     vnet: anstest
     zone: ans1
     state: present
 
 - name: Update a vnet
   community.proxmox.proxmox_vnet:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     vnet: anstest
     zone: ans1
     alias: anst
@@ -94,10 +86,6 @@ EXAMPLES = r"""
 
 - name: Delete a vnet
   community.proxmox.proxmox_vnet:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     vnet: anstest
     zone: ans1
     state: absent

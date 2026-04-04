@@ -92,17 +92,11 @@ EXAMPLES = r"""
 - name: Upload new openvz template with minimal options
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     src: ~/ubuntu-14.04-x86_64.tar.gz
 
 - name: Pull new openvz template with minimal options
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     url: https://ubuntu-mirror/ubuntu-14.04-x86_64.tar.gz
 
 - name: >
@@ -110,16 +104,11 @@ EXAMPLES = r"""
     PROXMOX_PASSWORD variable(you should export it before)
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_host: node1
     src: ~/ubuntu-14.04-x86_64.tar.gz
 
 - name: Upload new openvz template with all options and force overwrite
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     storage: local
     content_type: vztmpl
     src: ~/ubuntu-14.04-x86_64.tar.gz
@@ -128,9 +117,6 @@ EXAMPLES = r"""
 - name: Pull new openvz template with all options and force overwrite
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     storage: local
     content_type: vztmpl
     url: https://ubuntu-mirror/ubuntu-14.04-x86_64.tar.gz
@@ -139,18 +125,12 @@ EXAMPLES = r"""
 - name: Delete template with minimal options
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     template: ubuntu-14.04-x86_64.tar.gz
     state: absent
 
 - name: Download proxmox appliance container template
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     storage: local
     content_type: vztmpl
     template: ubuntu-20.04-standard_20.04-1_amd64.tar.gz
@@ -158,9 +138,6 @@ EXAMPLES = r"""
 - name: Download and verify a template's checksum
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     url: ubuntu-20.04-standard_20.04-1_amd64.tar.gz
     checksum_algorithm: sha256
     checksum: 65d860160bdc9b98abf72407e14ca40b609417de7939897d3b58d55787aaef69
@@ -168,18 +145,12 @@ EXAMPLES = r"""
 - name: Upload new disk image template with minimal options
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     content_type: import
     src: debian-13-genericcloud-amd64.qcow2
 
 - name: Upload new ISO with minimal options
   community.proxmox.proxmox_template:
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     content_type: iso
     src: proxmox.iso
 """

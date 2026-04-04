@@ -53,9 +53,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Sync LDAP domain
   community.proxmox.proxmox_domain_sync:
-    api_host: 192.168.1.21
-    api_user: "root@pam"
-    api_password: secret
     realm: "example.test"
     enable_new: true
     scope: both

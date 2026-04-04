@@ -23,11 +23,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Get cluster status
   community.proxmox.proxmox_cluster_status_info:
-    api_host: proxmox1
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
   register: cluster_status
 
 - name: Display cluster quorum status

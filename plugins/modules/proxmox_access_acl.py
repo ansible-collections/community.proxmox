@@ -58,10 +58,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create ACE
   community.proxmox.proxmox_access_acl:
-    api_host: "{{ ansible_host }}"
-    api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
-    api_user: root@pam
-
     state: "present"
     path: /vms/100
     type: user
@@ -71,10 +67,6 @@ EXAMPLES = r"""
 
 - name: Delete all ACEs for a given path
   community.proxmox.proxmox_access_acl:
-    api_host: "{{ ansible_host }}"
-    api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
-    api_user: root@pam
-
     state: "absent"
     path: /vms/100
 """

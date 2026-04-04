@@ -66,32 +66,20 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Get all network interfaces on a node
   community.proxmox.proxmox_node_network_info:
-    api_host: proxmox.example.com
-    api_user: root@pam
-    api_password: secret
     node: pve01
 
 - name: Get information about a specific network interface
   community.proxmox.proxmox_node_network_info:
-    api_host: proxmox.example.com
-    api_user: root@pam
-    api_password: secret
     node: pve01
     iface: vmbr0
 
 - name: Get all bridge interfaces on a node
   community.proxmox.proxmox_node_network_info:
-    api_host: proxmox.example.com
-    api_user: root@pam
-    api_password: secret
     node: pve01
     iface_type: bridge
 
 - name: Check only for pending changes
   community.proxmox.proxmox_node_network_info:
-    api_host: proxmox.example.com
-    api_user: root@pam
-    api_password: secret
     node: pve01
     check_changes: true
 """

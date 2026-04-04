@@ -62,18 +62,12 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Send Ctrl+Alt+Delete to a Windows VM
   proxmox_sendkey:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     name: win-test
     keys_send:
       - ctrl-alt-delete
 
 - name: Type a login string into a Linux VM console
   proxmox_sendkey:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     vmid: 101
     string_send: |
         root

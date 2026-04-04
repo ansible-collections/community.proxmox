@@ -28,17 +28,9 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Get all vnet details
   community.proxmox.proxmox_vnet_info:
-    api_user: "{{ proxmox.api_user }}"
-    api_token_id: "{{ proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ proxmox.api_host }}"
 
 - name: Get details for vnet - test
   community.proxmox.proxmox_vnet_info:
-    api_user: "{{ proxmox.api_user }}"
-    api_token_id: "{{ proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ proxmox.api_host }}"
     vnet: test
 """
 

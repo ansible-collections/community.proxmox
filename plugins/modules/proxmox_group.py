@@ -46,17 +46,11 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new Proxmox VE user group
   community.proxmox.proxmox_group:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     name: administrators
     comment: IT Admins
 
 - name: Delete a Proxmox VE user group
   community.proxmox.proxmox_group:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     name: administrators
     state: absent
 """

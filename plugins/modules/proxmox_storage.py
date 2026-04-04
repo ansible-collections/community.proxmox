@@ -237,9 +237,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Add PBS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02"]
     state: present
     name: backup-backupserver01
@@ -255,9 +252,6 @@ EXAMPLES = r"""
 
 - name: Add NFS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02"]
     state: present
     name: net-nfsshare01
@@ -269,9 +263,6 @@ EXAMPLES = r"""
 
 - name: Add iSCSI storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     nodes: ["de-cgn01-virt01", "de-cgn01-virt02", "de-cgn01-virt03"]
     state: present
     type: iscsi
@@ -283,18 +274,12 @@ EXAMPLES = r"""
 
 - name: Remove storage from Proxmox VE Cluster
   community.proxmox.proxmox_storage:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     state: absent
     name: net-nfsshare01
     type: nfs
 
 - name: Add ZFS storage to Proxmox VE Cluster
   community.proxmox.proxmox_storage:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     state: present
     name: zfspool-storage
     type: zfspool

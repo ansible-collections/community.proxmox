@@ -36,40 +36,20 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List existing users
   community.proxmox.proxmox_user_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
   register: proxmox_users
 
 - name: List existing users in the pve authentication realm
   community.proxmox.proxmox_user_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     domain: pve
   register: proxmox_users_pve
 
 - name: Retrieve information about admin@pve
   community.proxmox.proxmox_user_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     userid: admin@pve
   register: proxmox_user_admin
 
 - name: Alternative way to retrieve information about admin@pve
   community.proxmox.proxmox_user_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     user: admin
     domain: pve
   register: proxmox_user_admin

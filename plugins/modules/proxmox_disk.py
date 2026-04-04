@@ -316,10 +316,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new disk in VM (do not rewrite in case it exists already)
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     name: vm-name
     disk: scsi3
     backup: true
@@ -330,10 +326,6 @@ EXAMPLES = r"""
 
 - name: Create new disk in VM (force rewrite in case it exists already)
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     vmid: 101
     disk: scsi3
     format: qcow2
@@ -344,10 +336,6 @@ EXAMPLES = r"""
 
 - name: Update existing disk
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     vmid: 101
     disk: ide0
     backup: false
@@ -357,10 +345,6 @@ EXAMPLES = r"""
 
 - name: Grow existing disk
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     vmid: 101
     disk: sata4
     size: +5G
@@ -368,19 +352,12 @@ EXAMPLES = r"""
 
 - name: Detach disk (leave it unused)
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     name: vm-name
     disk: virtio0
     state: detached
 
 - name: Move disk to another storage
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_password: secret
     vmid: 101
     disk: scsi7
     target_storage: local
@@ -389,10 +366,6 @@ EXAMPLES = r"""
 
 - name: Move disk from one VM to another
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     vmid: 101
     disk: scsi7
     target_vmid: 201
@@ -400,19 +373,12 @@ EXAMPLES = r"""
 
 - name: Remove disk permanently
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_password: secret
     vmid: 101
     disk: scsi4
     state: absent
 
 - name: Mount ISO image on CD-ROM (create drive if missing)
   community.proxmox.proxmox_disk:
-    api_host: node1
-    api_user: root@pam
-    api_token_id: token1
-    api_token_secret: some-token-data
     vmid: 101
     disk: ide2
     media: cdrom

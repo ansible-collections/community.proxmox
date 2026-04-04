@@ -28,20 +28,10 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List existing groups
   community.proxmox.proxmox_group_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
   register: proxmox_groups
 
 - name: Retrieve information about the admin group
   community.proxmox.proxmox_group_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     group: admin
   register: proxmox_group_admin
 """

@@ -304,9 +304,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -315,9 +312,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -327,9 +321,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -341,9 +332,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -353,9 +341,6 @@ EXAMPLES = r"""
 - name: Create new container automatically selecting the next available vmid.
   community.proxmox.proxmox:
     node: 'uk-mc02'
-    api_user: 'root@pam'
-    api_password: '1q2w3e'
-    api_host: 'node1'
     password: '123456'
     hostname: 'example.org'
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -364,9 +349,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -376,8 +358,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -386,9 +366,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -399,9 +376,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -412,9 +386,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -425,9 +396,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -438,9 +406,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -454,9 +419,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -466,9 +428,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -478,9 +437,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -494,9 +450,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 201
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     clone: 100
     hostname: clone.example.org
 
@@ -504,9 +457,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 201
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     clone: 100
     hostname: clone.example.org
     storage: local
@@ -515,9 +465,6 @@ EXAMPLES = r"""
   community.proxmox.proxmox:
     vmid: 100
     node: uk-mc02
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     netif:
       net0: "name=eth0,gw=192.168.0.1,ip=192.168.0.3/24,bridge=vmbr0"
     update: true
@@ -525,9 +472,6 @@ EXAMPLES = r"""
 - name: Start container
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: started
 
 - name: >
@@ -535,60 +479,39 @@ EXAMPLES = r"""
     with additional disks take longer to boot
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: started
     timeout: 90
 
 - name: Stop container
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: stopped
 
 - name: Stop container with force
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     force: true
     state: stopped
 
 - name: Restart container(stopped or mounted container you can't restart)
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: restarted
 
 - name: Convert container to template
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: template
 
 - name: Convert container to template (stop container if running)
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: template
     force: true
 
 - name: Remove container
   community.proxmox.proxmox:
     vmid: 100
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     state: absent
 
 - name: >-
@@ -596,10 +519,6 @@ EXAMPLES = r"""
     using a non-root API token
   community.proxmox.proxmox:
     node: 'uk-mc02'
-    api_token_id: 'svc-tkn'
-    api_token_secret: '81c09a2a-0359-4ba1-8153-8cb3cd02509b'
-    api_user: 'remoteapiuser@pam'
-    api_host: 'node1'
     password: '123456'
     hostname: 'example.org'
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
@@ -610,9 +529,6 @@ EXAMPLES = r"""
     to connect to the new container
   community.proxmox.proxmox:
     node: 'uk-mc02'
-    api_user: 'root@pam'
-    api_password: '1q2w3e'
-    api_host: 'node1'
     password: '123456'
     hostname: 'example.org'
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'

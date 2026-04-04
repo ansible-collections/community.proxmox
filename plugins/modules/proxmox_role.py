@@ -49,9 +49,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new Proxmox VE role
   community.proxmox.proxmox_role:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     roleid: test
     privs:
       - VM.PowerMgmt
@@ -59,9 +56,6 @@ EXAMPLES = r"""
 
 - name: Delete Proxmox VE role
   community.proxmox.proxmox_role:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     roleid: test
     state: absent
 """

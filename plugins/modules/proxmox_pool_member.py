@@ -52,35 +52,23 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Add new VM to Proxmox VE pool
   community.proxmox.proxmox_pool_member:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     poolid: test
     member: 101
 
 - name: Add new storage to Proxmox VE pool
   community.proxmox.proxmox_pool_member:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     poolid: test
     member: zfs-data
     type: storage
 
 - name: Remove VM from the Proxmox VE pool using VM name
   community.proxmox.proxmox_pool_member:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     poolid: test
     member: pxe.home.arpa
     state: absent
 
 - name: Remove storage from the Proxmox VE pool
   community.proxmox.proxmox_pool_member:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     poolid: test
     member: zfs-storage
     type: storage

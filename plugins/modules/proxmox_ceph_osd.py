@@ -116,18 +116,12 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Add an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     dev: /dev/sdb
     state: present
 
 - name: Delete an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     cleanup: true
@@ -135,9 +129,6 @@ EXAMPLES = r"""
 
 - name: Scrub an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     deep: true
@@ -145,45 +136,30 @@ EXAMPLES = r"""
 
 - name: Out an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     state: out
 
 - name: In an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     state: in
 
 - name: Start an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     state: start
 
 - name: Stop an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     state: stop
 
 - name: Restart an osd
   community.proxmox.proxmox_ceph_osd:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-01
     osdid: 2
     state: restart

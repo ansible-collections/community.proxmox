@@ -40,17 +40,11 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Add a ceph mds
   community.proxmox.proxmox_ceph_mds:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-02
     state: present
 
 - name: Delete a ceph mds
   community.proxmox.proxmox_ceph_mds:
-    api_host: proxmox-01.example.com
-    api_user: root@pam
-    api_password: secret
     node: proxmox-02
     state: absent
 """

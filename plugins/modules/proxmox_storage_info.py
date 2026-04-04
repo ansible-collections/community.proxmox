@@ -34,30 +34,15 @@ notes:
 EXAMPLES = r"""
 - name: List existing storages
   community.proxmox.proxmox_storage_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
   register: proxmox_storages
 
 - name: List NFS storages only
   community.proxmox.proxmox_storage_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     type: nfs
   register: proxmox_storages_nfs
 
 - name: Retrieve information about the lvm2 storage
   community.proxmox.proxmox_storage_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     storage: lvm2
   register: proxmox_storage_lvm
 """

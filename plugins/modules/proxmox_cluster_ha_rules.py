@@ -96,10 +96,6 @@ author:
 EXAMPLES = r"""
 - name: Configure ha rule (node-affinity)
   community.proxmox.proxmox_cluster_ha_rules:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_token_id: "{{ proxmox_api_token_id }}"
-    api_token_secret: "{{ proxmox_api_token_secret }}"
     name: node-affinity-rule-1
     state: present
     type: node-affinity
@@ -114,10 +110,6 @@ EXAMPLES = r"""
 
 - name: Configure ha rule (node-affinity) - nodes and resources can also be provided as str
   community.proxmox.proxmox_cluster_ha_rules:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_token_id: "{{ proxmox_api_token_id }}"
-    api_token_secret: "{{ proxmox_api_token_secret }}"
     name: node-affinity-rule-2
     state: present
     type: node-affinity
@@ -129,10 +121,6 @@ EXAMPLES = r"""
 
 - name: Configure ha rule (resource-affinity) - resource affinity
   community.proxmox.proxmox_cluster_ha_rules:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_token_id: "{{ proxmox_api_token_id }}"
-    api_token_secret: "{{ proxmox_api_token_secret }}"
     name: resource-affinity-rule-1
     state: present
     type: resource-affinity
@@ -146,10 +134,6 @@ EXAMPLES = r"""
 
 - name: Configure ha rule (resource-affinity) - resource anti-affinity
   community.proxmox.proxmox_cluster_ha_rules:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_token_id: "{{ proxmox_api_token_id }}"
-    api_token_secret: "{{ proxmox_api_token_secret }}"
     name: resource-affinity-rule-1
     state: present
     type: resource-affinity

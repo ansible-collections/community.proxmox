@@ -97,9 +97,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create NIC net0 targeting the vm by name
   community.proxmox.proxmox_nic:
-    api_user: root@pam
-    api_password: secret
-    api_host: proxmoxhost
     name: my_vm
     interface: net0
     bridge: vmbr0
@@ -107,9 +104,6 @@ EXAMPLES = r"""
 
 - name: Create NIC net0 targeting the vm by id
   community.proxmox.proxmox_nic:
-    api_user: root@pam
-    api_password: secret
-    api_host: proxmoxhost
     vmid: 103
     interface: net0
     bridge: vmbr0
@@ -118,9 +112,6 @@ EXAMPLES = r"""
 
 - name: Delete NIC net0 targeting the vm by name
   community.proxmox.proxmox_nic:
-    api_user: root@pam
-    api_password: secret
-    api_host: proxmoxhost
     name: my_vm
     interface: net0
     state: absent

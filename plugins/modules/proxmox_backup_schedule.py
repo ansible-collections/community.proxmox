@@ -50,52 +50,34 @@ extends_documentation_fragment:
 EXAMPLES = """
 - name: Ensure that VM is present in the backup job
   community.proxmox.proxmox_backup_schedule:
-    api_user: 'myUser@pam'
-    api_password: '*******'
-    api_host: '192.168.20.20'
     vm_name: 'VM Name'
     backup_id: 'backup-b2adffdc-316e'
     state: 'present'
 
 - name: Ensure that vmid is present in the backup job
   community.proxmox.proxmox_backup_schedule:
-    api_user: 'myUser@pam'
-    api_password: '*******'
-    api_host: '192.168.20.20'
     vm_id: 'VM ID'
     backup_id: 'backup-b2adffdc-316e'
     state: 'present'
 
 - name: Ensure that there is no scheduled backup for VM name within all backup jobs
   community.proxmox.proxmox_backup_schedule:
-    api_user: 'myUser@pam'
-    api_password: '*******'
-    api_host: '192.168.20.20'
     vm_name: 'VM Name'
     state: 'absent'
 
 - name: Ensure that there is no scheduled backup for vmid within all backup jobs
   community.proxmox.proxmox_backup_schedule:
-    api_user: 'myUser@pam'
-    api_password: '*******'
-    api_host: '192.168.20.20'
     vm_id: 'VM ID'
     state: 'absent'
 
 - name: Ensure that there is no scheduled backup for VM within specific backup job
   community.proxmox.proxmox_backup_schedule:
-    api_user: 'myUser@pam'
-    api_password: '*******'
-    api_host: '192.168.20.20'
     vm_name: 'VM Name'
     backup_id: 'backup-b2adffdc-316e'
     state: 'absent'
 
 - name: Ensure that there is no scheduled backup for vmid within specific backup job
   community.proxmox.proxmox_backup_schedule:
-    api_user: 'myUser@pam'
-    api_password: '*******'
-    api_host: '192.168.20.20'
     vm_id: 'VM ID'
     backup_id: 'backup-b2adffdc-316e'
     state: 'absent'
