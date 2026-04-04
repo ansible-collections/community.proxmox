@@ -1,3 +1,0 @@
----
-bugfixes:
-  - proxmox_snap - fail the task when a given snapname does not exist instead of exiting (https://github.com/ansible-collections/community.proxmox/pull/365).
