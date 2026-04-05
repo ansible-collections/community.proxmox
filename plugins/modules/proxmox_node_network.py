@@ -1163,7 +1163,7 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         # Type-specific validation
         iface_type = self.params.get("iface_type")
         if iface_type:
-            errors = self._validate_interface()
+            errors.extend(self._validate_interface(iface_type))
 
         return errors
 
