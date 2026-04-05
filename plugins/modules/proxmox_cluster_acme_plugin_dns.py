@@ -172,100 +172,64 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         self.params = module.params
 
     def validate_params(self):
-        validation_delay = self.params.get("validation_delay")
-        if validation_delay and (validation_delay < MIN_VALIDATION_DELAY or validation_delay > MAX_VALIDATION_DELAY):
+        delay = self.params.get("validation_delay")
+        if delay is not None and (delay < MIN_VALIDATION_DELAY or delay > MAX_VALIDATION_DELAY):
             self.module.fail_json(
-                msg="validation_delay should be between {MIN_VALIDATION_DELAY} and {MAX_VALIDATION_DELAY}",
+                msg=f"validation_delay should be between {MIN_VALIDATION_DELAY} and {MAX_VALIDATION_DELAY}",
             )
 
     def run(self):
         state = self.params["state"]
         name = self.params["name"]
+
         if state == "present":
-            self._present(name)
+            self._ensure_present(name)
         else:
-            self._absent(name)
+            self._ensure_absent(name)
 
-    def _plugins_api(self, name=None):
-        base = self.proxmox_api.cluster().acme().plugins()
-        if name in (None, ""):
-            return base
-        return base(name)
 
-    def _get_plugin(self, name):
-        try:
-            return self._plugins_api(name).get()
-        except Exception as e:
-            err = str(e).lower()
-            if "not defined" in err:
-                return None
-            self.module.fail_json(msg=f"Failed to read ACME plugin {name}: {to_native(e)}")
-
-    def _api_to_ansible(self, name, raw):
-        data_raw = raw.get("data", "")
-        data = _normalize_data_dict(_data_from_api(data_raw))
-        disable = raw.get("disable", False)
-        return {
-            "type": "dns",
-            "name": name,
-            "plugin": raw["api"],
-            "disable": proxmox_to_ansible_bool(disable),
-            "validation_delay": int(raw.get("validation-delay", 30)),
-            "data": data,
-            "digest": raw.get("digest", ""),
-        }
-
-    def _needs_update(self, current, desired):
-        return (
-            current["name"] != desired["name"]
-            or current["plugin"] != desired["plugin"]
-            or current["disable"] != desired["disable"]
-            or current["validation_delay"] != desired["validation_delay"]
-            or (desired.get("data") is not None and current["data"] != _normalize_data_dict(desired["data"]))
-        )
-
-    def _build_payload(self):
-        p = self.params
-        payload = {
-            "api": p["plugin"],
-            "validation-delay": p["validation_delay"],
-            "disable": ansible_to_proxmox_bool(p["disable"]),
-        }
-        if p.get("data") is not None:
-            payload["data"] = _data_to_api(p["data"])
-        return payload
-
-    def _present(self, name):
-        existing = self._get_plugin(name)
+    def _ensure_present(self, name):
+        existing = self._fetch_plugin(name)
 
         if existing is None:
-            if self.module.check_mode:
-                self.module.exit_json(
-                    changed=True,
-                    name=name,
-                    msg=f"ACME DNS plugin {name} would be created",
-                )
-            payload = {"type": "dns", **self._build_payload()}
-            try:
-                self._plugins_api().post(id=name, **payload)
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed to create ACME DNS plugin {name}: {to_native(e)}")
-            created = self._get_plugin(name)
-            if created is None:
-                self.module.fail_json(msg=f"ACME DNS plugin {name} not found after create", name=name)
-            created = self._api_to_ansible(name, created)
+            return self._create_plugin(name)
+
+        return self._reconcile_existing(name, existing)
+
+    def _ensure_absent(self, name):
+        existing = self._fetch_plugin(name)
+
+        if existing is None:
             self.module.exit_json(
-                changed=True,
-                msg=f"ACME DNS plugin {name} successfully created",
-                **created,
+                changed=False,
+                name=name,
+                msg=f"ACME DNS plugin {name} does not exist",
             )
 
-        existing = self._api_to_ansible(name, existing)
-        if not self._needs_update(existing, self.params):
+        if self.module.check_mode:
+            self.module.exit_json(
+                changed=True,
+                name=name,
+                msg=f"ACME DNS plugin {name} would be deleted",
+            )
+
+        self._delete_plugin(name)
+
+        self.module.exit_json(
+            changed=True,
+            name=name,
+            msg=f"ACME DNS plugin {name} successfully deleted",
+        )
+
+    def _reconcile_existing(self, name, raw_existing):
+        current = self._format_plugin(name, raw_existing)
+        desired = self._build_desired(name)
+
+        if not self._is_update_required(current, desired):
             self.module.exit_json(
                 changed=False,
                 msg=f"ACME DNS plugin {name} already up to date",
-                **existing,
+                **current,
             )
 
         if self.module.check_mode:
@@ -275,50 +239,141 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
                 msg=f"ACME DNS plugin {name} would be updated",
             )
 
-        payload = self._build_payload()
-        try:
-            self._plugins_api(name).put(**payload)
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to update ACME DNS plugin {name}: {to_native(e)}")
-        updated = self._get_plugin(name)
-        if updated is None:
-            self.module.fail_json(msg=f"ACME DNS plugin {name} not found after update", name=name)
-        updated = self._api_to_ansible(name, updated)
-        self.module.exit_json(
-            changed=True,
-            msg=f"ACME DNS plugin {name} successfully updated",
-            **updated,
+        return self._update_plugin(name)
+
+    def _is_update_required(self, current, desired):
+        return (
+            current["plugin"] != desired["plugin"]
+            or current["disable"] != desired["disable"]
+            or current["validation_delay"] != desired["validation_delay"]
+            or (
+                desired.get("data") is not None
+                and current["data"] != desired["data"]
+            )
         )
 
-    def _absent(self, name):
-        existing = self._get_plugin(name)
-        if existing is None:
-            self.module.exit_json(
-                changed=False,
-                name=name,
-                msg=f"ACME DNS plugin {name} does not exist",
-            )
+    def _create_plugin(self, name):
         if self.module.check_mode:
             self.module.exit_json(
                 changed=True,
                 name=name,
-                msg=f"ACME DNS plugin {name} would be deleted",
+                msg=f"ACME DNS plugin {name} would be created",
             )
+
+        payload = {"type": "dns", **self._build_params()}
+
         try:
-            self._plugins_api(name).delete()
+            self._plugin_endpoint().post(id=name, **payload)
         except Exception as e:
-            self.module.fail_json(msg=f"Failed to delete ACME DNS plugin {name}: {to_native(e)}")
+            self.module.fail_json(
+                msg=f"Failed to create ACME DNS plugin {name}: {to_native(e)}"
+            )
+
+        created = self._fetch_plugin(name)
+        if created is None:
+            self.module.fail_json(
+                msg=f"ACME DNS plugin {name} not found after create",
+                name=name,
+            )
+
+        result = self._format_plugin(name, created)
         self.module.exit_json(
             changed=True,
-            name=name,
-            msg=f"ACME DNS plugin {name} successfully deleted",
+            msg=f"ACME DNS plugin {name} successfully created",
+            **result,
         )
 
+    def _update_plugin(self, name):
+        payload = self._build_params()
+
+        try:
+            self._plugin_endpoint(name).put(**payload)
+        except Exception as e:
+            self.module.fail_json(
+                msg=f"Failed to update ACME DNS plugin {name}: {to_native(e)}"
+            )
+
+        updated = self._fetch_plugin(name)
+        if updated is None:
+            self.module.fail_json(
+                msg=f"ACME DNS plugin {name} not found after update",
+                name=name,
+            )
+
+        result = self._format_plugin(name, updated)
+        self.module.exit_json(
+            changed=True,
+            msg=f"ACME DNS plugin {name} successfully updated",
+            **result,
+        )
+
+    def _delete_plugin(self, name):
+        try:
+            self._plugin_endpoint(name).delete()
+        except Exception as e:
+            self.module.fail_json(
+                msg=f"Failed to delete ACME DNS plugin {name}: {to_native(e)}"
+            )
+
+    def _fetch_plugin(self, name):
+        try:
+            return self._plugin_endpoint(name).get()
+        except Exception as e:
+            if "not defined" in str(e).lower():
+                return None
+            self.module.fail_json(
+                msg=f"Failed to read ACME plugin {name}: {to_native(e)}"
+            )
+
+    def _plugin_endpoint(self, name=None):
+        base = self.proxmox_api.cluster().acme().plugins()
+        return base if not name else base(name)
+
+    def _build_desired(self, name):
+        p = self.params
+        raw_data = p.get("data")
+
+        return {
+            "name": name,
+            "plugin": p["plugin"],
+            "disable": p["disable"],
+            "validation_delay": p["validation_delay"],
+            "data": None if raw_data is None else _normalize_data_dict(raw_data),
+        }
+
+    def _build_params(self):
+        p = self.params
+
+        payload = {
+            "api": p["plugin"],
+            "validation-delay": p["validation_delay"],
+            "disable": ansible_to_proxmox_bool(p["disable"]),
+        }
+
+        if p.get("data") is not None:
+            payload["data"] = _data_to_api(p["data"])
+
+        return payload
+
+    def _format_plugin(self, name, raw):
+        data_raw = raw.get("data", "")
+        data = _normalize_data_dict(_data_from_api(data_raw))
+
+        return {
+            "type": "dns",
+            "name": name,
+            "plugin": raw["api"],
+            "disable": proxmox_to_ansible_bool(raw.get("disable", False)),
+            "validation_delay": int(raw.get("validation-delay", 30)),
+            "data": data,
+            "digest": raw.get("digest", ""),
+        }
 
 def main():
     module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxClusterAcmePluginDnsAnsible(module)
     proxmox.validate_params()
+
     try:
         proxmox.run()
     except Exception as e:
