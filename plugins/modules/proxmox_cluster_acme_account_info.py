@@ -100,12 +100,9 @@ class ProxmoxClusterAcmeAccountInfoAnsible(ProxmoxAnsible):
         super().__init__(module)
         self.params = module.params
 
-    def _acme_account_api(self, name):
-        return self.proxmox_api.cluster().acme().account()(name)
-
     def _get_account(self, name):
         try:
-            return self._acme_account_api(name).get()
+            return self.proxmox_api.cluster().acme().account()(name).get()
         except Exception as e:
             err = str(e).lower()
             if "does not exist" in err or "not found" in err or "404" in err:
