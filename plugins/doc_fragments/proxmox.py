@@ -63,8 +63,7 @@ options:
     default: true
 requirements: ["proxmoxer >= 2.3", "requests"]
 seealso:
-  - name: Guide for Proxmox Authentication
-    description: Complete guide for the Proxmox API authentication
+  - description: Complete guide for the Proxmox API authentication
     ref: ansible_collections.community.proxmox.docsite.authentication
 """
 
