@@ -187,7 +187,6 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         else:
             self._ensure_absent(name)
 
-
     def _ensure_present(self, name):
         existing = self._fetch_plugin(name)
 
@@ -246,10 +245,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             current["plugin"] != desired["plugin"]
             or current["disable"] != desired["disable"]
             or current["validation_delay"] != desired["validation_delay"]
-            or (
-                desired.get("data") is not None
-                and current["data"] != desired["data"]
-            )
+            or (desired.get("data") is not None and current["data"] != desired["data"])
         )
 
     def _create_plugin(self, name):
@@ -265,9 +261,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         try:
             self._plugin_endpoint().post(id=name, **payload)
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failed to create ACME DNS plugin {name}: {to_native(e)}"
-            )
+            self.module.fail_json(msg=f"Failed to create ACME DNS plugin {name}: {to_native(e)}")
 
         created = self._fetch_plugin(name)
         if created is None:
@@ -289,9 +283,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         try:
             self._plugin_endpoint(name).put(**payload)
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failed to update ACME DNS plugin {name}: {to_native(e)}"
-            )
+            self.module.fail_json(msg=f"Failed to update ACME DNS plugin {name}: {to_native(e)}")
 
         updated = self._fetch_plugin(name)
         if updated is None:
@@ -311,9 +303,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         try:
             self._plugin_endpoint(name).delete()
         except Exception as e:
-            self.module.fail_json(
-                msg=f"Failed to delete ACME DNS plugin {name}: {to_native(e)}"
-            )
+            self.module.fail_json(msg=f"Failed to delete ACME DNS plugin {name}: {to_native(e)}")
 
     def _fetch_plugin(self, name):
         try:
@@ -321,9 +311,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         except Exception as e:
             if "not defined" in str(e).lower():
                 return None
-            self.module.fail_json(
-                msg=f"Failed to read ACME plugin {name}: {to_native(e)}"
-            )
+            self.module.fail_json(msg=f"Failed to read ACME plugin {name}: {to_native(e)}")
 
     def _plugin_endpoint(self, name=None):
         base = self.proxmox_api.cluster().acme().plugins()
@@ -368,6 +356,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             "data": data,
             "digest": raw.get("digest", ""),
         }
+
 
 def main():
     module = create_proxmox_module(module_args(), **module_options())
