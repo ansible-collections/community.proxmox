@@ -1099,21 +1099,26 @@ class ProxmoxNetworkManager(ProxmoxAnsible):
         # Type-specific validation
         iface_type = self.params.get("iface_type")
         if iface_type:
-            if iface_type == "eth":
-                errors.extend(self.validate_eth_params())
-            elif iface_type == "bridge":
-                errors.extend(self.validate_bridge_params())
-            elif iface_type == "bond":
-                errors.extend(self.validate_bond_params())
-            elif iface_type == "vlan":
-                errors.extend(self.validate_vlan_params())
-            elif iface_type == "OVSBridge":
-                errors.extend(self.validate_ovs_bridge_params())
-            elif iface_type == "OVSBond":
-                errors.extend(self.validate_ovs_bond_params())
-            elif iface_type == "OVSIntPort":
-                errors.extend(self.validate_ovs_int_port_params())
+            errors.extend(self._validate_interface(iface_type))
 
+        return errors
+
+    def _validate_interface(self, iface_type):
+        errors = []
+        if iface_type == "eth":
+            errors.extend(self.validate_eth_params())
+        elif iface_type == "bridge":
+            errors.extend(self.validate_bridge_params())
+        elif iface_type == "bond":
+            errors.extend(self.validate_bond_params())
+        elif iface_type == "vlan":
+            errors.extend(self.validate_vlan_params())
+        elif iface_type == "OVSBridge":
+            errors.extend(self.validate_ovs_bridge_params())
+        elif iface_type == "OVSBond":
+            errors.extend(self.validate_ovs_bond_params())
+        elif iface_type == "OVSIntPort":
+            errors.extend(self.validate_ovs_int_port_params())
         return errors
 
     def validate_interface_name(self):

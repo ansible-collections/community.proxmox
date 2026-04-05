@@ -162,7 +162,7 @@ class ProxmoxVnetAnsible(ProxmoxSdnAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve vnet information from cluster: {e}")
 
-    def vnet_present(self, update, vnet_params):
+    def vnet_present(self, update, vnet_params):  # noqa: PLR0912
         vnet_name = vnet_params["vnet"]
         existing_vnet = [vnet for vnet in self.get_vnet_detail() if vnet.get("vnet") == vnet_name]
         vnet_to_create, vnet_to_update = compare_list_of_dicts(

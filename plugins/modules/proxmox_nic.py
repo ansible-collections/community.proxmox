@@ -177,7 +177,7 @@ def module_options():
 
 
 class ProxmoxNicAnsible(ProxmoxAnsible):
-    def update_nic(self, vmid, interface, model, **kwargs):
+    def update_nic(self, vmid, interface, model, **kwargs):  # noqa: PLR0912
         vm = self.get_vm(vmid)
 
         try:

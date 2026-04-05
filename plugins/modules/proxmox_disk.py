@@ -617,7 +617,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
         }
         return params
 
-    def create_disk(self, disk, vmid, vm, vm_config):
+    def create_disk(self, disk, vmid, vm, vm_config):  # noqa: PLR0912
         """Create a disk in the specified virtual machine. Check if creation is required,
         and if so, compile the disk configuration and create it by updating the virtual
         machine configuration. After calling the API function, wait for the result.
@@ -794,7 +794,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
             return True, f"Disk {disk} resized in VM {vmid}"
 
 
-def main():
+def main():  # noqa: PLR0912
     module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxDiskAnsible(module)
 

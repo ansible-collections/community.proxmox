@@ -167,9 +167,9 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve VMs information from cluster resources: {e}")
 
-    def get_vms_from_nodes(
+    def get_vms_from_nodes(  # noqa: PLR0913
         self, cluster_machines, resource_type, vmid=None, name=None, node=None, config=None, network=False
-    ):  # noqa: PLR0913
+    ):
         # Leave in dict only machines that user wants to know about
         filtered_vms = {
             vm: info

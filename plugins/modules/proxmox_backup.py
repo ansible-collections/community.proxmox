@@ -361,7 +361,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
                 f"VMIDs {', '.join(vmids_not_found)} not found. This task will fail if one VMID does not exist"
             )
 
-    def wait_for_timeout(self, timeout, raw_tasks):
+    def wait_for_timeout(self, timeout, raw_tasks):  # noqa: PLR0912
         # filter all entries, which did not get a task id from the Cluster
         tasks = []
         ok_tasks = []
