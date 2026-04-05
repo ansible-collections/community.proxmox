@@ -17,7 +17,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster_acme_plugin_dns
+from ansible_collections.community.proxmox.plugins.modules import proxmox_acme_plugin_dns
 
 PLUGIN_NAME = "cloudflare"
 
@@ -56,9 +56,9 @@ def build_module_args(state="present", **overrides):
 class TestProxmoxClusterAcmePluginDnsHelpers:
     def test_data_to_api_and_from_api_roundtrip(self):
         data = {"CF_Token": "example", "CF_Account_ID": "example"}
-        b64 = proxmox_cluster_acme_plugin_dns._data_to_api(data)
+        b64 = proxmox_acme_plugin_dns._data_to_api(data)
         raw = base64.b64decode(b64).decode("utf-8")
-        assert proxmox_cluster_acme_plugin_dns._data_from_api(raw) == {
+        assert proxmox_acme_plugin_dns._data_from_api(raw) == {
             "CF_Account_ID": "example",
             "CF_Token": "example",
         }
@@ -67,7 +67,7 @@ class TestProxmoxClusterAcmePluginDnsHelpers:
 class TestProxmoxClusterAcmePluginDnsModule(ModuleTestCase):
     def setUp(self):
         super().setUp()
-        self.module = proxmox_cluster_acme_plugin_dns
+        self.module = proxmox_acme_plugin_dns
         self.mock_module_helper = patch.multiple(
             basic.AnsibleModule,
             exit_json=exit_json,

@@ -6,7 +6,7 @@
 
 
 DOCUMENTATION = r"""
-module: proxmox_cluster_acme_plugin_dns
+module: proxmox_acme_plugin_dns
 short_description: Manage ACME DNS plugins on a Proxmox VE.
 version_added: "2.1.0"
 author:
@@ -66,7 +66,7 @@ extends_documentation_fragment:
 
 EXAMPLES = r"""
 - name: Configure ACME Plugin DNS (Cloudflare)
-  community.proxmox.proxmox_cluster_acme_plugin_dns:
+  community.proxmox.proxmox_acme_plugin_dns:
     name: cloudflare
     plugin: cf
     data:
@@ -74,7 +74,7 @@ EXAMPLES = r"""
       CF_Token: example
 
 - name: Remove ACME DNS plugin
-  community.proxmox.proxmox_cluster_acme_plugin_dns:
+  community.proxmox.proxmox_acme_plugin_dns:
     name: cloudflare
     state: absent
 """
