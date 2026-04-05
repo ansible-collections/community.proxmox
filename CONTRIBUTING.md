@@ -86,8 +86,8 @@ To perform basic testing, you will most likely require the following packages:
 and ideally a container runtime, for example `podman` or `docker`.
 
 The repository includes a [pre-commit](https://pre-commit.com/) configuration ([`.pre-commit-config.yaml`](.pre-commit-config.yaml)) which runs basic Ruff checks before each commit. **Hooks are not active until you install them**. After installing the `pre-commit` package, run `pre-commit install`.
-
 If you want to manually run the hooks before making a commit, you can use `pre-commit run`.
+
 To immediately run all default tests (format, lint), install the dependencies
 and run `nox`. To run all unit/sanity tests, use `nox -s ansible-test-units` or `nox -s ansible-test-sanity`.
 
