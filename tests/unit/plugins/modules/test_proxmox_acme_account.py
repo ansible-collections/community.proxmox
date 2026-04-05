@@ -16,7 +16,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster_acme_account
+from ansible_collections.community.proxmox.plugins.modules import proxmox_acme_account
 
 SAMPLE_GET = {
     "account": {
@@ -70,7 +70,7 @@ def build_module_args(state="present", omit_contact=False, **overrides):
 class TestProxmoxClusterAcmeAccountModule(ModuleTestCase):
     def setUp(self):
         super().setUp()
-        self.module = proxmox_cluster_acme_account
+        self.module = proxmox_acme_account
         self.warn_mock = Mock()
         self.mock_module_helper = patch.multiple(
             basic.AnsibleModule,
@@ -90,7 +90,7 @@ class TestProxmoxClusterAcmeAccountModule(ModuleTestCase):
         self.named_account.put.return_value = UPID
         self.named_account.delete.return_value = UPID
         self.wait_mock = patch.object(
-            proxmox_cluster_acme_account.ProxmoxClusterAcmeAccountAnsible,
+            proxmox_acme_account.ProxmoxClusterAcmeAccountAnsible,
             "_wait_acme_task",
         ).start()
 

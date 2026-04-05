@@ -6,12 +6,12 @@
 
 
 DOCUMENTATION = r"""
-module: proxmox_cluster_acme_account
-short_description: ACME account management for Proxmox VE cluster
+module: proxmox_acme_account
+short_description: ACME account management
 version_added: "2.1.0"
 author: Clément Cruau (@PendaGTP)
 description:
-  - Create, update or delete an ACME account on the Proxmox VE cluster.
+  - Create, update or delete an ACME account on the Proxmox VE.
   - When an account already exists, only the contact email can be updated (Proxmox API limitation).
   - Requires C(root@pam) authentication.
 attributes:
@@ -61,9 +61,9 @@ seealso:
   - name: Certificate management (Proxmox documentation)
     description: ACME accounts and certificates in Proxmox VE
     link: https://pve.proxmox.com/pve-docs/pve-admin-guide.html#sysadmin_certificate_management
-  - module: community.proxmox.proxmox_cluster_acme_accounts_info
+  - module: community.proxmox.proxmox_acme_accounts_info
     description: List ACME account names.
-  - module: community.proxmox.proxmox_cluster_acme_account_info
+  - module: community.proxmox.proxmox_acme_account_info
     description: Retrieve information about a single ACME account.
 
 extends_documentation_fragment:
@@ -74,23 +74,23 @@ extends_documentation_fragment:
 
 EXAMPLES = r"""
 - name: Create ACME account
-  community.proxmox.proxmox_cluster_acme_account:
+  community.proxmox.proxmox_acme_account:
     name: example
     contact: example@example.com
     directory: https://acme-staging-v02.api.letsencrypt.org/directory
     tos: https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf
 
 - name: Update ACME account contact
-  community.proxmox.proxmox_cluster_acme_account:
+  community.proxmox.proxmox_acme_account:
     name: example
     contact: other@example.com
 
 - name: Ensure ACME account exists
-  community.proxmox.proxmox_cluster_acme_account:
+  community.proxmox.proxmox_acme_account:
     name: example
 
 - name: Remove ACME account
-  community.proxmox.proxmox_cluster_acme_account:
+  community.proxmox.proxmox_acme_account:
     name: example
     state: absent
 """
@@ -141,7 +141,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
 )
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_acme_account import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_account import (
     acme_account_to_ansible_result,
     normalize_contact_list,
 )

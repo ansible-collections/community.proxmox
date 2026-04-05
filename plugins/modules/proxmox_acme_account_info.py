@@ -6,13 +6,13 @@
 
 
 DOCUMENTATION = r"""
-module: proxmox_cluster_acme_account_info
-short_description: Retrieve one ACME account from a Proxmox VE cluster
+module: proxmox_acme_account_info
+short_description: Retrieve one ACME account
 version_added: "2.1.0"
 author: Clément Cruau (@PendaGTP)
 description:
   - Retrieve information about an ACME account configuration.
-  - To list all ACME account names, use M(community.proxmox.proxmox_cluster_acme_accounts_info).
+  - To list all ACME account names, use M(community.proxmox.proxmox_acme_accounts_info).
   - Requires C(root@pam) authentication.
 options:
   name:
@@ -28,15 +28,15 @@ extends_documentation_fragment:
   - community.proxmox.attributes.info_module
 
 seealso:
-  - module: community.proxmox.proxmox_cluster_acme_accounts_info
+  - module: community.proxmox.proxmox_acme_accounts_info
     description: List ACME account names.
-  - module: community.proxmox.proxmox_cluster_acme_account
+  - module: community.proxmox.proxmox_acme_account
     description: Create, update or delete an ACME account.
 """
 
 EXAMPLES = r"""
 - name: Get ACME account example
-  community.proxmox.proxmox_cluster_acme_account_info:
+  community.proxmox.proxmox_acme_account_info:
     name: example
 """
 
@@ -80,7 +80,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
 )
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_acme_account import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_account import (
     acme_account_to_ansible_result,
 )
 

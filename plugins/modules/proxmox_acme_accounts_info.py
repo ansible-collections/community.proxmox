@@ -6,13 +6,13 @@
 
 
 DOCUMENTATION = r"""
-module: proxmox_cluster_acme_accounts_info
-short_description: List ACME account names on a Proxmox VE cluster
+module: proxmox_acme_accounts_info
+short_description: List ACME account names
 version_added: "2.1.0"
 author: Clément Cruau (@PendaGTP)
 description:
   - Return the names of all ACME accounts (filenames).
-  - For information about one account, use M(community.proxmox.proxmox_cluster_acme_account_info).
+  - For information about one account, use M(community.proxmox.proxmox_acme_account_info).
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -21,15 +21,15 @@ extends_documentation_fragment:
   - community.proxmox.attributes.info_module
 
 seealso:
-  - module: community.proxmox.proxmox_cluster_acme_account_info
+  - module: community.proxmox.proxmox_acme_account_info
     description: Retrieve information about a single ACME account.
-  - module: community.proxmox.proxmox_cluster_acme_account
+  - module: community.proxmox.proxmox_acme_account
     description: Create, update or delete an ACME account.
 """
 
 EXAMPLES = r"""
 - name: List ACME account names
-  community.proxmox.proxmox_cluster_acme_accounts_info:
+  community.proxmox.proxmox_acme_accounts_info:
 """
 
 RETURN = r"""
