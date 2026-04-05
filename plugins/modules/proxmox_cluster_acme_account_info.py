@@ -80,8 +80,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
 )
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_acme import (
-    acme_account_get_to_ansible,
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_acme_account import (
+    acme_account_to_ansible_result,
 )
 
 
@@ -100,7 +100,7 @@ class ProxmoxClusterAcmeAccountInfoAnsible(ProxmoxAnsible):
         super().__init__(module)
         self.params = module.params
 
-    def _get_account(self, name):
+    def _fetch_account(self, name):
         try:
             return self.proxmox_api.cluster().acme().account()(name).get()
         except Exception as e:
@@ -111,11 +111,11 @@ class ProxmoxClusterAcmeAccountInfoAnsible(ProxmoxAnsible):
 
     def run(self):
         name = self.params["name"]
-        data = self._get_account(name)
+        data = self._fetch_account(name)
         if data is None:
             self.module.fail_json(msg=f"ACME account {name} does not exist", name=name)
 
-        result = acme_account_get_to_ansible(data)
+        result = acme_account_to_ansible_result(data)
         self.module.exit_json(
             changed=False,
             name=name,

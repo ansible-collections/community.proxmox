@@ -141,29 +141,12 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
 )
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_acme import (
-    acme_account_get_to_ansible,
-    normalize_acme_contacts,
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_cluster_acme_account import (
+    acme_account_to_ansible_result,
+    normalize_contact_list,
 )
 
 DIRECTORY_URL_PATTERN = re.compile(r"^https?://.*$")
-ACME_TASK_WAIT_SECONDS = 30
-_UPID_MIN_SEGMENTS = 2
-
-
-def _contact_provided(params):
-    c = params.get("contact")
-    if c is None:
-        return False
-    return bool(to_native(c).strip())
-
-
-def _api_returns_contact(data):
-    """True if GET includes a non-empty contact list."""
-    acc = data.get("account") or {}
-    if acc["contact"] is None:
-        return False
-    return len(normalize_acme_contacts(acc["contact"])) > 0
 
 
 def module_args():
@@ -187,6 +170,15 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         super().__init__(module)
         self.params = module.params
 
+    def run(self):
+        state = self.params["state"]
+        name = self.params["name"]
+
+        if state == "present":
+            self._ensure_present(name)
+        else:
+            self._ensure_absent(name)
+
     def validate_params(self):
         directory = self.params.get("directory")
         if directory and not DIRECTORY_URL_PATTERN.match(directory):
@@ -195,166 +187,17 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
                 directory=directory,
             )
 
-    def _acme_account_api(self, name=None):
-        base = self.proxmox_api.cluster().acme().account()
-        if name in (None, ""):
-            return base
-        return base(name)
-
-    def _node_from_upid(self, upid):
-        """Extract the cluster node from a Proxmox task id so api_task_complete can poll task status."""
-        parts = to_native(upid).split(":")
-        if len(parts) >= _UPID_MIN_SEGMENTS and parts[0] == "UPID":
-            return parts[1]
-        self.module.fail_json(msg=f"Unexpected task id from Proxmox API: {upid!r}")
-
-    def _wait_acme_task(self, taskid):
-        node = self._node_from_upid(taskid)
-        ok, err = self.api_task_complete(node, taskid, ACME_TASK_WAIT_SECONDS)
-        if not ok:
-            self.module.fail_json(msg=f"ACME background task failed: {err}", task=taskid)
-
-    def _get_account(self, name):
-        try:
-            return self._acme_account_api(name).get()
-        except Exception as e:
-            err = str(e).lower()
-            if "does not exist" in err or "not found" in err or "404" in err:
-                return None
-            self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
-
-    def _desired_contact_matches(self, data):
-        if not _contact_provided(self.params):
-            return False
-        desired = self.params["contact"].strip()
-        current_list = normalize_acme_contacts((data.get("account") or {}).get("contact"))
-        if not current_list:
-            return False
-        return current_list[0] == desired
-
-    def _build_create_payload(self):
-        p = self.params
-        payload = {
-            "name": p["name"],
-            "contact": to_native(p["contact"]).strip(),
-        }
-        if p.get("directory"):
-            payload["directory"] = p["directory"]
-        if p.get("eab_hmac_key"):
-            payload["eab-hmac-key"] = p["eab_hmac_key"]
-        if p.get("eab_kid"):
-            payload["eab-kid"] = p["eab_kid"]
-        if p.get("tos"):
-            payload["tos_url"] = p["tos"]
-        return payload
-
-    def run(self):
-        state = self.params["state"]
-        name = self.params["name"]
-
-        if state == "present":
-            self._present(name)
-        else:
-            self._absent(name)
-
-    def _put_contact_update(self, name):
-        try:
-            taskid = self._acme_account_api(name).put(contact=self.params["contact"])
-            if taskid:
-                self._wait_acme_task(taskid)
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to update ACME account {name}: {to_native(e)}")
-
-        updated = self._get_account(name)
-        if updated is None:
-            self.module.fail_json(msg=f"ACME account {name} not found after update", name=name)
-        result = acme_account_get_to_ansible(updated)
-        self.module.exit_json(
-            changed=True,
-            name=name,
-            msg=f"ACME account {name} successfully updated",
-            **result,
-        )
-
-    def _present(self, name):
-        existing = self._get_account(name)
+    def _ensure_present(self, name):
+        existing = self._fetch_account(name)
 
         if existing is None:
-            if not _contact_provided(self.params):
-                self.module.fail_json(
-                    msg="contact is required to create a new ACME account",
-                    name=name,
-                )
-            if self.module.check_mode:
-                self.module.exit_json(
-                    changed=True,
-                    name=name,
-                    msg=f"ACME account {name} would be created",
-                )
+            return self._create_account(name)
 
-            try:
-                taskid = self._acme_account_api().post(**self._build_create_payload())
-                if taskid:
-                    self._wait_acme_task(taskid)
-            except Exception as e:
-                self.module.fail_json(msg=f"Failed to create ACME account {name}: {to_native(e)}")
+        return self._reconcile_existing(name, existing)
 
-            data = self._get_account(name)
-            if data is None:
-                self.module.fail_json(msg=f"ACME account {name} not found after create", name=name)
-            result = acme_account_get_to_ansible(data)
-            self.module.exit_json(
-                changed=True,
-                name=name,
-                msg=f"ACME account {name} successfully created",
-                **result,
-            )
+    def _ensure_absent(self, name):
+        existing = self._fetch_account(name)
 
-        if not _contact_provided(self.params):
-            result = acme_account_get_to_ansible(existing)
-            self.module.exit_json(
-                changed=False,
-                name=name,
-                msg=f"ACME account {name} exists; contact not specified, no update attempted",
-                **result,
-            )
-
-        if not _api_returns_contact(existing):
-            self.module.warn(
-                "Proxmox API did not return contact addresses; cannot verify drift; applying contact update.",
-            )
-            if self.module.check_mode:
-                result = acme_account_get_to_ansible(existing)
-                self.module.exit_json(
-                    changed=True,
-                    name=name,
-                    msg=f"ACME account {name} contact would be updated",
-                    **result,
-                )
-            self._put_contact_update(name)
-
-        if self._desired_contact_matches(existing):
-            result = acme_account_get_to_ansible(existing)
-            self.module.exit_json(
-                changed=False,
-                name=name,
-                msg=f"ACME account {name} already has desired contact",
-                **result,
-            )
-
-        if self.module.check_mode:
-            result = acme_account_get_to_ansible(existing)
-            self.module.exit_json(
-                changed=True,
-                name=name,
-                msg=f"ACME account {name} contact would be updated",
-                **result,
-            )
-
-        self._put_contact_update(name)
-
-    def _absent(self, name):
-        existing = self._get_account(name)
         if existing is None:
             self.module.exit_json(
                 changed=False,
@@ -369,18 +212,199 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
                 msg=f"ACME account {name} would be deleted",
             )
 
-        try:
-            taskid = self._acme_account_api(name).delete()
-            if taskid:
-                self._wait_acme_task(taskid)
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to delete ACME account {name}: {to_native(e)}")
+        self._delete_account(name)
 
         self.module.exit_json(
             changed=True,
             name=name,
             msg=f"ACME account {name} successfully deleted",
         )
+
+    def _reconcile_existing(self, name, existing):
+        # No contact provided, nothing to do
+        if not self._has_contact():
+            result = acme_account_to_ansible_result(existing)
+            self.module.exit_json(
+                changed=False,
+                name=name,
+                msg=f"ACME account {name} exists; contact not specified, no update attempted",
+                **result,
+            )
+
+        # API does not return contact, cannot detect drift
+        if not self._has_api_contact(existing):
+            self.module.warn(
+                "Proxmox API did not return contact addresses; cannot verify drift; applying contact update.",
+            )
+
+            if self.module.check_mode:
+                result = acme_account_to_ansible_result(existing)
+                self.module.exit_json(
+                    changed=True,
+                    name=name,
+                    msg=f"ACME account {name} contact would be updated",
+                    **result,
+                )
+
+            return self._update_contact(name)
+
+        # Already match
+        if self._is_contact_up_to_date(existing):
+            result = acme_account_to_ansible_result(existing)
+            self.module.exit_json(
+                changed=False,
+                name=name,
+                msg=f"ACME account {name} already has desired contact",
+                **result,
+            )
+
+        # Needs update
+        if self.module.check_mode:
+            result = acme_account_to_ansible_result(existing)
+            self.module.exit_json(
+                changed=True,
+                name=name,
+                msg=f"ACME account {name} contact would be updated",
+                **result,
+            )
+
+        return self._update_contact(name)
+
+    def _has_contact(self):
+        contact = self.params.get("contact")
+        return bool(contact and to_native(contact).strip())
+
+    def _has_api_contact(self, data):
+        account = data.get("account") or {}
+        contacts = account.get("contact")
+        return bool(contacts and normalize_contact_list(contacts))
+
+    def _is_contact_up_to_date(self, data):
+        desired = to_native(self.params["contact"]).strip()
+        account = data.get("account") or {}
+        current = normalize_contact_list(account.get("contact"))
+
+        return bool(current and current[0] == desired)
+
+    def _create_account(self, name):
+        if not self._has_contact():
+            self.module.fail_json(
+                msg="contact is required to create a new ACME account",
+                name=name,
+            )
+
+        if self.module.check_mode:
+            self.module.exit_json(
+                changed=True,
+                name=name,
+                msg=f"ACME account {name} would be created",
+            )
+
+        try:
+            taskid = self._account_endpoint().post(**self._build_create_params())
+            if taskid:
+                self._wait_acme_task(taskid)
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to create ACME account {name}: {to_native(e)}")
+
+        data = self._fetch_account(name)
+        if data is None:
+            self.module.fail_json(
+                msg=f"ACME account {name} not found after create",
+                name=name,
+            )
+
+        result = acme_account_to_ansible_result(data)
+        self.module.exit_json(
+            changed=True,
+            name=name,
+            msg=f"ACME account {name} successfully created",
+            **result,
+        )
+
+    def _update_contact(self, name):
+        try:
+            taskid = self._account_endpoint(name).put(contact=self.params["contact"])
+            if taskid:
+                self._wait_acme_task(taskid)
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to update ACME account {name}: {to_native(e)}")
+
+        updated = self._fetch_account(name)
+        if updated is None:
+            self.module.fail_json(
+                msg=f"ACME account {name} not found after update",
+                name=name,
+            )
+
+        result = acme_account_to_ansible_result(updated)
+        self.module.exit_json(
+            changed=True,
+            name=name,
+            msg=f"ACME account {name} successfully updated",
+            **result,
+        )
+
+    def _delete_account(self, name):
+        try:
+            taskid = self._account_endpoint(name).delete()
+            if taskid:
+                self._wait_acme_task(taskid)
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to delete ACME account {name}: {to_native(e)}")
+
+    def _fetch_account(self, name):
+        try:
+            return self._account_endpoint(name).get()
+        except Exception as e:
+            err = str(e).lower()
+            if "does not exist" in err or "not found" in err or "404" in err:
+                return None
+            self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
+
+    def _account_endpoint(self, name=None):
+        base = self.proxmox_api.cluster().acme().account()
+        return base if not name else base(name)
+
+    def _wait_acme_task(self, taskid):
+        node = self._node_from_upid(taskid)
+        ok, err = self.api_task_complete(node, taskid, 30)
+
+        if not ok:
+            self.module.fail_json(
+                msg=f"ACME background task failed: {err}",
+                task=taskid,
+            )
+
+    def _node_from_upid(self, upid):
+        parts = to_native(upid).split(":")
+        if len(parts) >= 2 and parts[0] == "UPID":  # noqa: PLR2004
+            return parts[1]
+
+        self.module.fail_json(msg=f"Unexpected task id from Proxmox API: {upid}")
+
+    def _is_not_found_error(self, error):
+        err = str(error).lower()
+        return any(x in err for x in ("does not exist", "not found", "404"))
+
+    def _build_create_params(self):
+        p = self.params
+
+        payload = {
+            "name": p["name"],
+            "contact": to_native(p["contact"]).strip(),
+        }
+
+        if p.get("directory"):
+            payload["directory"] = p["directory"]
+        if p.get("eab_hmac_key"):
+            payload["eab-hmac-key"] = p["eab_hmac_key"]
+        if p.get("eab_kid"):
+            payload["eab-kid"] = p["eab_kid"]
+        if p.get("tos"):
+            payload["tos_url"] = p["tos"]
+
+        return payload
 
 
 def main():
