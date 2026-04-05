@@ -78,7 +78,7 @@ class TestProxmoxClusterAcmeAccountInfo(ModuleTestCase):
             self.module.main()
         return exc_info.value.args[0]
 
-    def get_one(self):
+    def test_get_one(self):
         self.named_account.get.return_value = SAMPLE_GET
 
         result = self._run_module(build_args(name="default"))
@@ -88,7 +88,7 @@ class TestProxmoxClusterAcmeAccountInfo(ModuleTestCase):
         assert result["directory"] == SAMPLE_GET["directory"]
         assert result["account"]["contact"] == ["example@example.com"]
 
-    def get_one_missing(self):
+    def test_get_one_missing(self):
         self.named_account.get.side_effect = Exception("404 Not Found: does not exist")
 
         result = self._run_module(build_args(name="missing"))
