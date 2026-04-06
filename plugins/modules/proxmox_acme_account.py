@@ -191,9 +191,18 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         existing = self._fetch_account(name)
 
         if existing is None:
-            return self._create_account(name)
+            if self.module.check_mode:
+                self.module.exit_json(
+                    changed=True,
+                    name=name,
+                    msg=f"ACME account {name} would be created",
+                )
 
-        return self._reconcile_existing(name, existing)
+            result = self._create_account(name)
+            self.module.exit_json(**result)
+
+        result = self._reconcile_existing(name, existing)
+        self.module.exit_json(**result)
 
     def _ensure_absent(self, name):
         existing = self._fetch_account(name)
@@ -224,12 +233,12 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         # No contact provided, nothing to do
         if not self._has_contact():
             result = acme_account_to_ansible_result(existing)
-            self.module.exit_json(
-                changed=False,
-                name=name,
-                msg=f"ACME account {name} exists; contact not specified, no update attempted",
+            return {
+                "changed": False,
+                "name": name,
+                "msg": f"ACME account {name} exists; contact not specified, no update attempted",
                 **result,
-            )
+            }
 
         # API does not return contact, cannot detect drift
         if not self._has_api_contact(existing):
@@ -239,34 +248,34 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
 
             if self.module.check_mode:
                 result = acme_account_to_ansible_result(existing)
-                self.module.exit_json(
-                    changed=True,
-                    name=name,
-                    msg=f"ACME account {name} contact would be updated",
+                return {
+                    "changed": True,
+                    "name": name,
+                    "msg": f"ACME account {name} contact would be updated",
                     **result,
-                )
+                }
 
             return self._update_contact(name)
 
         # Already match
         if self._is_contact_up_to_date(existing):
             result = acme_account_to_ansible_result(existing)
-            self.module.exit_json(
-                changed=False,
-                name=name,
-                msg=f"ACME account {name} already has desired contact",
+            return {
+                "changed": False,
+                "name": name,
+                "msg": f"ACME account {name} already has desired contact",
                 **result,
-            )
+            }
 
         # Needs update
         if self.module.check_mode:
             result = acme_account_to_ansible_result(existing)
-            self.module.exit_json(
-                changed=True,
-                name=name,
-                msg=f"ACME account {name} contact would be updated",
+            return {
+                "changed": True,
+                "name": name,
+                "msg": f"ACME account {name} contact would be updated",
                 **result,
-            )
+            }
 
         return self._update_contact(name)
 
@@ -293,13 +302,6 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
                 name=name,
             )
 
-        if self.module.check_mode:
-            self.module.exit_json(
-                changed=True,
-                name=name,
-                msg=f"ACME account {name} would be created",
-            )
-
         try:
             taskid = self._account_endpoint().post(**self._build_create_params())
             if taskid:
@@ -315,12 +317,12 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
             )
 
         result = acme_account_to_ansible_result(data)
-        self.module.exit_json(
-            changed=True,
-            name=name,
-            msg=f"ACME account {name} successfully created",
+        return {
+            "changed": True,
+            "name": name,
+            "msg": f"ACME account {name} successfully created",
             **result,
-        )
+        }
 
     def _update_contact(self, name):
         try:
@@ -338,12 +340,12 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
             )
 
         result = acme_account_to_ansible_result(updated)
-        self.module.exit_json(
-            changed=True,
-            name=name,
-            msg=f"ACME account {name} successfully updated",
+        return {
+            "changed": True,
+            "name": name,
+            "msg": f"ACME account {name} successfully updated",
             **result,
-        )
+        }
 
     def _delete_account(self, name):
         try:
@@ -357,8 +359,7 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         try:
             return self._account_endpoint(name).get()
         except Exception as e:
-            err = str(e).lower()
-            if "does not exist" in err or "not found" in err or "404" in err:
+            if self._is_not_found_error(e):
                 return None
             self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
 
