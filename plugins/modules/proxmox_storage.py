@@ -127,6 +127,10 @@ options:
         description:
           - The minimum SMB version to use for.
         type: str
+      snapshot_as_volume_chain:
+        description:
+          - Enable support for creating snapshots through volume backing-chains.
+        type: bool
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -337,6 +341,7 @@ STORAGE_BACKENDS = {
         "domain": ("domain", False),
         "subdir": ("subdir", False),
         "smb_version": ("smbversion", False),
+        "snapshot_as_volume_chain": ("snapshot-as-volume-chain", False),
     },
     "dir": {"path": ("path", True)},
     "iscsi": {"portal": ("portal", True), "target": ("target", True)},
@@ -399,6 +404,7 @@ def module_args():
                 "domain": dict(type="str"),
                 "subdir": dict(type="str"),
                 "smb_version": dict(type="str"),
+                "snapshot_as_volume_chain": dict(type="bool"),
             },
         ),
         dir_options=dict(
