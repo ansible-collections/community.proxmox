@@ -435,7 +435,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         return result
 
-    def _get_vm_config(self, properties, node, vmid, vmtype, name):
+    def _get_vm_config(self, properties, node, vmid, vmtype, name):  # noqa: PLR0912
         ret = self._get_json(f"{self.proxmox_url}/api2/json/nodes/{node}/{vmtype}/{vmid}/config")
 
         plaintext_configs = [
@@ -619,7 +619,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 if name and name in added_hosts:
                     self.inventory.add_child(pool_group, name)
 
-    def _populate(self):
+    def _populate(self):  # noqa: PLR0912
         # create common groups
         default_groups = ["lxc", "qemu", "running", "stopped"]
 

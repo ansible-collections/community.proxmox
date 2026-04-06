@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_kvm - add qemu parameter ``spice_enhancements`` (https://github.com/ansible-collections/community.proxmox/pull/324).
