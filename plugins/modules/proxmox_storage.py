@@ -204,6 +204,11 @@ options:
         description:
           - The fingerprint of the Proxmox Backup Server system.
         type: str
+      encryption_key:
+        description:
+          - An existing encryption key for the datastore.
+          - Use V(autogen) to generate one automatically without passphrase.
+        type: str
   rbd_options:
     description:
       - Extended information for adding RBD storage.
@@ -352,6 +357,7 @@ STORAGE_BACKENDS = {
         "password": ("password", True),
         "namespace": ("namespace", False),
         "fingerprint": ("fingerprint", False),
+        "encryption_key": ("encryption-key", False)
     },
     "rbd": {
         "pool": ("pool", True),
@@ -426,6 +432,7 @@ def module_args():
                 "datastore": dict(type="str", required=True),
                 "namespace": dict(type="str"),
                 "fingerprint": dict(type="str"),
+                "encryption_key": dict(type="str", no_log=True)
             },
         ),
         rbd_options=dict(type="dict", options={"pool": dict(type="str")}),
