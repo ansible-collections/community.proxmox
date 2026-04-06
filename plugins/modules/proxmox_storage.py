@@ -122,6 +122,7 @@ options:
       subdir:
         description:
           - The subdir to be used within the CIFS.
+        aliases: ["subdirectory"]
         type: str
       smb_version:
         description:
@@ -397,7 +398,7 @@ def module_args():
                 "username": dict(type="str", required=True),
                 "password": dict(type="str", no_log=True, required=True),
                 "domain": dict(type="str"),
-                "subdir": dict(type="str"),
+                "subdir": dict(type="str", aliases=["subdirectory"]),
                 "smb_version": dict(type="str"),
             },
         ),
