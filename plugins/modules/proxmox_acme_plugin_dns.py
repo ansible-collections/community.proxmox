@@ -191,9 +191,18 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         existing = self._fetch_plugin(name)
 
         if existing is None:
-            return self._create_plugin(name)
+            if self.module.check_mode:
+                self.module.exit_json(
+                    changed=True,
+                    name=name,
+                    msg=f"ACME DNS plugin {name} would be created",
+                )
 
-        return self._reconcile_existing(name, existing)
+            result = self._create_plugin(name)
+            self.module.exit_json(**result)
+
+        result = self._reconcile_existing(name, existing)
+        self.module.exit_json(**result)
 
     def _ensure_absent(self, name):
         existing = self._fetch_plugin(name)
@@ -225,18 +234,18 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         desired = self._build_desired(name)
 
         if not self._is_update_required(current, desired):
-            self.module.exit_json(
-                changed=False,
-                msg=f"ACME DNS plugin {name} already up to date",
+            return {
+                "changed": False,
+                "msg": f"ACME DNS plugin {name} already up to date",
                 **current,
-            )
+            }
 
         if self.module.check_mode:
-            self.module.exit_json(
-                changed=True,
-                name=name,
-                msg=f"ACME DNS plugin {name} would be updated",
-            )
+            return {
+                "changed": True,
+                "name": name,
+                "msg": f"ACME DNS plugin {name} would be updated",
+            }
 
         return self._update_plugin(name)
 
@@ -249,13 +258,6 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
         )
 
     def _create_plugin(self, name):
-        if self.module.check_mode:
-            self.module.exit_json(
-                changed=True,
-                name=name,
-                msg=f"ACME DNS plugin {name} would be created",
-            )
-
         payload = {"type": "dns", **self._build_params()}
 
         try:
@@ -271,11 +273,11 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             )
 
         result = self._format_plugin(name, created)
-        self.module.exit_json(
-            changed=True,
-            msg=f"ACME DNS plugin {name} successfully created",
+        return {
+            "changed": True,
+            "msg": f"ACME DNS plugin {name} successfully created",
             **result,
-        )
+        }
 
     def _update_plugin(self, name):
         payload = self._build_params()
@@ -293,11 +295,11 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             )
 
         result = self._format_plugin(name, updated)
-        self.module.exit_json(
-            changed=True,
-            msg=f"ACME DNS plugin {name} successfully updated",
+        return {
+            "changed": True,
+            "msg": f"ACME DNS plugin {name} successfully updated",
             **result,
-        )
+        }
 
     def _delete_plugin(self, name):
         try:
