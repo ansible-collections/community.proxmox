@@ -1,3 +1,0 @@
----
-bugfixes:
-  - proxmox_pool - support nested pool (https://github.com/ansible-collections/community.proxmox/pull/316).

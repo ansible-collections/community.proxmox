@@ -534,7 +534,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                     "pos/aliases/ip_sets must be present but not both"
                 )
 
-    def run(self):
+    def run(self):  # noqa: PLR0912
         self.validate_params()
 
         state = self.params.get("state")

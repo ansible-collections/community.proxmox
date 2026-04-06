@@ -1,2 +1,0 @@
-bugfixes:
-  - proxmox_disk - add support for efidisk and tpmstate disk bus types which previously caused module failure with "Unsupported disk bus" error (https://github.com/ansible-collections/community.proxmox/pull/319).
