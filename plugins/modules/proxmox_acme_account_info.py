@@ -100,15 +100,6 @@ class ProxmoxClusterAcmeAccountInfoAnsible(ProxmoxAnsible):
         super().__init__(module)
         self.params = module.params
 
-    def _fetch_account(self, name):
-        try:
-            return self.proxmox_api.cluster().acme().account()(name).get()
-        except Exception as e:
-            err = str(e).lower()
-            if "does not exist" in err or "not found" in err or "404" in err:
-                return None
-            self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
-
     def run(self):
         name = self.params["name"]
         data = self._fetch_account(name)
@@ -121,6 +112,15 @@ class ProxmoxClusterAcmeAccountInfoAnsible(ProxmoxAnsible):
             name=name,
             **result,
         )
+
+    def _fetch_account(self, name):
+        try:
+            return self.proxmox_api.cluster().acme().account()(name).get()
+        except Exception as e:
+            err = str(e).lower()
+            if "does not exist" in err or "not found" in err or "404" in err:
+                return None
+            self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
 
 
 def main():

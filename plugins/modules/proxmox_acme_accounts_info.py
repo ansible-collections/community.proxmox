@@ -57,7 +57,13 @@ def module_options():
 
 
 class ProxmoxClusterAcmeAccountsInfoAnsible(ProxmoxAnsible):
-    def list_account_names(self):
+    def run(self):
+        self.module.exit_json(
+            changed=False,
+            accounts=self.list_account_names(),
+        )
+
+    def _list_account_names(self):
         try:
             accounts = self.proxmox_api.cluster().acme().account().get()
         except Exception as e:
@@ -66,12 +72,6 @@ class ProxmoxClusterAcmeAccountsInfoAnsible(ProxmoxAnsible):
         for account in accounts:
             names.append(account["name"])
         return sorted(set(names))
-
-    def run(self):
-        self.module.exit_json(
-            changed=False,
-            accounts=self.list_account_names(),
-        )
 
 
 def main():
