@@ -318,6 +318,8 @@ releases:
         - inventory plugin - add want_post_filtering_facts to delay fact gathering
           until filtering has completed (https://github.com/ansible-collections/community.proxmox/pull/261).
         - proxmox - Add api_timeout option for all modules (https://github.com/ansible-collections/community.proxmox/pull/253).
+        - proxmox - set ``state`` as not ``required`` and set default value ``present``
+          (https://github.com/ansible-collections/community.proxmox/pull/292).
         - proxmox_role - add role's privs on the return data (https://github.com/ansible-collections/community.proxmox/pull/283).
         - proxmox_storage - Add support for ZFS thin-provisioning (https://github.com/ansible-collections/community.proxmox/pull/265).
         - proxmox_storage - Add the option namespace for PBS storage (https://github.com/ansible-collections/community.proxmox/pull/282)
@@ -326,8 +328,6 @@ releases:
           (https://github.com/ansible-collections/community.proxmox/pull/260).
         - proxmox_zone, proxmox_vnet, proxmox_subnet - make sdn modules compatible
           with pve8 (https://github.com/ansible-collections/community.proxmox/pull/254).
-        - proxmox - set ``state`` as not ``required`` and set default value ``present``
-          (https://github.com/ansible-collections/community.proxmox/pull/292).
       release_summary: 'This is the minor release of the ``community.proxmox`` collection.
 
         This changelog contains all changes to the modules and plugins in this collection
@@ -354,3 +354,82 @@ releases:
         name: proxmox_role
         namespace: ''
     release_date: '2026-03-08'
+  2.0.0-beta1:
+    changes:
+      bugfixes:
+        - proxmox_cluster_firewall - error message for invalid log_ratelimit.rate
+          parameter (https://github.com/ansible-collections/community.proxmox/pull/340).
+        - proxmox_disk - add support for efidisk and tpmstate disk bus types which
+          previously caused module failure with "Unsupported disk bus" error (https://github.com/ansible-collections/community.proxmox/pull/319).
+        - proxmox_pool - support nested pool (https://github.com/ansible-collections/community.proxmox/pull/316).
+        - proxmox_snap - fail the task when a given snapname does not exist instead
+          of exiting (https://github.com/ansible-collections/community.proxmox/pull/365).
+        - proxmox_storage - backend ``cephfs``, ``dir`` and ``zfspool`` doesn't requires
+          ``content`` parameter (https://github.com/ansible-collections/community.proxmox/pull/315).
+        - proxmox_storage - the parameter ``client_keyring`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
+        - proxmox_storage - the parameter ``fs_name`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
+        - proxmox_storage - the parameter ``state`` was optional and without default
+          value (https://github.com/ansible-collections/community.proxmox/pull/305).
+      minor_changes:
+        - proxmox - add ``totp`` authentification support (https://github.com/ansible-collections/community.proxmox/pull/265).
+        - proxmox - add a new helper `create_proxmox_module()` which adds generic
+          auth args and constraints, and merges in the module-specific args and options
+          (https://github.com/ansible-collections/community.proxmox/pull/289).
+        - proxmox - update ``proxmoxer`` required dependencies to ``>=2.3`` (https://github.com/ansible-collections/community.proxmox/pull/265).
+        - proxmox_kvm - add qemu parameter ``spice_enhancements`` (https://github.com/ansible-collections/community.proxmox/pull/324).
+        - proxmox_kvm - add qemu parameter ``virtiofs`` (https://github.com/ansible-collections/community.proxmox/pull/336).
+        - proxmox_node - add alias ``certificate_file_path`` for ``cert`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+        - proxmox_node - add alias ``node`` for ``node_name`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+        - proxmox_node - add alias ``private_key_file_path`` for ``key`` (https://github.com/ansible-collections/community.proxmox/pull/331).
+        - proxmox_node - add new parameter ``certificate`` to pass raw PEM encoded
+          certificate (https://github.com/ansible-collections/community.proxmox/pull/331).
+        - proxmox_node - add new parameter ``private_key`` to pass raw PEM encoded
+          private key (https://github.com/ansible-collections/community.proxmox/pull/331).
+        - proxmox_storage - Add support for RBD (RADOS Block Device) storage (https://github.com/ansible-collections/community.proxmox/issues/329).
+        - proxmox_storage - enhanced error handling and parameters validation (https://github.com/ansible-collections/community.proxmox/pull/305).
+        - proxmox_storage - the parameter ``state`` now has a default value of ``present``
+          (https://github.com/ansible-collections/community.proxmox/pull/305).
+        - proxmox_storage - when ``state=present`` parameters ``content`` and ``nodes``
+          are now not required (https://github.com/ansible-collections/community.proxmox/pull/315).
+      release_summary: 'This is the first beta major release of the ``community.proxmox``
+        collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.
+
+
+        Please note that this version of the collection now requires proxmoxer 2.3.0
+        or higher.
+
+
+        Also note, this release is beta! We are working on a lot of refactoring, so
+        please report any bugs you''ve found! :-)'
+    fragments:
+      - 2.0.0-beta1.yml
+      - 263-add-totp-support.yml
+      - 289-refactor-module-creation.yml
+      - 305-consolidate-proxmox-storage-module.yml
+      - 315-storage-validation-required-options.yml
+      - 316-support-nested-pool.yml
+      - 319-fix-efidisk-tpmstate.yaml
+      - 324-add-param-spice-enhancements-on-kvm.yml
+      - 326-proxmox-storage-rbd-support.yml
+      - 331-add-support-of-raw-certificate.yml
+      - 336-add-param-virtiofs-on-kvm.yml
+      - 340-proxmox-cluster-firewall-ratelimit-validation.yml
+      - 365-proxmox-snap-fail-on-missing-snapname.yml
+    modules:
+      - description: Cluster-level firewall options management for Proxmox VE cluster.
+        name: proxmox_cluster_firewall
+        namespace: ''
+      - description: Retrieve Proxmox VE HA rules.
+        name: proxmox_cluster_ha_rules_info
+        namespace: ''
+      - description: Manage authentication realms.
+        name: proxmox_domain
+        namespace: ''
+      - description: Sync realms.
+        name: proxmox_domain_sync
+        namespace: ''
+    release_date: '2026-04-04'

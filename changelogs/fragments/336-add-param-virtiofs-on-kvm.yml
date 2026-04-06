@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_kvm - add qemu parameter ``virtiofs`` (https://github.com/ansible-collections/community.proxmox/pull/336).

@@ -329,7 +329,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Checksum mismatch: {e}")
 
 
-def main():
+def main():  # noqa: PLR0912
     module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxTemplateAnsible(module)
 

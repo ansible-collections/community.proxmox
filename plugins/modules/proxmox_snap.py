@@ -322,7 +322,7 @@ class ProxmoxSnapAnsible(ProxmoxAnsible):
         return False
 
 
-def main():
+def main():  # noqa: PLR0912
     module = create_proxmox_module(module_args(), **module_options())
 
     try:
