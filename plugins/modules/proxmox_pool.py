@@ -46,17 +46,11 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new Proxmox VE pool
   community.proxmox.proxmox_pool:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     poolid: test
     comment: 'New pool'
 
 - name: Delete the Proxmox VE pool
   community.proxmox.proxmox_pool:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     poolid: test
     state: absent
 """

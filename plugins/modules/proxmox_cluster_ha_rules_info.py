@@ -44,43 +44,25 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Get prefer-pve-001 HA rule
   community.proxmox.proxmox_cluster_ha_rules_info:
-    api_host: pve-001
-    api_user: root@pam
-    api_password: password
     rule: prefer-pve-001
 
 - name: List HA rules
   community.proxmox.proxmox_cluster_ha_rules_info:
-    api_host: pve-001
-    api_user: root@pam
-    api_password: password
 
 - name: List HA node-affinity rules
   community.proxmox.proxmox_cluster_ha_rules_info:
-    api_host: pve-001
-    api_user: root@pam
-    api_password: password
     type: node-affinity
 
 - name: List HA resource-affinity rules
   community.proxmox.proxmox_cluster_ha_rules_info:
-    api_host: pve-001
-    api_user: root@pam
-    api_password: password
     type: resource-affinity
 
 - name: List HA rules affected by a resource
   community.proxmox.proxmox_cluster_ha_rules_info:
-    api_host: pve-001
-    api_user: root@pam
-    api_password: password
     resource: vm:100
 
 - name: List HA node-affinity rules affected by a resource
   community.proxmox.proxmox_cluster_ha_rules_info:
-    api_host: pve-001
-    api_user: root@pam
-    api_password: password
     type: node-affinity
     resource: vm:100
 """

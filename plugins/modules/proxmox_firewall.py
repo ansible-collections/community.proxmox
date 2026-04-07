@@ -245,10 +245,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create firewall rules at cluster level
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     level: cluster
     state: present
     rules:
@@ -266,10 +262,6 @@ EXAMPLES = r"""
 
 - name: Update Cluster level firewall rules
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     level: cluster
     state: present
     update: true
@@ -288,40 +280,24 @@ EXAMPLES = r"""
 
 - name: Delete cluster level firewall rule at pos 10
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     level: cluster
     state: absent
     pos: 10
 
 - name: Create security group
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     group_conf: true
     state: present
     group: test
 
 - name: Delete security group
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     group_conf: true
     state: absent
     group: test
 
 - name: Create FW aliases
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     state: present
     aliases:
       - name: test1
@@ -331,10 +307,6 @@ EXAMPLES = r"""
 
 - name: Update FW aliases
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     state: present
     update: true
     aliases:
@@ -345,10 +317,6 @@ EXAMPLES = r"""
 
 - name: Delete FW aliases
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     state: absent
     aliases:
       - name: test1
@@ -356,10 +324,6 @@ EXAMPLES = r"""
 
 - name: Create IP SET
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     ip_sets:
       - name: hypervisors
         comment: PVE hosts
@@ -378,20 +342,12 @@ EXAMPLES = r"""
 
 - name: Delete IP SETs
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     state: absent
     ip_sets:
       - name: hypervisors
 
 - name: Delete specific CIDR from IP SET
   community.proxmox.proxmox_firewall:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     state: absent
     ip_sets:
       - name: test

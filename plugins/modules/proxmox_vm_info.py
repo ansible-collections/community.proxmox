@@ -63,34 +63,21 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List all existing virtual machines on node
   community.proxmox.proxmox_vm_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_token_id: '{{ token_id | default(omit) }}'
-    api_token_secret: '{{ token_secret | default(omit) }}'
     node: node01
 
 - name: List all QEMU virtual machines on node
   community.proxmox.proxmox_vm_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: '{{ password | default(omit) }}'
     node: node01
     type: qemu
 
 - name: Retrieve information about specific VM by ID
   community.proxmox.proxmox_vm_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: '{{ password | default(omit) }}'
     node: node01
     type: qemu
     vmid: 101
 
 - name: Retrieve information about specific VM by name and get current configuration
   community.proxmox.proxmox_vm_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: '{{ password | default(omit) }}'
     node: node01
     type: lxc
     name: lxc05.home.arpa

@@ -89,18 +89,12 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new container snapshot
   community.proxmox.proxmox_snap:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
     state: present
     snapname: pre-updates
 
 - name: Create new container snapshot and keep only the 2 newest snapshots
   community.proxmox.proxmox_snap:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
     state: present
     snapname: snapshot-42
@@ -108,9 +102,6 @@ EXAMPLES = r"""
 
 - name: Create new snapshot for a container with configured mountpoints
   community.proxmox.proxmox_snap:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
     state: present
     unbind: true # requires root@pam+password auth, API tokens are not supported
@@ -118,18 +109,12 @@ EXAMPLES = r"""
 
 - name: Remove container snapshot
   community.proxmox.proxmox_snap:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
     state: absent
     snapname: pre-updates
 
 - name: Rollback container snapshot
   community.proxmox.proxmox_snap:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
     state: rollback
     snapname: pre-updates

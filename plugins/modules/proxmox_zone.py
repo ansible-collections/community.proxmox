@@ -159,18 +159,12 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create a simple zone
   community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     type: simple
     zone: ansible
     state: present
 
 - name: Create a vlan zone
   community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     type: vlan
     zone: ansible
     state: present
@@ -178,9 +172,6 @@ EXAMPLES = r"""
 
 - name: Create a VXLAN zone with fabric
   community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     type: vxlan
     zone: myvxlan
     fabric: my_fabric
@@ -188,9 +179,6 @@ EXAMPLES = r"""
 
 - name: Create a VXLAN zone with peers
   community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     type: vxlan
     zone: myvxlan
     peers: "192.168.0.1,192.168.0.2,192.168.0.3"
@@ -198,9 +186,6 @@ EXAMPLES = r"""
 
 - name: Delete a zone
   community.proxmox.proxmox_zone:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     type: simple
     zone: ansible
     state: absent

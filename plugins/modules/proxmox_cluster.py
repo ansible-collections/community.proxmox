@@ -65,9 +65,6 @@ EXAMPLES = r"""
 - name: Create a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     link0: 10.10.1.1
     link1: 10.10.2.1
     cluster_name: "devcluster"
@@ -75,18 +72,12 @@ EXAMPLES = r"""
 - name: Join a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     master_ip: "{{ primary_node }}"
     fingerprint: "{{ cluster_fingerprint }}"
 
 - name: Join a Proxmox VE Cluster with different API password
   community.proxmox.proxmox_cluster:
     state: present
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: "{{ joining_node_api_password }}"
     master_api_password: "{{ master_node_api_password }}"
     master_ip: "{{ primary_node }}"
     fingerprint: "{{ cluster_fingerprint }}"

@@ -34,15 +34,9 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Get all zones
   community.proxmox.proxmox_zone_info:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
 
 - name: Get all simple zones
   community.proxmox.proxmox_zone_info:
-    api_user: "root@pam"
-    api_password: "{{ vault.proxmox.root_password }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     type: simple
   register: zones
 """

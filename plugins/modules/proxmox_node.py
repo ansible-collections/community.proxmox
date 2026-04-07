@@ -122,17 +122,11 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Start a Proxmox VE Node
   community.proxmox.node:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     node_name: de-cgn01-virt01
     power_state: online
 
 - name: Update SSL certificates on a Proxmox VE Node (from files)
   community.proxmox.node:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     node_name: de-cgn01-virt01
     certificates:
         private_key_file_path: /opt/ansible/key.pem
@@ -142,9 +136,6 @@ EXAMPLES = r"""
 
 - name: Update SSL certificates on a Proxmox VE Node (raw PEM)
   community.proxmox.node:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     node_name: de-cgn01-virt01
     certificates:
         certificate: "{{ pve_node_certificate_content }}"
@@ -153,9 +144,6 @@ EXAMPLES = r"""
 
 - name: Place a subscription license on a Proxmox VE Node
   community.proxmox.node:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: password123
     node_name: de-cgn01-virt01
     subscription:
         state: present

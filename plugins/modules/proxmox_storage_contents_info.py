@@ -44,11 +44,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List existing storages
   community.proxmox.proxmox_storage_contents_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     storage: lvm2
     content: backup
     vmid: 130

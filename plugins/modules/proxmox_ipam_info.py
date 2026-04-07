@@ -32,25 +32,13 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Get all IPs under all IPAM
   community.proxmox.proxmox_ipam_info:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
 
 - name: Get all IPs under pve IPAM
   community.proxmox.proxmox_ipam_info:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     ipam: pve
 
 - name: Get IP under IPAM of vmid 102
   community.proxmox.proxmox_ipam_info:
-    api_user: "{{ pc.proxmox.api_user }}"
-    api_token_id: "{{ pc.proxmox.api_token_id }}"
-    api_token_secret: "{{ vault.proxmox.api_token_secret }}"
-    api_host: "{{ pc.proxmox.api_host }}"
     vmid: 102
 """
 

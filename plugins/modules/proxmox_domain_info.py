@@ -28,20 +28,10 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List existing domains
   community.proxmox.proxmox_domain_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
   register: proxmox_domains
 
 - name: Retrieve information about the pve domain
   community.proxmox.proxmox_domain_info:
-    api_host: helldorado
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
     domain: pve
   register: proxmox_domain_pve
 """

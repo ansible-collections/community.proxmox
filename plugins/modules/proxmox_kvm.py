@@ -595,34 +595,22 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new VM with minimal options
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
 
 - name: Create a VM from archive (backup)
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     archive: backup-storage:backup/vm/140/2023-03-08T06:41:23Z
     name: spynal
 
 - name: Create new VM with minimal options and given vmid
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     vmid: 100
 
 - name: Create new VM with two network interface options
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     net:
@@ -631,9 +619,6 @@ EXAMPLES = r"""
 
 - name: Create new VM with one network interface, three virto hard disk, 4 cores, and 2 vcpus
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     net:
@@ -647,9 +632,6 @@ EXAMPLES = r"""
 
 - name: Create VM with 1 10GiB SATA disk and an EFI disk, with Secure Boot disabled by default
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     sata:
@@ -663,9 +645,6 @@ EXAMPLES = r"""
 
 - name: Create VM with 1 10GiB SATA disk and an EFI disk, with Secure Boot enabled by default
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     sata:
@@ -682,9 +661,6 @@ EXAMPLES = r"""
     The VM source is spynal.
     The target VM name is zavala
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     clone: spynal
     name: zavala
     node: sabrewulf
@@ -697,9 +673,6 @@ EXAMPLES = r"""
     The VM source is spynal.
     The target VM name is zavala
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     clone: spynal
     name: zavala
     node: sabrewulf
@@ -710,9 +683,6 @@ EXAMPLES = r"""
 
 - name: Clone VM with source vmid and target newid and raw format
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     clone: arbitrary_name
     vmid: 108
     newid: 152
@@ -724,18 +694,12 @@ EXAMPLES = r"""
 
 - name: Create new VM and lock it for snapshot
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     lock: snapshot
 
 - name: Create new VM and set protection to disable the remove VM and remove disk operations
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     protection: true
@@ -743,9 +707,6 @@ EXAMPLES = r"""
 - name: Create new VM using cloud-init with a username and password
   community.proxmox.proxmox_kvm:
     node: sabrewulf
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     ide:
       ide2: 'local:cloudinit,format=qcow2'
@@ -761,9 +722,6 @@ EXAMPLES = r"""
 - name: Create new VM using Cloud-Init with an ssh key
   community.proxmox.proxmox_kvm:
     node: sabrewulf
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     ide:
       ide2: 'local:cloudinit,format=qcow2'
@@ -781,27 +739,18 @@ EXAMPLES = r"""
 
 - name: Start VM
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: started
 
 - name: Stop VM
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: stopped
 
 - name: Stop VM with force
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: stopped
@@ -809,27 +758,18 @@ EXAMPLES = r"""
 
 - name: Restart VM
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: restarted
 
 - name: Convert VM to template
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: template
 
 - name: Convert VM to template (stop VM if running)
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: template
@@ -837,27 +777,18 @@ EXAMPLES = r"""
 
 - name: Remove VM
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: absent
 
 - name: Get VM current state
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     state: current
 
 - name: Update VM configuration
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     cores: 8
@@ -866,9 +797,6 @@ EXAMPLES = r"""
 
 - name: Update VM configuration (incl. unsafe options)
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     cores: 8
@@ -880,36 +808,24 @@ EXAMPLES = r"""
 
 - name: Delete QEMU parameters
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     delete: 'args,template,cpulimit'
 
 - name: Revert a pending change
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf
     revert: 'template,cpulimit'
 
 - name: Migrate VM on second node
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     name: spynal
     node: sabrewulf-2
     migrate: true
 
 - name: Add hookscript to existing VM
   community.proxmox.proxmox_kvm:
-    api_user: root@pam
-    api_password: secret
-    api_host: helldorado
     vmid: 999
     node: sabrewulf
     hookscript: local:snippets/hookscript.pl

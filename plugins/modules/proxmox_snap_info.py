@@ -44,16 +44,10 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List all snapshots for container or VM
   community.proxmox.proxmox_snap_info:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
 
 - name: List specific snapshot for container or VM
   community.proxmox.proxmox_snap_info:
-    api_user: root@pam
-    api_password: 1q2w3e
-    api_host: node1
     vmid: 100
     snapname: my-snapshot
 """

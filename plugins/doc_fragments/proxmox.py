@@ -62,6 +62,9 @@ options:
     type: bool
     default: true
 requirements: ["proxmoxer >= 2.3", "requests"]
+seealso:
+  - description: Complete guide for the Proxmox API authentication
+    ref: ansible_collections.community.proxmox.docsite.authentication
 """
 
     SELECTION = r"""

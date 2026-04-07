@@ -249,9 +249,6 @@ EXAMPLES = r"""
 # Configure a network interface
 - name: Configure network interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: eth0
@@ -267,9 +264,6 @@ EXAMPLES = r"""
 # Create a simple bridge interface
 - name: Create bridge interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vmbr0
@@ -281,9 +275,6 @@ EXAMPLES = r"""
 # Create a bond interface
 - name: Create bond interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: bond0
@@ -297,9 +288,6 @@ EXAMPLES = r"""
 # Create a VLAN interface
 - name: Create VLAN interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: eth0.100
@@ -309,9 +297,6 @@ EXAMPLES = r"""
 # Create a VLAN interface with vlanXY format
 - name: Create VLAN interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vlan100
@@ -322,9 +307,6 @@ EXAMPLES = r"""
 # Create a complex bridge with VLAN awareness
 - name: Create VLAN-aware bridge
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vmbr1
@@ -340,9 +322,6 @@ EXAMPLES = r"""
 # Create an OVS bridge
 - name: Create OVS bridge
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: ovsbr0
@@ -355,9 +334,6 @@ EXAMPLES = r"""
 # Create an OVS bond
 - name: Create OVS bond
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: bond1  # Must follow bondX format where X is 0-9999
@@ -371,9 +347,6 @@ EXAMPLES = r"""
 # Create an OVS internal port
 - name: Create OVS internal port
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: ovsint0
@@ -387,9 +360,6 @@ EXAMPLES = r"""
 # Create interface with IPv6
 - name: Create dual-stack interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vmbr2
@@ -404,9 +374,6 @@ EXAMPLES = r"""
 # Remove an interface
 - name: Remove interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: absent
     iface: vmbr0
@@ -414,18 +381,12 @@ EXAMPLES = r"""
 # Apply network configuration
 - name: Apply network
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: apply
 
 # Complete workflow example
 - name: Create interface and apply changes
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vmbr1
@@ -435,28 +396,18 @@ EXAMPLES = r"""
 
 - name: Apply staged network changes
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: apply
 
 # Revert network configuration changes
 - name: Revert network changes
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: revert
 
 # Using API token authentication
 - name: Create interface with API token
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_token_id: my-token
-    api_token_secret: my-token-secret
     node: pve01
     state: present
     iface: vmbr3
@@ -467,9 +418,6 @@ EXAMPLES = r"""
 # Delete specific parameters from an interface
 - name: Remove IP configuration from bridge
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vmbr0
@@ -484,9 +432,6 @@ EXAMPLES = r"""
 # Remove bridge ports and VLAN configuration
 - name: Remove bridge ports and VLAN settings
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: vmbr1
@@ -498,9 +443,6 @@ EXAMPLES = r"""
 # Remove OVS-specific parameters
 - name: Remove OVS options and ports
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: ovsbr0
@@ -512,9 +454,6 @@ EXAMPLES = r"""
 # Configure existing physical Ethernet interface
 - name: Configure physical Ethernet interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: eth0
@@ -529,9 +468,6 @@ EXAMPLES = r"""
 # Create bond interface with proper naming format
 - name: Create bond interface
   community.proxmox.proxmox_node_network:
-    api_host: proxmox.example.com:8006
-    api_user: root@pam
-    api_password: secret
     node: pve01
     state: present
     iface: bond0  # Must follow bondX format where X is 0-9999

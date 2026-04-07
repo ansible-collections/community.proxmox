@@ -112,9 +112,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Create new Proxmox VE user
   community.proxmox.proxmox_user:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     name: user@pve
     comment: Expires on 2026-01-01 00:00:00
     email: user@example.nl
@@ -133,9 +130,6 @@ EXAMPLES = r"""
 
 - name: Delete a Proxmox VE user
   community.proxmox.proxmox_user:
-    api_host: node1
-    api_user: root@pam
-    api_password: password
     name: user@pve
     state: absent
 """

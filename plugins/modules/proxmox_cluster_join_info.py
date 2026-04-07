@@ -22,11 +22,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List existing Proxmox VE cluster join information
   community.proxmox.proxmox_cluster_join_info:
-    api_host: proxmox1
-    api_user: root@pam
-    api_password: "{{ password | default(omit) }}"
-    api_token_id: "{{ token_id | default(omit) }}"
-    api_token_secret: "{{ token_secret | default(omit) }}"
   register: proxmox_cluster_join
 """
 

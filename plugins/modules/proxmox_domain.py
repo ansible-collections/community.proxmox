@@ -232,9 +232,6 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Add LDAP domain
   community.proxmox.proxmox_domain:
-    api_host: 192.168.1.21
-    api_user: "root@pam"
-    api_password: secret
     realm: "example.test"
     state: present
     type: "ldap"
@@ -256,9 +253,6 @@ EXAMPLES = r"""
 
 - name: Add AD domain
   community.proxmox.proxmox_domain:
-    api_host: 192.168.1.21
-    api_user: "root@pam"
-    api_password: secret
     ad_domain: "ADDOMAIN"
     realm: "ad"
     state: present
@@ -274,9 +268,6 @@ EXAMPLES = r"""
 
 - name: Add OpenID domain
   community.proxmox.proxmox_domain:
-    api_host: 192.168.1.21
-    api_user: "root@pam"
-    api_password: secret
     realm: "openid"
     state: present
     type: "openid"
@@ -286,9 +277,6 @@ EXAMPLES = r"""
 
 - name: Remove domain
   community.proxmox.proxmox_domain:
-    api_host: 192.168.1.21
-    api_user: "root@pam"
-    api_password: secret
     realm: "ipa.example.test"
     state: absent
 """

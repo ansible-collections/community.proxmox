@@ -72,10 +72,6 @@ author:
 EXAMPLES = r"""
 - name: Create HA group
   community.proxmox.proxmox_cluster_ha_groups:
-    api_host: "{{ ansible_host }}"
-    api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
-    api_user: root@pam
-
     state: "present"
     name: ha0
     comment: yes
@@ -85,10 +81,6 @@ EXAMPLES = r"""
 
 - name: Delete HA group
   community.proxmox.proxmox_cluster_ha_groups:
-    api_host: "{{ ansible_host }}"
-    api_password: "{{ proxmox_root_pw | default(lookup('ansible.builtin.env', 'PROXMOX_PASSWORD', default='')) }}"
-    api_user: root@pam
-
     state: "absent"
     name: ha0
 """

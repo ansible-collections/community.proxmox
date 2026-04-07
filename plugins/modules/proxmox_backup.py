@@ -142,17 +142,11 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: Backup all vms in the Proxmox cluster to storage mypbs
   community.proxmox.proxmox_backup:
-    api_user: root@pam
-    api_password: secret
-    api_host: node1
     storage: mypbs
     mode: all
 
 - name: Backup VMID 100 by stopping it and set an individual retention
   community.proxmox.proxmox_backup:
-    api_user: root@pam
-    api_password: secret
-    api_host: node1
     backup-mode: stop
     mode: include
     retention: keep-daily=5, keep-last=14, keep-monthly=4, keep-weekly=4, keep-yearly=0
@@ -161,9 +155,6 @@ EXAMPLES = r"""
 
 - name: Backup all vms on node node2 to storage mypbs and wait for the task to finish
   community.proxmox.proxmox_backup:
-    api_user: test@pve
-    api_password: 1q2w3e
-    api_host: node2
     storage: mypbs
     mode: all
     node: node2
@@ -172,9 +163,6 @@ EXAMPLES = r"""
 
 - name: Use all the options
   community.proxmox.proxmox_backup:
-    api_user: root@pam
-    api_password: secret
-    api_host: node1
     bandwidth: 1000
     backup_mode: suspend
     compress: zstd

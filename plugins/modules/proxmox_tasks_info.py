@@ -39,32 +39,17 @@ extends_documentation_fragment:
 EXAMPLES = r"""
 - name: List finished tasks on node01
   community.proxmox.proxmox_tasks_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: '{{ password | default(omit) }}'
-    api_token_id: '{{ token_id | default(omit) }}'
-    api_token_secret: '{{ token_secret | default(omit) }}'
     node: node01
   register: result
 
 - name: List active tasks on node02
   community.proxmox.proxmox_tasks_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: '{{ password | default(omit) }}'
-    api_token_id: '{{ token_id | default(omit) }}'
-    api_token_secret: '{{ token_secret | default(omit) }}'
     node: node02
     source: active
   register: result
 
 - name: Retrieve information about specific tasks on node01
   community.proxmox.proxmox_tasks_info:
-    api_host: proxmoxhost
-    api_user: root@pam
-    api_password: '{{ password | default(omit) }}'
-    api_token_id: '{{ token_id | default(omit) }}'
-    api_token_secret: '{{ token_secret | default(omit) }}'
     task: 'UPID:node01:00003263:16167ACE:621EE230:srvreload:networking:root@pam:'
     node: node01
   register: proxmox_tasks
