@@ -155,6 +155,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
     create_proxmox_module,
+    is_not_found_error,
 )
 
 
@@ -202,7 +203,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             user_data = self.proxmox_api.access.users(userid).get()
             return user_data
         except Exception as e:
-            if "does not exist" in str(e).lower() or "not found" in str(e).lower() or "no such user" in str(e).lower():
+            if is_not_found_error(e):
                 return False
             else:
                 self.module.fail_json(msg=f"Unable to retrieve user {userid}: {e}")

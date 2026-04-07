@@ -86,6 +86,7 @@ msg:
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    is_not_found_error,
 )
 
 
@@ -123,8 +124,7 @@ class ProxmoxRoleAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.access.roles.get(roleid)
         except Exception as e:
-            error_str = str(e).lower()
-            if "does not exist" in error_str:
+            if is_not_found_error(e):
                 return None
             self.module.fail_json(msg=f"Failed to retrieve role {roleid}: {e}")
 
