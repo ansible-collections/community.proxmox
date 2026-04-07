@@ -132,6 +132,10 @@ options:
         description:
           - Enable support for creating snapshots through volume backing-chains.
         type: bool
+      preallocation:
+        description:
+          - The preallocation mode for raw and qcow2 images.
+        type: str
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -347,6 +351,7 @@ STORAGE_BACKENDS = {
         "subdir": ("subdir", False),
         "smb_version": ("smbversion", False),
         "snapshot_as_volume_chain": ("snapshot-as-volume-chain", False),
+        "preallocation": ("preallocation", False),
     },
     "dir": {"path": ("path", True)},
     "iscsi": {"portal": ("portal", True), "target": ("target", True)},
@@ -411,6 +416,7 @@ def module_args():
                 "subdir": dict(type="str", aliases=["subdirectory"]),
                 "smb_version": dict(type="str"),
                 "snapshot_as_volume_chain": dict(type="bool"),
+                "preallocation": dict(type="str"),
             },
         ),
         dir_options=dict(
