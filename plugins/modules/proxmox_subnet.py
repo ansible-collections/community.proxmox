@@ -239,7 +239,7 @@ class ProxmoxSubnetAnsible(ProxmoxSdnAnsible):
         except Exception as e:
             self.module.fail_json(f"Failed to retrieve subnets {e}")
 
-    def update_subnet(self, **subnet_params):  # noqa: PLR0912
+    def update_subnet(self, **subnet_params):  # noqa: PLR0912, PLR0915
         new_subnet = copy.deepcopy(subnet_params)
         subnet_id = f"{self.params['zone']}-{new_subnet['subnet'].replace('/', '-')}"
         vnet_name = new_subnet["vnet"]

@@ -1082,7 +1082,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             time.sleep(1)
         return False
 
-    def create_vm(self, vmid, newid, node, name, memory, cpu, cores, sockets, update, update_unsafe, **kwargs):  # noqa: PLR0912, PLR0913
+    def create_vm(self, vmid, newid, node, name, memory, cpu, cores, sockets, update, update_unsafe, **kwargs):  # noqa: PLR0912, PLR0913, PLR0915
         # Available only in PVE 4
         only_v4 = ["force", "protection", "skiplock"]
         only_v6 = ["ciuser", "cipassword", "sshkeys", "ipconfig", "tags"]
@@ -1327,7 +1327,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         return True
 
 
-def main():  # noqa: PLR0912
+def main():  # noqa: PLR0912, PLR0915
     module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxKvmAnsible(module)
 
