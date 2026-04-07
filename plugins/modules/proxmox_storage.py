@@ -176,6 +176,10 @@ options:
         description:
           - The options to pass to the NFS service. (e.g., version, pNFS).
         type: str
+      preallocation:
+        description:
+          - The preallocation mode for raw and qcow2 images.
+        type: str
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -350,6 +354,7 @@ STORAGE_BACKENDS = {
         "server": ("server", True),
         "export": ("export", True),
         "options": ("options", False),
+        "preallocation": ("preallocation", False),
     },
     "pbs": {
         "server": ("server", True),
@@ -422,6 +427,7 @@ def module_args():
                 "server": dict(type="str", required=True),
                 "export": dict(type="str", required=True),
                 "options": dict(type="str"),
+                "preallocation": dict(type="str"),
             },
         ),
         pbs_options=dict(
