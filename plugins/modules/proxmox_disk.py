@@ -828,7 +828,7 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
             return True, f"Disk {disk} resized in VM {vmid}"
 
 
-def main():  # noqa: PLR0912
+def main():  # noqa: PLR0912, PLR0915
     module = create_proxmox_module(module_args(), **module_options())
     proxmox = ProxmoxDiskAnsible(module)
 
