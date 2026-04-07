@@ -60,7 +60,7 @@ class ProxmoxClusterAcmeAccountsInfoAnsible(ProxmoxAnsible):
     def run(self):
         self.module.exit_json(
             changed=False,
-            accounts=self.list_account_names(),
+            accounts=self._list_account_names(),
         )
 
     def _list_account_names(self):
