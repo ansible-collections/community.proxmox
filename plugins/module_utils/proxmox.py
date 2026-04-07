@@ -158,6 +158,12 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
     return items_to_create, items_to_update
 
 
+def is_not_found_error(exception: Exception) -> bool:
+    """Check if the exception is a not found error."""
+    error_str = str(exception).lower()
+    return "does not exist" in error_str or "not found" in error_str or "no such" in error_str
+
+
 class ProxmoxAnsible:
     """Base class for Proxmox modules."""
 

@@ -71,6 +71,7 @@ msg:
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    is_not_found_error,
 )
 
 
@@ -97,8 +98,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
             self.proxmox_api.pools.get(poolid=poolid)
             return True
         except Exception as e:
-            error_str = str(e).lower()
-            if "does not exist" in error_str:
+            if is_not_found_error(e):
                 return False
             self.module.fail_json(msg=f"Unable to retrieve pool {poolid}: {e}")
 
