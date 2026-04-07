@@ -669,18 +669,10 @@ class Connection(ConnectionBase):
             )
         return " ".join(cmd)
 
-    def exec_command(self, cmd: str, in_data: bytes | None = None, sudoable: bool = True) -> tuple[int, bytes, bytes]:
-        """run a command on inside the LXC container"""
-
-        cmd = self._build_pct_command(cmd)
-
-        super().exec_command(cmd, in_data=in_data, sudoable=sudoable)
-
-        bufsize = 4096
-
+    def _open_exec_channel(self) -> t.Any:
         try:
             self.ssh.get_transport().set_keepalive(5)
-            chan = self.ssh.get_transport().open_session()
+            return self.ssh.get_transport().open_session()
         except Exception as e:
             text_e = to_text(e)
             msg = "Failed to open session"
@@ -688,6 +680,7 @@ class Connection(ConnectionBase):
                 msg += f": {text_e}"
             raise AnsibleConnectionFailure(to_native(msg)) from e
 
+    def _configure_exec_channel(self, chan: t.Any, cmd: str, sudoable: bool) -> None:
         # sudo usually requires a PTY (cf. requiretty option), therefore
         # we give it one by default (pty=True in ansible.cfg), and we try
         # to initialise from the calling environment when sudoable is enabled
@@ -703,50 +696,60 @@ class Connection(ConnectionBase):
         if self.get_option("forward_agent"):
             paramiko.agent.AgentRequestHandler(chan)
 
-        cmd = to_bytes(cmd, errors="surrogate_or_strict")
+    def _resolve_become_prompt(self, chan: t.Any, bufsize: int, become_buf: list[bytes]) -> tuple[bytes, bytes]:
+        password_prompt = False
+        become_success = False
+        while not (become_success or password_prompt):
+            display.debug("Waiting for Privilege Escalation input")
+
+            chunk = chan.recv(bufsize)
+            display.debug(f"chunk is: {to_text(chunk)}")
+            if not chunk:
+                if b"unknown user" in become_buf[0]:
+                    n_become_user = to_native(self.become.get_option("become_user"))
+                    raise AnsibleError(f"user {n_become_user} does not exist")
+                else:
+                    break
+                    # raise AnsibleError('ssh connection closed waiting for password prompt')
+            become_buf[0] += chunk
+
+            # need to check every line because we might get lectured
+            # and we might get the middle of a line in a chunk
+            for line in become_buf[0].splitlines(True):
+                if self.become.check_success(line):
+                    become_success = True
+                    break
+                elif self.become.check_password_prompt(line):
+                    password_prompt = True
+                    break
 
         no_prompt_out = b""
         no_prompt_err = b""
-        become_output = b""
+        if password_prompt:
+            if self.become:
+                become_pass = self.become.get_option("become_pass")
+                chan.sendall(to_bytes(become_pass, errors="surrogate_or_strict") + b"\n")
+            else:
+                raise AnsibleError("A password is required but none was supplied")
+        else:
+            no_prompt_out += become_buf[0]
+            no_prompt_err += become_buf[0]
+
+        return no_prompt_out, no_prompt_err
+
+    def _exec_channel_cmd_and_stdin(
+        self, chan: t.Any, cmd: bytes, in_data: bytes | None, bufsize: int
+    ) -> tuple[bytes, bytes]:
+        no_prompt_out = b""
+        no_prompt_err = b""
+        become_buf = [b""]
 
         try:
             chan.exec_command(cmd)
             if self.become and self.become.expect_prompt():
-                password_prompt = False
-                become_success = False
-                while not (become_success or password_prompt):
-                    display.debug("Waiting for Privilege Escalation input")
-
-                    chunk = chan.recv(bufsize)
-                    display.debug(f"chunk is: {to_text(chunk)}")
-                    if not chunk:
-                        if b"unknown user" in become_output:
-                            n_become_user = to_native(self.become.get_option("become_user"))
-                            raise AnsibleError(f"user {n_become_user} does not exist")
-                        else:
-                            break
-                            # raise AnsibleError('ssh connection closed waiting for password prompt')
-                    become_output += chunk
-
-                    # need to check every line because we might get lectured
-                    # and we might get the middle of a line in a chunk
-                    for line in become_output.splitlines(True):
-                        if self.become.check_success(line):
-                            become_success = True
-                            break
-                        elif self.become.check_password_prompt(line):
-                            password_prompt = True
-                            break
-
-                if password_prompt:
-                    if self.become:
-                        become_pass = self.become.get_option("become_pass")
-                        chan.sendall(to_bytes(become_pass, errors="surrogate_or_strict") + b"\n")
-                    else:
-                        raise AnsibleError("A password is required but none was supplied")
-                else:
-                    no_prompt_out += become_output
-                    no_prompt_err += become_output
+                np, ne = self._resolve_become_prompt(chan, bufsize, become_buf)
+                no_prompt_out += np
+                no_prompt_err += ne
 
             if in_data:
                 for i in range(0, len(in_data), bufsize):
@@ -756,7 +759,24 @@ class Connection(ConnectionBase):
                 chan.shutdown_write()
 
         except socket.timeout as e:
-            raise AnsibleError("ssh timed out waiting for privilege escalation.\n" + to_text(become_output)) from e
+            raise AnsibleError("ssh timed out waiting for privilege escalation.\n" + to_text(become_buf[0])) from e
+
+        return no_prompt_out, no_prompt_err
+
+    def exec_command(self, cmd: str, in_data: bytes | None = None, sudoable: bool = True) -> tuple[int, bytes, bytes]:
+        """run a command on inside the LXC container"""
+
+        cmd = self._build_pct_command(cmd)
+
+        super().exec_command(cmd, in_data=in_data, sudoable=sudoable)
+
+        bufsize = 4096
+
+        chan = self._open_exec_channel()
+        self._configure_exec_channel(chan, cmd, sudoable)
+
+        cmd_bytes = to_bytes(cmd, errors="surrogate_or_strict")
+        no_prompt_out, no_prompt_err = self._exec_channel_cmd_and_stdin(chan, cmd_bytes, in_data, bufsize)
 
         stdout = b"".join(chan.makefile("rb", bufsize))
         stderr = b"".join(chan.makefile_stderr("rb", bufsize))
