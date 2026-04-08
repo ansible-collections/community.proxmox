@@ -8,7 +8,7 @@
 DOCUMENTATION = r"""
 module: proxmox_acme_account_info
 short_description: Retrieve one ACME account
-version_added: "2.1.0"
+version_added: "2.0.0"
 author: Clément Cruau (@PendaGTP)
 description:
   - Retrieve information about an ACME account configuration.
