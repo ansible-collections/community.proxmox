@@ -13,6 +13,8 @@ action_groups:
     - proxmox_acme_account_info
     - proxmox_acme_accounts_info
     - proxmox_acme_plugin_dns
+    - proxmox_acme_plugin_info
+    - proxmox_acme_plugins_info
     - proxmox_backup
     - proxmox_backup_info
     - proxmox_backup_schedule

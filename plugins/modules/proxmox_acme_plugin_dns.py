@@ -118,35 +118,21 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     ansible_to_proxmox_bool,
     create_proxmox_module,
-    proxmox_to_ansible_bool,
+)
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_plugin import (
+    acme_plugin_normalize_data_dict,
+    acme_plugin_to_ansible_result,
 )
 
 MIN_VALIDATION_DELAY = 0
 MAX_VALIDATION_DELAY = 172800
 
 
-def _normalize_data_dict(data):
-    if not data:
-        return {}
-    return {to_native(k): to_native(v) for k, v in data.items()}
-
-
 def _data_to_api(data):
     """Encode plugin data dict to the base64 string expected by the API."""
-    norm = _normalize_data_dict(data)
+    norm = acme_plugin_normalize_data_dict(data)
     out = "\n".join(f"{k}={norm[k]}" for k in sorted(norm))
     return base64.b64encode(out.encode("utf-8")).decode("ascii")
-
-
-def _data_from_api(raw):
-    data = {}
-    for raw_line in raw.splitlines():
-        line = raw_line.strip()
-        if not line or "=" not in line:
-            continue
-        key, val = line.split("=", 1)
-        data[key.strip()] = val.strip()
-    return data
 
 
 def module_args():
@@ -229,8 +215,8 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             msg=f"ACME DNS plugin {name} successfully deleted",
         )
 
-    def _reconcile_existing(self, name, raw_existing):
-        current = self._format_plugin(name, raw_existing)
+    def _reconcile_existing(self, name, existing):
+        current = acme_plugin_to_ansible_result(existing)
         desired = self._build_desired(name)
 
         if not self._is_update_required(current, desired):
@@ -272,7 +258,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
                 name=name,
             )
 
-        result = self._format_plugin(name, created)
+        result = acme_plugin_to_ansible_result(created)
         return {
             "changed": True,
             "msg": f"ACME DNS plugin {name} successfully created",
@@ -294,7 +280,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
                 name=name,
             )
 
-        result = self._format_plugin(name, updated)
+        result = acme_plugin_to_ansible_result(updated)
         return {
             "changed": True,
             "msg": f"ACME DNS plugin {name} successfully updated",
@@ -328,7 +314,7 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             "plugin": p["plugin"],
             "disable": p["disable"],
             "validation_delay": p["validation_delay"],
-            "data": None if raw_data is None else _normalize_data_dict(raw_data),
+            "data": None if raw_data is None else acme_plugin_normalize_data_dict(raw_data),
         }
 
     def _build_params(self):
@@ -344,20 +330,6 @@ class ProxmoxClusterAcmePluginDnsAnsible(ProxmoxAnsible):
             payload["data"] = _data_to_api(p["data"])
 
         return payload
-
-    def _format_plugin(self, name, raw):
-        data_raw = raw.get("data", "")
-        data = _normalize_data_dict(_data_from_api(data_raw))
-
-        return {
-            "type": "dns",
-            "name": name,
-            "plugin": raw["api"],
-            "disable": proxmox_to_ansible_bool(raw.get("disable", False)),
-            "validation_delay": int(raw.get("validation-delay", 30)),
-            "data": data,
-            "digest": raw.get("digest", ""),
-        }
 
 
 def main():
