@@ -17,12 +17,16 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_plugin import (
+    acme_plugin_data_from_api,
+)
 from ansible_collections.community.proxmox.plugins.modules import proxmox_acme_plugin_dns
 
 PLUGIN_NAME = "cloudflare"
 
 SAMPLE_PLUGIN = {
     "api": "cf",
+    "plugin": "cloudflare",
     "data": "CF_Account_ID=example\nCF_Token=example",
     "disable": 0,
     "validation-delay": 30,
@@ -58,7 +62,7 @@ class TestProxmoxClusterAcmePluginDnsHelpers:
         data = {"CF_Token": "example", "CF_Account_ID": "example"}
         b64 = proxmox_acme_plugin_dns._data_to_api(data)
         raw = base64.b64decode(b64).decode("utf-8")
-        assert proxmox_acme_plugin_dns._data_from_api(raw) == {
+        assert acme_plugin_data_from_api(raw) == {
             "CF_Account_ID": "example",
             "CF_Token": "example",
         }
