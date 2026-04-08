@@ -3,7 +3,7 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Helpers for Proxmox cluster ACME plugin."""
+"""Helpers for Proxmox ACME plugin."""
 
 from ansible.module_utils.common.text.converters import to_native
 
