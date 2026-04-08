@@ -8,7 +8,7 @@
 DOCUMENTATION = r"""
 module: proxmox_acme_accounts_info
 short_description: List ACME account names
-version_added: "2.1.0"
+version_added: "2.0.0"
 author: Clément Cruau (@PendaGTP)
 description:
   - Return the names of all ACME accounts (filenames).
