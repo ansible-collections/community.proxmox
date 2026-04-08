@@ -79,6 +79,7 @@ from ansible.module_utils.common.text.converters import to_native
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    is_not_found_error,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_account import (
     acme_account_to_ansible_result,
@@ -117,8 +118,7 @@ class ProxmoxClusterAcmeAccountInfoAnsible(ProxmoxAnsible):
         try:
             return self.proxmox_api.cluster().acme().account()(name).get()
         except Exception as e:
-            err = str(e).lower()
-            if "does not exist" in err or "not found" in err or "404" in err:
+            if is_not_found_error(e):
                 return None
             self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
 

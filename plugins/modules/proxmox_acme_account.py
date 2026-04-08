@@ -140,6 +140,7 @@ from ansible.module_utils.common.text.converters import to_native
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    is_not_found_error,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_account import (
     acme_account_to_ansible_result,
@@ -359,7 +360,7 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         try:
             return self._account_endpoint(name).get()
         except Exception as e:
-            if self._is_not_found_error(e):
+            if is_not_found_error(e):
                 return None
             self.module.fail_json(msg=f"Failed to read ACME account {name}: {to_native(e)}")
 
@@ -383,10 +384,6 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
             return parts[1]
 
         self.module.fail_json(msg=f"Unexpected task id from Proxmox API: {upid}")
-
-    def _is_not_found_error(self, error):
-        err = str(error).lower()
-        return any(x in err for x in ("does not exist", "not found", "404"))
 
     def _build_create_params(self):
         p = self.params
