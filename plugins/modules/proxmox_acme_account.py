@@ -8,7 +8,7 @@
 DOCUMENTATION = r"""
 module: proxmox_acme_account
 short_description: ACME account management
-version_added: "2.1.0"
+version_added: "2.0.0"
 author: Clément Cruau (@PendaGTP)
 description:
   - Create, update or delete an ACME account on the Proxmox VE.
