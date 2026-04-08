@@ -208,6 +208,7 @@ options:
         description:
           - An existing encryption key for the datastore.
           - Use V(autogen) to generate one automatically without passphrase.
+          - Must be provided as a JSON-encoded string.
         type: str
   rbd_options:
     description:
