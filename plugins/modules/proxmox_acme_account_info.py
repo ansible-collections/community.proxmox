@@ -7,11 +7,11 @@
 
 DOCUMENTATION = r"""
 module: proxmox_acme_account_info
-short_description: Retrieve one ACME account
+short_description: Retrieves information about a specific ACME account.
 version_added: "2.0.0"
 author: Clément Cruau (@PendaGTP)
 description:
-  - Retrieve information about an ACME account configuration.
+  - Retrieves information about a specific ACME account.
   - To list all ACME account names, use M(community.proxmox.proxmox_acme_accounts_info).
   - Requires C(root@pam) authentication.
 options:

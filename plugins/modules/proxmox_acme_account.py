@@ -7,7 +7,7 @@
 
 DOCUMENTATION = r"""
 module: proxmox_acme_account
-short_description: ACME account management
+short_description: Manages an ACME account
 version_added: "2.0.0"
 author: Clément Cruau (@PendaGTP)
 description:
