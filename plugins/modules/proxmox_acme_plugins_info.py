@@ -95,7 +95,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_plu
 
 def module_args():
     return dict(
-        type=dict(type="str", aliases=["plugin_type"]),
+        type=dict(type="str", aliases=["plugin_type"], choices=["dns", "standalone"]),
     )
 
 
