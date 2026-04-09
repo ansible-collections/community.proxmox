@@ -1,0 +1,83 @@
+---
+# Copyright (c) 2026 Emmanuel Jamet <emmanueljamet@gmail.com>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: changelog fragments
+'on':
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  changelog:
+    name: "Check changelog fragments"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            changelogs
+
+      - name: Check fragments format
+        shell: python
+        env:
+          FRAGMENTS_PATH: "changelogs/fragments"
+        run : |
+          from os import getenv, listdir
+          from os.path import exists, isfile, join
+          from re import compile as recompile
+          from sys import exit as sysexit
+
+          from yaml import safe_load
+
+          FRAGMENTS_PATH = getenv("FRAGMENTS_PATH", "changelogs/fragments")
+
+          if not exists(FRAGMENTS_PATH):
+              print(f"{FRAGMENTS_PATH} does not exist")
+              sysexit(1)
+
+          for filename in listdir(FRAGMENTS_PATH):
+              if filename == ".keep":
+                  continue
+              if not filename.endswith(("yml", "yaml")):
+                  print(f"{filename}: extension is not valid for a yaml file")
+                  sysexit(1)
+              file_path = join(FRAGMENTS_PATH, filename)
+              if isfile(file_path):
+                  try:
+                      with open(file_path, "r") as f:
+                          fragment = safe_load(f)
+                      for typ, changes in fragment.items():
+                          if typ not in [
+                              "breaking_changes",
+                              "major_changes",
+                              "minor_changes",
+                              "deprecated_features",
+                              "removed_features",
+                              "security_fixes",
+                              "bugfixes",
+                              "known_issues",
+                              "trivial",
+                          ]:
+                              print(f"unrecognized change type: {typ}")
+                              sysexit(1)
+
+                          regex = recompile(r"\w+ - [a-z].*\.")
+                          for change in changes:
+                              if not regex.fullmatch(change):
+                                  print(
+                                      "change does not follow principles defined here: "
+                                      "https://github.com/ansible-collections/community.proxmox/blob/main/CONTRIBUTING.md#opening-pull-requests"
+                                  )
+                                  sysexit(1)
+                  except Exception as e:
+                      print(f"Exception raised while checking changelog fragment {filename}: {e}")
+                      sysexit(1)
+
+              
+
+
+
+
