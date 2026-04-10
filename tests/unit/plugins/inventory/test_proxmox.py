@@ -532,6 +532,11 @@ API_RESPONSES = {
         "mem": 0,
         "qmpstatus": "paused",
     },
+    "https://localhost:8006/api2/json/nodes/testnode/qemu/9001/status/current": {
+        "status": "stopped",
+        "qmpstatus": "stopped",
+    },
+    "https://localhost:8006/api2/json/nodes/testnode/qemu/9001/config": {},
 }
 
 
@@ -616,8 +621,11 @@ def test_populate(inventory, mocker):
     group_lxc = inventory.inventory.groups["proxmox_all_lxc"]
     assert group_lxc.hosts == [host_lxc]
 
-    # check if qemu template is not present
-    assert host_qemu_template is None
+    # check if qemu template is present and only in templates group
+    assert host_qemu_template is not None
+    assert host_qemu_template in inventory.inventory.groups["proxmox_all_templates"].hosts
+    assert host_qemu_template not in inventory.inventory.groups["proxmox_all_qemu"].hosts
+    assert host_qemu_template not in inventory.inventory.groups["proxmox_all_stopped"].hosts
 
     # check that offline node is in inventory
     assert inventory.inventory.get_host("testnode2")
