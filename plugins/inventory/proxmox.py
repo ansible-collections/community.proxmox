@@ -121,7 +121,7 @@ DOCUMENTATION = """
         - If strict mode is enabled, any error during host filter compositing will lead to an AnsibleError being raised, otherwise the host will be ignored.
         - Facts collected when O(want_facts) is set to V(true) can be used in the filters.
         - When O(want_facts) is set to V(false) full facts are not available and filters can only used on a limited set of facts
-          proxmox_vmid, proxmox_name, proxmox_status, proxmox_vmtype, proxmox_tags.
+          proxmox_vmid, proxmox_name, proxmox_status, proxmox_vmtype, proxmox_tags, proxmox_template.
         type: list
         elements: str
         default: []
@@ -560,17 +560,16 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         """Handle an item from the list of LXC containers and Qemu VM. The
         return value will be either None if the item was skipped or the name of
         the item if it was added to the inventory."""
-        if item.get("template"):
-            return None
-
         properties = dict()
         name, vmid, status = item["name"], item["vmid"], item["status"]
+        is_template = bool(item.get("template", 0))
 
         properties[self._fact("node")] = node
         properties[self._fact("vmid")] = vmid
         properties[self._fact("vmtype")] = ittype
         properties[self._fact("name")] = name
         properties[self._fact("status")] = status
+        properties[self._fact("template")] = is_template
 
         tags = item.get("tags")
         if tags:
@@ -592,6 +591,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         # add the host to the inventory
         self._add_host(name, properties)
+        if is_template:
+            self.inventory.add_child(self._group("all_templates"), name)
+            return name
+
         node_type_group = self._group(f"{node}_{ittype}")
         self.inventory.add_child(self._group(f"all_{ittype}"), name)
         self.inventory.add_child(node_type_group, name)
@@ -621,7 +624,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _populate(self):  # noqa: PLR0912
         # create common groups
-        default_groups = ["lxc", "qemu", "running", "stopped"]
+        default_groups = ["lxc", "qemu", "running", "stopped", "templates"]
 
         if self.get_option("qemu_extended_statuses"):
             default_groups.extend(["prelaunch", "paused"])
