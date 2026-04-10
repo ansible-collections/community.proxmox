@@ -24,7 +24,7 @@ jobs:
         shell: python
         env:
           FRAGMENTS_PATH: "changelogs/fragments"
-        run : |
+        run: |
           from os import getenv, listdir
           from os.path import exists, isfile, join
           from re import compile as recompile
