@@ -64,7 +64,7 @@ jobs:
                               print(f"unrecognized change type: {typ}")
                               sysexit(1)
 
-                          regex = recompile(r"\w+ - [a-z].*\.")
+                          regex = recompile(r".+ - [a-z].*\.")
                           for change in changes:
                               if not regex.fullmatch(change):
                                   print(
