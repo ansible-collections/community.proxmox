@@ -342,7 +342,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
             self.module.fail_json(changed=False, msg="Insufficient permissions: You dont have the VM.Backup permission")
 
     def check_if_storage_exists(self, storage, node):
-        storages = self.get_storages(type=None)
+        storages = self.get_storages(None)
         # Loop through all cluster storages and get all matching storages
         validated_storagepath = [storageentry for storageentry in storages if storageentry["storage"] == storage]
         if not validated_storagepath:
