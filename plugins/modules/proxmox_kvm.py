@@ -218,8 +218,9 @@ options:
     description:
       - A hash/dictionary of volume used as IDE hard disk or CD-ROM.
       - Keys must be C(ide[n]) where 0 ≤ n ≤ 3.
-      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - Values are strings containing comma-separated options in formats accepted by Proxmox VE.
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, V("<storage>:cloudinit,format=qcow2") for cloud-init,
+        V("<storage>:iso/debian.iso,media=cdrom") for an ISO-backed CD-ROM, or V("none,media=cdrom") for an empty CD-ROM.'
       - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=ide,-[n]%3A).
     type: dict
   ipconfig:
@@ -362,16 +363,18 @@ options:
     description:
       - A hash/dictionary of volume used as SATA hard disk or CD-ROM.
       - Keys must be C(sata[n]) where 0 ≤ n ≤ 5.
-      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - Values are strings containing comma-separated options in formats accepted by Proxmox VE.
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, V("<storage>:cloudinit,format=qcow2") for cloud-init,
+        V("<storage>:iso/debian.iso,media=cdrom") for an ISO-backed CD-ROM, or V("none,media=cdrom") for an empty CD-ROM.'
       - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=sata,-[n]%3A).
     type: dict
   scsi:
     description:
       - A hash/dictionary of volume used as SCSI hard disk or CD-ROM.
       - Keys must be C(scsi[n]) where 0 ≤ n ≤ 30.
-      - Values are strings containing comma-separated options in the format V(<storage>:<size>[,option=value]...)
-      - 'Examples: V("<storage>:10,format=qcow2") for a disk, or V("<storage>:iso/debian.iso,media=cdrom") for a CD-ROM.'
+      - Values are strings containing comma-separated options in formats accepted by Proxmox VE.
+      - 'Examples: V("<storage>:10,format=qcow2") for a disk, V("<storage>:cloudinit,format=qcow2") for cloud-init,
+        V("<storage>:iso/debian.iso,media=cdrom") for an ISO-backed CD-ROM, or V("none,media=cdrom") for an empty CD-ROM.'
       - Refer to the Proxmox VE documentation at U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options:#:~:text=scsi,-[n]%3A).
     type: dict
   scsihw:
@@ -580,6 +583,8 @@ options:
     default: false
 
 seealso:
+  - module: community.proxmox.proxmox_disk
+    description: Manage VM disks and disk options.
   - module: community.proxmox.proxmox_vm_info
   - name: Proxmox VE QEMU/KVM Virtual Machines documentation
     description: Proxmox VE QEMU/KVM Virtual Machines documentation.
