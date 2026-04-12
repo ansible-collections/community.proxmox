@@ -39,7 +39,7 @@ def build_module_args(state="enabled", **overrides):
     }
 
 
-PROXMOX_OPTIONS_DEFAULTS = {
+SAMPLE_API_NODE_FIREWALL_OPTIONS = {
     "enable": 1,
     "log_level_in": "nolog",
     "log_level_out": "nolog",
@@ -110,7 +110,7 @@ class TestProxmoxNodeFirewallModule(ModuleTestCase):
             assert expected_substring in result["msg"]
 
     def test_idempotent_when_options_match(self):
-        self.mock_api_fw_options.get.return_value = PROXMOX_OPTIONS_DEFAULTS
+        self.mock_api_fw_options.get.return_value = SAMPLE_API_NODE_FIREWALL_OPTIONS
 
         result = self._run_module(build_module_args(state="enabled"))
 
@@ -123,7 +123,7 @@ class TestProxmoxNodeFirewallModule(ModuleTestCase):
         assert not self.mock_api_fw_options.put.called
 
     def test_update_check_mode(self):
-        self.mock_api_fw_options.get.return_value = {**PROXMOX_OPTIONS_DEFAULTS, "enable": 0}
+        self.mock_api_fw_options.get.return_value = {**SAMPLE_API_NODE_FIREWALL_OPTIONS, "enable": 0}
 
         result = self._run_module(self._check_mode(state="enabled"))
 
@@ -134,8 +134,8 @@ class TestProxmoxNodeFirewallModule(ModuleTestCase):
 
     def test_update_success_sends_expected_payload(self):
         self.mock_api_fw_options.get.side_effect = [
-            {**PROXMOX_OPTIONS_DEFAULTS, "enable": 0, "nftables": 0},
-            {**PROXMOX_OPTIONS_DEFAULTS, "enable": 1, "nftables": 1},
+            {**SAMPLE_API_NODE_FIREWALL_OPTIONS, "enable": 0, "nftables": 0},
+            {**SAMPLE_API_NODE_FIREWALL_OPTIONS, "enable": 1, "nftables": 1},
         ]
 
         result = self._run_module(build_module_args(state="enabled", nftables=True))
@@ -152,8 +152,8 @@ class TestProxmoxNodeFirewallModule(ModuleTestCase):
 
     def test_disable_firewall_updates_enable_flag(self):
         self.mock_api_fw_options.get.side_effect = [
-            PROXMOX_OPTIONS_DEFAULTS,
-            {**PROXMOX_OPTIONS_DEFAULTS, "enable": 0},
+            SAMPLE_API_NODE_FIREWALL_OPTIONS,
+            {**SAMPLE_API_NODE_FIREWALL_OPTIONS, "enable": 0},
         ]
 
         result = self._run_module(build_module_args(state="disabled"))
