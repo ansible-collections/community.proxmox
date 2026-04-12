@@ -149,7 +149,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     create_proxmox_module,
 )
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox_node_firewall import (
-    get_node_firewall_options_result,
+    node_firewall_options_to_ansible_result,
 )
 
 
@@ -183,7 +183,7 @@ class ProxmoxNodeFirewallAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to retrieve node firewall options: {to_native(e)}")
 
     def _format_options(self, raw):
-        return get_node_firewall_options_result(self.params["node_name"], raw)
+        return node_firewall_options_to_ansible_result(self.params["node_name"], raw)
 
 
 def main():
