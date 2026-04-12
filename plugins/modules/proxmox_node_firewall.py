@@ -34,7 +34,7 @@ options:
     required: true
   log_level_in:
     description:
-      - Log level for incomming traffic.
+      - Log level for incoming traffic.
     type: str
     choices:
       - emerg
