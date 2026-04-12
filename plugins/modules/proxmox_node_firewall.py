@@ -290,7 +290,7 @@ protection_synflood_burst:
   type: int
   sample: 1000
 protection_synflood_rate:
-  description: Synflood protection rate syn/sec by ip src.
+  description: Synflood protection rate syn/sec by IP source address.
   returned: on success
   type: int
   sample: 200
