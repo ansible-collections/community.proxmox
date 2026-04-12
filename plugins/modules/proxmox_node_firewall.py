@@ -109,7 +109,7 @@ options:
     default: nolog
   tcp_flags_log_level:
     description:
-      - Log level for illegal tcp flags filter.
+      - Log level for illegal TCP flags filter.
     type: str
     choices:
       - emerg
