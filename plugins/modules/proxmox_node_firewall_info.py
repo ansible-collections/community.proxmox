@@ -131,7 +131,7 @@ protection_synflood:
   type: bool
   sample: false
 protection_synflood_burst:
-  description: Synflood protection rate burst by ip src.
+  description: Synflood protection rate burst by IP source address.
   returned: on success
   type: int
   sample: 1000
