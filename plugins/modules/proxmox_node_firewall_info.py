@@ -146,60 +146,11 @@ from ansible.module_utils.common.text.converters import to_native
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
-    ansible_to_proxmox_bool,
     create_proxmox_module,
-    proxmox_to_ansible_bool,
 )
-
-FIELDS = {
-    "enabled": {
-        "api": "enable",
-        "default": False,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "log_level_in": {"default": "nolog"},
-    "log_level_out": {"default": "nolog"},
-    "log_level_forward": {"default": "nolog"},
-    "ndp": {
-        "default": True,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "nftables": {
-        "default": False,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "nosmurfs": {
-        "default": True,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "smurf_log_level": {"default": "nolog"},
-    "tcp_flags_log_level": {"default": "nolog"},
-    "tcpflags": {
-        "default": False,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "nf_conntrack_allow_invalid": {
-        "default": False,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "nf_conntrack_helpers": {"default": None},
-    "nf_conntrack_max": {"default": 262144},
-    "nf_conntrack_tcp_timeout_established": {"default": 432000},
-    "nf_conntrack_tcp_timeout_syn_recv": {"default": 60},
-    "protection_synflood": {
-        "default": False,
-        "to_api": proxmox_to_ansible_bool,
-        "from_api": ansible_to_proxmox_bool,
-    },
-    "protection_synflood_burst": {"default": 1000},
-    "protection_synflood_rate": {"default": 200},
-}
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_node_firewall import (
+    get_node_firewall_options_result,
+)
 
 
 def module_args():
@@ -232,20 +183,7 @@ class ProxmoxNodeFirewallAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to retrieve node firewall options: {to_native(e)}")
 
     def _format_options(self, raw):
-        result = {
-            "node_name": self.params["node_name"],
-        }
-
-        for field, meta in FIELDS.items():
-            api_key = meta.get("api", field)
-            value = raw.get(api_key, meta.get("default"))
-
-            if "from_api" in meta:
-                value = meta["from_api"](value)
-
-            result[field] = value
-
-        return result
+        return get_node_firewall_options_result(self.params["node_name"], raw)
 
 
 def main():
