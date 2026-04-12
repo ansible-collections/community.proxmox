@@ -213,7 +213,7 @@ node_name:
   type: str
   sample: pve-001
 log_level_in:
-  description: Log level setting for incomming traffic.
+  description: Log level setting for incoming traffic.
   returned: on success
   type: str
   sample: no_log
