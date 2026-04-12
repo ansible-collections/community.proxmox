@@ -93,7 +93,7 @@ smurf_log_level:
   returned: on success
   type: str
 tcp_flags_log_level:
-  description: Log level setting for illegal tcp flags filter.
+  description: Log level setting for illegal TCP flags filter.
   returned: on success
   type: str
 tcpflags:
