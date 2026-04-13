@@ -156,7 +156,7 @@ def main():
     if storage:
         storages = [proxmox.get_storage(storage)]
     else:
-        storages = proxmox.get_storages(storagetype=storagetype)
+        storages = proxmox.get_storages(storagetype)
     result["proxmox_storages"] = [storage.storage for storage in storages]
 
     module.exit_json(**result)

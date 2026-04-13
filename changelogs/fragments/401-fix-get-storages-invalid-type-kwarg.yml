@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox modules - fix calls to ``get_storages()`` to use the correct keyword argument (https://github.com/ansible-collections/community.proxmox/pull/401).
