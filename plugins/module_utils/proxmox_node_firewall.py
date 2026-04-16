@@ -53,6 +53,7 @@ SCHEMA = {
     "protection_synflood_rate": {"default": 200},
 }
 
+
 def node_firewall_options_to_ansible_result(node_name, raw):
     """Build the Ansible-side node firewall options dict from API data."""
     result = {
