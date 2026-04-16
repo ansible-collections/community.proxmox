@@ -1,3 +1,9 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2026, Clément Cruau (@PendaGTP) <38917281+PendaGTP@users.noreply.github.com>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ansible_to_proxmox_bool,
     proxmox_to_ansible_bool,
