@@ -137,8 +137,8 @@ options:
     type: str
   nf_conntrack_max:
     description:
-      - Maximum number of tracked connections
-      - Min value is 32768
+      - Maximum number of tracked connections.
+      - Minimum value is 32768.
     type: int
     default: 262144
   nf_conntrack_tcp_timeout_established:
