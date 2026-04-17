@@ -1,5 +1,3 @@
-#!/usr/bin/python
-#
 # Copyright (c) 2026, Clément Cruau (@PendaGTP) <38917281+PendaGTP@users.noreply.github.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -63,11 +61,11 @@ SCHEMA = {
 def node_firewall_options_to_ansible_result(node_name, raw):
     """
     Build the Ansible-side node firewall options dict from API data.
-    
+
     Args:
         node_name (str): Name of the node.
-        raw (dict): Raw firewall data to process.   
-    
+        raw (dict): Raw firewall data to process.
+
     Returns:
         dict: Firewall settings converted into pythonic values.
     """
