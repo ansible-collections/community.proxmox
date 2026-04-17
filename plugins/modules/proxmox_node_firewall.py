@@ -143,7 +143,7 @@ options:
     default: 262144
   nf_conntrack_tcp_timeout_established:
     description:
-      - Conntrack established timeout in seconds
+      - Conntrack established timeout in seconds.
       - Minimum value is 7875.
     type: int
     default: 432000
