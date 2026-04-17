@@ -8,7 +8,7 @@
 DOCUMENTATION = r"""
 module: proxmox_acme_plugin_dns
 short_description: Manage ACME DNS plugins on a Proxmox VE.
-version_added: "2.1.0"
+version_added: "2.0.0"
 author:
   - Clément Cruau (@PendaGTP)
 description:
