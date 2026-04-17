@@ -385,6 +385,22 @@ class ProxmoxAnsible:
                     return False, ProxmoxAnsible.TASK_TIMED_OUT
                 sleep(1)
 
+    def upid_to_node(self, upid):
+        """
+        Extract the node name from a UPID.
+
+        Args:
+            upid(str): The UPID to convert to a node name.
+
+        Returns:
+            str: The node name.
+        """
+        parts = to_native(upid).split(":")
+        if len(parts) >= 2 and parts[0] == "UPID":  # noqa: PLR2004
+            return parts[1]
+
+        self.module.fail_json(msg=f"Unexpected task id from Proxmox API: {upid}")
+
     def get_pool(self, poolid):
         """
         Retrieve pool information.

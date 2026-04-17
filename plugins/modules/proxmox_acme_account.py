@@ -148,6 +148,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_acc
 )
 
 DIRECTORY_URL_PATTERN = re.compile(r"^https?://.*$")
+ACME_TASK_TIMEOUT = 30
 
 
 def module_args():
@@ -369,21 +370,14 @@ class ProxmoxClusterAcmeAccountAnsible(ProxmoxAnsible):
         return base if not name else base(name)
 
     def _wait_acme_task(self, taskid):
-        node = self._node_from_upid(taskid)
-        ok, err = self.api_task_complete(node, taskid, 30)
+        node = self.upid_to_node(taskid)
+        ok, err = self.api_task_complete(node, taskid, ACME_TASK_TIMEOUT)
 
         if not ok:
             self.module.fail_json(
                 msg=f"ACME background task failed: {err}",
                 task=taskid,
             )
-
-    def _node_from_upid(self, upid):
-        parts = to_native(upid).split(":")
-        if len(parts) >= 2 and parts[0] == "UPID":  # noqa: PLR2004
-            return parts[1]
-
-        self.module.fail_json(msg=f"Unexpected task id from Proxmox API: {upid}")
 
     def _build_create_params(self):
         p = self.params
