@@ -61,7 +61,16 @@ SCHEMA = {
 
 
 def node_firewall_options_to_ansible_result(node_name, raw):
-    """Build the Ansible-side node firewall options dict from API data."""
+    """
+    Build the Ansible-side node firewall options dict from API data.
+    
+    Args:
+        node_name (str): Name of the node.
+        raw (dict): Raw firewall data to process.   
+    
+    Returns:
+        dict: Firewall settings converted into pythonic values.
+    """
     result = {
         "node_name": node_name,
     }
