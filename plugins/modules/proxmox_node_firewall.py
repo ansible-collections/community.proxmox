@@ -150,7 +150,7 @@ options:
   nf_conntrack_tcp_timeout_syn_recv:
     description:
       - Conntrack syn recv timeout.
-      - Values between 30 - 60
+      - Values between 30 - 60.
     type: int
     default: 60
   protection_synflood:
