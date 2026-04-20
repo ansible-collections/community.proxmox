@@ -160,7 +160,7 @@ options:
     default: false
   protection_synflood_burst:
     description:
-      - Synflood protection rate burst by ip src.
+      - Synflood protection rate burst by IP source address.
     type: int
     default: 1000
   protection_synflood_rate:
