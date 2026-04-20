@@ -149,7 +149,7 @@ options:
     default: 432000
   nf_conntrack_tcp_timeout_syn_recv:
     description:
-      - Conntrack syn recv timeout.
+      - Conntrack syn receive timeout.
       - Values between 30 - 60.
     type: int
     default: 60
