@@ -165,7 +165,7 @@ options:
     default: 1000
   protection_synflood_rate:
     description:
-      - Synflood protection rate syn/sec by ip src.
+      - Synflood protection rate syn/sec by IP source address.
     type: int
     default: 200
 
