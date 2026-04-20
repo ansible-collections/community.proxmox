@@ -23,55 +23,74 @@ jobs:
       - name: Check fragments format
         shell: python
         env:
-          FRAGMENTS_PATH: "changelogs/fragments"
+          PR_NUMBER: ${{ github.event.number }}
         run: |
-          from os import getenv, listdir
-          from os.path import exists, isfile, join
-          from re import compile as recompile
-          from sys import exit as sysexit
+            from os import getenv
+            from sys import exit as sysexit
+            from requests import get, RequestException
+            from yaml import safe_load
+            from re import search, DOTALL, compile
 
-          from yaml import safe_load
+            if not getenv("PR_NUMBER"):
+                print(f"PR_NUMBER is not set")
+                sysexit(1)
 
-          FRAGMENTS_PATH = getenv("FRAGMENTS_PATH", "changelogs/fragments")
+            try:
+                changed_files = get(
+                    f"https://api.github.com/repos/ansible-collections/community.proxmox/pulls/{getenv('PR_NUMBER')}/files",
+                    headers={
+                        "Accept": "application/vnd.github+json",
+                        "X-GitHub-Api-Version": "2026-03-10"
+                    }).json()
+                comments = get(
+                    f"https://api.github.com/repos/ansible-collections/community.proxmox/issues/{getenv('PR_NUMBER')}/comments",
+                    headers={
+                        "Accept": "application/vnd.github+json",
+                        "X-GitHub-Api-Version": "2026-03-10"
+                    }).json()
+            except (ValueError, TimeoutError, RequestException) as e:
+                print(f"Error, getting PR files failed, {e}")
+                sysexit(1)
+            if not [item for item in changed_files if item['filename'].startswith('plugins/')]:
+                print(f"No changes to ansible plugins, no changelog fragment required")
+                sysexit(0)
+            if any(search(r'.*NO CHANGELOG.*', item["body"], flags=DOTALL) for item in comments if item['author_association'] == 'COLLABORATOR'):
+                print("This PR does not require a changelog fragment per contributor decision")
+                sysexit(0)
+            changelog_fragment =[item for item in changed_files if item['filename'].startswith('changelogs/fragments/')]
+            if not changelog_fragment:
+                print("No changelog fragment was provided")
+                sysexit(1)
+            changelog_fragment = changelog_fragment[0]
+            if not changelog_fragment.endswith(("yml", "yaml")):
+                print(f"{changelog_fragment}: extension is not valid for a yaml file")
+                sysexit(1)
+            try:
+                with open(changelog_fragment, "r") as f:
+                    fragment = safe_load(f)
+                for typ, changes in fragment.items():
+                    if typ not in [
+                        "breaking_changes",
+                        "major_changes",
+                        "minor_changes",
+                        "deprecated_features",
+                        "removed_features",
+                        "security_fixes",
+                        "bugfixes",
+                        "known_issues",
+                        "trivial",
+                    ]:
+                        print(f"unrecognized change type: {typ}")
+                        sysexit(1)
 
-          if not exists(FRAGMENTS_PATH):
-              print(f"{FRAGMENTS_PATH} does not exist")
-              sysexit(1)
-
-          for filename in listdir(FRAGMENTS_PATH):
-              if filename == ".keep":
-                  continue
-              if not filename.endswith(("yml", "yaml")):
-                  print(f"{filename}: extension is not valid for a yaml file")
-                  sysexit(1)
-              file_path = join(FRAGMENTS_PATH, filename)
-              if isfile(file_path):
-                  try:
-                      with open(file_path, "r") as f:
-                          fragment = safe_load(f)
-                      for typ, changes in fragment.items():
-                          if typ not in [
-                              "breaking_changes",
-                              "major_changes",
-                              "minor_changes",
-                              "deprecated_features",
-                              "removed_features",
-                              "security_fixes",
-                              "bugfixes",
-                              "known_issues",
-                              "trivial",
-                          ]:
-                              print(f"unrecognized change type: {typ}")
-                              sysexit(1)
-
-                          regex = recompile(r".+ - [a-z].*\.")
-                          for change in changes:
-                              if not regex.fullmatch(change):
-                                  print(
-                                      "change does not follow principles defined here: "
-                                      "https://github.com/ansible-collections/community.proxmox/blob/main/CONTRIBUTING.md#opening-pull-requests"
-                                  )
-                                  sysexit(1)
-                  except Exception as e:
-                      print(f"Exception raised while checking changelog fragment {filename}: {e}")
-                      sysexit(1)
+                    regex = compile(r".+ - [a-z].*\.")
+                    for change in changes:
+                        if not regex.fullmatch(change):
+                            print(
+                                "change does not follow principles defined here: "
+                                "https://github.com/ansible-collections/community.proxmox/blob/main/CONTRIBUTING.md#opening-pull-requests"
+                            )
+                            sysexit(1)
+            except Exception as e:
+                print(f"Exception raised while checking changelog fragment {changelog_fragment}: {e}")
+                sysexit(1)
