@@ -75,6 +75,7 @@ seealso:
     link: https://pve.proxmox.com/pve-docs/pve-admin-guide.html#sysadmin_certificate_management
   - module: community.proxmox.proxmox_acme_certificates_info
   - module: community.proxmox.proxmox_acme_account
+  - module: community.proxmox.proxmox_acme_plugin_dns
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
