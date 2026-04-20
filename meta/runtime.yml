@@ -41,6 +41,8 @@ action_groups:
     - proxmox_ipam_info
     - proxmox_kvm
     - proxmox_nic
+    - proxmox_node_firewall_info
+    - proxmox_node_firewall
     - proxmox_node
     - proxmox_node_info
     - proxmox_node_network
