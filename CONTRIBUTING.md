@@ -142,6 +142,49 @@ nox -Re ansible-test-units-devel -- --python 3.13
 nox -Re ansible-test-units-devel -- --python 3.13 tests/unit/plugins/modules/test_proxmox_kvm.py
 ```
 
+### Integration tests
+
+Most Proxmox module integration tests require access to a real Proxmox environment and are marked as `unsupported` in CI. This means they are skipped during automated testing and must be executed manually in a properly configured environment.
+
+**Warning:** Integration tests may create, modify, or delete resources on your Proxmox environment. It is strongly recommended to use a dedicated test environment.
+
+#### Setup
+
+1. Create your local configuration file:
+
+   ```bash
+   cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
+   ```
+
+2. Adjust the authentication variables to match your Proxmox environment. A minimal example configuration may look like:
+
+   ```yaml
+   proxmox_host: https://your-proxmox:8006
+   proxmox_user: root@pam
+   proxmox_password: your-password
+   validate_certs: false
+   ```
+
+   Some modules require the `root@pam` user due to permission constraints.
+
+#### Running tests
+
+You can run integration tests using `ansible-test`:
+
+```bash
+# Run all integration tests
+ansible-test integration -v --allow-unsupported
+
+# Run all integration tests using Docker
+ansible-test integration --docker -v --allow-unsupported
+
+# Run a specific test target
+ansible-test integration proxmox_pool -v --allow-unsupported
+
+# Run a specific test target using Docker
+ansible-test integration proxmox_pool --docker -v --allow-unsupported
+```
+
 ### Manual test and review of changes
 If you want to test your new module or bugfix within a playbook, you may do the following:
 - Ensure your repository resides, for example, in `exampledir/community/proxmox`.

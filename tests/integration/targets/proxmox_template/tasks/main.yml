@@ -9,8 +9,10 @@
 
 - name: Proxmox VE virtual machines templates management
   tags: ['template']
+  environment: "{{ environment_auth_vars }}"
   vars:
     filename: /tmp/dummy.iso
+
   block:
     - name: Create dummy ISO file
       ansible.builtin.command:
@@ -28,12 +30,6 @@
 
     - name: Upload ISO as template to Proxmox VE cluster should fail
       proxmox_template:
-        api_host: '{{ api_host }}'
-        api_user: '{{ user }}@{{ domain }}'
-        api_password: '{{ api_password | default(omit) }}'
-        api_token_id: '{{ api_token_id | default(omit) }}'
-        api_token_secret: '{{ api_token_secret | default(omit) }}'
-        validate_certs: '{{ validate_certs }}'
         node: '{{ node }}'
         src: '{{ filename }}'
         content_type: iso
@@ -53,12 +49,6 @@
 
     - name: Upload ISO as template to Proxmox VE cluster should be successful
       proxmox_template:
-        api_host: '{{ api_host }}'
-        api_user: '{{ user }}@{{ domain }}'
-        api_password: '{{ api_password | default(omit) }}'
-        api_token_id: '{{ api_token_id | default(omit) }}'
-        api_token_secret: '{{ api_token_secret | default(omit) }}'
-        validate_certs: '{{ validate_certs }}'
         node: '{{ node }}'
         src: '{{ filename }}'
         content_type: iso
@@ -82,12 +72,6 @@
 
     - name: Upload ISO as template to Proxmox VE cluster should be successful
       proxmox_template:
-        api_host: '{{ api_host }}'
-        api_user: '{{ user }}@{{ domain }}'
-        api_password: '{{ api_password | default(omit) }}'
-        api_token_id: '{{ api_token_id | default(omit) }}'
-        api_token_secret: '{{ api_token_secret | default(omit) }}'
-        validate_certs: '{{ validate_certs }}'
         node: '{{ node }}'
         src: '{{ filename }}'
         content_type: iso
@@ -111,12 +95,6 @@
 
     - name: Upload ISO as template to Proxmox VE cluster should be successful
       proxmox_template:
-        api_host: '{{ api_host }}'
-        api_user: '{{ user }}@{{ domain }}'
-        api_password: '{{ api_password | default(omit) }}'
-        api_token_id: '{{ api_token_id | default(omit) }}'
-        api_token_secret: '{{ api_token_secret | default(omit) }}'
-        validate_certs: '{{ validate_certs }}'
         node: '{{ node }}'
         src: '{{ filename }}'
         content_type: iso
