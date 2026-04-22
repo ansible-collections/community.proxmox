@@ -48,7 +48,7 @@ def _get_pool_mock(**kwargs):
     poolid = kwargs.get("poolid")
     for pool in SAMPLE_POOLS:
         if pool["poolid"] == poolid:
-            return pool
+            return [pool]
 
 
 def _get_vmid_mock(vm):

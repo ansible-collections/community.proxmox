@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - proxmox_pool - member retrieval (https://github.com/ansible-collections/community.proxmox/pull/412).
+  - proxmox_pool_member - member retrieval (https://github.com/ansible-collections/community.proxmox/pull/412).
