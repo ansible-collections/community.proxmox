@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_pool_member - fix usage of storage member (https://github.com/ansible-collections/community.proxmox/pull/411).
