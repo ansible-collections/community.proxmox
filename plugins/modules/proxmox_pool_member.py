@@ -187,7 +187,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
     def _fail_on_missing_storage(self, storages_to_add: set[str]) -> None:
         # Validate requested storages exist before touching the API.
         if storages_to_add:
-            cluster_storages = {s["storage"] for s in self.get_storages(type=None)}
+            cluster_storages = {s["storage"] for s in self.get_storages(storagetype=None)}
             missing = storages_to_add - cluster_storages
             if missing:
                 self.module.fail_json(msg=f"Storage(s) not found in the cluster: {', '.join(sorted(missing))}")
