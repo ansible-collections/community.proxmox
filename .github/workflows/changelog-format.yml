@@ -51,46 +51,46 @@ jobs:
             except (ValueError, TimeoutError, RequestException) as e:
                 print(f"Error, getting PR files failed, {e}")
                 sysexit(1)
-            if not [item for item in changed_files if item['filename'].startswith('plugins/')]:
+            if not [item for item in changed_files if item["filename"].startswith("plugins/")]:
                 print(f"No changes to ansible plugins, no changelog fragment required")
                 sysexit(0)
-            if any(search(r'.*NO CHANGELOG.*', item["body"], flags=DOTALL) for item in comments if item['author_association'] == 'COLLABORATOR'):
+            if any(search(r".*NO CHANGELOG.*", item["body"], flags=DOTALL) for item in comments if item["author_association"] == "COLLABORATOR"):
                 print("This PR does not require a changelog fragment per contributor decision")
                 sysexit(0)
-            changelog_fragment =[item for item in changed_files if item['filename'].startswith('changelogs/fragments/')]
-            if not changelog_fragment:
+            changelog_fragments = [item["filename"] for item in changed_files if item["filename"].startswith("changelogs/fragments/")]
+            if not changelog_fragments:
                 print("No changelog fragment was provided")
                 sysexit(1)
-            changelog_fragment = changelog_fragment[0]
-            if not changelog_fragment.endswith(("yml", "yaml")):
-                print(f"{changelog_fragment}: extension is not valid for a yaml file")
-                sysexit(1)
-            try:
-                with open(changelog_fragment, "r") as f:
-                    fragment = safe_load(f)
-                for typ, changes in fragment.items():
-                    if typ not in [
-                        "breaking_changes",
-                        "major_changes",
-                        "minor_changes",
-                        "deprecated_features",
-                        "removed_features",
-                        "security_fixes",
-                        "bugfixes",
-                        "known_issues",
-                        "trivial",
-                    ]:
-                        print(f"unrecognized change type: {typ}")
-                        sysexit(1)
-
-                    regex = compile(r".+ - [a-z].*\.")
-                    for change in changes:
-                        if not regex.fullmatch(change):
-                            print(
-                                "change does not follow principles defined here: "
-                                "https://github.com/ansible-collections/community.proxmox/blob/main/CONTRIBUTING.md#opening-pull-requests"
-                            )
+            for changelog_fragment in changelog_fragments:
+                if not changelog_fragment.endswith(("yml", "yaml")):
+                    print(f"{changelog_fragment}: extension is not valid for a yaml file")
+                    sysexit(1)
+                try:
+                    with open(changelog_fragment, "r") as f:
+                        fragment = safe_load(f)
+                    for typ, changes in fragment.items():
+                        if typ not in [
+                            "breaking_changes",
+                            "major_changes",
+                            "minor_changes",
+                            "deprecated_features",
+                            "removed_features",
+                            "security_fixes",
+                            "bugfixes",
+                            "known_issues",
+                            "trivial",
+                        ]:
+                            print(f"unrecognized change type: {typ}")
                             sysexit(1)
-            except Exception as e:
-                print(f"Exception raised while checking changelog fragment {changelog_fragment}: {e}")
-                sysexit(1)
+    
+                        regex = compile(r".+ - [a-z].*\.")
+                        for change in changes:
+                            if not regex.fullmatch(change):
+                                print(
+                                    "change does not follow principles defined here: "
+                                    "https://github.com/ansible-collections/community.proxmox/blob/main/CONTRIBUTING.md#opening-pull-requests"
+                                )
+                                sysexit(1)
+                except Exception as e:
+                    print(f"Exception raised while checking changelog fragment {changelog_fragment}: {e}")
+                    sysexit(1)
