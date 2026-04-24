@@ -235,12 +235,13 @@ class ProxmoxAnsible:
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve Proxmox VE version: {e}")
 
-    def get_node(self, node):
+    def get_node(self, node, strict=False):
         """
         Filters all known PVE nodes for the given node name.
 
         Args:
             node(str): The name of the node.
+            strict(bool): Fail if the node does not exist.
 
         Returns:
             dict | None: The node information provided by the api path GET /nodes.
@@ -249,6 +250,8 @@ class ProxmoxAnsible:
             nodes = [n for n in self.proxmox_api.nodes.get() if n["node"] == node]
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve Proxmox VE node: {e}")
+        if not nodes and strict:
+            self.module.fail_json(msg=f"Node {node} does not exist")
         return nodes[0] if nodes else None
 
     def get_nextvmid(self):
