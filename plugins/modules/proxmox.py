@@ -547,6 +547,9 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 
+# Fields PVE stores as a delimited string but the module accepts as a list.
+_LIST_FIELDS = {"tags": ";"}
+
 
 def module_args():
     return dict(
@@ -970,7 +973,14 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         # create diff between the current and requested config
         diff = {}
+
         for arg, value in kwargs.items():
+            if arg in _LIST_FIELDS and isinstance(value, list):
+                sep = _LIST_FIELDS[arg]
+                current = {x for x in current_config.get(arg, "").split(sep) if x}
+                if current != set(value):
+                    diff[arg] = value
+                continue
             # if the arg isn't in the current config, it needs to be added
             if arg not in current_config:
                 diff[arg] = value
