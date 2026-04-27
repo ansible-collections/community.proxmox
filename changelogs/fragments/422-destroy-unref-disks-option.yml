@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - proxmox - add ``destroy_unreferenced_disks`` parameter (https://github.com/ansible-collections/community.proxmox/pull/422).
+  - proxmox_kvm - add ``destroy_unreferenced_disks`` parameter (https://github.com/ansible-collections/community.proxmox/pull/422).
