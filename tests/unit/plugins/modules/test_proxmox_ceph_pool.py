@@ -33,7 +33,7 @@ RAW_NODES_GET = [
         "cpu": 0.0182131429977849,
         "mem": 1748975616,
         "maxcpu": 4,
-        "maxmem": 2063151104
+        "maxmem": 2063151104,
     },
     {
         "level": "",
@@ -48,8 +48,7 @@ RAW_NODES_GET = [
         "maxcpu": 4,
         "node": "srv-proxmox-01",
         "uptime": 96,
-        "cpu": 0.0615460364352536
-
+        "cpu": 0.0615460364352536,
     },
     {
         "maxcpu": 4,
@@ -64,7 +63,7 @@ RAW_NODES_GET = [
         "ssl_fingerprint": "",
         "type": "node",
         "id": "node/srv-proxmox-03",
-        "status": "online"
+        "status": "online",
     },
 ]
 
