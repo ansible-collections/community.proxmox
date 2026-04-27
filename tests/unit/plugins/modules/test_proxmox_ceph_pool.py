@@ -19,51 +19,52 @@ from ansible_collections.community.proxmox.plugins.modules import (
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
-RAW_RESOURCES_NODES = [
+RAW_NODES_GET = [
     {
-        "maxdisk": 15517192192,
-        "maxmem": 2063962112,
-        "disk": 3952242688,
-        "mem": 1556987904,
-        "type": "node",
-        "cpu": 0.00688637481554353,
-        "level": "",
         "status": "online",
+        "ssl_fingerprint": "",
         "id": "node/srv-proxmox-02",
-        "uptime": 697,
-        "cgroup-mode": 2,
-        "maxcpu": 4,
+        "type": "node",
+        "level": "",
+        "disk": 9213120512,
+        "maxdisk": 15517192192,
         "node": "srv-proxmox-02",
+        "uptime": 87,
+        "cpu": 0.0182131429977849,
+        "mem": 1748975616,
+        "maxcpu": 4,
+        "maxmem": 2063151104
     },
     {
-        "maxmem": 2063958016,
-        "maxdisk": 15517192192,
         "level": "",
-        "cpu": 0.0118168389955687,
-        "type": "node",
-        "mem": 1854046208,
-        "disk": 3955453952,
-        "uptime": 697,
+        "disk": 10775777280,
+        "maxdisk": 15517192192,
+        "status": "online",
+        "ssl_fingerprint": "",
         "id": "node/srv-proxmox-01",
-        "status": "online",
-        "node": "srv-proxmox-01",
+        "type": "node",
+        "mem": 1741160448,
+        "maxmem": 2063151104,
         "maxcpu": 4,
-        "cgroup-mode": 2,
+        "node": "srv-proxmox-01",
+        "uptime": 96,
+        "cpu": 0.0615460364352536
+
     },
     {
-        "level": "",
-        "type": "node",
-        "cpu": 0.00760922925871379,
-        "disk": 3907559424,
-        "mem": 1550610432,
-        "maxdisk": 15517192192,
-        "maxmem": 2063953920,
         "maxcpu": 4,
+        "maxmem": 2063151104,
+        "mem": 1529425920,
         "node": "srv-proxmox-03",
-        "cgroup-mode": 2,
-        "uptime": 697,
+        "cpu": 0.0157248157248157,
+        "uptime": 87,
+        "disk": 9196486656,
+        "maxdisk": 15517192192,
+        "level": "",
+        "ssl_fingerprint": "",
+        "type": "node",
         "id": "node/srv-proxmox-03",
-        "status": "online",
+        "status": "online"
     },
 ]
 
@@ -184,7 +185,7 @@ class TestProxmoxCephPool(ModuleTestCase):
         ).start()
 
         mock_obj = self.connect_mock.return_value
-        mock_obj.cluster.resources.get.return_value = RAW_RESOURCES_NODES
+        mock_obj.nodes.get.return_value = RAW_NODES_GET
         mock_obj.nodes.return_value.ceph.pool.get.return_value = RAW_POOL
         mock_obj.nodes.return_value.ceph.pool.return_value.status.get.return_value = RAW_POOL_TEST
         mock_obj.nodes.return_value.tasks.return_value.status.get.return_value = RAW_TASK
