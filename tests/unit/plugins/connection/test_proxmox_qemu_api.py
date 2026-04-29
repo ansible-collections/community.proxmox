@@ -12,9 +12,9 @@ from ansible.errors import AnsibleConnectionFailure, AnsibleError
 from ansible.playbook.play_context import PlayContext
 from ansible.plugins.loader import connection_loader
 
-proxmoxer = pytest.importorskip("proxmoxer")
+from ansible_collections.community.proxmox.plugins.connection import proxmox_qemu_api as qemu_module
 
-MODULE = "ansible_collections.community.proxmox.plugins.connection.proxmox_qemu_api"
+proxmoxer = pytest.importorskip("proxmoxer")
 
 # Test constants
 TEST_API_HOST = "pve.example.com"
@@ -70,7 +70,7 @@ def test_has_tty(connection):
     assert connection.has_tty is False
 
 
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_get_proxmox_with_token(mock_api, connection):
     """Test ProxmoxAPI initialization with token authentication."""
     connection._get_proxmox()
@@ -85,7 +85,7 @@ def test_get_proxmox_with_token(mock_api, connection):
     )
 
 
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_get_proxmox_with_password(mock_api, connection):
     """Test ProxmoxAPI initialization with password authentication."""
     connection.set_option("api_token_id", None)
@@ -115,7 +115,7 @@ def test_get_proxmox_no_auth(connection):
         connection._get_proxmox()
 
 
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_get_proxmox_caches_instance(mock_api, connection):
     """Test that ProxmoxAPI is only created once."""
     connection._get_proxmox()
@@ -124,7 +124,7 @@ def test_get_proxmox_caches_instance(mock_api, connection):
     assert mock_api.call_count == 1
 
 
-@patch(f"{MODULE}.HAS_PROXMOXER", False)
+@patch.object(qemu_module, "HAS_PROXMOXER", False)
 def test_get_proxmox_missing_library(connection):
     """Test that missing proxmoxer library raises an error."""
     connection._proxmox = None
@@ -133,7 +133,7 @@ def test_get_proxmox_missing_library(connection):
         connection._get_proxmox()
 
 
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_agent_returns_correct_path(mock_api, connection):
     """Test that _agent() builds the correct API path."""
     mock_proxmox = MagicMock()
@@ -146,8 +146,8 @@ def test_agent_returns_correct_path(mock_api, connection):
     mock_proxmox.nodes("pve-1").qemu.assert_called_once_with(100)
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_connect_success(mock_api, mock_sleep, connection):
     """Test successful connection to guest agent."""
     mock_proxmox = MagicMock()
@@ -159,8 +159,8 @@ def test_connect_success(mock_api, mock_sleep, connection):
     mock_sleep.assert_not_called()
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_connect_retries_on_failure(mock_api, mock_sleep, connection):
     """Test that connection retries when guest agent is not ready."""
     mock_proxmox = MagicMock()
@@ -176,8 +176,8 @@ def test_connect_retries_on_failure(mock_api, mock_sleep, connection):
     assert mock_sleep.call_count == 2  # noqa: PLR2004
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_connect_timeout(mock_api, mock_sleep, connection):
     """Test that connection fails after timeout."""
     mock_proxmox = MagicMock()
@@ -199,8 +199,8 @@ def test_connect_already_connected(connection):
     assert result is connection
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_exec_command_success(mock_api, mock_sleep, connection):
     """Test successful command execution."""
     mock_proxmox = MagicMock()
@@ -221,8 +221,8 @@ def test_exec_command_success(mock_api, mock_sleep, connection):
     agent.exec.post.assert_called_once_with(command=["/bin/sh", "-c", "echo hello"])
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_exec_command_nonzero_exit(mock_api, mock_sleep, connection):
     """Test command execution with non-zero exit code."""
     mock_proxmox = MagicMock()
@@ -241,7 +241,7 @@ def test_exec_command_nonzero_exit(mock_api, mock_sleep, connection):
     assert stderr == "not found\n"
 
 
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_exec_command_api_failure(mock_api, connection):
     """Test command execution when API call fails."""
     mock_proxmox = MagicMock()
@@ -257,8 +257,8 @@ def test_exec_command_api_failure(mock_api, connection):
         connection.exec_command("echo hello")
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_poll_exec_status_waits(mock_api, mock_sleep, connection):
     """Test that exec status polling waits for completion."""
     mock_proxmox = MagicMock()
@@ -278,8 +278,8 @@ def test_poll_exec_status_waits(mock_api, mock_sleep, connection):
     assert mock_sleep.call_count == 3  # noqa: PLR2004
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_file_write_success(mock_api, mock_sleep, connection):
     """Test successful file write."""
     mock_proxmox = MagicMock()
@@ -296,8 +296,8 @@ def test_file_write_success(mock_api, mock_sleep, connection):
     assert call_kwargs["encode"] == 0
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_file_write_retries(mock_api, mock_sleep, connection):
     """Test that file write retries on failure."""
     mock_proxmox = MagicMock()
@@ -312,8 +312,8 @@ def test_file_write_retries(mock_api, mock_sleep, connection):
     assert agent("file-write").post.call_count == 3  # noqa: PLR2004
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_file_write_exhausts_retries(mock_api, mock_sleep, connection):
     """Test that file write fails after exhausting retries."""
     mock_proxmox = MagicMock()
@@ -327,8 +327,8 @@ def test_file_write_exhausts_retries(mock_api, mock_sleep, connection):
         connection._file_write("/tmp/test", b"hello")
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_put_file_small(mock_api, mock_sleep, connection):
     """Test putting a small file (under chunk size)."""
     mock_proxmox = MagicMock()
@@ -343,8 +343,8 @@ def test_put_file_small(mock_api, mock_sleep, connection):
     agent("file-write").post.assert_called_once()
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_put_file_chunked(mock_api, mock_sleep, connection):
     """Test putting a large file that requires chunking."""
     mock_proxmox = MagicMock()
@@ -366,8 +366,8 @@ def test_put_file_chunked(mock_api, mock_sleep, connection):
     agent.exec.post.assert_called_once()
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_put_file_chunked_uses_remote_tmp(mock_api, mock_sleep, connection):
     """Test that chunked file transfer uses the configured remote_tmp."""
     mock_proxmox = MagicMock()
@@ -390,8 +390,8 @@ def test_put_file_chunked_uses_remote_tmp(mock_api, mock_sleep, connection):
     assert "/var/tmp/.ansible_part_" in cmd
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_put_file_chunked_assemble_failure(mock_api, mock_sleep, connection):
     """Test that chunked file transfer fails if assembly fails."""
     mock_proxmox = MagicMock()
@@ -410,8 +410,8 @@ def test_put_file_chunked_assemble_failure(mock_api, mock_sleep, connection):
         connection.put_file("/local/path", "/remote/path")
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_fetch_file_small(mock_api, mock_sleep, connection):
     """Test fetching a small file (single chunk)."""
     mock_proxmox = MagicMock()
@@ -436,8 +436,8 @@ def test_fetch_file_small(mock_api, mock_sleep, connection):
     m().write.assert_called_once_with(b"hello world")
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_fetch_file_chunked(mock_api, mock_sleep, connection):
     """Test fetching a large file that requires multiple chunks."""
     mock_proxmox = MagicMock()
@@ -473,8 +473,8 @@ def test_fetch_file_chunked(mock_api, mock_sleep, connection):
     assert calls[2][0][0] == chunk_c.encode("latin-1")
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_fetch_file_binary(mock_api, mock_sleep, connection):
     """Test fetching a binary file preserves bytes via latin-1 encoding."""
     mock_proxmox = MagicMock()
@@ -500,8 +500,8 @@ def test_fetch_file_binary(mock_api, mock_sleep, connection):
     assert written == bytes(range(256))
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_fetch_file_split_failure(mock_api, mock_sleep, connection):
     """Test that fetch fails if split command fails."""
     mock_proxmox = MagicMock()
@@ -526,8 +526,8 @@ def test_close(connection):
     assert connection._proxmox is None
 
 
-@patch(f"{MODULE}.time.sleep")
-@patch(f"{MODULE}.ProxmoxAPI")
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
 def test_reset(mock_api, mock_sleep, connection):
     """Test connection reset closes and reconnects."""
     mock_proxmox = MagicMock()
