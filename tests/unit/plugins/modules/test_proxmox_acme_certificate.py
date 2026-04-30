@@ -22,7 +22,6 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox_acme_cer
 )
 from ansible_collections.community.proxmox.plugins.modules import proxmox_acme_certificate
 from ansible_collections.community.proxmox.plugins.modules.proxmox_acme_certificate import (
-    build_acme_property_string,
     build_acmedomain_property_string,
     find_acme_certificate,
     normalize_domain_list,
@@ -87,9 +86,6 @@ def build_module_args(state="present", **overrides):
 
 
 class TestHelpers:
-    def test_build_acme_property_string(self):
-        assert build_acme_property_string("prod") == "account=prod"
-
     def test_build_acmedomain_property_string_full(self):
         result = build_acmedomain_property_string("pve.example.com", plugin="cloudflare", alias="alt.example.com")
         assert result == "domain=pve.example.com,plugin=cloudflare,alias=alt.example.com"

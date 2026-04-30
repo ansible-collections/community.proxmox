@@ -55,14 +55,9 @@ def cert_info_to_ansible_result(cert):
     if isinstance(san, str):
         san = [s.strip() for s in san.split(",") if s.strip()]
 
-    fingerprint = cert.get("fingerprint") or ""
-    not_before = cert.get("notbefore") or ""
-    not_after = cert.get("notafter") or ""
-
-    if isinstance(not_before, (int, float)):
-        not_before = str(int(not_before))
-    if isinstance(not_after, (int, float)):
-        not_after = str(int(not_after))
+    fingerprint = cert.get("fingerprint", "")
+    not_before = cert.get("notbefore", "")
+    not_after = cert.get("notafter", "")
 
     return {
         "certificate": cert.get("pem") or "",

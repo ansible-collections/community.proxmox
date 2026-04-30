@@ -198,14 +198,6 @@ CERTIFICATE_TASK_TIMEOUT = 120
 ACME_DOMAIN_SLOTS = 6  # acmedomain0 .. acmedomain5
 
 
-def build_acme_property_string(account):
-    """Build the ``acme`` node config property string.
-
-    Example output: ``"account=production"``
-    """
-    return f"account={account}"
-
-
 def build_acmedomain_property_string(domain, plugin=None, alias=None):
     """Build an ``acmedomainN`` node config property string.
 
@@ -232,7 +224,7 @@ def find_acme_certificate(certificates):
         return None
 
     for cert in certificates:
-        filename = cert.get("filename") or ""
+        filename = cert.get("filename", "")
         if filename == "pveproxy-ssl.pem":
             return cert
 
@@ -379,7 +371,7 @@ class ProxmoxAcmeCertificateAnsible(ProxmoxAnsible):
         account = desired_config["account"]
         domains = desired_config["domains"]
 
-        params = {"acme": build_acme_property_string(account)}
+        params = {"acme": f"account={account}"}
 
         for i, domain in enumerate(domains):
             key = f"acmedomain{i}"
