@@ -157,7 +157,7 @@ def module_args():
         contact=dict(type="str"),
         directory=dict(type="str"),
         eab_hmac_key=dict(type="str", no_log=True),
-        eab_kid=dict(type="str"),
+        eab_kid=dict(type="str", no_log=True),
         tos=dict(type="str", aliases=["tos_url"]),
     )
 
