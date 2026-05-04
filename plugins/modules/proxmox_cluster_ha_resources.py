@@ -168,11 +168,7 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
 
             final_resource = desired_state
 
-        return {
-            "changed": changed,
-            "resource": final_resource,
-            "diff": result_diff
-        }
+        return {"changed": changed, "resource": final_resource, "diff": result_diff}
 
     def remove(self, existing):
         diff = {"before": {}, "after": {}}
