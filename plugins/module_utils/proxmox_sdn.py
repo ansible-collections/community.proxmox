@@ -52,7 +52,7 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
             if not self.is_lock_and_rollback_supported:
                 # wait until reload network configuration has finished
                 # otherwise it will fail in proxmox when there are multiple reloads at the same time
-                self.api_task_complete(task_id.split(":")[1], task_id, 60)
+                self.api_task_complete(self.upid_to_node(task_id), task_id, 60)
         except Exception as e:
             if self.is_lock_and_rollback_supported:
                 self.rollback_sdn_changes_and_release_lock(lock)
