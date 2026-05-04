@@ -15,6 +15,9 @@ version_added: "1.1.0"
 description:
   - Manage Proxmox High Availability (HA) resources C(/cluster/ha/resources).
 
+notes:
+  - Proxmox VE 9.0 and later deprecates HA groups in favor of HA rules. If you are using Proxmox 9.0+, this module should be used in conjunction with community.proxmox.proxmox_cluster_ha_rules instead of the legacy groups module.
+
 attributes:
   check_mode:
     support: none
