@@ -20,9 +20,9 @@ notes:
 
 attributes:
   check_mode:
-    support: none
+    support: full
   diff_mode:
-    support: none
+    support: full
 
 options:
     name:
