@@ -17,9 +17,9 @@ description:
 
 attributes:
   check_mode:
-    support: full
+    support: none
   diff_mode:
-    support: full
+    support: none
 
 options:
     name:
@@ -58,8 +58,9 @@ extends_documentation_fragment:
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
 
-author:
+authors:
     - Markus Kötter (@koetter)
+    - Tom Emming (@tinux-it)
 """
 
 EXAMPLES = r"""
