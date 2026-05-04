@@ -61,8 +61,7 @@ extends_documentation_fragment:
   - community.proxmox.proxmox.documentation
   - community.proxmox.attributes
 
-authors:
-    - Markus Kötter (@koetter)
+author:
     - Tom Emming (@tinux-it)
 """
 
