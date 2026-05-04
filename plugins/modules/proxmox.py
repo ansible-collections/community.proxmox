@@ -80,6 +80,13 @@ options:
           - O(disk_volume.options) is a dict of extra options.
           - The value of any given option must be a string, for example V("1").
         type: dict
+  cmode:
+    description:
+      - Console mode.
+      - If set to V(default), no C(cmode) will be provided on instance creation.
+    type: str
+    choices: ['default', 'tty', 'console', 'shell']
+    default: default
   cores:
     description:
       - Specify number of cores per socket.
@@ -327,6 +334,15 @@ EXAMPLES = r"""
     disk_volume:
       storage: local
       size: 20
+
+- name: Create new container with minimal options specifying console mode set to shell
+  community.proxmox.proxmox:
+    vmid: 100
+    node: uk-mc02
+    password: 123456
+    hostname: example.org
+    ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
+    cmode: 'shell'
 
 - name: Create new container with hookscript and description
   community.proxmox.proxmox:
@@ -579,6 +595,15 @@ def module_args():
                 ("host_path", "size"),
             ],
         ),
+        cmode=dict(
+            default="default",
+            choices=[
+                "default",
+                "tty",
+                "console",
+                "shell",
+            ],
+        ),
         cores=dict(type="int"),
         cpus=dict(type="int"),
         memory=dict(type="int"),
@@ -775,6 +800,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 self.update_lxc_instance(
                     vmid,
                     node,
+                    cmode=self.params.get("cmode"),
                     cores=self.params.get("cores"),
                     cpus=self.params.get("cpus"),
                     cpuunits=self.params.get("cpuunits"),
@@ -1030,6 +1056,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 node,
                 ostemplate,
                 timeout=self.params.get("timeout"),
+                cmode=self.params.get("cmode"),
                 cores=self.params.get("cores"),
                 cpus=self.params.get("cpus"),
                 cpuunits=self.params.get("cpuunits"),
@@ -1121,6 +1148,9 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         if kwargs.get("ostype") == "auto":
             kwargs.pop("ostype")
+
+        if kwargs.get("cmode") == "default":
+            kwargs.pop("cmode")
 
         proxmox_node = self.proxmox_api.nodes(node)
         taskid = getattr(proxmox_node, self.VZ_TYPE).create(vmid=vmid, ostemplate=ostemplate, **kwargs)
