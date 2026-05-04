@@ -104,6 +104,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     create_proxmox_module,
 )
 
+
 class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
     def _get(self, sid):
         try:
@@ -193,6 +194,7 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
             return {"changed": True, "diff": diff}
         return {"changed": False, "diff": diff}
 
+
 def module_args():
     return dict(
         name=dict(type="str", required=True),
@@ -206,10 +208,12 @@ def module_args():
         ),
     )
 
+
 def module_options():
     return dict(
         supports_check_mode=True,
     )
+
 
 def run_module():
     module = create_proxmox_module(module_args(), **module_options())
@@ -235,6 +239,7 @@ def run_module():
 
 def main():
     run_module()
+
 
 if __name__ == "__main__":
     main()
