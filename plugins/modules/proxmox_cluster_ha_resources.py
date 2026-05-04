@@ -122,17 +122,6 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
     def _delete(self, sid):
         return self.proxmox_api.cluster.ha.resources(sid).delete()
 
-    def create_payload(self):
-        payload = {
-            "sid": self.module.params["name"],
-            "state": self.module.params["hastate"],
-            "max_relocate": self.module.params["max_relocate"],
-            "max_restart": self.module.params["max_restart"],
-        }
-        if self.module.params["comment"] is not None:
-            payload["comment"] = self.module.params["comment"]
-        return payload
-
     def apply(self, existing):
         changed = False
         result_diff = {}
@@ -149,15 +138,15 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
         if existing:
             current_state = {
                 "sid": existing.get("sid"),
-                "state": existing.get("state"),
-                "comment": existing.get("comment", ""),
+                "state": str(existing.get("state")),
+                "comment": str(existing.get("comment", "")),
                 "max_relocate": int(existing.get("max_relocate", 1)),
                 "max_restart": int(existing.get("max_restart", 1)),
             }
 
             needs_update = False
             for key in ["state", "comment", "max_relocate", "max_restart"]:
-                if str(current_state.get(key)) != str(desired_state.get(key)):
+                if current_state.get(key) != desired_state.get(key):
                     needs_update = True
                     break
 
@@ -165,8 +154,7 @@ class ProxmoxClusterHAResourcesAnsible(ProxmoxAnsible):
                 changed = True
                 result_diff = {"before": current_state, "after": desired_state}
                 if not self.module.check_mode:
-                    put_payload = desired_state.copy()
-                    put_payload.pop("sid")
+                    put_payload = {k: desired_state[k] for k in ["state", "comment", "max_relocate", "max_restart"]}
                     self._put(sid, put_payload)
 
                 final_resource = desired_state
@@ -210,14 +198,8 @@ def module_args():
     )
 
 
-def module_options():
-    return dict(
-        supports_check_mode=True,
-    )
-
-
 def run_module():
-    module = create_proxmox_module(module_args(), **module_options())
+    module = create_proxmox_module(module_args(), supports_check_mode=True)
     proxmox = ProxmoxClusterHAResourcesAnsible(module)
 
     name = module.params["name"]
