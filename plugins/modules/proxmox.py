@@ -1271,7 +1271,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             timeout_msg="Reached timeout while waiting for VM to be unmounted.",
         )
 
-    def remove_lxc_instance(self, vmid, node, timeout, purge, destroy_unreferenced_disks, force):
+    def remove_lxc_instance(self, vmid, node, timeout, purge, destroy_unreferenced_disks, force):  # noqa: PLR0913
         delete_params = {}
         if purge:
             delete_params["purge"] = 1
