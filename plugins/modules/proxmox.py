@@ -250,6 +250,13 @@ options:
       - Used with O(state=absent).
     type: bool
     default: false
+  destroy_unreferenced_disks:
+    description:
+      - Remove unreferenced disks that belong to the container.
+      - Volumes referenced in the config (e.g. via rootfs or mpX parameters) will always be removed.
+      - Used with O(state=absent).
+    type: bool
+    default: false
   state:
     description:
       - Indicate desired state of the instance.
@@ -531,6 +538,14 @@ EXAMPLES = r"""
     state: absent
 
 - name: >-
+    Remove container, deleting all volumes that use the container's ID, regardless
+    of whether they are mentioned in the container config or not
+  community.proxmox.proxmox:
+    vmid: 100
+    state: absent
+    destroy_unreferenced_disks: true
+
+- name: >-
     Create a new container automatically selecting the next available vmid
     using a non-root API token
   community.proxmox.proxmox:
@@ -662,6 +677,7 @@ def module_args():
         update=dict(type="bool", default=True),
         force=dict(type="bool", default=False),
         purge=dict(type="bool", default=False),
+        destroy_unreferenced_disks=dict(type="bool", default=False),
         state=dict(
             default="present",
             choices=[
@@ -743,6 +759,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 node=self.params.get("node"),
                 timeout=self.params.get("timeout"),
                 purge=self.params.get("purge"),
+                destroy_unreferenced_disks=self.params.get("destroy_unreferenced_disks"),
                 force=self.params.get("force"),
             )
         elif state == "started":
@@ -843,7 +860,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             force=force,
         )
 
-    def lxc_absent(self, vmid, hostname, node, timeout, purge, force):  # noqa: PLR0913
+    def lxc_absent(self, vmid, hostname, node, timeout, purge, destroy_unreferenced_disks, force):  # noqa: PLR0913
         try:
             lxc = self.get_lxc_resource(vmid, hostname)
         except LookupError:
@@ -869,7 +886,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 msg=f"VM {identifier} is mounted. Stop it with force option before deletion.",
             )
 
-        self.remove_lxc_instance(vmid, node, timeout, purge, force)
+        self.remove_lxc_instance(vmid, node, timeout, purge, destroy_unreferenced_disks, force)
         self.module.exit_json(changed=True, vmid=vmid, msg=f"VM {identifier} removed.")
 
     def lxc_started(self, vmid, hostname, node, timeout):
@@ -1254,10 +1271,13 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             timeout_msg="Reached timeout while waiting for VM to be unmounted.",
         )
 
-    def remove_lxc_instance(self, vmid, node, timeout, purge, force):
+    def remove_lxc_instance(self, vmid, node, timeout, purge, destroy_unreferenced_disks, force):  # noqa: PLR0913
         delete_params = {}
         if purge:
             delete_params["purge"] = 1
+
+        if destroy_unreferenced_disks:
+            delete_params["destroy-unreferenced-disks"] = 1
 
         if force:
             delete_params["force"] = 1

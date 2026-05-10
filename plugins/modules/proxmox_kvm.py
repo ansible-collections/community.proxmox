@@ -122,6 +122,13 @@ options:
       - Specify the description for the VM. Only used on the configuration web interface.
       - This is saved as comment inside the configuration file.
     type: str
+  destroy_unreferenced_disks:
+    description:
+      - Remove unreferenced disks that belong to the virtual machine.
+      - Volumes referenced in the config will always be removed.
+      - Used with O(state=absent).
+    type: bool
+    default: false
   digest:
     description:
       - Specify if to prevent changes if current configuration file has different SHA1 digest.
@@ -786,6 +793,15 @@ EXAMPLES = r"""
     node: sabrewulf
     state: absent
 
+- name: >-
+    Remove VM, deleting all volumes that use the VM's ID, regardless
+    of whether they are mentioned in the config or not
+  community.proxmox.proxmox_kvm:
+    name: spynal
+    node: sabrewulf
+    state: absent
+    destroy_unreferenced_disks: true
+
 - name: Get VM current state
   community.proxmox.proxmox_kvm:
     name: spynal
@@ -901,6 +917,7 @@ def module_args():
         cpuunits=dict(type="int"),
         delete=dict(type="str"),
         description=dict(type="str"),
+        destroy_unreferenced_disks=dict(type="bool", default=False),
         digest=dict(type="str"),
         efidisk0=dict(
             type="dict",
@@ -1639,6 +1656,8 @@ def main():  # noqa: PLR0912, PLR0915
             delete_params = {}
             if module.params["purge"]:
                 delete_params["purge"] = 1
+            if module.params["destroy_unreferenced_disks"]:
+                delete_params["destroy-unreferenced-disks"] = 1
             taskid = proxmox_node.qemu.delete(vmid, **delete_params)
             if not proxmox.wait_for_task(vm["node"], taskid):
                 module.fail_json(
