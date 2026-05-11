@@ -325,7 +325,12 @@ def _rules_content_equal(a_api, b_api):
 
 
 def _put_rule_payload(merged):
-    return {k: v for k, v in merged.items() if k not in ("pos", "ipversion", "digest", "group")}
+    return {k: v for k, v in merged.items() if k not in ("pos", "ipversion", "group")}
+
+
+def _is_digest_conflict_error(exc):
+    text = to_native(exc).lower()
+    return "detected modified configuration" in text and "file changed by other user" in text
 
 
 def _sort_rules(rules):
@@ -611,15 +616,24 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
 
     def _update_rules_in_prefix(self, name, desired, rules):
         for i in range(min(len(desired), len(rules))):
-            want = _build_update_rule_payload(desired[i], rules[i])
-            if _rules_content_equal(want, rules[i]):
-                continue
-            try:
-                self.proxmox_api.cluster().firewall().groups(name)(i).put(**_put_rule_payload(want))
-            except Exception as e:
-                self.module.fail_json(
-                    msg=f"Failed to update firewall rule in security group {name} at position {i}: {to_native(e)}"
-                )
+            retries_left = 1
+            while True:
+                try:
+                    current_rule = self.proxmox_api.cluster().firewall().groups(name)(i).get()
+                    want = _build_update_rule_payload(desired[i], current_rule)
+                    if current_rule.get("digest"):
+                        want["digest"] = current_rule["digest"]
+                    if _rules_content_equal(want, current_rule):
+                        break
+                    self.proxmox_api.cluster().firewall().groups(name)(i).put(**_put_rule_payload(want))
+                    break
+                except Exception as e:
+                    if retries_left > 0 and _is_digest_conflict_error(e):
+                        retries_left -= 1
+                        continue
+                    self.module.fail_json(
+                        msg=f"Failed to update firewall rule in security group {name} at position {i}: {to_native(e)}"
+                    )
 
     def _create_missing_trailing_rules(self, name, desired, rules):
         while len(rules) < len(desired):

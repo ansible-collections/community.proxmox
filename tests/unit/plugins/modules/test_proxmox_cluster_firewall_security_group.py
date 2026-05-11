@@ -307,8 +307,8 @@ class TestNormalizeForReturn:
 
 
 class TestPutRulePayload:
-    def test_strips_pos_ipversion_digest_group(self):
-        """PUT payload must omit immutable/unsupported fields rejected by Proxmox API."""
+    def test_strips_pos_ipversion_group_and_keeps_digest(self):
+        """PUT payload must keep digest lock while omitting unsupported positional metadata."""
         merged = {
             "action": "ACCEPT",
             "type": "in",
@@ -322,8 +322,8 @@ class TestPutRulePayload:
         result = _put_rule_payload(merged)
         assert "pos" not in result
         assert "ipversion" not in result
-        assert "digest" not in result
         assert "group" not in result
+        assert result["digest"] == "abc123"
         assert result["action"] == "ACCEPT"
         assert result["dport"] == "80"
 
@@ -385,6 +385,7 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         self.groups_base = Mock()
         self.groups_named = Mock()
         self.rule_at_pos = Mock()
+        self.rule_at_pos.get.return_value = SAMPLE_RULE_0
         self.groups_named.return_value = self.rule_at_pos
 
         fw.groups.side_effect = lambda *args: self.groups_named if args else self.groups_base
@@ -604,6 +605,7 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         """Rule content drift in shared prefix should trigger PUT, not recreate."""
         self.groups_base.get.return_value = [SAMPLE_GROUP]
         updated_rule = {**SAMPLE_RULE_0, "dport": "8080"}
+        self.rule_at_pos.get.return_value = SAMPLE_RULE_0
         self.groups_named.get.side_effect = [
             [SAMPLE_RULE_0],  # _rules_would_change (content differs)
             [SAMPLE_RULE_0],  # _prune_excess_rules
@@ -614,6 +616,7 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
 
         assert result["changed"] is True
         self.rule_at_pos.put.assert_called_once()
+        assert self.rule_at_pos.put.call_args[1].get("digest") == SAMPLE_RULE_0["digest"]
         self.rule_at_pos.delete.assert_not_called()
         assert result["rules"][0]["dport"] == "8080"
 
@@ -788,12 +791,32 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
             [SAMPLE_RULE_0],  # _rules_would_change (content differs)
             [SAMPLE_RULE_0],  # _prune_excess_rules
         ]
+        self.rule_at_pos.get.return_value = SAMPLE_RULE_0
         self.rule_at_pos.put.side_effect = Exception("conflict")
 
         result = self._run_module(build_module_args(rules=[{**DESIRED_RULE_0, "dport": "8080"}]))
 
         assert result.get("failed") is True
         assert "Failed to update firewall rule" in result["msg"]
+
+    def test_update_rule_in_prefix_retries_once_on_digest_conflict(self):
+        """Digest mismatches should trigger one refetch+retry before failing."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.groups_named.get.side_effect = [
+            [SAMPLE_RULE_0],  # _rules_would_change (content differs)
+            [SAMPLE_RULE_0],  # _prune_excess_rules
+            [{**SAMPLE_RULE_0, "dport": "8080"}],  # final fetch
+        ]
+        self.rule_at_pos.get.side_effect = [SAMPLE_RULE_0, SAMPLE_RULE_0]
+        self.rule_at_pos.put.side_effect = [
+            Exception("detected modified configuration - file changed by other user? Try again."),
+            None,
+        ]
+
+        result = self._run_module(build_module_args(rules=[{**DESIRED_RULE_0, "dport": "8080"}]))
+
+        assert result["changed"] is True
+        assert self.rule_at_pos.put.call_count == 2  # noqa: PLR2004
 
     # -- missing behavioural scenarios ----------------------------------------
 
