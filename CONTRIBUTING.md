@@ -10,6 +10,15 @@ We follow [Ansible Code of Conduct](https://docs.ansible.com/projects/ansible/la
 in all our contributions and interactions within this repository. If you are stuck while developing a
 module, refer to our [recommended reads](#helpful-documentation) from the Ansible docs.
 
+## AI Contributions
+We are not opposed to merging AI-generated code, so if you're using an AI agent to help you write code or tests, please feel free to do so.
+
+However, please keep the following things in mind:
+
+  * Mention that you've used AI, either by having the AI as a co-contributor on your PR or mentioning it directly in the text.
+  * Verify that whatever your AI does is sensible.
+  * Try to keep the changes organized, remember, we're all volunteers and we don't have time to review huge PRs full of hallucinated nonsense.
+
 ## Issue tracker
 
 Whether you are looking for an opportunity to contribute or you found a bug and already know how to
