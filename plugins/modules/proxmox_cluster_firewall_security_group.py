@@ -640,6 +640,15 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
         if position is None or position == 0:
             return
         try:
+            rule_at0 = self.proxmox_api.cluster().firewall().groups(name)(0).get()
+            for param, value in rule_at0.items():
+                if param in rule and param != "pos" and value != rule.get(param):
+                    self.module.warn(
+                        f"Skipping rule position workaround for security group {name}: "
+                        f"rule at pos 0 does not match the rule just created. "
+                        f"Verify rule is at correct position."
+                    )
+                    return
             self.proxmox_api.cluster().firewall().groups(name)(0).put(moveto=(position + 1))
         except Exception as e:
             self.module.fail_json(
