@@ -4,4 +4,4 @@
 
 poolid: test
 member: local
-member_type: storage
+nested_poolid: "{{ poolid }}/test-nested"

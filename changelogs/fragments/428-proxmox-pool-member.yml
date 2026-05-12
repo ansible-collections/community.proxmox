@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - proxmox_pool_member - fix pool membership update (https://github.com/ansible-collections/community.proxmox/pull/428).
+  - proxmox_pool_member - fix pool membership operations failing for nested pool IDs (https://github.com/ansible-collections/community.proxmox/pull/428).
