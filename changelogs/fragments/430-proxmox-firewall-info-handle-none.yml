@@ -1,0 +1,2 @@
+bugfixes:
+  - proxmox_firewall_info - add none guard on get_ip_sets to prevent crash with ``'NoneType' object has no attribute 'ipset'`` when using ``level=group`` (https://github.com/ansible-collections/community.proxmox/issues/430).
