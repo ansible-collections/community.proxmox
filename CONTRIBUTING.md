@@ -121,7 +121,7 @@ The following commands show how to run ansible-test sanity tests:
 nox -Re ansible-test-sanity-devel
 
 # Run basic sanity tests for the given files and directories:
-nox -Re ansible-test-sanity-devel -- plugins/modules/system/pids.py tests/integration/targets/pids/
+nox -Re ansible-test-sanity-devel -- plugins/modules/proxmox_pool.py tests/integration/targets/proxmox_pool/
 
 # Run all other sanity tests for all files in the collection:
 nox -R
@@ -209,62 +209,6 @@ Unless you already read it up above, you probably really shoudl check out these 
     [voice style](https://docs.ansible.com/projects/ansible/devel/dev_guide/style_guide/voice_style.html), [grammar](https://docs.ansible.com/projects/ansible/devel/dev_guide/style_guide/grammar_punctuation.html)
     and [spelling](https://docs.ansible.com/projects/ansible/devel/dev_guide/style_guide/spelling_word_choice.html).
   - [Ansible Markup for documentation yaml](https://docs.ansible.com/projects/ansible/latest/dev_guide/ansible_markup.html).
-<!-- Omitted for the sake of brevity and kept for historical reasons
-## Run basic sanity, unit or integration tests locally (with ansible-test)
-
-Instead of using antsibull-nox, you can also run sanity and unit tests with ansible-test directly.
-
-You have to check out the repository into a specific path structure to be able to run `ansible-test`.
-The path to the git checkout must end with `.../ansible_collections/community/general`.
-Please see [our testing guide](https://docs.ansible.com/projects/ansible/devel/community/collection_contributors/collection_test_pr_locally.html)
-for instructions on how to check out the repository into a correct path structure. The short version of these instructions is:
-
-```.bash
-mkdir -p ~/dev/ansible_collections/community
-git clone https://github.com/ansible-collections/community.proxmox.git ~/dev/ansible_collections/community/proxmox
-cd ~/dev/ansible_collections/community/proxmox
-```
-
-Then you can run `ansible-test` (which is a part of [ansible-core](https://pypi.org/project/ansible-core/)) inside the checkout.
-The following example commands expect that you have installed Docker or Podman.
-Note that Podman has only been supported by more recent ansible-core releases.
-If you are using Docker, the following will work with Ansible 2.9+.
-
-### Basic sanity tests
-
-The following commands show how to run basic sanity tests:
-
-```.bash
-# Run basic sanity tests for all files in the collection:
-ansible-test sanity --docker -v
-
-# Run basic sanity tests for the given files and directories:
-ansible-test sanity --docker -v plugins/modules/system/pids.py tests/integration/targets/pids/
-```
-
-### Unit tests
-
-Note that for running unit tests, you need to install required collections in the same folder structure that `community.proxmox` is checked out in.
-Right now, you need to install [`community.internal_test_tools`](https://github.com/ansible-collections/community.internal_test_tools).
-If you want to use the latest version from GitHub, you can run:
-
-```
-git clone https://github.com/ansible-collections/community.internal_test_tools.git ~/dev/ansible_collections/community/internal_test_tools
-```
-
-The following commands show how to run unit tests:
-
-```.bash
-# Run all unit tests:
-ansible-test units --docker -v
-
-# Run all unit tests for one Python version (a lot faster):
-ansible-test units --docker -v --python 3.8
-
-# Run a specific unit test (for the nmcli module) for one Python version:
-ansible-test units --docker -v --python 3.8 tests/unit/plugins/modules/net_tools/test_nmcli.py
-```
--->
 
 <!-- todo
 ## Devcontainer
