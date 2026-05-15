@@ -142,6 +142,8 @@ class ProxmoxSdnAnsible(ProxmoxAnsible):
 
         :return: dict of ip_set name and cidr
         """
+        if firewall_obj is None:
+            return list()
         try:
             ip_sets = firewall_obj.ipset().get()
             for ip_set in ip_sets:
