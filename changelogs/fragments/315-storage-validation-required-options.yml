@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - proxmox_storage - when ``state=present`` parameters ``content`` and ``nodes`` are now not required (https://github.com/ansible-collections/community.proxmox/pull/315).
+bugfixes:
+  - proxmox_storage - backend ``cephfs``, ``dir`` and ``zfspool`` doesn't requires ``content`` parameter (https://github.com/ansible-collections/community.proxmox/pull/315).
