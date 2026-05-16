@@ -299,7 +299,7 @@ options:
       - V(macaddr=XX:XX:XX:XX:XX:XX) must be a unique MAC address.
         If not specified, a unique MAC address is automatically generated.
       - For a complete list of all available options, please refer to the Proxmox VE documentation (look for "net[n]:") at
-        U(https://pve.proxmox.com/pve-docs/chapter-qm.html\#qm_options).
+        U(https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_options).
     type: dict
   newid:
     description:
