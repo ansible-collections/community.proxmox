@@ -90,7 +90,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
         :return: bool - is pool exists?
         """
         try:
-            self.proxmox_api.pools(poolid).get()
+            self.proxmox_api.pools.get(poolid=poolid)
             return True
         except Exception as e:
             error_str = str(e).lower()
@@ -138,7 +138,7 @@ class ProxmoxPoolAnsible(ProxmoxAnsible):
                 return
 
             try:
-                self.proxmox_api.pools(poolid).delete()
+                self.proxmox_api.pools.delete(poolid=poolid)
             except Exception as e:
                 self.module.fail_json(msg=f"Failed to delete pool with ID {poolid}: {e}")
         else:

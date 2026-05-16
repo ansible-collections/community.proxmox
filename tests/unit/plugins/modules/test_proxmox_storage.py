@@ -318,14 +318,10 @@ def test_validate_zfspool_missing_required_options():
     assert "pool" in str(exc.value)
 
 
-def test_validate_cephfs_missing_required_options():
-    cephfs_options = {}  # Missing 'content' parameter
+def test_validate_cephfs_no_required_options_does_not_raise():
+    cephfs_options = {}
 
-    with pytest.raises(AnsibleValidationError) as exc:
-        validate_storage_type_options("cephfs", cephfs_options)
-
-    assert "CephFS storage requires" in str(exc.value)
-    assert "content" in str(exc.value)
+    validate_storage_type_options("cephfs", cephfs_options)
 
 
 def test_validate_cifs_missing_required_options():
@@ -359,3 +355,31 @@ def test_validate_nfs_missing_required_options():
     assert "NFS storage requires" in str(exc.value)
     assert "server" in str(exc.value)
     assert "export" in str(exc.value)
+
+
+@pytest.mark.parametrize(
+    "storage_type",
+    [
+        "cephfs",
+        "cifs",
+        "dir",
+        "iscsi",
+        "nfs",
+        "pbs",
+        "zfspool",
+    ],
+)
+def test_storage_validation_never_requires_content_or_nodes(storage_type):
+    if storage_type in proxmox_storage.STORAGE_REQUIRED_OPTIONS:
+        required_fields, error_msg = proxmox_storage.STORAGE_REQUIRED_OPTIONS[storage_type]
+        assert "content" not in required_fields
+        assert "nodes" not in required_fields
+        assert "content" not in error_msg.lower()
+        assert "nodes" not in error_msg.lower()
+
+    try:
+        validate_storage_type_options(storage_type, {})
+    except AnsibleValidationError as exc:
+        msg = str(exc).lower()
+        assert "content" not in msg
+        assert "nodes" not in msg
