@@ -99,7 +99,7 @@ options:
     description:
       - The (unique) ID of the VM where disk will be placed when O(state=moved).
       - You can move disk between VMs only when the same storage is used.
-      - Mutually exclusive with O(target_vmid).
+      - Mutually exclusive with O(target_storage).
     type: int
   timeout:
     description:
