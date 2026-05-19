@@ -259,7 +259,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
             payload["delete"] = 1
 
         try:
-            self.proxmox_api.pools(poolid).put(payload)
+            self.proxmox_api.pools.put(poolid=poolid, **payload)
         except Exception as e:
             self.module.fail_json(msg=f"Failed to update pool {poolid} membership: {e}")
 
