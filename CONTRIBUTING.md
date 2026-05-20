@@ -18,6 +18,7 @@ However, please keep the following things in mind:
   * Mention that you've used AI, either by having the AI as a co-contributor on your PR or mentioning it directly in the text.
   * Verify that whatever your AI does is sensible.
   * Try to keep the changes organized, remember, we're all volunteers and we don't have time to review huge PRs full of hallucinated nonsense.
+  * Ensure, that you yourself understand the code and its logic. In the end, the contents of your PR are your responsibility.
 
 ## Issue tracker
 
