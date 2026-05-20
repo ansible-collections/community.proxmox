@@ -433,3 +433,109 @@ releases:
         name: proxmox_domain_sync
         namespace: ''
     release_date: '2026-04-04'
+  2.0.0:
+    changes:
+      breaking_changes:
+        - proxmox_pool_member - move `member` parameter to a `members` list to manage
+          multiple pool members at once. Add a new `exclusive` parameter to switch
+          between full and incremental mode (https://github.com/ansible-collections/community.proxmox/pull/373
+          / issue https://github.com/ansible-collections/community.proxmox/issues/320).
+      bugfixes:
+        - proxmox - fix ``tags`` always being reported as changed on LXC container
+          updates because the list value was compared against Proxmox's semicolon-delimited
+          string form (https://github.com/ansible-collections/community.proxmox/pull/415).
+        - proxmox modules - fix calls to ``get_storages()`` to use the correct keyword
+          argument (https://github.com/ansible-collections/community.proxmox/pull/401).
+        - proxmox_firewall_info - add none guard on get_ip_sets to prevent crash with
+          ``'NoneType' object has no attribute 'ipset'`` when using ``level=group``
+          (https://github.com/ansible-collections/community.proxmox/issues/430).
+        - proxmox_pool - member retrieval (https://github.com/ansible-collections/community.proxmox/pull/412).
+        - proxmox_pool_member - fix pool membership operations failing for nested
+          pool IDs (https://github.com/ansible-collections/community.proxmox/pull/428).
+        - proxmox_pool_member - fix pool membership update (https://github.com/ansible-collections/community.proxmox/pull/428).
+        - proxmox_pool_member - fix usage of storage member (https://github.com/ansible-collections/community.proxmox/pull/411).
+        - proxmox_pool_member - member retrieval (https://github.com/ansible-collections/community.proxmox/pull/412).
+      minor_changes:
+        - proxmox - add ``destroy_unreferenced_disks`` parameter (https://github.com/ansible-collections/community.proxmox/pull/422).
+        - proxmox - adds ``cmode`` parameter for supporting console modes (https://github.com/ansible-collections/community.proxmox/pull/420  /
+          issue https://github.com/ansible-collections/community.proxmox/issues/65).
+        - proxmox inventory - add ``templates`` group to the inventory (https://github.com/ansible-collections/community.proxmox/pull/399).
+        - proxmox_acme_account - set ``no_log`` on sensitive value ``eab_kid`` (https://github.com/ansible-collections/community.proxmox/pull/418).
+        - proxmox_kvm - add ``destroy_unreferenced_disks`` parameter (https://github.com/ansible-collections/community.proxmox/pull/422).
+        - proxmox_storage - add ``preallocation`` parameter on ``cifs`` storage backend
+          (https://github.com/ansible-collections/community.proxmox/pull/386).
+        - proxmox_storage - add ``preallocation`` parameter on ``nfs`` storage backend
+          (https://github.com/ansible-collections/community.proxmox/pull/390).
+        - proxmox_storage - add ``snapshot_as_volume_chain`` parameter on ``cifs``
+          storage backend (https://github.com/ansible-collections/community.proxmox/pull/387).
+        - proxmox_storage - add alias ``subdirectory`` for ``subdir`` on cifs backend
+          (https://github.com/ansible-collections/community.proxmox/pull/388).
+        - proxmox_storage - add support of ``encryption_key`` on ``pbs`` storage backend
+          (https://github.com/ansible-collections/community.proxmox/pull/389).
+      release_summary: 'This is the major release of the ``community.proxmox`` collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.
+
+
+        Please note that this version of the collection now requires proxmoxer 2.3.0
+        or higher.'
+    fragments:
+      - 2.0.0.yml
+      - 320-manage-multiple-pool-members-at-once.yml
+      - 386-storage-add-param-preallocation.yml
+      - 386-storage-add-param-snapshot_as_volume_chain.yml
+      - 388-add-aliases-for-storage-cifs-subdir.yml
+      - 389-add-support-of-encryption-key-for-pbs-storage.yml
+      - 390-add-support-of-preallocation-on-nfs.yml
+      - 399-add-templates-group-on-inventory.yml
+      - 401-fix-get-storages-invalid-type-kwarg.yml
+      - 411-pool-member-storage.yml
+      - 412-fix-pool-members.yml
+      - 415-lxc-tags-diff.yml
+      - 418-acme-account-eab_kid-no-log.yml
+      - 420-proxmox-add-cmode-console-mode.yml
+      - 422-destroy-unref-disks-option.yml
+      - 428-proxmox-pool-member.yml
+      - 430-proxmox-firewall-info-handle-none.yml
+    modules:
+      - description: Manages an ACME account.
+        name: proxmox_acme_account
+        namespace: ''
+      - description: Retrieves information about a specific ACME account.
+        name: proxmox_acme_account_info
+        namespace: ''
+      - description: Retrieves the list of ACME accounts.
+        name: proxmox_acme_accounts_info
+        namespace: ''
+      - description: Manages ACME SSL certificates for Proxmox VE nodes.
+        name: proxmox_acme_certificate
+        namespace: ''
+      - description: Retrieves the list of certificates on a Proxmox VE node.
+        name: proxmox_acme_certificates_info
+        namespace: ''
+      - description: Manage ACME DNS plugins on a Proxmox VE.
+        name: proxmox_acme_plugin_dns
+        namespace: ''
+      - description: Retrieves a single ACME plugin.
+        name: proxmox_acme_plugin_info
+        namespace: ''
+      - description: Retrieves the list of ACME plugins.
+        name: proxmox_acme_plugins_info
+        namespace: ''
+      - description: Manage Ceph Pool.
+        name: proxmox_ceph_pool
+        namespace: ''
+      - description: Node-level firewall options management for Proxmox VE cluster.
+        name: proxmox_node_firewall
+        namespace: ''
+      - description: Get node-level firewall options for Proxmox VE cluster.
+        name: proxmox_node_firewall_info
+        namespace: ''
+    plugins:
+      connection:
+        - description: Connect to QEMU VMs via the Proxmox guest agent API.
+          name: proxmox_qemu_api
+          namespace: null
+    release_date: '2026-05-20'

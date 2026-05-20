@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_storage - add ``preallocation`` parameter on ``cifs`` storage backend (https://github.com/ansible-collections/community.proxmox/pull/386).

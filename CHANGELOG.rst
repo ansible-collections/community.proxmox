@@ -4,26 +4,29 @@ Community Proxmox Collection Release Notes
 
 .. contents:: Topics
 
-v2.0.0-beta1
-============
+v2.0.0
+======
 
 Release Summary
 ---------------
 
-This is the first beta major release of the ``community.proxmox`` collection.
+This is the major release of the ``community.proxmox`` collection.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release.
 
 Please note that this version of the collection now requires proxmoxer 2.3.0 or higher.
 
-Also note, this release is beta! We are working on a lot of refactoring, so please report any bugs you've found! :-)
-
 Minor Changes
 -------------
 
+- proxmox - add ``destroy_unreferenced_disks`` parameter (https://github.com/ansible-collections/community.proxmox/pull/422).
 - proxmox - add ``totp`` authentification support (https://github.com/ansible-collections/community.proxmox/pull/265).
 - proxmox - add a new helper `create_proxmox_module()` which adds generic auth args and constraints, and merges in the module-specific args and options (https://github.com/ansible-collections/community.proxmox/pull/289).
+- proxmox - adds ``cmode`` parameter for supporting console modes (https://github.com/ansible-collections/community.proxmox/pull/420  / issue https://github.com/ansible-collections/community.proxmox/issues/65).
 - proxmox - update ``proxmoxer`` required dependencies to ``>=2.3`` (https://github.com/ansible-collections/community.proxmox/pull/265).
+- proxmox inventory - add ``templates`` group to the inventory (https://github.com/ansible-collections/community.proxmox/pull/399).
+- proxmox_acme_account - set ``no_log`` on sensitive value ``eab_kid`` (https://github.com/ansible-collections/community.proxmox/pull/418).
+- proxmox_kvm - add ``destroy_unreferenced_disks`` parameter (https://github.com/ansible-collections/community.proxmox/pull/422).
 - proxmox_kvm - add qemu parameter ``spice_enhancements`` (https://github.com/ansible-collections/community.proxmox/pull/324).
 - proxmox_kvm - add qemu parameter ``virtiofs`` (https://github.com/ansible-collections/community.proxmox/pull/336).
 - proxmox_node - add alias ``certificate_file_path`` for ``cert`` (https://github.com/ansible-collections/community.proxmox/pull/331).
@@ -32,29 +35,66 @@ Minor Changes
 - proxmox_node - add new parameter ``certificate`` to pass raw PEM encoded certificate (https://github.com/ansible-collections/community.proxmox/pull/331).
 - proxmox_node - add new parameter ``private_key`` to pass raw PEM encoded private key (https://github.com/ansible-collections/community.proxmox/pull/331).
 - proxmox_storage - Add support for RBD (RADOS Block Device) storage (https://github.com/ansible-collections/community.proxmox/issues/329).
+- proxmox_storage - add ``preallocation`` parameter on ``cifs`` storage backend (https://github.com/ansible-collections/community.proxmox/pull/386).
+- proxmox_storage - add ``preallocation`` parameter on ``nfs`` storage backend (https://github.com/ansible-collections/community.proxmox/pull/390).
+- proxmox_storage - add ``snapshot_as_volume_chain`` parameter on ``cifs`` storage backend (https://github.com/ansible-collections/community.proxmox/pull/387).
+- proxmox_storage - add alias ``subdirectory`` for ``subdir`` on cifs backend (https://github.com/ansible-collections/community.proxmox/pull/388).
+- proxmox_storage - add support of ``encryption_key`` on ``pbs`` storage backend (https://github.com/ansible-collections/community.proxmox/pull/389).
 - proxmox_storage - enhanced error handling and parameters validation (https://github.com/ansible-collections/community.proxmox/pull/305).
 - proxmox_storage - the parameter ``state`` now has a default value of ``present`` (https://github.com/ansible-collections/community.proxmox/pull/305).
 - proxmox_storage - when ``state=present`` parameters ``content`` and ``nodes`` are now not required (https://github.com/ansible-collections/community.proxmox/pull/315).
 
+Breaking Changes / Porting Guide
+--------------------------------
+
+- proxmox_pool_member - move `member` parameter to a `members` list to manage multiple pool members at once. Add a new `exclusive` parameter to switch between full and incremental mode (https://github.com/ansible-collections/community.proxmox/pull/373 / issue https://github.com/ansible-collections/community.proxmox/issues/320).
+
 Bugfixes
 --------
 
+- proxmox - fix ``tags`` always being reported as changed on LXC container updates because the list value was compared against Proxmox's semicolon-delimited string form (https://github.com/ansible-collections/community.proxmox/pull/415).
+- proxmox modules - fix calls to ``get_storages()`` to use the correct keyword argument (https://github.com/ansible-collections/community.proxmox/pull/401).
 - proxmox_cluster_firewall - error message for invalid log_ratelimit.rate parameter (https://github.com/ansible-collections/community.proxmox/pull/340).
 - proxmox_disk - add support for efidisk and tpmstate disk bus types which previously caused module failure with "Unsupported disk bus" error (https://github.com/ansible-collections/community.proxmox/pull/319).
+- proxmox_firewall_info - add none guard on get_ip_sets to prevent crash with ``'NoneType' object has no attribute 'ipset'`` when using ``level=group`` (https://github.com/ansible-collections/community.proxmox/issues/430).
+- proxmox_pool - member retrieval (https://github.com/ansible-collections/community.proxmox/pull/412).
 - proxmox_pool - support nested pool (https://github.com/ansible-collections/community.proxmox/pull/316).
+- proxmox_pool_member - fix pool membership operations failing for nested pool IDs (https://github.com/ansible-collections/community.proxmox/pull/428).
+- proxmox_pool_member - fix pool membership update (https://github.com/ansible-collections/community.proxmox/pull/428).
+- proxmox_pool_member - fix usage of storage member (https://github.com/ansible-collections/community.proxmox/pull/411).
+- proxmox_pool_member - member retrieval (https://github.com/ansible-collections/community.proxmox/pull/412).
 - proxmox_snap - fail the task when a given snapname does not exist instead of exiting (https://github.com/ansible-collections/community.proxmox/pull/365).
 - proxmox_storage - backend ``cephfs``, ``dir`` and ``zfspool`` doesn't requires ``content`` parameter (https://github.com/ansible-collections/community.proxmox/pull/315).
 - proxmox_storage - the parameter ``client_keyring`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
 - proxmox_storage - the parameter ``fs_name`` was ignored (https://github.com/ansible-collections/community.proxmox/pull/305).
 - proxmox_storage - the parameter ``state`` was optional and without default value (https://github.com/ansible-collections/community.proxmox/pull/305).
 
+New Plugins
+-----------
+
+Connection
+~~~~~~~~~~
+
+- community.proxmox.proxmox_qemu_api - Connect to QEMU VMs via the Proxmox guest agent API.
+
 New Modules
 -----------
 
+- community.proxmox.proxmox_acme_account - Manages an ACME account.
+- community.proxmox.proxmox_acme_account_info - Retrieves information about a specific ACME account.
+- community.proxmox.proxmox_acme_accounts_info - Retrieves the list of ACME accounts.
+- community.proxmox.proxmox_acme_certificate - Manages ACME SSL certificates for Proxmox VE nodes.
+- community.proxmox.proxmox_acme_certificates_info - Retrieves the list of certificates on a Proxmox VE node.
+- community.proxmox.proxmox_acme_plugin_dns - Manage ACME DNS plugins on a Proxmox VE.
+- community.proxmox.proxmox_acme_plugin_info - Retrieves a single ACME plugin.
+- community.proxmox.proxmox_acme_plugins_info - Retrieves the list of ACME plugins.
+- community.proxmox.proxmox_ceph_pool - Manage Ceph Pool.
 - community.proxmox.proxmox_cluster_firewall - Cluster-level firewall options management for Proxmox VE cluster.
 - community.proxmox.proxmox_cluster_ha_rules_info - Retrieve Proxmox VE HA rules.
 - community.proxmox.proxmox_domain - Manage authentication realms.
 - community.proxmox.proxmox_domain_sync - Sync realms.
+- community.proxmox.proxmox_node_firewall - Node-level firewall options management for Proxmox VE cluster.
+- community.proxmox.proxmox_node_firewall_info - Get node-level firewall options for Proxmox VE cluster.
 
 v1.6.0
 ======
