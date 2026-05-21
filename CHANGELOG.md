@@ -2,10 +2,13 @@
 
 **Topics**
 
-- <a href="#v2-0-0-beta1">v2\.0\.0\-beta1</a>
+- <a href="#v2-0-0">v2\.0\.0</a>
     - <a href="#release-summary">Release Summary</a>
     - <a href="#minor-changes">Minor Changes</a>
+    - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes">Bugfixes</a>
+    - <a href="#new-plugins">New Plugins</a>
+        - <a href="#connection">Connection</a>
     - <a href="#new-modules">New Modules</a>
 - <a href="#v1-6-0">v1\.6\.0</a>
     - <a href="#release-summary-1">Release Summary</a>
@@ -44,32 +47,35 @@
 - <a href="#v1-0-0">v1\.0\.0</a>
     - <a href="#release-summary-8">Release Summary</a>
     - <a href="#minor-changes-8">Minor Changes</a>
-    - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
+    - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes-6">Bugfixes</a>
     - <a href="#new-modules-7">New Modules</a>
 - <a href="#v0-1-0">v0\.1\.0</a>
     - <a href="#release-summary-9">Release Summary</a>
 
-<a id="v2-0-0-beta1"></a>
-## v2\.0\.0\-beta1
+<a id="v2-0-0"></a>
+## v2\.0\.0
 
 <a id="release-summary"></a>
 ### Release Summary
 
-This is the first beta major release of the <code>community\.proxmox</code> collection\.
+This is the major release of the <code>community\.proxmox</code> collection\.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release\.
 
 Please note that this version of the collection now requires proxmoxer 2\.3\.0 or higher\.
 
-Also note\, this release is beta\! We are working on a lot of refactoring\, so please report any bugs you\'ve found\! \:\-\)
-
 <a id="minor-changes"></a>
 ### Minor Changes
 
+* proxmox \- add <code>destroy\_unreferenced\_disks</code> parameter \([https\://github\.com/ansible\-collections/community\.proxmox/pull/422](https\://github\.com/ansible\-collections/community\.proxmox/pull/422)\)\.
 * proxmox \- add <code>totp</code> authentification support \([https\://github\.com/ansible\-collections/community\.proxmox/pull/265](https\://github\.com/ansible\-collections/community\.proxmox/pull/265)\)\.
 * proxmox \- add a new helper <em class="title-reference">create\_proxmox\_module\(\)</em> which adds generic auth args and constraints\, and merges in the module\-specific args and options \([https\://github\.com/ansible\-collections/community\.proxmox/pull/289](https\://github\.com/ansible\-collections/community\.proxmox/pull/289)\)\.
+* proxmox \- adds <code>cmode</code> parameter for supporting console modes \([https\://github\.com/ansible\-collections/community\.proxmox/pull/420](https\://github\.com/ansible\-collections/community\.proxmox/pull/420)  / issue [https\://github\.com/ansible\-collections/community\.proxmox/issues/65](https\://github\.com/ansible\-collections/community\.proxmox/issues/65)\)\.
 * proxmox \- update <code>proxmoxer</code> required dependencies to <code>\>\=2\.3</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/265](https\://github\.com/ansible\-collections/community\.proxmox/pull/265)\)\.
+* proxmox inventory \- add <code>templates</code> group to the inventory \([https\://github\.com/ansible\-collections/community\.proxmox/pull/399](https\://github\.com/ansible\-collections/community\.proxmox/pull/399)\)\.
+* proxmox\_acme\_account \- set <code>no\_log</code> on sensitive value <code>eab\_kid</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/418](https\://github\.com/ansible\-collections/community\.proxmox/pull/418)\)\.
+* proxmox\_kvm \- add <code>destroy\_unreferenced\_disks</code> parameter \([https\://github\.com/ansible\-collections/community\.proxmox/pull/422](https\://github\.com/ansible\-collections/community\.proxmox/pull/422)\)\.
 * proxmox\_kvm \- add qemu parameter <code>spice\_enhancements</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/324](https\://github\.com/ansible\-collections/community\.proxmox/pull/324)\)\.
 * proxmox\_kvm \- add qemu parameter <code>virtiofs</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/336](https\://github\.com/ansible\-collections/community\.proxmox/pull/336)\)\.
 * proxmox\_node \- add alias <code>certificate\_file\_path</code> for <code>cert</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/331](https\://github\.com/ansible\-collections/community\.proxmox/pull/331)\)\.
@@ -78,29 +84,66 @@ Also note\, this release is beta\! We are working on a lot of refactoring\, so p
 * proxmox\_node \- add new parameter <code>certificate</code> to pass raw PEM encoded certificate \([https\://github\.com/ansible\-collections/community\.proxmox/pull/331](https\://github\.com/ansible\-collections/community\.proxmox/pull/331)\)\.
 * proxmox\_node \- add new parameter <code>private\_key</code> to pass raw PEM encoded private key \([https\://github\.com/ansible\-collections/community\.proxmox/pull/331](https\://github\.com/ansible\-collections/community\.proxmox/pull/331)\)\.
 * proxmox\_storage \- Add support for RBD \(RADOS Block Device\) storage \([https\://github\.com/ansible\-collections/community\.proxmox/issues/329](https\://github\.com/ansible\-collections/community\.proxmox/issues/329)\)\.
+* proxmox\_storage \- add <code>preallocation</code> parameter on <code>cifs</code> storage backend \([https\://github\.com/ansible\-collections/community\.proxmox/pull/386](https\://github\.com/ansible\-collections/community\.proxmox/pull/386)\)\.
+* proxmox\_storage \- add <code>preallocation</code> parameter on <code>nfs</code> storage backend \([https\://github\.com/ansible\-collections/community\.proxmox/pull/390](https\://github\.com/ansible\-collections/community\.proxmox/pull/390)\)\.
+* proxmox\_storage \- add <code>snapshot\_as\_volume\_chain</code> parameter on <code>cifs</code> storage backend \([https\://github\.com/ansible\-collections/community\.proxmox/pull/387](https\://github\.com/ansible\-collections/community\.proxmox/pull/387)\)\.
+* proxmox\_storage \- add alias <code>subdirectory</code> for <code>subdir</code> on cifs backend \([https\://github\.com/ansible\-collections/community\.proxmox/pull/388](https\://github\.com/ansible\-collections/community\.proxmox/pull/388)\)\.
+* proxmox\_storage \- add support of <code>encryption\_key</code> on <code>pbs</code> storage backend \([https\://github\.com/ansible\-collections/community\.proxmox/pull/389](https\://github\.com/ansible\-collections/community\.proxmox/pull/389)\)\.
 * proxmox\_storage \- enhanced error handling and parameters validation \([https\://github\.com/ansible\-collections/community\.proxmox/pull/305](https\://github\.com/ansible\-collections/community\.proxmox/pull/305)\)\.
 * proxmox\_storage \- the parameter <code>state</code> now has a default value of <code>present</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/305](https\://github\.com/ansible\-collections/community\.proxmox/pull/305)\)\.
 * proxmox\_storage \- when <code>state\=present</code> parameters <code>content</code> and <code>nodes</code> are now not required \([https\://github\.com/ansible\-collections/community\.proxmox/pull/315](https\://github\.com/ansible\-collections/community\.proxmox/pull/315)\)\.
 
+<a id="breaking-changes--porting-guide"></a>
+### Breaking Changes / Porting Guide
+
+* proxmox\_pool\_member \- move <em class="title-reference">member</em> parameter to a <em class="title-reference">members</em> list to manage multiple pool members at once\. Add a new <em class="title-reference">exclusive</em> parameter to switch between full and incremental mode \([https\://github\.com/ansible\-collections/community\.proxmox/pull/373](https\://github\.com/ansible\-collections/community\.proxmox/pull/373) / issue [https\://github\.com/ansible\-collections/community\.proxmox/issues/320](https\://github\.com/ansible\-collections/community\.proxmox/issues/320)\)\.
+
 <a id="bugfixes"></a>
 ### Bugfixes
 
+* proxmox \- fix <code>tags</code> always being reported as changed on LXC container updates because the list value was compared against Proxmox\'s semicolon\-delimited string form \([https\://github\.com/ansible\-collections/community\.proxmox/pull/415](https\://github\.com/ansible\-collections/community\.proxmox/pull/415)\)\.
+* proxmox modules \- fix calls to <code>get\_storages\(\)</code> to use the correct keyword argument \([https\://github\.com/ansible\-collections/community\.proxmox/pull/401](https\://github\.com/ansible\-collections/community\.proxmox/pull/401)\)\.
 * proxmox\_cluster\_firewall \- error message for invalid log\_ratelimit\.rate parameter \([https\://github\.com/ansible\-collections/community\.proxmox/pull/340](https\://github\.com/ansible\-collections/community\.proxmox/pull/340)\)\.
 * proxmox\_disk \- add support for efidisk and tpmstate disk bus types which previously caused module failure with \"Unsupported disk bus\" error \([https\://github\.com/ansible\-collections/community\.proxmox/pull/319](https\://github\.com/ansible\-collections/community\.proxmox/pull/319)\)\.
+* proxmox\_firewall\_info \- add none guard on get\_ip\_sets to prevent crash with <code>\'NoneType\' object has no attribute \'ipset\'</code> when using <code>level\=group</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/430](https\://github\.com/ansible\-collections/community\.proxmox/issues/430)\)\.
+* proxmox\_pool \- member retrieval \([https\://github\.com/ansible\-collections/community\.proxmox/pull/412](https\://github\.com/ansible\-collections/community\.proxmox/pull/412)\)\.
 * proxmox\_pool \- support nested pool \([https\://github\.com/ansible\-collections/community\.proxmox/pull/316](https\://github\.com/ansible\-collections/community\.proxmox/pull/316)\)\.
+* proxmox\_pool\_member \- fix pool membership operations failing for nested pool IDs \([https\://github\.com/ansible\-collections/community\.proxmox/pull/428](https\://github\.com/ansible\-collections/community\.proxmox/pull/428)\)\.
+* proxmox\_pool\_member \- fix pool membership update \([https\://github\.com/ansible\-collections/community\.proxmox/pull/428](https\://github\.com/ansible\-collections/community\.proxmox/pull/428)\)\.
+* proxmox\_pool\_member \- fix usage of storage member \([https\://github\.com/ansible\-collections/community\.proxmox/pull/411](https\://github\.com/ansible\-collections/community\.proxmox/pull/411)\)\.
+* proxmox\_pool\_member \- member retrieval \([https\://github\.com/ansible\-collections/community\.proxmox/pull/412](https\://github\.com/ansible\-collections/community\.proxmox/pull/412)\)\.
 * proxmox\_snap \- fail the task when a given snapname does not exist instead of exiting \([https\://github\.com/ansible\-collections/community\.proxmox/pull/365](https\://github\.com/ansible\-collections/community\.proxmox/pull/365)\)\.
 * proxmox\_storage \- backend <code>cephfs</code>\, <code>dir</code> and <code>zfspool</code> doesn\'t requires <code>content</code> parameter \([https\://github\.com/ansible\-collections/community\.proxmox/pull/315](https\://github\.com/ansible\-collections/community\.proxmox/pull/315)\)\.
 * proxmox\_storage \- the parameter <code>client\_keyring</code> was ignored \([https\://github\.com/ansible\-collections/community\.proxmox/pull/305](https\://github\.com/ansible\-collections/community\.proxmox/pull/305)\)\.
 * proxmox\_storage \- the parameter <code>fs\_name</code> was ignored \([https\://github\.com/ansible\-collections/community\.proxmox/pull/305](https\://github\.com/ansible\-collections/community\.proxmox/pull/305)\)\.
 * proxmox\_storage \- the parameter <code>state</code> was optional and without default value \([https\://github\.com/ansible\-collections/community\.proxmox/pull/305](https\://github\.com/ansible\-collections/community\.proxmox/pull/305)\)\.
 
+<a id="new-plugins"></a>
+### New Plugins
+
+<a id="connection"></a>
+#### Connection
+
+* community\.proxmox\.proxmox\_qemu\_api \- Connect to QEMU VMs via the Proxmox guest agent API\.
+
 <a id="new-modules"></a>
 ### New Modules
 
+* community\.proxmox\.proxmox\_acme\_account \- Manages an ACME account\.
+* community\.proxmox\.proxmox\_acme\_account\_info \- Retrieves information about a specific ACME account\.
+* community\.proxmox\.proxmox\_acme\_accounts\_info \- Retrieves the list of ACME accounts\.
+* community\.proxmox\.proxmox\_acme\_certificate \- Manages ACME SSL certificates for Proxmox VE nodes\.
+* community\.proxmox\.proxmox\_acme\_certificates\_info \- Retrieves the list of certificates on a Proxmox VE node\.
+* community\.proxmox\.proxmox\_acme\_plugin\_dns \- Manage ACME DNS plugins on a Proxmox VE\.
+* community\.proxmox\.proxmox\_acme\_plugin\_info \- Retrieves a single ACME plugin\.
+* community\.proxmox\.proxmox\_acme\_plugins\_info \- Retrieves the list of ACME plugins\.
+* community\.proxmox\.proxmox\_ceph\_pool \- Manage Ceph Pool\.
 * community\.proxmox\.proxmox\_cluster\_firewall \- Cluster\-level firewall options management for Proxmox VE cluster\.
 * community\.proxmox\.proxmox\_cluster\_ha\_rules\_info \- Retrieve Proxmox VE HA rules\.
 * community\.proxmox\.proxmox\_domain \- Manage authentication realms\.
 * community\.proxmox\.proxmox\_domain\_sync \- Sync realms\.
+* community\.proxmox\.proxmox\_node\_firewall \- Node\-level firewall options management for Proxmox VE cluster\.
+* community\.proxmox\.proxmox\_node\_firewall\_info \- Get node\-level firewall options for Proxmox VE cluster\.
 
 <a id="v1-6-0"></a>
 ## v1\.6\.0
@@ -345,7 +388,7 @@ This is the first stable release of the <code>community\.proxmox</code> collecti
 * proxmox\_kvm \- remove redundant check for duplicate names as this is allowed by PVE API \([https\://github\.com/ansible\-collections/community\.proxmox/issues/97](https\://github\.com/ansible\-collections/community\.proxmox/issues/97)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/99](https\://github\.com/ansible\-collections/community\.proxmox/pull/99)\)\.
 * proxmox\_snap \- correctly handle proxmox\_snap timeout parameter \([https\://github\.com/ansible\-collections/community\.proxmox/issues/73](https\://github\.com/ansible\-collections/community\.proxmox/issues/73)\, [https\://github\.com/ansible\-collections/community\.proxmox/issues/95](https\://github\.com/ansible\-collections/community\.proxmox/issues/95)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/101](https\://github\.com/ansible\-collections/community\.proxmox/pull/101)\)\.
 
-<a id="breaking-changes--porting-guide"></a>
+<a id="breaking-changes--porting-guide-1"></a>
 ### Breaking Changes / Porting Guide
 
 * proxmox \- <code>update</code> and <code>force</code> are now mutually exclusive \([https\://github\.com/ansible\-collections/community\.proxmox/pull/92](https\://github\.com/ansible\-collections/community\.proxmox/pull/92)\)\.
