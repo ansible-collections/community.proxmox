@@ -888,6 +888,80 @@ def test_get_guest_facts_by_item_serial(inventory, mocker):
     thread_pool.assert_not_called()
 
 
+def test_get_guest_facts_by_item_cancels_pending_futures_on_interrupt(inventory, mocker):
+    inventory.facts_concurrency = 8
+
+    opts = {
+        "want_facts": True,
+    }
+
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+    executor = mocker.MagicMock()
+    future = mocker.MagicMock()
+    future.done.return_value = False
+    future.running.return_value = True
+    executor.submit.return_value = future
+    thread_pool = mocker.patch(
+        "ansible_collections.community.proxmox.plugins.inventory.proxmox.ThreadPoolExecutor",
+        return_value=executor,
+    )
+    display_warning = mocker.patch(
+        "ansible_collections.community.proxmox.plugins.inventory.proxmox.display.warning"
+    )
+    mocker.patch(
+        "ansible_collections.community.proxmox.plugins.inventory.proxmox.as_completed",
+        side_effect=KeyboardInterrupt,
+    )
+
+    with pytest.raises(KeyboardInterrupt):
+        inventory._get_guest_facts_by_item(
+            [
+                ("testnode", "qemu", {"name": "test-qemu", "vmid": "101"}),
+            ]
+        )
+
+    thread_pool.assert_called_once_with(max_workers=8)
+    display_warning.assert_called_once_with(
+        "Interrupted Proxmox guest fact gathering with 1 pending tasks, 1 running"
+    )
+    executor.shutdown.assert_called_once_with(wait=False, cancel_futures=True)
+
+
+def test_get_guest_facts_for_item_marks_failed_fact_gathering(inventory, mocker):
+    inventory.facts_prefix = "proxmox_"
+    inventory._get_guest_facts = mocker.MagicMock(side_effect=TimeoutError("timed out"))
+
+    node, ittype, vmid, properties = inventory._get_guest_facts_for_item(
+        "testnode", "qemu", {"name": "test-qemu", "vmid": "101"}
+    )
+
+    assert (node, ittype, vmid) == ("testnode", "qemu", "101")
+    assert properties["proxmox_fact_gathering_failed"] is True
+    assert properties["proxmox_fact_gathering_error"] == "timed out"
+
+
+def test_get_json_uses_request_timeout(inventory, mocker):
+    inventory.use_cache = False
+    inventory._results = {}
+    inventory._results_lock = mocker.MagicMock()
+    inventory.headers = {}
+    inventory.request_timeout = 12
+
+    response = mocker.MagicMock()
+    response.status_code = 200
+    response.json.return_value = {"data": [{"name": "test"}]}
+    session = mocker.MagicMock()
+    session.get.return_value = response
+    inventory._get_session = mocker.MagicMock(return_value=session)
+
+    assert inventory._get_json("https://localhost:8006/api2/json/test") == [{"name": "test"}]
+    session.get.assert_called_once_with(
+        "https://localhost:8006/api2/json/test",
+        headers={},
+        timeout=12,
+    )
+
+
 def test_handle_item_adds_dynamic_status_group(inventory, mocker):
     inventory.proxmox_url = "https://localhost:8006"
     inventory.group_prefix = "proxmox_"

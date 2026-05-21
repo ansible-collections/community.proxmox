@@ -99,6 +99,12 @@ DOCUMENTATION = """
           - Set to V(1) to gather facts serially.
         default: 1
         type: int
+      request_timeout:
+        description:
+          - Timeout in seconds for Proxmox API requests.
+          - The timeout is passed to the underlying HTTP client and applies to connection and socket read waits.
+        default: 30
+        type: int
       want_post_filter_facts:
         description:
         - Whether to collect facts after host filtering (in contrast to pull all facts of all hosts before filtering as with O(want_facts) set to V(true)).
@@ -265,6 +271,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.cache_key = None
         self.use_cache = None
         self.facts_concurrency = 1
+        self.request_timeout = 30
 
     def verify_file(self, path):
         valid = False
@@ -290,7 +297,11 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if self.proxmox_password:
             credentials = urlencode({"username": self.proxmox_user, "password": self.proxmox_password})
             a = self._get_session()
-            ret = a.post(f"{self.proxmox_url}/api2/json/access/ticket", data=credentials)
+            ret = a.post(
+                f"{self.proxmox_url}/api2/json/access/ticket",
+                data=credentials,
+                timeout=self.request_timeout,
+            )
             json = ret.json()
             self.headers = {
                 # only required for POST/PUT/DELETE methods, which we are not using currently
@@ -323,7 +334,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not has_data:
             s = self._get_session()
             while True:
-                ret = s.get(url, headers=self.headers)
+                ret = s.get(url, headers=self.headers, timeout=self.request_timeout)
                 if ignore_errors and ret.status_code in ignore_errors:
                     break
                 ret.raise_for_status()
@@ -351,14 +362,23 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         return make_unsafe(data)
 
     def _get_nodes(self):
+        display.vvv("Fetching Proxmox cluster status")
         cluster_status = self._get_json(f"{self.proxmox_url}/api2/json/cluster/status")
-        return [item for item in cluster_status if item["type"] == "node"]
+        nodes = [item for item in cluster_status if item["type"] == "node"]
+        display.vvv(f"Fetched {len(nodes)} Proxmox nodes")
+        return nodes
 
     def _get_pools(self):
-        return self._get_json(f"{self.proxmox_url}/api2/json/pools")
+        display.vvv("Fetching Proxmox pools")
+        pools = self._get_json(f"{self.proxmox_url}/api2/json/pools")
+        display.vvv(f"Fetched {len(pools)} Proxmox pools")
+        return pools
 
     def _get_vms(self):
-        return self._get_json(f"{self.proxmox_url}/api2/json/cluster/resources?type=vm")
+        display.vvv("Fetching Proxmox VM resources")
+        vms = self._get_json(f"{self.proxmox_url}/api2/json/cluster/resources?type=vm")
+        display.vvv(f"Fetched {len(vms)} Proxmox VM resources")
+        return vms
 
     def _get_vms_by_node(self):
         vms_by_node = {"qemu": {}, "lxc": {}}
@@ -374,11 +394,19 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             node_items = vms_by_node[ittype].setdefault(item["node"], [])
             node_items.append(item)
 
+        display.vvv(
+            "Grouped Proxmox VM resources into "
+            f"{sum(len(items) for items in vms_by_node['qemu'].values())} QEMU guests and "
+            f"{sum(len(items) for items in vms_by_node['lxc'].values())} LXC guests"
+        )
         return vms_by_node
 
     def _get_members_per_pool(self, pool):
+        display.vvv(f"Fetching Proxmox pool members for {pool}")
         ret = self._get_json(f"{self.proxmox_url}/api2/json/pools/{pool}")
-        return ret["members"]
+        members = ret["members"]
+        display.vvv(f"Fetched {len(members)} Proxmox pool members for {pool}")
+        return members
 
     def _get_lxc_interfaces(self, properties, node, vmid):
         status_key = self._fact("status")
@@ -521,10 +549,18 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if ittype == "lxc":
             self._get_lxc_interfaces(properties, node, vmid)
 
+    def _safe_get_guest_facts(self, properties, node, vmid, ittype, name):
+        try:
+            self._get_guest_facts(properties, node, vmid, ittype, name)
+        except Exception as e:  # pylint: disable=broad-except
+            properties[self._fact("fact_gathering_failed")] = True
+            properties[self._fact("fact_gathering_error")] = str(e)
+            display.warning(f"Could not gather Proxmox guest facts for {node}/{ittype}/{vmid} ({name}) - {e}")
+
     def _get_guest_facts_for_item(self, node, ittype, item):
-        display.vvvv(f"Gathering Proxmox guest facts for {node}/{ittype}/{item['vmid']} ({item['name']})")
         properties = {}
-        self._get_guest_facts(properties, node, item["vmid"], ittype, item["name"])
+        self._safe_get_guest_facts(properties, node, item["vmid"], ittype, item["name"])
+        display.vvvv(f"Gathered Proxmox guest facts for {node}/{ittype}/{item['vmid']} ({item['name']})")
         return node, ittype, item["vmid"], properties
 
     def _get_guest_facts_by_item(self, items):
@@ -543,7 +579,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 guest_facts_by_item[(result_node, result_ittype, vmid)] = properties
             return guest_facts_by_item
 
-        with ThreadPoolExecutor(max_workers=self.facts_concurrency) as executor:
+        executor = ThreadPoolExecutor(max_workers=self.facts_concurrency)
+        try:
             futures = [
                 executor.submit(self._get_guest_facts_for_item, node, ittype, item)
                 for node, ittype, item in items
@@ -551,6 +588,17 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             for future in as_completed(futures):
                 node, ittype, vmid, properties = future.result()
                 guest_facts_by_item[(node, ittype, vmid)] = properties
+        except KeyboardInterrupt:
+            pending_futures = sum(1 for future in futures if not future.done())
+            running_futures = sum(1 for future in futures if future.running())
+            display.warning(
+                "Interrupted Proxmox guest fact gathering with "
+                f"{pending_futures} pending tasks, {running_futures} running"
+            )
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            executor.shutdown(wait=True)
 
         return guest_facts_by_item
 
@@ -620,7 +668,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if guest_facts is not None:
                 properties.update(guest_facts)
             else:
-                self._get_guest_facts(properties, node, vmid, ittype, name)
+                self._safe_get_guest_facts(properties, node, vmid, ittype, name)
 
         # ensure the host satisfies filters
         if not self._can_add_host(name, properties):
@@ -629,7 +677,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         # get status, config and snapshots if we want_post_filter_facts only
         want_post_filter_facts = self.get_option("want_post_filter_facts")
         if not want_facts and want_post_filter_facts:
-            self._get_guest_facts(properties, node, vmid, ittype, name)
+            self._safe_get_guest_facts(properties, node, vmid, ittype, name)
 
         # add the host to the inventory
         self._add_host(name, properties)
@@ -745,10 +793,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             raise AnsibleError("You must set want_facts to True if you want to use qemu_extended_statuses.")
         if self.get_option("facts_concurrency") < 1:
             raise AnsibleError("You must set facts_concurrency to 1 or greater.")
+        if self.get_option("request_timeout") < 1:
+            raise AnsibleError("You must set request_timeout to 1 or greater.")
         # read rest of options
         self.exclude_nodes = self.get_option("exclude_nodes")
         self.exclude_vms = self.get_option("exclude_vms")
         self.facts_concurrency = self.get_option("facts_concurrency")
+        self.request_timeout = self.get_option("request_timeout")
         self.cache_key = self.get_cache_key(path)
         self.use_cache = cache and self.get_option("cache")
         self.update_cache = not cache and self.get_option("cache")
