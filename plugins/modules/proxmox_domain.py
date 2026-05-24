@@ -20,6 +20,11 @@ attributes:
     support: none
 
 options:
+    openid_audiences:
+        description:
+            - A list of audiences that the OpenID Issuer may include that are accepted in addition to C(openid_client_id).
+            - Supported for O(type=openid).
+        type: str
     openid_acr_values:
         description:
             - Defines the Authentication Context Class Reference values requested from the Authorization Server for the Authentication Request.
@@ -328,6 +333,7 @@ def module_args():
                 "scope": dict(choices=["users", "groups", "both"]),
             },
         ),
+        openid_audiences=dict(type="str"),
         openid_acr_values=dict(type="str"),
         openid_autocreate=dict(type="bool"),
         openid_client_id=dict(type="str"),
@@ -446,6 +452,7 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
 
     def get_openid_params(self):
         list_openid_params = [
+            "openid_audiences",
             "openid_acr_values",
             "openid_autocreate",
             "openid_client_id",
