@@ -245,6 +245,7 @@ from ansible_collections.community.proxmox.plugins.plugin_utils.unsafe import ma
 # 3rd party imports
 try:
     import requests
+    import urllib3
 
     if LooseVersion(requests.__version__) < LooseVersion("1.1.0"):
         raise ImportError
@@ -290,6 +291,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 {"User-Agent": f"ansible {ansible_version} Python {python_version.split(' ', 1)[0]}"}
             )
             session.verify = self.get_option("validate_certs")
+            if not session.verify:
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             self._thread_local.session = session
         return session
 
@@ -569,9 +572,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not self.get_option("want_facts") or not items:
             return guest_facts_by_item
 
-        display.vvv(
-            f"Gathering Proxmox guest facts for {len(items)} guests with {self.facts_concurrency} workers"
-        )
+        display.vvv(f"Gathering Proxmox guest facts for {len(items)} guests with {self.facts_concurrency} workers")
 
         if self.facts_concurrency == 1:
             for node, ittype, item in items:
@@ -582,8 +583,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         executor = ThreadPoolExecutor(max_workers=self.facts_concurrency)
         try:
             futures = [
-                executor.submit(self._get_guest_facts_for_item, node, ittype, item)
-                for node, ittype, item in items
+                executor.submit(self._get_guest_facts_for_item, node, ittype, item) for node, ittype, item in items
             ]
             for future in as_completed(futures):
                 node, ittype, vmid, properties = future.result()

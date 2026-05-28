@@ -865,9 +865,7 @@ def test_get_guest_facts_by_item_serial(inventory, mocker):
     }
 
     inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
-    thread_pool = mocker.patch(
-        "ansible_collections.community.proxmox.plugins.inventory.proxmox.ThreadPoolExecutor"
-    )
+    thread_pool = mocker.patch("ansible_collections.community.proxmox.plugins.inventory.proxmox.ThreadPoolExecutor")
 
     def get_guest_facts_for_item(node, ittype, item):
         return node, ittype, item["vmid"], {"fact": ittype}
@@ -905,9 +903,7 @@ def test_get_guest_facts_by_item_cancels_pending_futures_on_interrupt(inventory,
         "ansible_collections.community.proxmox.plugins.inventory.proxmox.ThreadPoolExecutor",
         return_value=executor,
     )
-    display_warning = mocker.patch(
-        "ansible_collections.community.proxmox.plugins.inventory.proxmox.display.warning"
-    )
+    display_warning = mocker.patch("ansible_collections.community.proxmox.plugins.inventory.proxmox.display.warning")
     mocker.patch(
         "ansible_collections.community.proxmox.plugins.inventory.proxmox.as_completed",
         side_effect=KeyboardInterrupt,
@@ -921,9 +917,7 @@ def test_get_guest_facts_by_item_cancels_pending_futures_on_interrupt(inventory,
         )
 
     thread_pool.assert_called_once_with(max_workers=8)
-    display_warning.assert_called_once_with(
-        "Interrupted Proxmox guest fact gathering with 1 pending tasks, 1 running"
-    )
+    display_warning.assert_called_once_with("Interrupted Proxmox guest fact gathering with 1 pending tasks, 1 running")
     executor.shutdown.assert_called_once_with(wait=False, cancel_futures=True)
 
 
@@ -992,4 +986,6 @@ def test_handle_item_adds_dynamic_status_group(inventory, mocker):
     name = inventory._handle_item("testnode", "qemu", item, guest_facts={"proxmox_qmpstatus": "prelaunch"})
 
     assert name == "test-qemu-prelaunch"
-    assert inventory.inventory.get_host("test-qemu-prelaunch") in inventory.inventory.groups["proxmox_all_prelaunch"].hosts
+    assert (
+        inventory.inventory.get_host("test-qemu-prelaunch") in inventory.inventory.groups["proxmox_all_prelaunch"].hosts
+    )
