@@ -266,7 +266,6 @@ EXAMPLES = r"""
       password: password123
       datastore: backup
       fingerprint: "F3:04:D2:C1:33:B7:35:B9:88:D8:7A:24:85:21:DC:75:EE:7C:A5:2A:55:2D:99:38:6B:48:5E:CA:0D:E3:FE:66"
-      export: "/mnt/storage01/b01pbs01"
     content: ["backup"]
 
 - name: Add NFS storage to Proxmox VE Cluster
