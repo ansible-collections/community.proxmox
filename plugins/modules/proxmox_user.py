@@ -74,10 +74,14 @@ options:
     type: str
   password:
     description:
-      - Initial password.
+      - Password for the user.
       - Only for PVE Authentication Realm users.
-      - Parameter is ignored when user already exists or O(state=absent).
     type: str
+  update_password:
+    description:
+      - Whether to update the password of the user.
+    type: bool
+    default: true
   tokens:
     description: List of API tokens associated to the user.
     type: list
@@ -171,6 +175,7 @@ def module_args():
         lastname=dict(type="str"),
         keys=dict(type="str", no_log=True),
         password=dict(type="str", no_log=True),
+        update_password=dict(type="bool", default=True),
         tokens=dict(
             type="list",
             no_log=False,
@@ -386,8 +391,8 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     )
 
             # We have no way of testing if the user's password needs to be changed
-            # so, if it's provided we will update it anyway
-            if password:
+            update_password = self.module.params.get("update_password") or True
+            if password and update_password:
                 try:
                     self.proxmox_api.access.password.put(userid=userid, password=password)
                     self.module.exit_json(changed=True, userid=userid, msg=f"User {userid} updated")
