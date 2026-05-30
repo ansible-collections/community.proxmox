@@ -83,10 +83,8 @@ options:
   cmode:
     description:
       - Console mode.
-      - If set to V(default), no C(cmode) will be provided on instance creation.
     type: str
-    choices: ['default', 'tty', 'console', 'shell']
-    default: default
+    choices: ['tty', 'console', 'shell']
   cores:
     description:
       - Specify number of cores per socket.
@@ -349,7 +347,7 @@ EXAMPLES = r"""
     password: 123456
     hostname: example.org
     ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
-    cmode: 'shell'
+    cmode: shell
 
 - name: Create new container with hookscript and description
   community.proxmox.proxmox:
@@ -611,9 +609,7 @@ def module_args():
             ],
         ),
         cmode=dict(
-            default="default",
             choices=[
-                "default",
                 "tty",
                 "console",
                 "shell",
@@ -1165,9 +1161,6 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         if kwargs.get("ostype") == "auto":
             kwargs.pop("ostype")
-
-        if kwargs.get("cmode") == "default":
-            kwargs.pop("cmode")
 
         proxmox_node = self.proxmox_api.nodes(node)
         taskid = getattr(proxmox_node, self.VZ_TYPE).create(vmid=vmid, ostemplate=ostemplate, **kwargs)
