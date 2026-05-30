@@ -391,7 +391,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     )
 
             # We have no way of testing if the user's password needs to be changed
-            update_password = self.module.params.get("update_password") or True
+            update_password = self.module.params.get("update_password")
             if password and update_password:
                 try:
                     self.proxmox_api.access.password.put(userid=userid, password=password)
