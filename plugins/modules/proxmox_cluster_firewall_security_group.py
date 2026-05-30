@@ -267,13 +267,13 @@ def _build_create_rule_payload(desired_rule, position, group_name):
         "enable": ansible_to_proxmox_bool(desired_rule.get("enabled", True)),
     }
     for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items():
-        if desired_rule.get(ansible_key) is not None:
+        if desired_rule.get(ansible_key):
             payload[api_key] = desired_rule[ansible_key]
-    if group_name is not None:
+    if group_name:
         payload["group"] = group_name
-    if position is not None:
+    if position:
         payload["pos"] = position
-    return {k: v for k, v in payload.items() if v is not None or k == "enable"}
+    return {k: v for k, v in payload.items() if v or k == "enable"}
 
 
 def _build_update_rule_payload(desired_rule, current_rule):
