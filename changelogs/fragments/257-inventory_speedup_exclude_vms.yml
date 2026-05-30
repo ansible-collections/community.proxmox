@@ -2,6 +2,6 @@
 minor_changes:
   - inventory plugin - add exclude_vms option (https://github.com/ansible-collections/community.proxmox/pull/257).
   - inventory plugin - add facts_concurrency option for concurrent LXC/QEMU fact gathering (https://github.com/ansible-collections/community.proxmox/pull/257).
-  - inventory plugin - add request_timeout option for Proxmox API requests and keep hosts in inventory when optional LXC/QEMU fact gathering fails (https://github.com/ansible-collections/community.proxmox/pull/257).
+  - inventory plugin - add api_timeout option for Proxmox API requests and keep hosts in inventory when optional LXC/QEMU fact gathering fails (https://github.com/ansible-collections/community.proxmox/pull/257).
   - inventory plugin - fetch nodes from /api2/json/cluster/status instead of /api2/json/nodes (https://github.com/ansible-collections/community.proxmox/pull/257).
   - inventory plugin - fetch QEMU and LXC inventory records from /api2/json/cluster/resources?type=vm instead of querying every online node (https://github.com/ansible-collections/community.proxmox/pull/257).

@@ -934,12 +934,12 @@ def test_get_guest_facts_for_item_marks_failed_fact_gathering(inventory, mocker)
     assert properties["proxmox_fact_gathering_error"] == "timed out"
 
 
-def test_get_json_uses_request_timeout(inventory, mocker):
+def test_get_json_uses_api_timeout(inventory, mocker):
     inventory.use_cache = False
     inventory._results = {}
     inventory._results_lock = mocker.MagicMock()
     inventory.headers = {}
-    inventory.request_timeout = 12
+    inventory.api_timeout = 12
 
     response = mocker.MagicMock()
     response.status_code = 200

@@ -99,11 +99,11 @@ DOCUMENTATION = """
           - Set to V(1) to gather facts serially.
         default: 1
         type: int
-      request_timeout:
+      api_timeout:
         description:
           - Timeout in seconds for Proxmox API requests.
           - The timeout is passed to the underlying HTTP client and applies to connection and socket read waits.
-        default: 30
+        default: 5
         type: int
       want_post_filter_facts:
         description:
@@ -272,7 +272,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.cache_key = None
         self.use_cache = None
         self.facts_concurrency = 1
-        self.request_timeout = 30
+        self.api_timeout = 5
 
     def verify_file(self, path):
         valid = False
@@ -303,7 +303,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             ret = a.post(
                 f"{self.proxmox_url}/api2/json/access/ticket",
                 data=credentials,
-                timeout=self.request_timeout,
+                timeout=self.api_timeout,
             )
             json = ret.json()
             self.headers = {
@@ -337,7 +337,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not has_data:
             s = self._get_session()
             while True:
-                ret = s.get(url, headers=self.headers, timeout=self.request_timeout)
+                ret = s.get(url, headers=self.headers, timeout=self.api_timeout)
                 if ignore_errors and ret.status_code in ignore_errors:
                     break
                 ret.raise_for_status()
@@ -793,13 +793,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             raise AnsibleError("You must set want_facts to True if you want to use qemu_extended_statuses.")
         if self.get_option("facts_concurrency") < 1:
             raise AnsibleError("You must set facts_concurrency to 1 or greater.")
-        if self.get_option("request_timeout") < 1:
-            raise AnsibleError("You must set request_timeout to 1 or greater.")
+        if self.get_option("api_timeout") < 1:
+            raise AnsibleError("You must set api_timeout to 1 or greater.")
         # read rest of options
         self.exclude_nodes = self.get_option("exclude_nodes")
         self.exclude_vms = self.get_option("exclude_vms")
         self.facts_concurrency = self.get_option("facts_concurrency")
-        self.request_timeout = self.get_option("request_timeout")
+        self.api_timeout = self.get_option("api_timeout")
         self.cache_key = self.get_cache_key(path)
         self.use_cache = cache and self.get_option("cache")
         self.update_cache = not cache and self.get_option("cache")
