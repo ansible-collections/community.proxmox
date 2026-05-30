@@ -7,7 +7,7 @@
 DOCUMENTATION = r"""
 module: proxmox_cluster_firewall_security_group
 short_description: Cluster firewall security group management for Proxmox VE
-version_added: "2.0.0"
+version_added: "2.1.0"
 author:
   - Clément Cruau (@PendaGTP)
 description:
