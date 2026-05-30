@@ -196,12 +196,14 @@ options:
         description:
             - Realm type.
             - Required when O(state=present).
+            - Immutable after creation.
         choices: ['ad', 'ldap', 'openid']
         type: str
     openid_username_claim:
         description:
             - OpenID claim used to generate the unique username.
             - Supported for O(type=openid).
+            - Immutable after creation.
         type: str
     ldap_user_attr:
         description:
@@ -295,6 +297,12 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     create_proxmox_module,
 )
 
+IMMUTABLE_API_FIELDS = (
+    "type",
+    "username-claim",
+)
+_COMPARE_SKIP = ("password", "realm") + IMMUTABLE_API_FIELDS
+
 
 def module_args():
     return dict(
@@ -371,7 +379,19 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
         return self.proxmox_api.access.domains.get(realm)
 
     def is_equal(self, params, current):
-        return all(params[k] == current.get(k) for k in params if k not in ("password", "realm"))
+        return all(params[k] == current.get(k) for k in params if k not in _COMPARE_SKIP)
+
+    def _warn_immutable_fields(self, params, current):
+        conflicts = [
+            f"{field} (current='{current.get(field)}', desired='{params[field]}')"
+            for field in IMMUTABLE_API_FIELDS
+            if field in params and params[field] != current.get(field) or ""
+        ]
+        if conflicts:
+            self.module.warn(
+                f"Immutable field(s) on realm '{self.params['realm']}' cannot be updated and were ignored: "
+                + ", ".join(conflicts)
+            )
 
     def get_params_from_list(self, params_list):
         params = {
@@ -486,6 +506,7 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
 
         if self.check_domain(self.params["realm"]):
             current = self.get_domain(self.params["realm"])
+            self._warn_immutable_fields(params, current)
             if self.is_equal(params, current):
                 self.module.exit_json(
                     changed=False,
@@ -493,8 +514,8 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
                 )
             else:
                 if not self.module.check_mode:
-                    params.pop("type")
-                    self.proxmox_api.access.domains(self.params["realm"]).put(**params)
+                    update_params = {k: v for k, v in params.items() if k not in IMMUTABLE_API_FIELDS}
+                    self.proxmox_api.access.domains(self.params["realm"]).put(**update_params)
                     msg = f"Domain {self.params['realm']} edited."
                 else:
                     msg = f"Domain {self.params['realm']} would be edited."

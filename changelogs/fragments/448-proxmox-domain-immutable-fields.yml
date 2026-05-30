@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_domain - ignore immutable fields (``type`` and ``username-claim``) when updating existing realms (https://github.com/ansible-collections/community.proxmox/issues/448).
