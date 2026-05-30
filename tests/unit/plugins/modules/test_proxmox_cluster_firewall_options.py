@@ -16,8 +16,8 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster_firewall
-from ansible_collections.community.proxmox.plugins.modules.proxmox_cluster_firewall import (
+from ansible_collections.community.proxmox.plugins.modules import proxmox_cluster_firewall_options
+from ansible_collections.community.proxmox.plugins.modules.proxmox_cluster_firewall_options import (
     _build_log_ratelimit_string,
     _parse_log_ratelimit_string,
     _validate_log_ratelimit_rate,
@@ -135,10 +135,10 @@ class TestBuildLogRatelimitString:
 # -- Module tests
 
 
-class TestProxmoxClusterFirewallModule(ModuleTestCase):
+class TestProxmoxClusterFirewallOptionsModule(ModuleTestCase):
     def setUp(self):
         super().setUp()
-        self.module = proxmox_cluster_firewall
+        self.module = proxmox_cluster_firewall_options
 
         self.mock_module_helper = patch.multiple(
             basic.AnsibleModule,

@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 DOCUMENTATION = r"""
-module: proxmox_node_firewall
+module: proxmox_node_firewall_options
 short_description: Node-level firewall options management for Proxmox VE cluster
 version_added: "2.0.0"
 author:
@@ -177,8 +177,8 @@ seealso:
   - name: Proxmox VE node-wide configuration
     description: Complete reference of Proxmox VE Firewall host configuration
     link: https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html#pve_firewall_host_specific_configuration
-  - module: community.proxmox.proxmox_node_firewall_info
-  - module: community.proxmox.proxmox_cluster_firewall
+  - module: community.proxmox.proxmox_node_firewall_options_info
+  - module: community.proxmox.proxmox_cluster_firewall_options
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -188,7 +188,7 @@ extends_documentation_fragment:
 
 EXAMPLES = r"""
 - name: Configure traffic log level
-  community.proxmox.proxmox_node_firewall:
+  community.proxmox.proxmox_node_firewall_options:
     state: enabled
     node_name: pve-001
     log_level_in: alert
@@ -196,7 +196,7 @@ EXAMPLES = r"""
     log_level_forward: alert
 
 - name: Disable node-wide firewall
-  community.proxmox.proxmox_node_firewall:
+  community.proxmox.proxmox_node_firewall_options:
     state: disabled
     node_name: pve-001
 """
@@ -309,7 +309,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
 )
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_node_firewall import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_node_firewall_options import (
     SCHEMA,
     node_firewall_options_to_ansible_result,
 )
@@ -388,7 +388,7 @@ def module_options():
     return {}
 
 
-class ProxmoxNodeFirewallAnsible(ProxmoxAnsible):
+class ProxmoxNodeFirewallOptionsAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super().__init__(module)
         self.params = module.params
@@ -490,7 +490,7 @@ class ProxmoxNodeFirewallAnsible(ProxmoxAnsible):
 
 def main():
     module = create_proxmox_module(module_args(), **module_options())
-    proxmox = ProxmoxNodeFirewallAnsible(module)
+    proxmox = ProxmoxNodeFirewallOptionsAnsible(module)
 
     proxmox.validate_params()
     proxmox.run()
