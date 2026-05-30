@@ -11,7 +11,7 @@ from ansible.inventory.data import InventoryData
 from ansible_collections.community.proxmox.plugins.inventory.proxmox import InventoryModule
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def inventory():
     r = InventoryModule()
     r.inventory = InventoryData()
@@ -33,23 +33,77 @@ def get_auth():
 
 
 API_RESPONSES = {
-    "https://localhost:8006/api2/json/nodes": [
+    "https://localhost:8006/api2/json/cluster/status": [
         {
             "type": "node",
-            "cpu": 0.01,
-            "maxdisk": 500,
-            "mem": 500,
-            "node": "testnode",
+            "name": "testnode",
             "id": "node/testnode",
-            "maxcpu": 1,
-            "status": "online",
-            "ssl_fingerprint": "xx",
-            "disk": 1000,
-            "maxmem": 1000,
-            "uptime": 10000,
+            "online": 1,
+            "local": 1,
+            "nodeid": 1,
+            "ip": "10.0.10.1",
             "level": "",
         },
-        {"type": "node", "node": "testnode2", "id": "node/testnode2", "status": "offline", "ssl_fingerprint": "yy"},
+        {
+            "type": "node",
+            "name": "testnode2",
+            "id": "node/testnode2",
+            "online": 0,
+            "local": 0,
+            "nodeid": 2,
+            "ip": "10.0.10.2",
+            "level": "",
+        },
+        {
+            "type": "cluster",
+            "quorate": 1,
+            "name": "testcluster",
+            "version": 24,
+            "id": "cluster",
+            "nodes": 2,
+        },
+    ],
+    "https://localhost:8006/api2/json/cluster/resources?type=vm": [
+        {
+            "name": "test-lxc",
+            "node": "testnode",
+            "template": "",
+            "type": "lxc",
+            "status": "running",
+            "vmid": "100",
+        },
+        {
+            "name": "test-qemu",
+            "node": "testnode",
+            "template": "",
+            "type": "qemu",
+            "status": "running",
+            "vmid": "101",
+        },
+        {
+            "name": "test-qemu-windows",
+            "node": "testnode",
+            "template": "",
+            "type": "qemu",
+            "status": "running",
+            "vmid": "102",
+        },
+        {
+            "name": "test-qemu-multi-nic",
+            "node": "testnode",
+            "template": "",
+            "type": "qemu",
+            "status": "running",
+            "vmid": "103",
+        },
+        {
+            "name": "test-qemu-template",
+            "node": "testnode",
+            "template": 1,
+            "type": "qemu",
+            "status": "stopped",
+            "vmid": "9001",
+        },
     ],
     "https://localhost:8006/api2/json/pools": [{"poolid": "test"}],
     "https://localhost:8006/api2/json/nodes/testnode/lxc": [
@@ -570,14 +624,17 @@ def test_populate(inventory, mocker):
     inventory.facts_prefix = "proxmox_"
     inventory.strict = False
     inventory.exclude_nodes = False
+    inventory.exclude_vms = False
 
     opts = {
         "group_prefix": "proxmox_",
         "facts_prefix": "proxmox_",
         "want_facts": True,
+        "facts_concurrency": 1,
         "want_proxmox_nodes_ansible_host": True,
         "qemu_extended_statuses": True,
         "exclude_nodes": False,
+        "exclude_vms": False,
     }
 
     # bypass authentication and API fetch calls
@@ -587,6 +644,7 @@ def test_populate(inventory, mocker):
     inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
     inventory._can_add_host = mocker.MagicMock(return_value=True)
     inventory._populate()
+    called_urls = [call.args[0] for call in inventory._get_json.call_args_list]
 
     # get different hosts
     host_qemu = inventory.inventory.get_host("test-qemu")
@@ -642,6 +700,10 @@ def test_populate(inventory, mocker):
     group_paused = inventory.inventory.groups["proxmox_all_paused"]
     assert group_paused.hosts == [host_qemu_multi_nic]
 
+    assert "https://localhost:8006/api2/json/cluster/resources?type=vm" in called_urls
+    assert "https://localhost:8006/api2/json/nodes/testnode/qemu" not in called_urls
+    assert "https://localhost:8006/api2/json/nodes/testnode/lxc" not in called_urls
+
 
 def test_populate_missing_qemu_extended_groups(inventory, mocker):
     # module settings
@@ -652,14 +714,17 @@ def test_populate_missing_qemu_extended_groups(inventory, mocker):
     inventory.facts_prefix = "proxmox_"
     inventory.strict = False
     inventory.exclude_nodes = False
+    inventory.exclude_vms = False
 
     opts = {
         "group_prefix": "proxmox_",
         "facts_prefix": "proxmox_",
         "want_facts": True,
+        "facts_concurrency": 1,
         "want_proxmox_nodes_ansible_host": True,
         "qemu_extended_statuses": False,
         "exclude_nodes": False,
+        "exclude_vms": False,
     }
 
     # bypass authentication and API fetch calls
@@ -684,14 +749,17 @@ def test_populate_exclude_nodes(inventory, mocker):
     inventory.facts_prefix = "proxmox_"
     inventory.strict = False
     inventory.exclude_nodes = True
+    inventory.exclude_vms = False
 
     opts = {
         "group_prefix": "proxmox_",
         "facts_prefix": "proxmox_",
         "want_facts": True,
+        "facts_concurrency": 1,
         "want_proxmox_nodes_ansible_host": True,
         "qemu_extended_statuses": False,
         "exclude_nodes": True,
+        "exclude_vms": False,
     }
 
     # bypass authentication and API fetch calls
@@ -710,3 +778,214 @@ def test_populate_exclude_nodes(inventory, mocker):
     # make sure that nodes are not in the "ungrouped" group
     for node in ["testnode", "testnode2"]:
         assert node not in inventory.inventory.get_groups_dict()["ungrouped"]
+
+
+def test_populate_exclude_vms(inventory, mocker):
+    # module settings
+    inventory.proxmox_user = "root@pam"
+    inventory.proxmox_password = "password"
+    inventory.proxmox_url = "https://localhost:8006"
+    inventory.group_prefix = "proxmox_"
+    inventory.facts_prefix = "proxmox_"
+    inventory.strict = False
+    inventory.exclude_nodes = False
+    inventory.exclude_vms = True
+
+    opts = {
+        "group_prefix": "proxmox_",
+        "facts_prefix": "proxmox_",
+        "want_facts": False,
+        "facts_concurrency": 1,
+        "want_proxmox_nodes_ansible_host": True,
+        "qemu_extended_statuses": False,
+        "exclude_nodes": False,
+        "exclude_vms": True,
+    }
+
+    # bypass authentication and API fetch calls
+    inventory._get_auth = mocker.MagicMock(side_effect=get_auth)
+    inventory._get_json = mocker.MagicMock(side_effect=get_json)
+    inventory._get_vm_snapshots = mocker.MagicMock(side_effect=get_vm_snapshots)
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+    inventory._can_add_host = mocker.MagicMock(return_value=True)
+    inventory._populate()
+
+    assert inventory.inventory.get_host("testnode")
+    assert inventory.inventory.get_host("testnode2")
+    assert inventory.inventory.get_host("test-lxc") is None
+    assert inventory.inventory.get_host("test-qemu") is None
+    assert inventory.inventory.get_host("test-qemu-windows") is None
+    assert inventory.inventory.get_host("test-qemu-multi-nic") is None
+    assert inventory.inventory.get_host("test-qemu-template") is None
+    assert inventory.inventory.groups["proxmox_all_lxc"].hosts == []
+    assert inventory.inventory.groups["proxmox_all_qemu"].hosts == []
+    assert "proxmox_testnode_lxc" not in inventory.inventory.groups
+    assert "proxmox_testnode_qemu" not in inventory.inventory.groups
+
+    called_urls = [call.args[0] for call in inventory._get_json.call_args_list]
+    assert "https://localhost:8006/api2/json/cluster/resources?type=vm" not in called_urls
+    assert "https://localhost:8006/api2/json/nodes/testnode/qemu" not in called_urls
+    assert "https://localhost:8006/api2/json/nodes/testnode/lxc" not in called_urls
+    assert "https://localhost:8006/api2/json/pools" not in called_urls
+    assert "https://localhost:8006/api2/json/pools/test" not in called_urls
+
+
+def test_get_guest_facts_by_item_concurrent(inventory, mocker):
+    inventory.facts_concurrency = 8
+
+    opts = {
+        "want_facts": True,
+    }
+
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+
+    def get_guest_facts_for_item(node, ittype, item):
+        return node, ittype, item["vmid"], {"fact": ittype}
+
+    inventory._get_guest_facts_for_item = mocker.MagicMock(side_effect=get_guest_facts_for_item)
+
+    guest_facts_by_item = inventory._get_guest_facts_by_item(
+        [
+            ("testnode", "qemu", {"name": "test-qemu", "vmid": "101"}),
+            ("testnode", "lxc", {"name": "test-lxc", "vmid": "100"}),
+        ]
+    )
+
+    assert guest_facts_by_item == {
+        ("testnode", "qemu", "101"): {"fact": "qemu"},
+        ("testnode", "lxc", "100"): {"fact": "lxc"},
+    }
+
+
+def test_get_guest_facts_by_item_serial(inventory, mocker):
+    inventory.facts_concurrency = 1
+
+    opts = {
+        "want_facts": True,
+    }
+
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+    thread_pool = mocker.patch("ansible_collections.community.proxmox.plugins.inventory.proxmox.ThreadPoolExecutor")
+
+    def get_guest_facts_for_item(node, ittype, item):
+        return node, ittype, item["vmid"], {"fact": ittype}
+
+    inventory._get_guest_facts_for_item = mocker.MagicMock(side_effect=get_guest_facts_for_item)
+
+    guest_facts_by_item = inventory._get_guest_facts_by_item(
+        [
+            ("testnode", "qemu", {"name": "test-qemu", "vmid": "101"}),
+            ("testnode", "lxc", {"name": "test-lxc", "vmid": "100"}),
+        ]
+    )
+
+    assert guest_facts_by_item == {
+        ("testnode", "qemu", "101"): {"fact": "qemu"},
+        ("testnode", "lxc", "100"): {"fact": "lxc"},
+    }
+    thread_pool.assert_not_called()
+
+
+def test_get_guest_facts_by_item_cancels_pending_futures_on_interrupt(inventory, mocker):
+    inventory.facts_concurrency = 8
+
+    opts = {
+        "want_facts": True,
+    }
+
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+    executor = mocker.MagicMock()
+    future = mocker.MagicMock()
+    future.done.return_value = False
+    future.running.return_value = True
+    executor.submit.return_value = future
+    thread_pool = mocker.patch(
+        "ansible_collections.community.proxmox.plugins.inventory.proxmox.ThreadPoolExecutor",
+        return_value=executor,
+    )
+    display_warning = mocker.patch("ansible_collections.community.proxmox.plugins.inventory.proxmox.display.warning")
+    mocker.patch(
+        "ansible_collections.community.proxmox.plugins.inventory.proxmox.as_completed",
+        side_effect=KeyboardInterrupt,
+    )
+
+    with pytest.raises(KeyboardInterrupt):
+        inventory._get_guest_facts_by_item(
+            [
+                ("testnode", "qemu", {"name": "test-qemu", "vmid": "101"}),
+            ]
+        )
+
+    thread_pool.assert_called_once_with(max_workers=8)
+    display_warning.assert_called_once_with("Interrupted Proxmox guest fact gathering with 1 pending tasks, 1 running")
+    executor.shutdown.assert_called_once_with(wait=False, cancel_futures=True)
+
+
+def test_get_guest_facts_for_item_marks_failed_fact_gathering(inventory, mocker):
+    inventory.facts_prefix = "proxmox_"
+    inventory._get_guest_facts = mocker.MagicMock(side_effect=TimeoutError("timed out"))
+
+    node, ittype, vmid, properties = inventory._get_guest_facts_for_item(
+        "testnode", "qemu", {"name": "test-qemu", "vmid": "101"}
+    )
+
+    assert (node, ittype, vmid) == ("testnode", "qemu", "101")
+    assert properties["proxmox_fact_gathering_failed"] is True
+    assert properties["proxmox_fact_gathering_error"] == "timed out"
+
+
+def test_get_json_uses_api_timeout(inventory, mocker):
+    inventory.use_cache = False
+    inventory._results = {}
+    inventory._results_lock = mocker.MagicMock()
+    inventory.headers = {}
+    inventory.api_timeout = 12
+
+    response = mocker.MagicMock()
+    response.status_code = 200
+    response.json.return_value = {"data": [{"name": "test"}]}
+    session = mocker.MagicMock()
+    session.get.return_value = response
+    inventory._get_session = mocker.MagicMock(return_value=session)
+
+    assert inventory._get_json("https://localhost:8006/api2/json/test") == [{"name": "test"}]
+    session.get.assert_called_once_with(
+        "https://localhost:8006/api2/json/test",
+        headers={},
+        timeout=12,
+    )
+
+
+def test_handle_item_adds_dynamic_status_group(inventory, mocker):
+    inventory.proxmox_url = "https://localhost:8006"
+    inventory.group_prefix = "proxmox_"
+    inventory.facts_prefix = "proxmox_"
+    inventory.strict = False
+
+    opts = {
+        "compose": {},
+        "groups": {},
+        "keyed_groups": [],
+        "want_facts": True,
+        "want_post_filter_facts": False,
+        "qemu_extended_statuses": True,
+    }
+
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+    inventory._can_add_host = mocker.MagicMock(return_value=True)
+    inventory.inventory.add_group("proxmox_all_qemu")
+    inventory.inventory.add_group("proxmox_testnode_qemu")
+
+    item = {
+        "name": "test-qemu-prelaunch",
+        "vmid": "104",
+        "status": "running",
+        "template": "",
+    }
+
+    name = inventory._handle_item("testnode", "qemu", item, guest_facts={"proxmox_qmpstatus": "prelaunch"})
+
+    assert name == "test-qemu-prelaunch"
+    assert (
+        inventory.inventory.get_host("test-qemu-prelaunch") in inventory.inventory.groups["proxmox_all_prelaunch"].hosts
+    )
