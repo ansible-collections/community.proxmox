@@ -385,7 +385,7 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
         conflicts = [
             f"{field} (current='{current.get(field)}', desired='{params[field]}')"
             for field in IMMUTABLE_API_FIELDS
-            if field in params and params[field] != current.get(field) or ""
+            if field in params and params[field] != current.get(field)
         ]
         if conflicts:
             self.module.warn(
