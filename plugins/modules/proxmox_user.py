@@ -394,7 +394,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
 
             # We have no way of testing if the user's password needs to be changed
             # so, if it's provided we will update it anyway
-            if password and not is_api_token_auth:
+            if password and self.module.params["api_token_id"]:
                 try:
                     self.proxmox_api.access.password.put(userid=userid, password=password)
                     self.module.exit_json(changed=True, userid=userid, msg=f"User {userid} updated")
