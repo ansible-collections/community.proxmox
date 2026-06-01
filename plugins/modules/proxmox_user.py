@@ -386,8 +386,7 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     )
 
             # The password cannot be updated when using API Token authentication
-            is_api_token_auth = self.module.params["api_token_id"] is not None
-            if password and is_api_token_auth:
+            if password and self.module.params["api_token_id"]:
                 self.module.warn(
                     "Password cannot be updated when using API Token authentication. Ignoring password parameter.",
                 )
