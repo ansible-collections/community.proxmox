@@ -61,7 +61,7 @@ Preferred sources:
 - Favor simple, short, and easily testable functions with no side effects over classes. Use classes only when they naturally fit the problem and help avoid boilerplate code while grouping tightly related functionality.
 - Use `snake_case` for all variable and parameter names.
 - Shared code used by multiple modules belongs in `plugins/module_utils/` (DRY principle). Do not duplicate connection or utility logic in individual modules.
-- Do not add connection parameters to individual modules. Extend the `proxmox` doc fragment in `plugins/doc_fragments/proxmox.py` instead.
+- Do not add connection parameters to individual modules. Extend the `proxmox` doc fragment in `plugins/doc_fragments/proxmox.py` and `plugins/module_utils/proxmox.py` instead.
 - All code changes must pass sanity and unit tests. Run integration tests for behavior changes in a configured Proxmox environment.
 - Keep each piece of work focused on solving a single, specific issue or task. Do not mix unrelated changes (e.g., a bugfix and an unrelated refactoring) in the same branch or PR.
 - Use conventional commit message prefixes: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`. Add a scope with the module name when applicable (e.g. `proxmox_pool`, `proxmox_storage`). Example: `fix(proxmox_pool): handle nested pool`.
