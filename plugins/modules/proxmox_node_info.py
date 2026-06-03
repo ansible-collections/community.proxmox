@@ -67,7 +67,7 @@ proxmox_nodes:
       type: int
     network:
       description: Active network interfaces on the node
-      returned: on success
+      returned: on success and when node online
       type: dict
     node:
       description: Short hostname of this node.
@@ -91,7 +91,7 @@ proxmox_nodes:
       type: int
     version:
       description: Version of PVE on the node
-      returned: on success
+      returned: on success and when node online
       type: dict
 """
 
@@ -114,6 +114,8 @@ class ProxmoxNodeInfoAnsible(ProxmoxAnsible):
     def get_nodes(self):
         nodes = self.proxmox_api.nodes.get()
         for node in nodes:
+            if node["status"] == "offline":
+                continue
             node_name = node["node"]
             ifaces = self.proxmox_api.nodes(node_name).network.get()
             node["network"] = ifaces
