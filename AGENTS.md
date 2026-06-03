@@ -69,6 +69,7 @@ Preferred sources:
 ## Development Conventions
 
 - Every PR that changes module behavior needs a changelog fragment in `changelogs/fragments/<something>.yaml`. Docs/tests/refactoring PRs are exempt and also new modules. Valid fragment sections: `major_changes`, `minor_changes`, `bugfixes`, `breaking_changes`, `deprecated_features`, `removed_features`, `security_fixes`, `known_issues`, `trivial`. Fragments are consumed (deleted) at release time (`keep_fragments: false` in `changelogs/config.yaml`).
+- All PRs made with AI support must be annotated as such in the PR text and/or the AI agent must be a co-author on the commts
 
 ## Definition of Done
 
