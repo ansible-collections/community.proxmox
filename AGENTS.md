@@ -77,7 +77,7 @@ Before finalizing work, verify:
 
 - Requested behavior is implemented in the intended scope only.
 - Relevant sanity/unit tests are run (and integration tests for behavior changes when environment is available), or a clear reason is provided if not run.
-- Changed files are free of newly introduced lint/sanity issues.
+- Changed files are free of newly introduced lint/sanity issues (run `nox -Re formatters` for Python changes; see `.agents/skills/run-tests/SKILL.md`).
 - Changelog fragment requirement is evaluated for behavior changes.
 - Response includes key outcomes, risks, and any follow-up actions needed.
 

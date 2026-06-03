@@ -19,6 +19,7 @@ Run and write tests for the `community.proxmox` Ansible collection. Covers sanit
 
 Use this order unless the user requests otherwise:
 
+0. After editing Python files, format before running tests: `nox -Re formatters`
 1. Run sanity or targeted unit tests for changed files first.
 2. Expand to broader unit coverage only if needed.
 3. Run integration tests only when behavior changed and a Proxmox environment is configured.
@@ -51,6 +52,12 @@ Most Proxmox integration targets are marked `unsupported` and require a real Pro
 ### Preferred (CI-aligned): nox
 
 ```bash
+# format (run after editing Python; CI lint gate)
+nox -Re formatters
+
+# verify lint without auto-fix (optional)
+nox -Re codeqa
+
 # sanity
 nox -Re ansible-test-sanity-devel
 
@@ -96,6 +103,7 @@ Integration tests live under `tests/integration/targets/<target_name>/`.
 
 ## Test Expectations
 
+- Python code changes: run `nox -Re formatters` before tests.
 - Documentation-only changes: run sanity tests.
 - Code changes: run sanity and targeted unit tests at minimum.
 - Behavior changes in modules: also run targeted integration tests when a Proxmox environment is available.
@@ -105,6 +113,7 @@ Integration tests live under `tests/integration/targets/<target_name>/`.
 
 When tests fail, classify first and then act:
 
+- **Ruff/formatting failures**: run `nox -Re formatters`, then optionally `nox -Re codeqa` to verify, and retry tests.
 - **Collection import/path failures**: verify working directory and collection path (`ansible_collections/community/proxmox/` on `ANSIBLE_COLLECTIONS_PATHS`).
 - **Container runtime issues (`--docker`)**: verify Docker/Podman availability; rerun with the same command after fixing runtime access.
 - **Unsupported integration target**: use `--allow-unsupported`; still requires real Proxmox environment and valid `tests/integration/integration_config.yml`.
