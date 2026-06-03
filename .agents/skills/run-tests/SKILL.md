@@ -96,7 +96,7 @@ Integration tests live under `tests/integration/targets/<target_name>/`.
 
 ## Test Expectations
 
-- Documentation-only changes: no tests required.
+- Documentation-only changes: run sanity tests.
 - Code changes: run sanity and targeted unit tests at minimum.
 - Behavior changes in modules: also run targeted integration tests when a Proxmox environment is available.
 - New modules and bug fixes: add tests that cover the changed behavior.
