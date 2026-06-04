@@ -106,6 +106,9 @@ and run `nox`. To run all unit/sanity tests, use `nox -s ansible-test-units` or 
 The following commands show how to lint and format your code with nox:
 
 ```.bash
+# Run all codequality checks
+nox
+
 # Run all configured formatters:
 nox -Re formatters
 
