@@ -6,7 +6,7 @@ import pytest
 
 from ansible.errors import AnsibleFilterError
 
-from ansible_collections.example.proxmox.plugins.filter.proxmox2dict import (
+from ansible_collections.community.proxmox.plugins.filter.proxmox2dict import (
     proxmox2dict,
 )
 
