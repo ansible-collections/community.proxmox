@@ -23,7 +23,7 @@ Leave the [ ] if they are not applicable, or if you have not completed the item.
 - [ ] I have run unit tests.
 - [ ] I have run integration.
 - [ ] I have considered backward compatibility.
-- [ ] I haved added a changelog fragment.
+- [ ] I haved added a changelog fragment (expect for new a module).
 
 <!---
 You can find more information about coding conventions and local testing in the [CONTRIBUTING.md](https://github.com/ansible-collections/community.proxmox/blob/main/CONTRIBUTING.md) file.
