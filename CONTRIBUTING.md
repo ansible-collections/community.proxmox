@@ -38,7 +38,7 @@ so you can cooperate to create a better solution together.
 
 Look through currently [open pull requests](https://github.com/ansible-collections/community.proxmox/pulls).
 
-You can help by reviewing and testing them, since this collection currently lacks integration tests.
+You can help by reviewing and testing them. Integration tests are available but require a Proxmox environment and are not run in CI, so manual verification is especially valuable.
 Reviews and tests help us estimate the maturity of a pull request and increase the likelihood to merge its contents.
 Note that reviewing does not only mean code review, but also offering comments on new interfaces added to existing plugins/modules,
 interfaces of new plugins/modules, improving language (not everyone is a native English speaker), or testing bugfixes and new features!
@@ -93,7 +93,7 @@ To perform basic testing, you will most likely require the following packages:
 - `ansible`
 - `pre-commit` (optional)
 
-and ideally a container runtime, for example `podman` or `docker`.
+and ideally a container runtime (`docker`) for integration testing. Integration tests also require `yq` and `curl` when using the helper script described below.
 
 The repository includes a [pre-commit](https://pre-commit.com/) configuration ([`.pre-commit-config.yaml`](.pre-commit-config.yaml)) which runs basic Ruff checks before each commit. **Hooks are not active until you install them**. After installing the `pre-commit` package, run `pre-commit install`.
 If you want to manually run the hooks before making a commit, you can use `pre-commit run`.
@@ -160,39 +160,65 @@ Most Proxmox module integration tests require access to a real Proxmox environme
 
 #### Setup
 
-1. Create your local configuration file:
+Create `tests/integration/integration_config.yml` with your Proxmox credentials.
 
-   ```bash
-   cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
-   ```
+When using `./tests/integration/run.sh`, the script creates this file from `integration_config.yml.template` on first run if it does not exist yet. The template defaults (`api_host: 127.0.0.1`, `api_user: root@pam`, `api_password: root`, `validate_certs: false`) match the Docker container image and usually do not need to be changed.
 
-2. Adjust the authentication variables to match your Proxmox environment. A minimal example configuration may look like:
+When running `ansible-test` directly against your own Proxmox host, copy the template manually:
 
-   ```yaml
-   proxmox_host: https://your-proxmox:8006
-   proxmox_user: root@pam
-   proxmox_password: your-password
-   validate_certs: false
-   ```
+```bash
+cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
+```
 
-   Some modules require the `root@pam` user due to permission constraints.
+Then adjust the authentication variables to match your environment. A minimal example configuration may look like:
 
-#### Running tests
+```yaml
+api_host: your-proxmox.example.com
+api_user: root@pam
+api_password: your-password
+validate_certs: false
+```
 
-You can run integration tests using `ansible-test`:
+Some modules require the `root@pam` user due to permission constraints.
+
+#### Running tests with Docker (recommended)
+
+The collection provides a helper script that starts a Proxmox VE container and runs `ansible-test` against it. On first run, it creates `tests/integration/integration_config.yml` from the template if that file is missing.
+
+```bash
+# Run all integration tests against the latest supported Proxmox version
+./tests/integration/run.sh
+
+# Run a specific test target
+./tests/integration/run.sh --target proxmox_pool
+
+# Run against a specific Proxmox version (major, exact, or latest)
+./tests/integration/run.sh --version 9 --target proxmox_pool
+
+# Reuse an existing container between runs (faster iteration)
+./tests/integration/run.sh --reuse --target proxmox_pool
+
+# Remove the container and/or image after tests
+./tests/integration/run.sh --rm --target proxmox_pool
+./tests/integration/run.sh --prune
+```
+
+Prerequisites: `docker`, `yq`, `curl`, and `ansible-test` must be available on your `PATH`.
+
+Supported Proxmox versions are listed in `tests/integration/matrix.yml`. The script pulls images from `rtedpro/proxmox` and exposes the API on `https://127.0.0.1:8006`.
+
+Note that `ansible-test integration --docker` only wraps test execution in a container; it does not provide a Proxmox environment. Use `tests/integration/run.sh` or your own Proxmox host instead.
+
+#### Running tests against your own Proxmox host
+
+If you already have a dedicated Proxmox test environment, configure `tests/integration/integration_config.yml` and run `ansible-test` directly:
 
 ```bash
 # Run all integration tests
 ansible-test integration -v --allow-unsupported
 
-# Run all integration tests using Docker
-ansible-test integration --docker -v --allow-unsupported
-
 # Run a specific test target
 ansible-test integration proxmox_pool -v --allow-unsupported
-
-# Run a specific test target using Docker
-ansible-test integration proxmox_pool --docker -v --allow-unsupported
 ```
 
 ### Manual test and review of changes

@@ -31,8 +31,9 @@ Classify the request before acting:
 
 Execution policy:
 
-- Run safe local checks and targeted tests proactively for changed code.
-- Ask before long-running, destructive, or environment-dependent operations when intent is unclear.
+- Run safe local checks and targeted tests proactively for changed code (formatting, sanity, unit).
+- Do not run integration tests without explicit user permission. They start a privileged Docker container, pull images, and create or delete resources on Proxmox.
+- Ask before other long-running, destructive, or environment-dependent operations when intent is unclear.
 - Never mix unrelated refactors with the requested task.
 
 ## Preferred Documentation Sources
@@ -62,7 +63,7 @@ Preferred sources:
 - Use `snake_case` for all variable and parameter names.
 - Shared code used by multiple modules belongs in `plugins/module_utils/` (DRY principle). Do not duplicate connection or utility logic in individual modules.
 - Do not add connection parameters to individual modules. Extend the `proxmox` doc fragment in `plugins/doc_fragments/proxmox.py` and `plugins/module_utils/proxmox.py` instead.
-- All code changes must pass sanity and unit tests. Run integration tests for behavior changes in a configured Proxmox environment.
+- All code changes must pass sanity and unit tests. Run integration tests for behavior changes only when the user asks or explicitly approves.
 - Keep each piece of work focused on solving a single, specific issue or task. Do not mix unrelated changes (e.g., a bugfix and an unrelated refactoring) in the same branch or PR.
 - Use conventional commit message prefixes: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`. Add a scope with the module name when applicable (e.g. `proxmox_pool`, `proxmox_storage`). Example: `fix(proxmox_pool): handle nested pool`.
 
@@ -76,7 +77,7 @@ Preferred sources:
 Before finalizing work, verify:
 
 - Requested behavior is implemented in the intended scope only.
-- Relevant sanity/unit tests are run (and integration tests for behavior changes when environment is available), or a clear reason is provided if not run.
+- Relevant sanity/unit tests are run proactively. Integration tests are run only with user permission, or note in the response how to run them locally.
 - Changed files are free of newly introduced lint/sanity issues (run `nox -Re formatters` for Python changes; see `.agents/skills/run-tests/SKILL.md`).
 - Changelog fragment requirement is evaluated for behavior changes.
 - Response includes key outcomes, risks, and any follow-up actions needed.
