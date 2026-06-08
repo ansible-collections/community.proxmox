@@ -37,6 +37,13 @@ Options:
   --rm                Remove container after tests
   --prune             Remove the Docker image (implies --rm)
 
+Defaults:
+  --version           latest supported Proxmox version (from matrix.yml)
+  --target            all integration test targets
+  --reuse             off (recreate container if one already exists)
+  --rm                off (keep container after tests)
+  --prune             off (keep Docker image)
+
 Examples:
   $0
   $0 --target proxmox_pool
