@@ -11,7 +11,7 @@ INTEGRATION_CONFIG="${ROOT_DIR}/tests/integration/integration_config.yml"
 INTEGRATION_CONFIG_TEMPLATE="${ROOT_DIR}/tests/integration/integration_config.yml.template"
 
 IMAGE_NAME="rtedpro/proxmox"
-CONTAINER_NAME="proxmox-integration"
+CONTAINER_NAME=""
 
 PVE_API_TIMEOUT=30
 
@@ -153,6 +153,7 @@ resolve_image() {
 }
 
 container_exists() {
+  [[ -n "${CONTAINER_NAME}" ]] || return 1
   docker container ls -a --format '{{.Names}}' | grep -q "${CONTAINER_NAME}" >/dev/null
 }
 
@@ -196,6 +197,7 @@ cleanup() {
 
 start() {
   IMAGE=$(resolve_image "$VERSION")
+  CONTAINER_NAME="pve-integration-${IMAGE#*:}"
 
   echo "[INFO] Starting container using: ${IMAGE}"
   if $REUSE; then
