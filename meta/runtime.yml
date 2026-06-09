@@ -73,7 +73,7 @@ action_groups:
 
 plugin_routing:
   modules:
-    community.proxmox.proxmox_node_firewall:
+    proxmox_node_firewall:
       redirect: community.proxmox.proxmox_node_firewall_options
       deprecation:
         removal_version: 3.0.0
