@@ -162,7 +162,7 @@ Most Proxmox module integration tests require access to a real Proxmox environme
 
 Create `tests/integration/integration_config.yml` with your Proxmox credentials.
 
-When using `./tests/integration/run.sh`, the script creates this file from `integration_config.yml.template` on first run if it does not exist yet. The template defaults (`api_host: 127.0.0.1`, `api_user: root@pam`, `api_password: root`, `validate_certs: false`) match the Docker container image and usually do not need to be changed.
+When using `./tests/integration/run.sh`, the script creates the config file from `integration_config.yml.template` on first run if it does not exist yet. The template defaults (`api_host: 127.0.0.1`, `api_user: root@pam`, `api_password: root`, `validate_certs: false`) match the Docker container image and usually do not need to be changed.
 
 When running `ansible-test` directly against your own Proxmox host, copy the template manually:
 
@@ -183,7 +183,7 @@ Some modules require the `root@pam` user due to permission constraints.
 
 #### Running tests with Docker (recommended)
 
-The collection provides a helper script that starts a Proxmox VE container and runs `ansible-test` against it. On first run, it creates `tests/integration/integration_config.yml` from the template if that file is missing.
+The collection provides a helper script that starts a dockerized Proxmox host and runs `ansible-test` against it. On first run, it creates `tests/integration/integration_config.yml` from the template if that file is missing.
 
 ```bash
 # Run all integration tests against the latest supported Proxmox version
@@ -203,9 +203,9 @@ The collection provides a helper script that starts a Proxmox VE container and r
 ./tests/integration/run.sh --prune
 ```
 
-Prerequisites: `docker`, `yq`, `curl`, and `ansible-test` must be available on your `PATH`.
+Prerequisites: `docker`, `yq`, `curl`, `ansible-test` and the host must support KVM acceleration.
 
-Supported Proxmox versions are listed in `tests/integration/matrix.yml`. The script pulls images from `rtedpro/proxmox` and exposes the API on `https://127.0.0.1:8006`.
+The script pulls images from [dockurr/proxmox](https://github.com/dockur/proxmox) and exposes the API on `https://127.0.0.1:8006`.
 
 Note that `ansible-test integration --docker` only wraps test execution in a container; it does not provide a Proxmox environment. Use `tests/integration/run.sh` or your own Proxmox host instead.
 

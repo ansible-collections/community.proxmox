@@ -6,11 +6,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MATRIX_FILE="${ROOT_DIR}/tests/integration/matrix.yml"
 INTEGRATION_CONFIG="${ROOT_DIR}/tests/integration/integration_config.yml"
 INTEGRATION_CONFIG_TEMPLATE="${ROOT_DIR}/tests/integration/integration_config.yml.template"
 
-IMAGE_NAME="rtedpro/proxmox"
+IMAGE_NAME="dockurr/proxmox"
 CONTAINER_NAME=""
 
 PVE_API_TIMEOUT=30
@@ -35,14 +34,14 @@ Options:
   --target TARGET     ansible-test integration target (e.g. proxmox_pool)
   --reuse             Reuse existing container if present
   --rm                Remove container after tests
-  --prune             Remove the Docker image (implies --rm)
+  --prune             Remove the container image (implies --rm)
 
 Defaults:
-  --version           latest supported Proxmox version (from matrix.yml)
+  --version           latest
   --target            all integration test targets
   --reuse             off (recreate container if one already exists)
   --rm                off (keep container after tests)
-  --prune             off (keep Docker image)
+  --prune             off (keep container image)
 
 Examples:
   $0
@@ -88,6 +87,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+VERSION="${VERSION:-latest}"
+
 check_prerequisites() {
   echo "[INFO] Checking prerequisites"
 
@@ -109,9 +110,13 @@ check_prerequisites() {
     echo "[ERROR] ansible-test not found." >&2
     missing=true
   fi
+  if [[ ! -e /dev/kvm ]]; then
+    echo "[ERROR] KVM acceleration is not available (/dev/kvm is missing)." >&2
+    missing=true
+  fi
 
   if $missing; then
-    echo "[ERROR] Missing prerequisites. Please install the missing prerequisites and try again." >&2
+    echo "[ERROR] Missing prerequisites. Please setup the missing prerequisites and try again." >&2
     exit 1
   fi
 }
@@ -134,30 +139,14 @@ resolve_hostname() {
   yq -r '.api_host' "${INTEGRATION_CONFIG}"
 }
 
-resolve_version() {
-  local version="$1"
-  if [ -z "${version}" ] || [ "${version}" = "latest" ]; then
-    latest_major_version=$(yq '.versions | keys | max' "${MATRIX_FILE}")
-    version=$(yq ".versions.\"${latest_major_version}\"[0]" "${MATRIX_FILE}")
-  elif [[ $(yq ".versions | has(\"${version}\")" "${MATRIX_FILE}") == "true" ]]; then
-    version=$(yq ".versions.\"${version}\"[0]" "${MATRIX_FILE}")
-  else
-    found=$(yq ".versions[][] | select(. == \"${version}\")" "${MATRIX_FILE}")
-    if [[ -n ${found} ]]; then
-      version="${found}"
-    else
-      echo "[ERROR] Invalid version: ${version}" >&2
-      echo "[ERROR] Valid versions are defined in the 'matrix.yml' file" >&2
-      return 1
-    fi
-  fi
-  echo "${version}"
-}
+pull_image() {
+  local image="$1"
 
-resolve_image() {
-  local version
-  version=$(resolve_version "${1}")
-  echo "${IMAGE_NAME}:${version}"
+  if ! docker pull "${image}"; then
+    echo "[ERROR] Failed to pull image: ${image}" >&2
+    echo "[ERROR] Verify the version/tag exists for ${IMAGE_NAME}" >&2
+    exit 1
+  fi
 }
 
 container_exists() {
@@ -204,22 +193,22 @@ cleanup() {
 }
 
 start() {
-  IMAGE=$(resolve_image "$VERSION")
-  CONTAINER_NAME="pve-integration-${IMAGE#*:}"
+  IMAGE="${IMAGE_NAME}:${VERSION}"
+  CONTAINER_NAME="pve-integration-${VERSION}"
 
   echo "[INFO] Starting container using: ${IMAGE}"
-  if $REUSE; then
-    if container_exists; then
-      docker start "${CONTAINER_NAME}"
-    else
-      docker run -d --name "${CONTAINER_NAME}" --hostname pve -p "8006:8006" --privileged "${IMAGE}" >/dev/null
-    fi
+  pull_image "${IMAGE}"
+
+  if ! $REUSE && container_exists; then
+    docker stop "${CONTAINER_NAME}" >/dev/null
+    docker rm "${CONTAINER_NAME}" >/dev/null
+  fi
+
+  if $REUSE && container_exists; then
+    docker start "${CONTAINER_NAME}"
   else
-    if container_exists; then
-      docker stop "${CONTAINER_NAME}" >/dev/null
-      docker rm "${CONTAINER_NAME}" >/dev/null
-    fi
-    docker run -d --name "${CONTAINER_NAME}" --hostname pve -p "8006:8006" --privileged "${IMAGE}" >/dev/null
+    docker run -d --name "${CONTAINER_NAME}" --hostname pve --privileged \
+      -e "PASSWORD=root" -p 8006:8006 --stop-timeout 120 "${IMAGE}" >/dev/null
   fi
 
   echo "[INFO] Waiting for PVE API to be ready"
