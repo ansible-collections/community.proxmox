@@ -215,9 +215,10 @@ start() {
   wait_for_api
 
   echo "[INFO] Running tests"
-  ansible-test integration ${TARGET:+"${TARGET}"} -v --allow-unsupported
-
+  local rc=0
+  ansible-test integration ${TARGET:+"${TARGET}"} -v --allow-unsupported || rc=$?
   cleanup
+  return "$rc"
 }
 
 main() {
