@@ -22,7 +22,7 @@ Use this order unless the user requests otherwise:
 0. After editing Python files, format before running tests: `nox -Re formatters`
 1. Run sanity or targeted unit tests for changed files first.
 2. Expand to broader unit coverage only if needed.
-3. Run integration tests only when behavior changed and a Proxmox environment is configured.
+3. Run integration tests only when the user explicitly asks or approves (see below).
 
 ## When to Invoke
 
@@ -43,7 +43,17 @@ The collection must be installed at `ansible_collections/community/proxmox/` (re
 
 Use `nox` first because CI is built on antsibull-nox sessions. Direct `ansible-test` commands are useful for targeted local runs.
 
-Most Proxmox integration targets are marked `unsupported` and require a real Proxmox environment configured in `tests/integration/integration_config.yml`. Docker/Podman wraps `ansible-test` execution, but it does not provide a Proxmox environment.
+Most Proxmox integration targets are marked `unsupported` and require a real Proxmox environment configured in `tests/integration/integration_config.yml`. Use `tests/integration/run.sh` to start a Proxmox VE Docker container and run tests against it. `ansible-test integration --docker` only wraps test execution in a container; it does not provide a Proxmox environment.
+
+### Agent permission required
+
+Do **not** run integration tests proactively. Ask the user first because these tests:
+
+- pull Docker images and start a privileged container
+- create, modify, or delete resources on Proxmox
+- can take several minutes and need Docker, network access, and local configuration
+
+When the user approves, suggest or run the smallest relevant target (for example `./tests/integration/run.sh --target proxmox_pool`). When not approved, document the command the user can run locally instead.
 
 ---
 
@@ -91,10 +101,23 @@ Unit tests live under `tests/unit/plugins/` and use the `pytest` framework.
 
 ### Integration
 
-Runs integration tests against a configured Proxmox environment (started by Docker):
+Requires explicit user permission before running (see [Agent permission required](#agent-permission-required)).
+
+Preferred: use the helper script to start a Proxmox VE container and run tests (creates `integration_config.yml` from the template on first run if missing):
 
 ```bash
-ansible-test integration proxmox_pool --docker -v --allow-unsupported
+# Run a specific target
+./tests/integration/run.sh --target proxmox_pool
+
+# Reuse container between runs
+./tests/integration/run.sh --reuse --target proxmox_pool
+```
+
+When running `ansible-test` directly against your own Proxmox host, copy the config first:
+
+```bash
+cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
+ansible-test integration proxmox_pool -v --allow-unsupported
 ```
 
 Integration tests live under `tests/integration/targets/<target_name>/`.
@@ -106,7 +129,7 @@ Integration tests live under `tests/integration/targets/<target_name>/`.
 - Python code changes: run `nox -Re formatters` before tests.
 - Documentation-only changes: run sanity tests.
 - Code changes: run sanity and targeted unit tests at minimum.
-- Behavior changes in modules: also run targeted integration tests when a Proxmox environment is available.
+- Behavior changes in modules: suggest targeted integration tests (`./tests/integration/run.sh --target <target>`) and run them only after user approval.
 - New modules and bug fixes: add tests that cover the changed behavior.
 
 ## Failure Triage
@@ -115,8 +138,8 @@ When tests fail, classify first and then act:
 
 - **Ruff/formatting failures**: run `nox -Re formatters`, then optionally `nox -Re codeqa` to verify, and retry tests.
 - **Collection import/path failures**: verify working directory and collection path (`ansible_collections/community/proxmox/` on `ANSIBLE_COLLECTIONS_PATHS`).
-- **Container runtime issues (`--docker`)**: verify Docker/Podman availability; rerun with the same command after fixing runtime access.
-- **Unsupported integration target**: use `--allow-unsupported`; still requires real Proxmox environment and valid `tests/integration/integration_config.yml`.
+- **Container runtime issues**: verify Docker availability; for integration tests prefer `./tests/integration/run.sh` over `ansible-test integration --docker`.
+- **Unsupported integration target**: use `--allow-unsupported` (included in `run.sh`); still requires a real Proxmox environment and valid `tests/integration/integration_config.yml`.
 - **Missing dependencies/environment**: report exact missing tool/config and provide the minimal command to retry.
 - **Likely flaky/transient failure**: rerun once, then report both outcomes.
 
