@@ -294,11 +294,11 @@ class Connection(ConnectionBase):
                 self._connected = True
                 display.vvv(f"QEMU guest agent responsive on VM {self.get_option('vmid')}")
                 return self
-            except Exception:
+            except Exception as e:
                 if attempt < attempts - 1:
                     display.vvv(
                         f"Guest agent not ready on VM {self.get_option('vmid')}, "
-                        f"retrying in {interval}s ({attempt + 1}/{attempts})"
+                        f"retrying in {interval}s ({attempt + 1}/{attempts}): {e}"
                     )
                     time.sleep(interval)
                 else:
