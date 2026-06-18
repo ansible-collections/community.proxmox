@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 DOCUMENTATION = r"""
-module: proxmox_node_firewall_info
+module: proxmox_node_firewall_options_info
 short_description: Get node-level firewall options for Proxmox VE cluster
 version_added: "2.0.0"
 author:
@@ -32,8 +32,8 @@ seealso:
   - name: Proxmox VE node-wide configuration
     description: Complete reference of Proxmox VE Firewall host configuration
     link: https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html#pve_firewall_host_specific_configuration
-  - module: community.proxmox.proxmox_node_firewall
-  - module: community.proxmox.proxmox_cluster_firewall
+  - module: community.proxmox.proxmox_node_firewall_options
+  - module: community.proxmox.proxmox_cluster_firewall_options
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -43,7 +43,7 @@ extends_documentation_fragment:
 
 EXAMPLES = r"""
 - name: Get node-wide firewall options
-  community.proxmox.proxmox_node_firewall_info:
+  community.proxmox.proxmox_node_firewall_options_info:
     node_name: pve-001
 """
 
@@ -148,7 +148,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
 )
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox_node_firewall import (
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox_node_firewall_options import (
     node_firewall_options_to_ansible_result,
 )
 
@@ -163,7 +163,7 @@ def module_options():
     return {}
 
 
-class ProxmoxNodeFirewallAnsible(ProxmoxAnsible):
+class ProxmoxNodeFirewallOptionsAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super().__init__(module)
         self.params = module.params
@@ -188,7 +188,7 @@ class ProxmoxNodeFirewallAnsible(ProxmoxAnsible):
 
 def main():
     module = create_proxmox_module(module_args(), **module_options())
-    proxmox = ProxmoxNodeFirewallAnsible(module)
+    proxmox = ProxmoxNodeFirewallOptionsAnsible(module)
 
     proxmox.run()
 
