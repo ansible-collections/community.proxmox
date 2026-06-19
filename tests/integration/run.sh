@@ -30,7 +30,7 @@ Usage: $0 [--version VERSION] [--target TARGET] [--reuse] [--rm] [--prune]
 Run integration tests against a Proxmox VE container.
 
 Options:
-  --version VERSION   Proxmox version (major like 9, exact like 9.2.3, or latest)
+  --version VERSION   Proxmox version (major like 9, exact like 9.2.3, latest, or digest like sha256:...)
   --target TARGET     ansible-test integration target (e.g. proxmox_pool)
   --reuse             Reuse existing container if present
   --rm                Remove container after tests
@@ -45,6 +45,8 @@ Defaults:
 
 Examples:
   $0
+  $0 --version sha256:abc123
+  $0 --version sha256:abc123 --target proxmox_pool
   $0 --target proxmox_pool
   $0 --version 9 --target proxmox_pool
   $0 --reuse --target proxmox_pool
@@ -135,6 +137,15 @@ ensure_integration_config() {
   cp "${INTEGRATION_CONFIG_TEMPLATE}" "${INTEGRATION_CONFIG}"
 }
 
+resolve_image() {
+  local version="$1"
+  if [[ "${version}" =~ ^sha256: ]]; then
+    echo "${IMAGE_NAME}@${version}"
+  else
+    echo "${IMAGE_NAME}:${version}"
+  fi
+}
+
 resolve_hostname() {
   yq -r '.api_host' "${INTEGRATION_CONFIG}"
 }
@@ -193,7 +204,7 @@ cleanup() {
 }
 
 start() {
-  IMAGE="${IMAGE_NAME}:${VERSION}"
+  IMAGE=$(resolve_image "${VERSION}")
   CONTAINER_NAME="pve-integration-${VERSION}"
 
   echo "[INFO] Starting container using: ${IMAGE}"

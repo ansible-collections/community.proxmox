@@ -181,9 +181,11 @@ validate_certs: false
 
 Some modules require the `root@pam` user due to permission constraints.
 
-#### Running tests with Docker (recommended)
+#### Running tests on dockerized Proxmox
 
 The collection provides a helper script that starts a dockerized Proxmox host and runs `ansible-test` against it. On first run, it creates `tests/integration/integration_config.yml` from the template if that file is missing.
+
+**Warning:** The Proxmox container runs in **privileged** mode (required for KVM). Prefer run it on a dedicated host rather than your daily workstation, since we cannot guarantee it will not affect the host system.
 
 ```bash
 # Run all integration tests against the latest supported Proxmox version
@@ -204,6 +206,13 @@ The collection provides a helper script that starts a dockerized Proxmox host an
 ```
 
 Prerequisites: `docker`, `yq`, `curl`, `ansible-test` and the host must support KVM acceleration.
+
+To avoid tag drift, pass an image digest to `--version`. You can obtain it from the registry or with `docker inspect` after pulling the image.
+
+```bash
+# Pin to a specific image digest (recommended for CI or repeated runs)
+./tests/integration/run.sh --version sha256:abc123 --target proxmox_pool
+```
 
 The script pulls images from [dockurr/proxmox](https://github.com/dockur/proxmox) and exposes the API on `https://127.0.0.1:8006`.
 
