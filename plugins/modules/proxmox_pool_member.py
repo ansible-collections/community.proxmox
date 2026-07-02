@@ -58,6 +58,12 @@ options:
       - If you want multiple members in the pool you need to pass them all to `members' in a single batch.
     type: bool
     default: false
+  allow_move:
+    description:
+      - When V(true), allow adding a guest even if already in another pool.
+      - The guest will be removed from its current pool and added to this one.
+    type: bool
+    default: false
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -142,6 +148,7 @@ def module_args():
         ),
         state=dict(default="present", choices=["present", "absent"]),
         exclusive=dict(type="bool", default=False),
+        allow_move=dict(type="bool", default=False),
     )
 
 
@@ -193,7 +200,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
                 self.module.fail_json(msg=f"Storage(s) not found in the cluster: {', '.join(sorted(missing))}")
 
     def reconcile_members(
-        self, poolid: str, desired_members: list[dict[str, str]], exclusive: bool, state: str
+        self, poolid: str, desired_members: list[dict[str, str]], exclusive: bool, state: str, allow_move: bool
     ) -> tuple[bool, list[dict[str, str]]]:
         """Compute and apply the delta between current and desired membership.
 
@@ -246,6 +253,8 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
         self._fail_on_missing_storage(storages_to_add)
 
         payload = {}
+        if allow_move:
+            payload["allow-move"] = 1
         if vms_to_add:
             payload["vms"] = sorted(vms_to_add)
         elif vms_to_remove:
@@ -274,8 +283,9 @@ def main():
     members = module.params["members"]
     state = module.params["state"]
     exclusive = module.params["exclusive"]
+    allow_move = module.params["allow_move"]
 
-    changed, final_members = proxmox.reconcile_members(poolid, members, exclusive, state)
+    changed, final_members = proxmox.reconcile_members(poolid, members, exclusive, state, allow_move)
 
     module.exit_json(
         changed=changed,
