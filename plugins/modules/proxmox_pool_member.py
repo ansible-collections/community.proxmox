@@ -164,7 +164,7 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
             if member["type"] == "storage":
                 storage.add(member["storage"])
             else:
-                vms.add(member["vmid"])
+                vms.add(str(member["vmid"]))
         return (vms, storage)
 
     def _resolve_member(self, member_spec: dict[str, str]) -> tuple[str, str]:
