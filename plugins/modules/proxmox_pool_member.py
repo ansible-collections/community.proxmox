@@ -252,25 +252,31 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
 
         self._fail_on_missing_storage(storages_to_add)
 
-        payload = {}
-        if allow_move:
-            payload["allow-move"] = 1
-        if vms_to_add:
-            payload["vms"] = sorted(vms_to_add)
-        elif vms_to_remove:
-            payload["vms"] = sorted(vms_to_remove)
-            payload["delete"] = 1
+        if bool(vms_to_add or storages_to_add):
+            payload = {}
+            if allow_move:
+                payload["allow-move"] = 1
+            if vms_to_add:
+                payload["vms"] = sorted(vms_to_add)
+            if storages_to_add:
+                payload["storage"] = sorted(storages_to_add)
 
-        if storages_to_add:
-            payload["storage"] = sorted(storages_to_add)
-        elif storages_to_remove:
-            payload["storage"] = sorted(storages_to_remove)
-            payload["delete"] = 1
+            try:
+                self.proxmox_api.pools.put(poolid=poolid, **payload)
+            except Exception as e:
+                self.module.fail_json(msg=f"Failed to add pool {poolid} membership: {e}")
 
-        try:
-            self.proxmox_api.pools.put(poolid=poolid, **payload)
-        except Exception as e:
-            self.module.fail_json(msg=f"Failed to update pool {poolid} membership: {e}")
+        if bool(vms_to_remove or storages_to_remove):
+            payload = {"delete": 1}
+            if vms_to_remove:
+                payload["vms"] = sorted(vms_to_remove)
+            if storages_to_remove:
+                payload["storage"] = sorted(storages_to_remove)
+
+            try:
+                self.proxmox_api.pools.put(poolid=poolid, **payload)
+            except Exception as e:
+                self.module.fail_json(msg=f"Failed to remove pool {poolid} membership: {e}")
 
         return True, self._pool_members_as_dicts(after_vms, after_storages)
 
