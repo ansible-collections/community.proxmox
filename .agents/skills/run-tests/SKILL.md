@@ -43,15 +43,15 @@ The collection must be installed at `ansible_collections/community/proxmox/` (re
 
 Use `nox` first because CI is built on antsibull-nox sessions. Direct `ansible-test` commands are useful for targeted local runs.
 
-Most Proxmox integration targets are marked `unsupported` and require a real Proxmox environment configured in `tests/integration/integration_config.yml`. Use `tests/integration/run.sh` to start a Proxmox VE Docker container and run tests against it. `ansible-test integration --docker` only wraps test execution in a container; it does not provide a Proxmox environment.
+Most Proxmox integration targets are marked `unsupported` and require a real Proxmox environment configured in `tests/integration/integration_config.yml`. Use `tests/integration/run.sh` to start a Proxmox VE container (Docker or Podman) and run tests against it. `ansible-test integration --docker` only wraps test execution in a container; it does not provide a Proxmox environment.
 
 ### Agent permission required
 
 Do **not** run integration tests proactively. Ask the user first because these tests:
 
-- pull Docker images and start a privileged container
+- pull container images and start a privileged container
 - create, modify, or delete resources on Proxmox
-- can take several minutes and need Docker, network access, and local configuration
+- can take several minutes and need Docker or Podman, network access, and local configuration
 
 When the user approves, suggest or run the smallest relevant target (for example `./tests/integration/run.sh --target proxmox_pool`). When not approved, document the command the user can run locally instead.
 
@@ -111,6 +111,9 @@ Preferred: use the helper script to start a Proxmox VE container and run tests (
 
 # Reuse container between runs
 ./tests/integration/run.sh --reuse --target proxmox_pool
+
+# Force Podman instead of auto-detected Docker
+./tests/integration/run.sh --runtime podman --target proxmox_pool
 ```
 
 When running `ansible-test` directly against your own Proxmox host, copy the config first:
@@ -138,7 +141,7 @@ When tests fail, classify first and then act:
 
 - **Ruff/formatting failures**: run `nox -Re formatters`, then optionally `nox -Re codeqa` to verify, and retry tests.
 - **Collection import/path failures**: verify working directory and collection path (`ansible_collections/community/proxmox/` on `ANSIBLE_COLLECTIONS_PATHS`).
-- **Container runtime issues**: verify Docker availability; for integration tests prefer `./tests/integration/run.sh` over `ansible-test integration --docker`.
+- **Container runtime issues**: verify Docker or Podman availability; use `--runtime docker|podman` to override auto-detection; rootless Podman requires `sudo` for privileged KVM containers (handled automatically); for integration tests prefer `./tests/integration/run.sh` over `ansible-test integration --docker`.
 - **Unsupported integration target**: use `--allow-unsupported` (included in `run.sh`); still requires a real Proxmox environment and valid `tests/integration/integration_config.yml`.
 - **Missing dependencies/environment**: report exact missing tool/config and provide the minimal command to retry.
 - **Likely flaky/transient failure**: rerun once, then report both outcomes.

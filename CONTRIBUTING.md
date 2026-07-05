@@ -181,9 +181,9 @@ validate_certs: false
 
 Some modules require the `root@pam` user due to permission constraints.
 
-#### Running tests on dockerized Proxmox
+#### Running tests in a containerized Proxmox host
 
-The collection provides a helper script that starts a dockerized Proxmox host and runs `ansible-test` against it. On first run, it creates `tests/integration/integration_config.yml` from the template if that file is missing.
+The collection provides a helper script that starts a containerized Proxmox host and runs `ansible-test` against it. On first run, it creates `tests/integration/integration_config.yml` from the template if that file is missing.
 
 **Warning:** The Proxmox container runs in **privileged** mode (required for KVM). Prefer run it on a dedicated host rather than your daily workstation, since we cannot guarantee it will not affect the host system.
 
@@ -197,6 +197,9 @@ The collection provides a helper script that starts a dockerized Proxmox host an
 # Run against a specific Proxmox version (major, exact, or latest)
 ./tests/integration/run.sh --version 9 --target proxmox_pool
 
+# Use Podman instead of Docker (auto-detects Docker by default)
+./tests/integration/run.sh --runtime podman --target proxmox_pool
+
 # Reuse an existing container between runs (faster iteration)
 ./tests/integration/run.sh --reuse --target proxmox_pool
 
@@ -205,9 +208,13 @@ The collection provides a helper script that starts a dockerized Proxmox host an
 ./tests/integration/run.sh --prune
 ```
 
-Prerequisites: `docker`, `yq`, `curl`, `ansible-test` and the host must support KVM acceleration.
+Prerequisites: `docker` or `podman`, `yq`, `curl`, `ansible-test`, and the host must support KVM acceleration.
 
-To avoid tag drift, pass an image digest to `--version`. You can obtain it from the registry or with `docker inspect` after pulling the image.
+The script auto-selects the container runtime: Docker is preferred when available, otherwise Podman is used. Pass `--runtime docker` or `--runtime podman` to override. For Docker, `sudo` is added automatically when the runtime is not accessible without elevated permissions. For Podman, rootless mode is detected and the script switches to `sudo podman` (rootful), which is required for privileged KVM containers.
+
+Docker and Podman use separate container storage; a container created with one runtime cannot be reused with the other.
+
+To avoid tag drift, pass an image digest to `--version`. You can obtain it from the registry or with `docker inspect` / `podman inspect` after pulling the image.
 
 ```bash
 # Pin to a specific image digest (recommended for CI or repeated runs)
