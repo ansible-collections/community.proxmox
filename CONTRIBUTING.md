@@ -93,7 +93,7 @@ To perform basic testing, you will most likely require the following packages:
 - `ansible`
 - `pre-commit` (optional)
 
-and ideally a container runtime (`docker`) for integration testing. Integration tests also require `yq` and `curl` when using the helper script described below.
+and ideally a container runtime (`docker`) for integration testing. Integration tests also require `proxmoxer`, `yq`, and `curl` when using the helper script described below.
 
 The repository includes a [pre-commit](https://pre-commit.com/) configuration ([`.pre-commit-config.yaml`](.pre-commit-config.yaml)) which runs basic Ruff checks before each commit. **Hooks are not active until you install them**. After installing the `pre-commit` package, run `pre-commit install`.
 If you want to manually run the hooks before making a commit, you can use `pre-commit run`.
@@ -158,6 +158,12 @@ Most Proxmox module integration tests require access to a real Proxmox environme
 
 **Warning:** Integration tests may create, modify, or delete resources on your Proxmox environment. It is strongly recommended to use a dedicated test environment.
 
+Install integration test dependencies on the control node:
+
+```bash
+pip install -r tests/integration/requirements.txt
+```
+
 #### Setup
 
 Create `tests/integration/integration_config.yml` with your Proxmox credentials.
@@ -208,7 +214,7 @@ The collection provides a helper script that starts a containerized Proxmox host
 ./tests/integration/run.sh --prune
 ```
 
-Prerequisites: `docker` or `podman`, `yq`, `curl`, `ansible-test`, and the host must support KVM acceleration.
+Prerequisites: `docker` or `podman`, `yq`, `curl`, `ansible-test`, `proxmoxer`, and the host must support KVM acceleration.
 
 The script auto-selects the container runtime: Docker is preferred when available, otherwise Podman is used. Pass `--runtime docker` or `--runtime podman` to override. For Docker, `sudo` is added automatically when the runtime is not accessible without elevated permissions. For Podman, rootless mode is detected and the script switches to `sudo podman` (rootful), which is required for privileged KVM containers.
 
