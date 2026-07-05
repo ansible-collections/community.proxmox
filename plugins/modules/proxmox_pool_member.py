@@ -253,22 +253,14 @@ class ProxmoxPoolMemberAnsible(ProxmoxAnsible):
         self._fail_on_missing_storage(storages_to_add)
 
         if bool(vms_to_add or storages_to_add):
-            payload = {
-                "allow-move": int(allow_move),
-                "vms": sorted(vms_to_add),
-                "storage": sorted(storages_to_add)
-            }
+            payload = {"allow-move": int(allow_move), "vms": sorted(vms_to_add), "storage": sorted(storages_to_add)}
             try:
                 self.proxmox_api.pools.put(poolid=poolid, **payload)
             except Exception as e:
                 self.module.fail_json(msg=f"Failed to add pool {poolid} membership: {e}")
 
         if bool(vms_to_remove or storages_to_remove):
-            payload = {
-                "allow-move": int(allow_move),
-                "vms": sorted(vms_to_remove),
-                "storage": sorted(storages_to_remove)
-            }
+            payload = {"delete": 1, "vms": sorted(vms_to_remove), "storage": sorted(storages_to_remove)}
             try:
                 self.proxmox_api.pools.put(poolid=poolid, **payload)
             except Exception as e:
