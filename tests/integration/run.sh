@@ -9,7 +9,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 INTEGRATION_CONFIG="${ROOT_DIR}/tests/integration/integration_config.yml"
 INTEGRATION_CONFIG_TEMPLATE="${ROOT_DIR}/tests/integration/integration_config.yml.template"
 
-IMAGE_NAME="dockurr/proxmox"
+IMAGE_NAME="docker.io/dockurr/proxmox"
 CONTAINER_NAME=""
 
 PVE_API_TIMEOUT=30
