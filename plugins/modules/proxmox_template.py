@@ -213,10 +213,11 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
         except Exception as e:
             self.module.fail_json(msg=f"Failed to retrieve template '{volid}': {e}")
 
-    def task_status(self, node, taskid, timeout):
+    def task_status(self, taskid, timeout):
         """
         Check the task status and wait until the task is completed or the timeout is reached.
         """
+        node = self.upid_to_node(taskid)
         while timeout:
             if self.api_task_ok(node, taskid):
                 return True
@@ -248,7 +249,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
                 .storage(storage)
                 .upload.post(content=content_type, filename=open(realpath, "rb"))  # noqa: SIM115
             )
-            return self.task_status(node, taskid, timeout)
+            return self.task_status(taskid, timeout)
         except Exception as e:
             self.module.fail_json(msg=f"Uploading template {realpath} failed with error: {e}")
 
@@ -260,14 +261,14 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
                 .storage(storage)("download-url")
                 .post(url=url, content=content_type, filename=template)
             )
-            return self.task_status(node, taskid, timeout)
+            return self.task_status(taskid, timeout)
         except Exception as e:
             self.module.fail_json(msg=f"Fetching template from url {url} failed with error: {e}")
 
     def download_template(self, node, storage, template, timeout):
         try:
             taskid = self.proxmox_api.nodes(node).aplinfo.post(storage=storage, template=template)
-            return self.task_status(node, taskid, timeout)
+            return self.task_status(taskid, timeout)
         except Exception as e:
             self.module.fail_json(msg=f"Downloading template {template} failed with error: {e}")
 
@@ -295,7 +296,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
         }
         try:
             taskid = self.proxmox_api.nodes(node).storage(storage).post(f"download-url?{urlencode(data)}")
-            return self.task_status(node, taskid, timeout)
+            return self.task_status(taskid, timeout)
         except Exception as e:
             self.module.fail_json(msg=f"Checksum mismatch: {e}")
 
