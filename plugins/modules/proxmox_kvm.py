@@ -29,6 +29,10 @@ options:
     description:
       - Specify if the QEMU Guest Agent should be enabled/disabled.
     type: str
+  allow_ksm:
+    description:
+      - Allow memory pages of this guest to be merged via KSM (Kernel Samepage Merging).
+    type: bool
   args:
     description:
       - Pass arbitrary arguments to kvm.
@@ -898,6 +902,7 @@ def module_args():
         archive=dict(type="str"),
         acpi=dict(type="bool"),
         agent=dict(type="str"),
+        allow_ksm=dict(type="bool"),
         args=dict(type="str"),
         audio=dict(type="dict"),
         autostart=dict(type="bool"),
@@ -1216,6 +1221,9 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
             kwargs["numa"] = kwargs["numa_enabled"]
             del kwargs["numa_enabled"]
 
+        if "allow_ksm" in kwargs:
+            kwargs["allow-ksm"] = kwargs.pop("allow_ksm")
+
         # PVE api expects strings for the following params
         if "nameservers" in self.module.params:
             nameservers = self.module.params.pop("nameservers")
@@ -1469,6 +1477,7 @@ def main():  # noqa: PLR0912, PLR0915
                 archive=module.params["archive"],
                 acpi=module.params["acpi"],
                 agent=module.params["agent"],
+                allow_ksm=module.params["allow_ksm"],
                 audio=module.params["audio"],
                 autostart=module.params["autostart"],
                 balloon=module.params["balloon"],
