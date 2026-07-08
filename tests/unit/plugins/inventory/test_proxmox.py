@@ -7,6 +7,17 @@
 
 import pytest
 from ansible.inventory.data import InventoryData
+from ansible.parsing.dataloader import DataLoader
+from ansible.template import Templar
+
+try:
+    # ansible-core >= 2.19 only templates strings that are marked as trusted
+    from ansible.template import trust_as_template
+except ImportError:
+
+    def trust_as_template(value):
+        return value
+
 
 from ansible_collections.community.proxmox.plugins.inventory.proxmox import InventoryModule
 
@@ -778,6 +789,67 @@ def test_populate_exclude_nodes(inventory, mocker):
     # make sure that nodes are not in the "ungrouped" group
     for node in ["testnode", "testnode2"]:
         assert node not in inventory.inventory.get_groups_dict()["ungrouped"]
+
+
+def test_populate_hostname_template(inventory, mocker):
+    # module settings
+    inventory.proxmox_user = "root@pam"
+    inventory.proxmox_password = "password"
+    inventory.proxmox_url = "https://localhost:8006"
+    inventory.group_prefix = "proxmox_"
+    inventory.facts_prefix = "proxmox_"
+    inventory.strict = False
+    inventory.exclude_nodes = False
+    inventory.exclude_vms = False
+    inventory.templar = Templar(loader=DataLoader())
+    inventory._vars = {}
+
+    opts = {
+        "group_prefix": "proxmox_",
+        "facts_prefix": "proxmox_",
+        "want_facts": True,
+        "facts_concurrency": 1,
+        "want_proxmox_nodes_ansible_host": True,
+        "qemu_extended_statuses": False,
+        "exclude_nodes": False,
+        "exclude_vms": False,
+        "hostname": trust_as_template("{{ name }}.example.com"),
+    }
+
+    # bypass authentication and API fetch calls
+    inventory._get_auth = mocker.MagicMock(side_effect=get_auth)
+    inventory._get_json = mocker.MagicMock(side_effect=get_json)
+    inventory._get_vm_snapshots = mocker.MagicMock(side_effect=get_vm_snapshots)
+    inventory.get_option = mocker.MagicMock(side_effect=get_option(opts))
+    inventory._can_add_host = mocker.MagicMock(return_value=True)
+    inventory._populate()
+
+    # nodes are added under their templated hostname, not the node name
+    host_node = inventory.inventory.get_host("testnode.example.com")
+    assert host_node is not None
+    assert inventory.inventory.get_host("testnode") is None
+    assert inventory.inventory.get_host("testnode2.example.com") is not None
+    assert inventory.inventory.get_host("testnode2") is None
+
+    # templated nodes keep their ansible_host and nodes group membership
+    assert host_node.get_vars()["ansible_host"] == "10.0.10.1"
+    assert host_node in inventory.inventory.groups["proxmox_nodes"].hosts
+
+    # VMs and LXC containers are added under their templated hostname as well
+    host_qemu = inventory.inventory.get_host("test-qemu.example.com")
+    host_lxc = inventory.inventory.get_host("test-lxc.example.com")
+    assert host_qemu is not None
+    assert inventory.inventory.get_host("test-qemu") is None
+    assert host_lxc is not None
+    assert inventory.inventory.get_host("test-lxc") is None
+
+    # renamed guests keep their group memberships and their Proxmox name as a fact
+    assert host_qemu in inventory.inventory.groups["proxmox_all_qemu"].hosts
+    assert host_lxc in inventory.inventory.groups["proxmox_testnode_lxc"].hosts
+    assert host_qemu.get_vars()["proxmox_name"] == "test-qemu"
+
+    # pool members are matched by their Proxmox name but added under the templated hostname
+    assert inventory.inventory.groups["proxmox_pool_test"].hosts == [host_qemu]
 
 
 def test_populate_exclude_vms(inventory, mocker):
