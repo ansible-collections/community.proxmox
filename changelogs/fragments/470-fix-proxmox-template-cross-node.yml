@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_template - fix error if ``api_host`` and upload target `node` are not the same (https://github.com/ansible-collections/community.proxmox/issues/222).
