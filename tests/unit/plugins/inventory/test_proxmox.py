@@ -814,6 +814,7 @@ def test_populate_hostname_template(inventory, mocker):
         "exclude_nodes": False,
         "exclude_vms": False,
         "hostname": trust_as_template("{{ name }}.example.com"),
+        "qemu_hostname": trust_as_template("{{ name }}-{{ vmid }}.qemu.example.com"),
     }
 
     # bypass authentication and API fetch calls
@@ -835,11 +836,14 @@ def test_populate_hostname_template(inventory, mocker):
     assert host_node.get_vars()["ansible_host"] == "10.0.10.1"
     assert host_node in inventory.inventory.groups["proxmox_nodes"].hosts
 
-    # VMs and LXC containers are added under their templated hostname as well
-    host_qemu = inventory.inventory.get_host("test-qemu.example.com")
-    host_lxc = inventory.inventory.get_host("test-lxc.example.com")
+    # QEMU VMs use the dedicated qemu_hostname template
+    host_qemu = inventory.inventory.get_host("test-qemu-101.qemu.example.com")
     assert host_qemu is not None
     assert inventory.inventory.get_host("test-qemu") is None
+    assert inventory.inventory.get_host("test-qemu.example.com") is None
+
+    # LXC containers have no lxc_hostname set and fall back to the hostname template
+    host_lxc = inventory.inventory.get_host("test-lxc.example.com")
     assert host_lxc is not None
     assert inventory.inventory.get_host("test-lxc") is None
 

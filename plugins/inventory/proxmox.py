@@ -146,9 +146,26 @@ DOCUMENTATION = """
       hostname:
         description:
           - A template for the inventory hostname of Proxmox nodes, QEMU VMs and LXC containers.
-          - If not provided, the Proxmox name is used.
+          - For QEMU VMs and LXC containers it is only used when O(qemu_hostname) or O(lxc_hostname) is not set.
+          - If no template applies, the Proxmox name is used.
           - For nodes, the available variables are C(name), C(level), C(nodeid), C(online), C(local), C(ip), C(id) and C(type).
           - For QEMU VMs and LXC containers, the available variables are the fields of the cluster resource,
+            for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
+        type: str
+        version_added: 2.2.0
+      qemu_hostname:
+        description:
+          - A template for the inventory hostname of QEMU VMs, overriding O(hostname) for them.
+          - If neither this nor O(hostname) is provided, the Proxmox name is used.
+          - The available variables are the fields of the cluster resource,
+            for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
+        type: str
+        version_added: 2.2.0
+      lxc_hostname:
+        description:
+          - A template for the inventory hostname of LXC containers, overriding O(hostname) for them.
+          - If neither this nor O(hostname) is provided, the Proxmox name is used.
+          - The available variables are the fields of the cluster resource,
             for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
         type: str
         version_added: 2.2.0
@@ -690,7 +707,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             self._safe_get_guest_facts(properties, node, vmid, ittype, name)
 
         # rename the host in the inventory if a hostname template is set
-        hostname_template = self.get_option("hostname")
+        hostname_template = self.get_option(f"{ittype}_hostname") or self.get_option("hostname")
         if hostname_template:
             self.templar.available_variables = combine_vars(dict(item), self._vars)
             name = self.templar.template(hostname_template)
