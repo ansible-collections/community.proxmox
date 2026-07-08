@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox inventory - fetch pool members via the ``GET /pools?poolid=<id>`` query form instead of the deprecated ``GET /pools/{poolid}`` path form, which returned a 501 error and aborted inventory parsing for nested pool IDs (poolid containing a slash, e.g. ``parent/child``) introduced in Proxmox VE 8.1 (https://github.com/ansible-collections/community.proxmox/issues/472).
