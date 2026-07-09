@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - proxmox_pool_member - add ``allow_move`` parameter to allow adding a guest even if already in another pool (https://github.com/ansible-collections/community.proxmox/pull/467).
+bugfixes:
+  - proxmox_pool_member - fix incorrect type when adding members (https://github.com/ansible-collections/community.proxmox/issues/459).
+  - proxmox_pool_member - fix support adding and removing in one execution in ``exclusive`` mode (https://github.com/ansible-collections/community.proxmox/pull/467).

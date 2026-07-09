@@ -62,7 +62,7 @@ options:
   queues:
     description:
       - Number of packet queues to be used on the device.
-      - Value should be C(0 ≤ n ≤ 16).
+      - Value should be C(1 ≤ n ≤ 64).
     type: int
   rate:
     description:

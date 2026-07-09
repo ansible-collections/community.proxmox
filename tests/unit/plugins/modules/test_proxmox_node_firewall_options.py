@@ -15,7 +15,7 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
     set_module_args,
 )
 
-from ansible_collections.community.proxmox.plugins.modules import proxmox_node_firewall
+from ansible_collections.community.proxmox.plugins.modules import proxmox_node_firewall_options
 
 
 def exit_json(*args, **kwargs):
@@ -61,10 +61,10 @@ SAMPLE_API_NODE_FIREWALL_OPTIONS = {
 }
 
 
-class TestProxmoxNodeFirewallModule(ModuleTestCase):
+class TestProxmoxNodeFirewallOptionsModule(ModuleTestCase):
     def setUp(self):
         super().setUp()
-        self.module = proxmox_node_firewall
+        self.module = proxmox_node_firewall_options
 
         self.mock_module_helper = patch.multiple(
             basic.AnsibleModule,

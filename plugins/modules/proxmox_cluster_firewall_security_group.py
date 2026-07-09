@@ -139,8 +139,8 @@ seealso:
   - name: Proxmox VE security group reference
     description: Security group reference for Proxmox VE Firewall
     link: https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html#pve_firewall_security_groups
-  - module: community.proxmox.proxmox_cluster_firewall
-  - module: community.proxmox.proxmox_node_firewall
+  - module: community.proxmox.proxmox_cluster_firewall_options
+  - module: community.proxmox.proxmox_node_firewall_options
   - module: community.proxmox.proxmox_firewall
 
 extends_documentation_fragment:

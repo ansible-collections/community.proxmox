@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_kvm - add ``allow_ksm`` parameter to control the Proxmox VE ``allow-ksm`` QEMU option.
