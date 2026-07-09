@@ -204,30 +204,33 @@ API_RESPONSES = {
             "status": "stopped",
         },
     ],
-    "https://localhost:8006/api2/json/pools/test": {
-        "members": [
-            {
-                "uptime": 1000,
-                "template": 0,
-                "id": "qemu/101",
-                "mem": 1000,
-                "status": "running",
-                "cpu": 0.01,
-                "maxmem": 1000,
-                "diskwrite": 1000,
-                "name": "test-qemu",
-                "netout": 1000,
-                "netin": 1000,
-                "vmid": 101,
-                "node": "testnode",
-                "maxcpu": 1,
-                "type": "qemu",
-                "maxdisk": 1000,
-                "disk": 0,
-                "diskread": 1000,
-            },
-        ],
-    },
+    "https://localhost:8006/api2/json/pools?poolid=test": [
+        {
+            "poolid": "test",
+            "members": [
+                {
+                    "uptime": 1000,
+                    "template": 0,
+                    "id": "qemu/101",
+                    "mem": 1000,
+                    "status": "running",
+                    "cpu": 0.01,
+                    "maxmem": 1000,
+                    "diskwrite": 1000,
+                    "name": "test-qemu",
+                    "netout": 1000,
+                    "netin": 1000,
+                    "vmid": 101,
+                    "node": "testnode",
+                    "maxcpu": 1,
+                    "type": "qemu",
+                    "maxdisk": 1000,
+                    "disk": 0,
+                    "diskread": 1000,
+                },
+            ],
+        },
+    ],
     "https://localhost:8006/api2/json/nodes/testnode/network": [
         {
             "families": ["inet"],
@@ -827,7 +830,7 @@ def test_populate_exclude_vms(inventory, mocker):
     assert "https://localhost:8006/api2/json/nodes/testnode/qemu" not in called_urls
     assert "https://localhost:8006/api2/json/nodes/testnode/lxc" not in called_urls
     assert "https://localhost:8006/api2/json/pools" not in called_urls
-    assert "https://localhost:8006/api2/json/pools/test" not in called_urls
+    assert "https://localhost:8006/api2/json/pools?poolid=test" not in called_urls
 
 
 def test_get_guest_facts_by_item_concurrent(inventory, mocker):
@@ -989,3 +992,17 @@ def test_handle_item_adds_dynamic_status_group(inventory, mocker):
     assert (
         inventory.inventory.get_host("test-qemu-prelaunch") in inventory.inventory.groups["proxmox_all_prelaunch"].hosts
     )
+
+
+def test_get_members_per_pool_uses_query_form_for_nested_pool(inventory, mocker):
+    inventory.proxmox_url = "https://localhost:8006"
+
+    def fake_get_json(url, ignore_errors=None):
+        return [{"poolid": "test/nested", "members": [{"name": "test-qemu", "vmid": 101}]}]
+
+    inventory._get_json = mocker.MagicMock(side_effect=fake_get_json)
+
+    members = inventory._get_members_per_pool("test/nested")
+
+    inventory._get_json.assert_called_once_with("https://localhost:8006/api2/json/pools?poolid=test%2Fnested")
+    assert members == [{"name": "test-qemu", "vmid": 101}]

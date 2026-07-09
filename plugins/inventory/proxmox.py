@@ -406,8 +406,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _get_members_per_pool(self, pool):
         display.vvv(f"Fetching Proxmox pool members for {pool}")
-        ret = self._get_json(f"{self.proxmox_url}/api2/json/pools/{pool}")
-        members = ret["members"]
+        ret = self._get_json(f"{self.proxmox_url}/api2/json/pools?{urlencode({'poolid': pool})}")
+        members = ret[0]["members"]
         display.vvv(f"Fetched {len(members)} Proxmox pool members for {pool}")
         return members
 
