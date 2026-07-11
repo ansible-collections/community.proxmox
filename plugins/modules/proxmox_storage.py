@@ -233,7 +233,7 @@ options:
         description:
           - The required RBD pool name.
         type: str
-        required: false
+        required: true
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
@@ -469,18 +469,6 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 return None
             self.module.fail_json(msg=f"Failed to retrieve storage {storage_name}: {e}")
 
-    def _validate_storage_params(self, storage_type, params):
-        backend = STORAGE_BACKENDS.get(storage_type, {})
-        missing_required = []
-        for ansible_key, (_proxmox_key, required) in backend.items():
-            value = params.get(ansible_key)
-            if value is None and required:
-                missing_required.append(ansible_key)
-        if missing_required:
-            self.module.fail_json(
-                msg=f"{storage_type} storage is missing required option(s): {', '.join(missing_required)}"
-            )
-
     def _normalize_storage_params(self, storage_type, backend_params):
         backend = STORAGE_BACKENDS.get(storage_type, {})
         result = {}
@@ -508,7 +496,6 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         storage_backend_params = self.params.get(f"{storage_type}_options") or {}
 
         if state == "present":
-            self._validate_storage_params(storage_type, storage_backend_params)
             storage_params.update(self._normalize_storage_params(storage_type, storage_backend_params))
             self.add_storage(storage_params)
         elif state == "absent":
