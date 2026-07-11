@@ -134,6 +134,23 @@ TEST_SCENARIOS = [
     },
     {
         "args": {
+            "name": "lvmthin-storage",
+            "type": "lvmthin",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "lvmthin_options": {"vgname": "myvg", "thinpool": "mypool"},
+        },
+        "expected_payload": {
+            "storage": "lvmthin-storage",
+            "type": "lvmthin",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "vgname": "myvg",
+            "thinpool": "mypool",
+        },
+    },
+    {
+        "args": {
             "name": "nfs-share",
             "type": "nfs",
             "nodes": ["pve01", "pve02"],

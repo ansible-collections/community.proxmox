@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'lvm', 'nfs', 'pbs', 'rbd', 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfspool']
     type: str
     required: true
   nodes:
@@ -198,6 +198,21 @@ options:
         description:
           - Enable support for creating snapshots through volume backing-chains.
         type: bool
+  lvmthin_options:
+    description:
+      - Extended information for adding LVM-Thin storage.
+    type: dict
+    suboptions:
+      vgname:
+        description:
+          - The required LVM volume group name. This must point to an existing volume group.
+        type: str
+        required: true
+      thinpool:
+        description:
+          - The required name of the LVM thin pool.
+        type: str
+        required: true
   nfs_options:
     description:
       - Extended information for adding NFS storage.
@@ -373,7 +388,9 @@ def module_args():
         name=dict(type="str", required=True),
         state=dict(type="str", choices=["present", "absent"], default="present"),
         type=dict(
-            type="str", choices=["cephfs", "cifs", "dir", "iscsi", "lvm", "nfs", "pbs", "rbd", "zfspool"], required=True
+            type="str",
+            choices=["cephfs", "cifs", "dir", "iscsi", "lvm", "lvmthin", "nfs", "pbs", "rbd", "zfspool"],
+            required=True,
         ),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
@@ -421,6 +438,13 @@ def module_args():
                 "saferemove_stepsize": dict(type="int", aliases=["wipe_remove_stepsize"], choices=[1, 2, 4, 8, 16, 32]),
                 "saferemove_throughput": dict(type="str", aliases=["wipe_remove_throughput"]),
                 "snapshot_as_volume_chain": dict(type="bool"),
+            },
+        ),
+        lvmthin_options=dict(
+            type="dict",
+            options={
+                "vgname": dict(type="str", required=True),
+                "thinpool": dict(type="str", required=True),
             },
         ),
         iscsi_options=dict(
