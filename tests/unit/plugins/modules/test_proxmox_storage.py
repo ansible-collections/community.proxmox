@@ -86,6 +86,15 @@ PBS_ARGS = {
     },
 }
 
+RBD_ARGS = {
+    "name": "rbd-storage",
+    "type": "rbd",
+    "nodes": ["pve01", "pve02"],
+    "content": ["images"],
+    "rbd_options": {"pool": "mypool"},
+}
+
+
 ZFSPOOL_ARGS = {
     "name": "zfspool-storage",
     "type": "zfspool",
@@ -269,6 +278,12 @@ class TestProxmoxStorageModule(ModuleTestCase):
             },
         )
 
+    def test_add_rbd_storage(self):
+        self._run_add_storage_success(
+            build_module_args(**RBD_ARGS),
+            {"storage": "rbd-storage", "type": "rbd", "pool": "mypool"},
+        )
+
     def test_add_zfspool_storage(self):
         self._run_add_storage_success(
             build_module_args(**ZFSPOOL_ARGS),
@@ -329,6 +344,12 @@ class TestProxmoxStorageModule(ModuleTestCase):
         self._run_add_storage_missing_required(
             build_module_args(**{**PBS_ARGS, "pbs_options": {"server": "s", "username": "u", "password": "p"}}),
             missing_field="datastore",
+        )
+
+    def test_add_rbd_storage_missing_pool(self):
+        self._run_add_storage_missing_required(
+            build_module_args(**{**RBD_ARGS, "rbd_options": {}}),
+            missing_field="pool",
         )
 
     def test_add_zfspool_storage_missing_pool(self):
