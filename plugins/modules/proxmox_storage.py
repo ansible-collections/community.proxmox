@@ -485,15 +485,13 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
     def remove_storage(self, storage_params):
         name = storage_params["storage"]
 
-        if self.module.check_mode:
-            current_storage = self._get_storage(name)
-            if current_storage:
-                self.module.exit_json(changed=True, msg=f"Storage '{name}' would be deleted.")
-            self.module.exit_json(changed=False, msg=f"Storage '{name}' does not exist.")
-
         current_storage = self._get_storage(name)
+
         if not current_storage:
             self.module.exit_json(changed=False, msg=f"Storage '{name}' does not exist.")
+
+        if self.module.check_mode:
+            self.module.exit_json(changed=True, msg=f"Storage '{name}' would be deleted.")
 
         try:
             self.proxmox_api.storage(name).delete()
