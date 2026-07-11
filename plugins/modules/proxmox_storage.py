@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'nfs', 'pbs', 'rbd', 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'lvm', 'nfs', 'pbs', 'rbd', 'zfspool']
     type: str
     required: true
   nodes:
@@ -164,6 +164,40 @@ options:
           - The required iSCSI target.
         type: str
         required: true
+  lvm_options:
+    description:
+      - Extended information for adding LVM storage.
+    type: dict
+    suboptions:
+      vgname:
+        description:
+          - The required LVM volume group name. This must point to an existing volume group.
+        type: str
+        required: true
+      base:
+        description:
+          - The base volume. This is mostly useful when the LVM volume group resides on a remote iSCSI server.
+        type: str
+      saferemove:
+        description:
+          - Called "Wipe Removed Volumes" in the web UI. Zero-out data when removing LVs.
+        type: bool
+        aliases: ["wipe_remove"]
+      saferemove_stepsize:
+        description:
+          - Wipe step size in MiB.
+        type: int
+        choices: [1, 2, 4, 8, 16, 32]
+        aliases: ["wipe_remove_stepsize"]
+      saferemove_throughput:
+        description:
+          -  Wipe throughput (cstream -t parameter value), up to 10 MiB/s by default.
+        type: str
+        aliases: ["wipe_remove_throughput"]
+      snapshot_as_volume_chain:
+        description:
+          - Enable support for creating snapshots through volume backing-chains.
+        type: bool
   nfs_options:
     description:
       - Extended information for adding NFS storage.
@@ -339,7 +373,7 @@ def module_args():
         name=dict(type="str", required=True),
         state=dict(type="str", choices=["present", "absent"], default="present"),
         type=dict(
-            type="str", choices=["cephfs", "cifs", "dir", "iscsi", "nfs", "pbs", "rbd", "zfspool"], required=True
+            type="str", choices=["cephfs", "cifs", "dir", "iscsi", "lvm", "nfs", "pbs", "rbd", "zfspool"], required=True
         ),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
@@ -377,6 +411,17 @@ def module_args():
         dir_options=dict(
             type="dict",
             options={"path": dict(type="str", required=True)},
+        ),
+        lvm_options=dict(
+            type="dict",
+            options={
+                "vgname": dict(type="str", required=True),
+                "base": dict(type="str"),
+                "saferemove": dict(type="bool", aliases=["wipe_remove"]),
+                "saferemove_stepsize": dict(type="int", aliases=["wipe_remove_stepsize"], choices=[1, 2, 4, 8, 16, 32]),
+                "saferemove_throughput": dict(type="str", aliases=["wipe_remove_throughput"]),
+                "snapshot_as_volume_chain": dict(type="bool"),
+            },
         ),
         iscsi_options=dict(
             type="dict",

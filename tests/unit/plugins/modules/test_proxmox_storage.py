@@ -110,6 +110,30 @@ TEST_SCENARIOS = [
     },
     {
         "args": {
+            "name": "lvm-storage",
+            "type": "lvm",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "lvm_options": {
+                "vgname": "myvg",
+                "wipe_remove": True,
+                "saferemove_throughput": "-1024",
+                "snapshot_as_volume_chain": True,
+            },
+        },
+        "expected_payload": {
+            "storage": "lvm-storage",
+            "type": "lvm",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "vgname": "myvg",
+            "saferemove": True,
+            "saferemove_throughput": "-1024",
+            "snapshot-as-volume-chain": True,
+        },
+    },
+    {
+        "args": {
             "name": "nfs-share",
             "type": "nfs",
             "nodes": ["pve01", "pve02"],
