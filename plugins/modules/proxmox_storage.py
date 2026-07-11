@@ -82,9 +82,10 @@ options:
         description:
           - The password for the storage system.
         type: str
-      client_keyring:
+      keyring:
         description:
           - The client keyring to be used.
+        aliases: ["client_keyring"]
         type: str
       fs_name:
         description:
@@ -125,9 +126,10 @@ options:
           - The subdir to be used within the CIFS.
         aliases: ["subdirectory"]
         type: str
-      smb_version:
+      smbversion:
         description:
           - The minimum SMB version to use for.
+        aliases: ["smb_version"]
         type: str
       snapshot_as_volume_chain:
         description:
@@ -324,51 +326,11 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     is_not_found_error,
 )
 
-STORAGE_BACKENDS = {
-    "cephfs": {
-        "path": ("path", False),
-        "monhost": ("monhost", False),
-        "subdir": ("subdir", False),
-        "username": ("username", False),
-        "password": ("password", False),
-        "client_keyring": ("keyring", False),
-        "fs_name": ("fs-name", False),
-    },
-    "cifs": {
-        "server": ("server", True),
-        "share": ("share", True),
-        "username": ("username", True),
-        "password": ("password", True),
-        "domain": ("domain", False),
-        "subdir": ("subdir", False),
-        "smb_version": ("smbversion", False),
-        "snapshot_as_volume_chain": ("snapshot-as-volume-chain", False),
-        "preallocation": ("preallocation", False),
-    },
-    "dir": {"path": ("path", True)},
-    "iscsi": {"portal": ("portal", True), "target": ("target", True)},
-    "nfs": {
-        "server": ("server", True),
-        "export": ("export", True),
-        "options": ("options", False),
-        "preallocation": ("preallocation", False),
-    },
-    "pbs": {
-        "server": ("server", True),
-        "datastore": ("datastore", True),
-        "username": ("username", True),
-        "password": ("password", True),
-        "namespace": ("namespace", False),
-        "fingerprint": ("fingerprint", False),
-        "encryption_key": ("encryption-key", False),
-    },
-    "rbd": {
-        "pool": ("pool", True),
-    },
-    "zfspool": {
-        "pool": ("pool", True),
-        "sparse": ("sparse", False),
-    },
+PROXMOX_FIELD_TRANSLATIONS = {
+    "fs_name": "fs-name",
+    "saferemove_stepsize": "saferemove-stepsize",
+    "snapshot_as_volume_chain": "snapshot-as-volume-chain",
+    "encryption_key": "encryption-key",
 }
 
 
@@ -395,7 +357,7 @@ def module_args():
                 "path": dict(type="str", default="/"),
                 "subdir": dict(type="str"),
                 "fs_name": dict(type="str", required=True),
-                "client_keyring": dict(type="str", no_log=True),
+                "keyring": dict(type="str", aliases=["client_keyring"], no_log=True),
             },
         ),
         cifs_options=dict(
@@ -407,7 +369,7 @@ def module_args():
                 "password": dict(type="str", no_log=True, required=True),
                 "domain": dict(type="str"),
                 "subdir": dict(type="str", aliases=["subdirectory"]),
-                "smb_version": dict(type="str"),
+                "smbversion": dict(type="str", aliases=["smb_version"]),
                 "snapshot_as_volume_chain": dict(type="bool"),
                 "preallocation": dict(type="str"),
             },
@@ -470,13 +432,14 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Failed to retrieve storage {storage_name}: {e}")
 
     def _normalize_storage_params(self, storage_type, backend_params):
-        backend = STORAGE_BACKENDS.get(storage_type, {})
+        argument_spec = self.module.argument_spec.get(f"{storage_type}_options")
         result = {}
-        for ansible_key, (proxmox_key, _required) in backend.items():
-            value = backend_params.get(ansible_key)
-            if value is not None:
-                normalized = ansible_to_proxmox_bool(value) if isinstance(value, bool) else value
-                result[proxmox_key] = normalized
+        for ansible_key in argument_spec["options"]:
+            proxmox_key = PROXMOX_FIELD_TRANSLATIONS.get(ansible_key, ansible_key)
+            value = backend_params.get(ansible_key, None)
+            if value is None:
+                continue
+            result[proxmox_key] = ansible_to_proxmox_bool(value) if isinstance(value, bool) else value
         return result
 
     def run(self):
