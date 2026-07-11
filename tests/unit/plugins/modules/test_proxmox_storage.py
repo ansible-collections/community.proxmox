@@ -246,6 +246,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
     # -- API errors
 
     def test_add_storage_post_api_failure(self):
+        self.mock_api_storage.get.return_value = None
         self.mock_api_storage.post.side_effect = Exception()
 
         result = self._run_module(build_module_args(**TEST_SCENARIOS[0]["args"]))
@@ -275,6 +276,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
     def test_add_storage(self):
         for scenario in TEST_SCENARIOS:
             with self.subTest(name=scenario["args"]["name"], type=scenario["args"]["type"]):
+                self.mock_api_storage.get.return_value = None
                 self.mock_api_storage.post.return_value = {}
 
                 result = self._run_module(build_module_args(**scenario["args"]))
@@ -287,12 +289,13 @@ class TestProxmoxStorageModule(ModuleTestCase):
                 assert actual_payload == scenario["expected_payload"]
 
     def test_add_storage_already_exists(self):
-        self.mock_api_storage.post.side_effect = Exception("already defined")
+        self.mock_api_storage.get.return_value = TEST_SCENARIOS[0]["expected_payload"]
 
         result = self._run_module(build_module_args(**TEST_SCENARIOS[0]["args"]))
 
         assert result["changed"] is False
         assert "already present" in result["msg"]
+        assert not self.mock_api_storage.post.called
 
     def test_add_storage_check_mode_new(self):
         self.mock_api_storage.get.side_effect = Exception("storage does not exist")
@@ -304,7 +307,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert not self.mock_api_storage.post.called
 
     def test_add_storage_check_mode_already_exists(self):
-        self.mock_api_storage.get.return_value = {"storage": "nfs-share"}
+        self.mock_api_storage.get.return_value = TEST_SCENARIOS[0]["expected_payload"]
 
         result = self._run_module(self._check_mode(**TEST_SCENARIOS[0]["args"]))
 

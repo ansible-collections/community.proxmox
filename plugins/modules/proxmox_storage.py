@@ -467,20 +467,19 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
     def add_storage(self, storage_params):
         name = storage_params["storage"]
 
+        current_storage = self._get_storage(name)
+
+        if current_storage is not None:
+            self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
+
         if self.module.check_mode:
-            current_storage = self._get_storage(name)
-            if current_storage:
-                self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
             self.module.exit_json(changed=True, msg=f"Storage '{name}' would be created.")
 
         try:
             self.proxmox_api.storage.post(**storage_params)
             self.module.exit_json(changed=True, msg=f"Storage '{name}' created successfully.")
         except Exception as e:
-            error_msg = str(e)
-            if "already defined" in error_msg:
-                self.module.exit_json(changed=False, msg=f"Storage '{name}' already present.")
-            self.module.fail_json(msg=f"Failed to create storage: {error_msg}")
+            self.module.fail_json(msg=f"Failed to create storage: {e}")
 
     def remove_storage(self, storage_params):
         name = storage_params["storage"]
