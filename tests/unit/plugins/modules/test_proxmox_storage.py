@@ -57,6 +57,7 @@ TEST_SCENARIOS = [
                 "share": "myshare",
                 "username": "user",
                 "password": "secret",
+                "subdirectory": "path",
             },
         },
         "expected_payload": {
@@ -68,6 +69,7 @@ TEST_SCENARIOS = [
             "share": "myshare",
             "username": "user",
             "password": "secret",
+            "subdir": "path",
         },
     },
     {
