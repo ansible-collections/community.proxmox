@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfspool']
     type: str
     required: true
   nodes:
@@ -150,6 +150,21 @@ options:
         type: str
         required: true
   iscsi_options:
+    description:
+      - Extended information for adding iSCSI storage.
+    type: dict
+    suboptions:
+      portal:
+        description:
+          - The required hostname or IP address of the remote storage system as the portal address.
+        type: str
+        required: true
+      target:
+        description:
+          - The required iSCSI target.
+        type: str
+        required: true
+  iscsidirect_options:
     description:
       - Extended information for adding iSCSI storage.
     type: dict
@@ -389,7 +404,7 @@ def module_args():
         state=dict(type="str", choices=["present", "absent"], default="present"),
         type=dict(
             type="str",
-            choices=["cephfs", "cifs", "dir", "iscsi", "lvm", "lvmthin", "nfs", "pbs", "rbd", "zfspool"],
+            choices=["cephfs", "cifs", "dir", "iscsi", "iscsidirect", "lvm", "lvmthin", "nfs", "pbs", "rbd", "zfspool"],
             required=True,
         ),
         content=dict(
@@ -448,6 +463,10 @@ def module_args():
             },
         ),
         iscsi_options=dict(
+            type="dict",
+            options={"portal": dict(type="str", required=True), "target": dict(type="str", required=True)},
+        ),
+        iscsidirect_options=dict(
             type="dict",
             options={"portal": dict(type="str", required=True), "target": dict(type="str", required=True)},
         ),

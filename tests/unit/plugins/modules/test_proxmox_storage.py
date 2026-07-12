@@ -110,6 +110,26 @@ TEST_SCENARIOS = [
     },
     {
         "args": {
+            "name": "iscsidirect-storage",
+            "type": "iscsidirect",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "iscsidirect_options": {
+                "portal": "10.0.0.1",
+                "target": "iqn.example:444",
+            },
+        },
+        "expected_payload": {
+            "storage": "iscsidirect-storage",
+            "type": "iscsidirect",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "portal": "10.0.0.1",
+            "target": "iqn.example:444",
+        },
+    },
+    {
+        "args": {
             "name": "lvm-storage",
             "type": "lvm",
             "nodes": ["pve01", "pve02"],
