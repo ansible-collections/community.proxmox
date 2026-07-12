@@ -244,6 +244,32 @@ TEST_SCENARIOS = [
             "content": ["images"],
         },
     },
+    {
+        "args": {
+            "name": "zfs-storage",
+            "type": "zfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "zfs_options": {
+                "pool": "mypool",
+                "portal": "192.0.2.111",
+                "target": "iqn.2003-01.org.linux-iscsi.lio.x8664:sn.xxxxxxxxxxxx",
+                "iscsiprovider": "lio",
+                "lio_tpg": "tpg1",
+            },
+        },
+        "expected_payload": {
+            "storage": "zfs-storage",
+            "type": "zfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "pool": "mypool",
+            "portal": "192.0.2.111",
+            "target": "iqn.2003-01.org.linux-iscsi.lio.x8664:sn.xxxxxxxxxxxx",
+            "iscsiprovider": "lio",
+            "lio_tpg": "tpg1",
+        },
+    },
 ]
 
 

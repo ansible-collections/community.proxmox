@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfspool']
+    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
     type: str
     required: true
   nodes:
@@ -300,6 +300,56 @@ options:
           - The required RBD pool name.
         type: str
         required: true
+  zfs_options:
+    description:
+      - Extended information for adding ZFS over iSCSI storage.
+    type: dict
+    suboptions:
+      pool:
+        description:
+          - The required name of the ZFS pool to use.
+        type: str
+        required: true
+      portal:
+        description:
+          - The required hostname or IP address of the remote storage system as the portal address.
+        type: str
+        required: true
+      target:
+        description:
+          - The required iSCSI target.
+        type: str
+        required: true
+      iscsiprovider:
+        description:
+          - The iSCSI target implementation used on the remote machine .
+        type: str
+        required: true
+        choices: ['lio', 'iet', 'istgt', 'comstar']
+      comstar_tg:
+        description:
+          - The target group for comstar views.
+        type: str
+      comstar_hg:
+        description:
+          - The host group for comstar views.
+        type: str
+      lio_tpg:
+        description:
+          - The target portal group for Linux LIO targets.
+        type: str
+      nowritecache:
+        description:
+          - Disable write caching on the target.
+        type: bool
+      blocksize:
+        description:
+          - The ZFS blocksize parameter.
+        type: str
+      sparse:
+        description:
+          - Use ZFS thin-provisioning.
+        type: bool
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
@@ -404,7 +454,20 @@ def module_args():
         state=dict(type="str", choices=["present", "absent"], default="present"),
         type=dict(
             type="str",
-            choices=["cephfs", "cifs", "dir", "iscsi", "iscsidirect", "lvm", "lvmthin", "nfs", "pbs", "rbd", "zfspool"],
+            choices=[
+                "cephfs",
+                "cifs",
+                "dir",
+                "iscsi",
+                "iscsidirect",
+                "lvm",
+                "lvmthin",
+                "nfs",
+                "pbs",
+                "rbd",
+                "zfs",
+                "zfspool",
+            ],
             required=True,
         ),
         content=dict(
@@ -492,6 +555,21 @@ def module_args():
             },
         ),
         rbd_options=dict(type="dict", options={"pool": dict(type="str", required=True)}),
+        zfs_options=dict(
+            type="dict",
+            options={
+                "pool": dict(type="str", required=True),
+                "portal": dict(type="str", required=True),
+                "target": dict(type="str", required=True),
+                "iscsiprovider": dict(type="str", required=True, choices=["lio", "iet", "istgt", "comstar"]),
+                "comstar_tg": dict(type="str"),
+                "comstar_hg": dict(type="str"),
+                "lio_tpg": dict(type="str"),
+                "nowritecache": dict(type="bool"),
+                "blocksize": dict(type="str"),
+                "sparse": dict(type="bool"),
+            },
+        ),
         zfspool_options=dict(
             type="dict",
             options={
