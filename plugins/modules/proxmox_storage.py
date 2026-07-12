@@ -90,6 +90,7 @@ options:
         description:
           - The Ceph filesystem name
         type: str
+        required: true
   cifs_options:
     description:
       - Extended information for adding CIFS storage.
@@ -393,7 +394,7 @@ def module_args():
                 "password": dict(type="str", no_log=True),
                 "path": dict(type="str", default="/"),
                 "subdir": dict(type="str"),
-                "fs_name": dict(type="str"),
+                "fs_name": dict(type="str", required=True),
                 "client_keyring": dict(type="str", no_log=True),
             },
         ),
@@ -440,7 +441,7 @@ def module_args():
                 "encryption_key": dict(type="str", no_log=True),
             },
         ),
-        rbd_options=dict(type="dict", options={"pool": dict(type="str")}),
+        rbd_options=dict(type="dict", options={"pool": dict(type="str", required=True)}),
         zfspool_options=dict(
             type="dict",
             options={
