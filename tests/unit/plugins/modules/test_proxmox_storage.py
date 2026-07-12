@@ -15,93 +15,173 @@ from ansible_collections.community.internal_test_tools.tests.unit.plugins.module
 from ansible_collections.community.proxmox.plugins.modules import proxmox_storage
 
 # -- Fixtures
-
-CEPHFS_ARGS = {
-    "name": "cephfs-storage",
-    "type": "cephfs",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images", "rootdir"],
-    "cephfs_options": {
-        "monhost": ["10.0.0.1", "10.0.0.2"],
-        "username": "admin",
-        "password": "secretpass",
-        "path": "/",
-        "subdir": "mydata",
-        "client_keyring": "AQ==",
-        "fs_name": "mycephfs",
+TEST_SCENARIOS = [
+    {
+        "args": {
+            "name": "cephfs-storage",
+            "type": "cephfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images", "rootdir"],
+            "cephfs_options": {
+                "monhost": ["10.0.0.1", "10.0.0.2"],
+                "username": "admin",
+                "password": "secretpass",
+                "path": "/",
+                "subdir": "mydata",
+                "client_keyring": "AQ==",
+                "fs_name": "mycephfs",
+            },
+        },
+        "expected_payload": {
+            "storage": "cephfs-storage",
+            "type": "cephfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images", "rootdir"],
+            "monhost": ["10.0.0.1", "10.0.0.2"],
+            "fs-name": "mycephfs",
+            "keyring": "AQ==",
+            "subdir": "mydata",
+            "username": "admin",
+            "password": "secretpass",
+            "path": "/",
+        },
     },
-}
-
-CIFS_ARGS = {
-    "name": "cifs-storage",
-    "type": "cifs",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images"],
-    "cifs_options": {
-        "server": "10.0.0.1",
-        "share": "myshare",
-        "username": "user",
-        "password": "secret",
+    {
+        "args": {
+            "name": "cifs-storage",
+            "type": "cifs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "cifs_options": {
+                "server": "10.0.0.1",
+                "share": "myshare",
+                "username": "user",
+                "password": "secret",
+            },
+        },
+        "expected_payload": {
+            "storage": "cifs-storage",
+            "type": "cifs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "server": "10.0.0.1",
+            "share": "myshare",
+            "username": "user",
+            "password": "secret",
+        },
     },
-}
-
-DIR_ARGS = {
-    "name": "dir-storage",
-    "type": "dir",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images"],
-    "dir_options": {"path": "/dir"},
-}
-
-ISCSI_ARGS = {
-    "name": "iscsi-storage",
-    "type": "iscsi",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images"],
-    "iscsi_options": {
-        "portal": "10.0.0.1",
-        "target": "iqn.example:444",
+    {
+        "args": {
+            "name": "dir-storage",
+            "type": "dir",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "dir_options": {"path": "/dir"},
+        },
+        "expected_payload": {
+            "storage": "dir-storage",
+            "type": "dir",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "path": "/dir",
+        },
     },
-}
-
-NFS_ARGS = {
-    "name": "nfs-share",
-    "type": "nfs",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images"],
-    "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
-}
-
-PBS_ARGS = {
-    "name": "pbs-backup",
-    "type": "pbs",
-    "nodes": ["pve01", "pve02"],
-    "content": ["backup"],
-    "pbs_options": {
-        "server": "backup.local",
-        "username": "backup@pbs",
-        "password": "secret",
-        "datastore": "backup01",
-        "fingerprint": "21:67:27:63:3c:e5:73",
+    {
+        "args": {
+            "name": "iscsi-storage",
+            "type": "iscsi",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "iscsi_options": {
+                "portal": "10.0.0.1",
+                "target": "iqn.example:444",
+            },
+        },
+        "expected_payload": {
+            "storage": "iscsi-storage",
+            "type": "iscsi",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "portal": "10.0.0.1",
+            "target": "iqn.example:444",
+        },
     },
-}
-
-RBD_ARGS = {
-    "name": "rbd-storage",
-    "type": "rbd",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images"],
-    "rbd_options": {"pool": "mypool"},
-}
-
-
-ZFSPOOL_ARGS = {
-    "name": "zfspool-storage",
-    "type": "zfspool",
-    "nodes": ["pve01", "pve02"],
-    "content": ["images"],
-    "zfspool_options": {"pool": "mypool"},
-}
+    {
+        "args": {
+            "name": "nfs-share",
+            "type": "nfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
+        },
+        "expected_payload": {
+            "storage": "nfs-share",
+            "type": "nfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "server": "10.10.10.10",
+            "export": "/mnt/nfs",
+        },
+    },
+    {
+        "args": {
+            "name": "pbs-backup",
+            "type": "pbs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["backup"],
+            "pbs_options": {
+                "server": "backup.local",
+                "username": "backup@pbs",
+                "password": "secret",
+                "datastore": "backup01",
+                "fingerprint": "21:67:27:63:3c:e5:73",
+            },
+        },
+        "expected_payload": {
+            "storage": "pbs-backup",
+            "type": "pbs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["backup"],
+            "server": "backup.local",
+            "datastore": "backup01",
+            "fingerprint": "21:67:27:63:3c:e5:73",
+            "username": "backup@pbs",
+            "password": "secret",
+        },
+    },
+    {
+        "args": {
+            "name": "rbd-storage",
+            "type": "rbd",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "rbd_options": {"pool": "mypool"},
+        },
+        "expected_payload": {
+            "storage": "rbd-storage",
+            "type": "rbd",
+            "pool": "mypool",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+        },
+    },
+    {
+        "args": {
+            "name": "zfspool-storage",
+            "type": "zfspool",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "zfspool_options": {"pool": "mypool"},
+        },
+        "expected_payload": {
+            "storage": "zfspool-storage",
+            "type": "zfspool",
+            "pool": "mypool",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+        },
+    },
+]
 
 
 # -- Helpers
@@ -161,36 +241,12 @@ class TestProxmoxStorageModule(ModuleTestCase):
     def _check_mode(self, **kwargs):
         return {**build_module_args(**kwargs), "_ansible_check_mode": True}
 
-    def _run_add_storage_success(self, args, expected_payload_subset):
-        self.mock_api_storage.post.return_value = {}
-
-        result = self._run_module(args)
-
-        assert result["changed"] is True
-        assert "created successfully" in result["msg"]
-        assert self.mock_api_storage.post.called
-
-        actual_payload = self.mock_api_storage.post.call_args[1]
-        for key, value in expected_payload_subset.items():
-            if value is None:
-                assert key not in actual_payload
-            else:
-                assert actual_payload.get(key) == value
-
-    def _run_add_storage_missing_required(self, args, missing_field):
-        result = self._run_module(args)
-
-        assert result["failed"] is True
-        assert missing_field in result["msg"]
-        assert "required" in result["msg"].lower()
-        assert not self.mock_api_storage.post.called
-
     # -- API errors
 
     def test_add_storage_post_api_failure(self):
         self.mock_api_storage.post.side_effect = Exception()
 
-        result = self._run_module(build_module_args(**NFS_ARGS))
+        result = self._run_module(build_module_args(**TEST_SCENARIOS[0]["args"]))
 
         assert result["failed"] is True
         assert "Failed to create storage" in result["msg"]
@@ -214,86 +270,24 @@ class TestProxmoxStorageModule(ModuleTestCase):
 
     # -- state=present
 
-    def test_add_cephfs_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**CEPHFS_ARGS),
-            {
-                "storage": "cephfs-storage",
-                "type": "cephfs",
-                "monhost": ["10.0.0.1", "10.0.0.2"],
-                "fs-name": "mycephfs",
-                "keyring": "AQ==",
-                "subdir": "mydata",
-            },
-        )
+    def test_add_storage(self):
+        for scenario in TEST_SCENARIOS:
+            with self.subTest(name=scenario["args"]["name"], type=scenario["args"]["type"]):
+                self.mock_api_storage.post.return_value = {}
 
-    def test_add_cifs_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**CIFS_ARGS),
-            {
-                "storage": "cifs-storage",
-                "type": "cifs",
-                "server": "10.0.0.1",
-                "share": "myshare",
-            },
-        )
+                result = self._run_module(build_module_args(**scenario["args"]))
 
-    def test_add_dir_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**DIR_ARGS),
-            {"storage": "dir-storage", "type": "dir", "path": "/dir"},
-        )
+                assert result["changed"] is True
+                assert "created successfully" in result["msg"]
+                assert self.mock_api_storage.post.called
 
-    def test_add_iscsi_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**ISCSI_ARGS),
-            {
-                "storage": "iscsi-storage",
-                "type": "iscsi",
-                "portal": "10.0.0.1",
-                "target": "iqn.example:444",
-            },
-        )
-
-    def test_add_nfs_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**NFS_ARGS),
-            {
-                "storage": "nfs-share",
-                "type": "nfs",
-                "server": "10.10.10.10",
-                "export": "/mnt/nfs",
-            },
-        )
-
-    def test_add_pbs_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**PBS_ARGS),
-            {
-                "storage": "pbs-backup",
-                "type": "pbs",
-                "server": "backup.local",
-                "datastore": "backup01",
-                "fingerprint": "21:67:27:63:3c:e5:73",
-            },
-        )
-
-    def test_add_rbd_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**RBD_ARGS),
-            {"storage": "rbd-storage", "type": "rbd", "pool": "mypool"},
-        )
-
-    def test_add_zfspool_storage(self):
-        self._run_add_storage_success(
-            build_module_args(**ZFSPOOL_ARGS),
-            {"storage": "zfspool-storage", "type": "zfspool", "pool": "mypool"},
-        )
+                actual_payload = self.mock_api_storage.post.call_args[1]
+                assert actual_payload == scenario["expected_payload"]
 
     def test_add_storage_already_exists(self):
         self.mock_api_storage.post.side_effect = Exception("already defined")
 
-        result = self._run_module(build_module_args(**NFS_ARGS))
+        result = self._run_module(build_module_args(**TEST_SCENARIOS[0]["args"]))
 
         assert result["changed"] is False
         assert "already present" in result["msg"]
@@ -301,7 +295,7 @@ class TestProxmoxStorageModule(ModuleTestCase):
     def test_add_storage_check_mode_new(self):
         self.mock_api_storage.get.side_effect = Exception("storage does not exist")
 
-        result = self._run_module(self._check_mode(**NFS_ARGS))
+        result = self._run_module(self._check_mode(**TEST_SCENARIOS[0]["args"]))
 
         assert result["changed"] is True
         assert "would be created" in result["msg"]
@@ -310,53 +304,23 @@ class TestProxmoxStorageModule(ModuleTestCase):
     def test_add_storage_check_mode_already_exists(self):
         self.mock_api_storage.get.return_value = {"storage": "nfs-share"}
 
-        result = self._run_module(self._check_mode(**NFS_ARGS))
+        result = self._run_module(self._check_mode(**TEST_SCENARIOS[0]["args"]))
 
         assert result["changed"] is False
         assert "already present" in result["msg"]
         assert not self.mock_api_storage.post.called
 
-    def test_add_cifs_storage_missing_share(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**CIFS_ARGS, "cifs_options": {"server": "10.0.0.1"}}),
-            missing_field="share",
-        )
+    def test_add_storage_missing_argument(self):
+        for scenario in TEST_SCENARIOS:
+            with self.subTest(name=scenario["args"]["name"], type=scenario["args"]["type"]):
+                result = self._run_module(
+                    build_module_args(**{**scenario["args"], f"{scenario['args']['type']}_options": {}})
+                )
 
-    def test_add_dir_storage_missing_path(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**DIR_ARGS, "dir_options": {}}),
-            missing_field="path",
-        )
-
-    def test_add_iscsi_storage_missing_target(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**ISCSI_ARGS, "iscsi_options": {"portal": "10.0.0.1"}}),
-            missing_field="target",
-        )
-
-    def test_add_nfs_storage_missing_export(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**NFS_ARGS, "nfs_options": {"server": "10.0.0.1"}}),
-            missing_field="export",
-        )
-
-    def test_add_pbs_storage_missing_datastore(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**PBS_ARGS, "pbs_options": {"server": "s", "username": "u", "password": "p"}}),
-            missing_field="datastore",
-        )
-
-    def test_add_rbd_storage_missing_pool(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**RBD_ARGS, "rbd_options": {}}),
-            missing_field="pool",
-        )
-
-    def test_add_zfspool_storage_missing_pool(self):
-        self._run_add_storage_missing_required(
-            build_module_args(**{**ZFSPOOL_ARGS, "zfspool_options": {}}),
-            missing_field="pool",
-        )
+                assert result["failed"] is True
+                assert "missing required arguments" in result["msg"]
+                assert "required" in result["msg"].lower()
+                assert not self.mock_api_storage.post.called
 
     # -- state=absent
 
