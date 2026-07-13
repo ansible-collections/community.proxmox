@@ -361,6 +361,19 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert result["failed"] is True
         assert "Failed to delete storage" in result["msg"]
 
+    def test_update_storage_put_api_failure(self):
+        self.mock_api_storage.get.return_value = {
+            **TEST_SCENARIOS[0]["expected_payload"],
+            "nodes": ["pve01"],
+            "digest": "mock",
+        }
+        self.mock_api_storage.return_value.put.side_effect = Exception()
+
+        result = self._run_module(build_module_args(update=True, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["failed"] is True
+        assert "Failed to update storage" in result["msg"]
+
     # -- state=present
 
     def test_add_storage(self):
@@ -405,7 +418,14 @@ class TestProxmoxStorageModule(ModuleTestCase):
         result = self._run_module(self._diff_mode(**TEST_SCENARIOS[0]["args"]))
 
         assert result["changed"] is True
-        assert result["diff"] == {"before": None, "after": TEST_SCENARIOS[0]["expected_payload"]}
+        assert result["diff"] == [
+            {
+                "before_header": "cephfs-storage (cephfs)",
+                "before": None,
+                "after_header": "cephfs-storage (cephfs)",
+                "after": TEST_SCENARIOS[0]["expected_payload"],
+            }
+        ]
 
     def test_add_storage_check_mode_already_exists(self):
         self.mock_api_storage.get.return_value = TEST_SCENARIOS[0]["expected_payload"]
@@ -427,6 +447,105 @@ class TestProxmoxStorageModule(ModuleTestCase):
                 assert "missing required arguments" in result["msg"]
                 assert "required" in result["msg"].lower()
                 assert not self.mock_api_storage.post.called
+
+    def test_update_storage_without_update_mode(self):
+        self.mock_api_storage.get.return_value = {
+            **TEST_SCENARIOS[0]["expected_payload"],
+            "nodes": ["pve01"],
+            "digest": "mock",
+        }
+
+        result = self._run_module(build_module_args(update=False, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["changed"] is False
+        assert "already present" in result["msg"]
+        assert not self.mock_api_storage.return_value.put.called
+
+    def test_update_storage(self):
+        self.mock_api_storage.get.return_value = {
+            **TEST_SCENARIOS[0]["expected_payload"],
+            "nodes": ["pve01"],
+            "digest": "mock",
+        }
+
+        result = self._run_module(build_module_args(update=True, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["changed"] is True
+        assert "updated successfully" in result["msg"]
+        self.mock_api_storage.return_value.put.assert_called_once_with(nodes="pve01,pve02", digest="mock")
+
+    def test_update_storage_delete(self):
+        self.mock_api_storage.get.return_value = {
+            "storage": "lvm-storage",
+            "type": "lvm",
+            "nodes": "pve01,pve02",
+            "content": "images",
+            "vgname": "myvg",
+            "saferemove": 1,
+            "saferemove-stepsize": "16",
+            "disable": 0,
+            "additional": "value",
+            "digest": "mock",
+        }
+
+        module_args = {
+            "name": "lvm-storage",
+            "type": "lvm",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images"],
+            "lvm_options": {
+                "vgname": "myvg",
+            },
+        }
+
+        result = self._run_module(build_module_args(update=True, **module_args))
+
+        assert result["changed"] is True
+        assert "updated successfully" in result["msg"]
+        self.mock_api_storage.return_value.put.assert_called_once_with(
+            delete="saferemove,saferemove-stepsize", digest="mock"
+        )
+
+    def test_update_storage_check_mode(self):
+        self.mock_api_storage.get.return_value = {
+            **TEST_SCENARIOS[0]["expected_payload"],
+            "nodes": ["pve01"],
+            "digest": "mock",
+        }
+
+        result = self._run_module(self._check_mode(update=True, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["changed"] is True
+        assert "would be updated" in result["msg"]
+        assert not self.mock_api_storage.put.called
+
+    def test_update_storage_diff_mode(self):
+        self.mock_api_storage.get.side_effect = [
+            {**TEST_SCENARIOS[0]["expected_payload"], "nodes": ["pve01"], "digest": "mock"},
+            {**TEST_SCENARIOS[0]["expected_payload"], "digest": "mock"},
+        ]
+
+        result = self._run_module(self._diff_mode(update=True, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["diff"] == [
+            {
+                "before_header": "cephfs-storage (cephfs)",
+                "before": {**TEST_SCENARIOS[0]["expected_payload"], "nodes": ["pve01"]},
+                "after_header": "cephfs-storage (cephfs)",
+                "after": TEST_SCENARIOS[0]["expected_payload"],
+            }
+        ]
+
+    def test_update_storage_change_type(self):
+        self.mock_api_storage.get.side_effect = [
+            {**TEST_SCENARIOS[0]["expected_payload"], "type": "unknown", "digest": "mock"},
+            {**TEST_SCENARIOS[0]["expected_payload"], "digest": "mock"},
+        ]
+
+        result = self._run_module(build_module_args(update=True, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["failed"] is True
+        assert "type can not be changed" in result["msg"]
 
     # -- state=absent
 
@@ -467,7 +586,14 @@ class TestProxmoxStorageModule(ModuleTestCase):
         result = self._run_module(self._diff_mode(state="absent", **TEST_SCENARIOS[0]["args"]))
 
         assert result["changed"] is True
-        assert result["diff"] == {"before": TEST_SCENARIOS[0]["expected_payload"], "after": None}
+        assert result["diff"] == [
+            {
+                "before_header": "cephfs-storage (cephfs)",
+                "before": TEST_SCENARIOS[0]["expected_payload"],
+                "after_header": "cephfs-storage (cephfs)",
+                "after": None,
+            }
+        ]
 
     def test_remove_storage_check_mode_nonexistent(self):
         self.mock_api_storage.get.side_effect = Exception("storage does not exist")

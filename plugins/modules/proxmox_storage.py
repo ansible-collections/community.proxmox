@@ -364,6 +364,11 @@ options:
         description:
           - Use ZFS thin-provisioning.
         type: bool
+  update:
+    description:
+      - If V(true), the Storage will be updated with new value.
+    type: bool
+    default: false
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -422,6 +427,17 @@ EXAMPLES = r"""
     zfspool_options:
       pool: rpool/data
       sparse: true
+
+- name: Update ZFS storage on Proxmox VE Cluster
+  community.proxmox.proxmox_storage:
+    state: present
+    name: zfspool-storage
+    type: zfspool
+    content: ["images"]
+    zfspool_options:
+      pool: rpool/data
+      sparse: true
+    update: true
 """
 
 RETURN = r"""
@@ -446,6 +462,20 @@ PROXMOX_FIELD_TRANSLATIONS = {
     "snapshot_as_volume_chain": "snapshot-as-volume-chain",
     "encryption_key": "encryption-key",
 }
+
+
+PROXMOX_FIELD_READONLY = [
+    "type",
+    "base",
+    "datastore",
+    "export",
+    "iscsiprovider",
+    "path",
+    "share",
+    "target",
+    "thinpool",
+    "vgname",
+]
 
 
 def module_args():
@@ -577,6 +607,7 @@ def module_args():
                 "sparse": dict(type="bool"),
             },
         ),
+        update=dict(type="bool", default=False),
     )
 
 
@@ -617,6 +648,24 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
         return storage_params
 
+    def _update_storage_params(self, current_storage, desired_storage):
+        update = {
+            param: desired_value
+            for param, desired_value in desired_storage.items()
+            if desired_value != current_storage.get(param)
+        }
+        deletable_params = [
+            PROXMOX_FIELD_TRANSLATIONS.get(key, key) for key in self.params.get(f"{current_storage['type']}_options")
+        ]
+        deleted_params = [
+            param
+            for param, current_value in current_storage.items()
+            if current_value is not None and desired_storage.get(param) is None and param in deletable_params
+        ]
+        if deleted_params:
+            update["delete"] = ",".join(sorted(deleted_params))
+        return update
+
     def run(self):
         storage_name = self.params.get("name")
         storage_type = self.params.get("type")
@@ -628,7 +677,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         if state == "present" and current_storage is None:
             changed, msg = self.add_storage(storage_name, storage_type, desired_storage)
         elif state == "present":
-            self.module.exit_json(changed=False, msg=f"Storage '{storage_name}' already present.")
+            changed, msg = self.update_storage(storage_name, storage_type, current_storage, desired_storage)
         elif state == "absent" and current_storage is not None:
             changed, msg = self.remove_storage(storage_name)
         elif state == "absent":
@@ -643,7 +692,18 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 del new_storage["digest"]
             if current_storage is not None and "digest" in current_storage:
                 del current_storage["digest"]
-            self.module.exit_json(changed=changed, msg=msg, diff=dict(before=current_storage, after=new_storage))
+            self.module.exit_json(
+                changed=changed,
+                msg=msg,
+                diff=[
+                    {
+                        "before_header": f"{storage_name} ({storage_type})",
+                        "before": current_storage,
+                        "after_header": f"{storage_name} ({storage_type})",
+                        "after": new_storage,
+                    }
+                ],
+            )
 
         self.module.exit_json(changed=changed, msg=msg)
 
@@ -656,6 +716,30 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             return True, f"Storage '{name}' created successfully."
         except Exception as e:
             self.module.fail_json(msg=f"Failed to create storage: {e}")
+
+    def update_storage(self, name, storage_type, current_storage, desired_storage):
+        if storage_type != current_storage["type"]:
+            self.module.fail_json(msg=f"Storage '{name}' type can not be changed.")
+
+        update_storage = self._update_storage_params(current_storage, desired_storage)
+
+        if len(update_storage) == 0 or self.params.get("update") is False:
+            return False, f"Storage '{name}' already present."
+
+        readonly_param = next((param for param in PROXMOX_FIELD_READONLY if param in update_storage), None)
+        if readonly_param is not None:
+            self.module.fail_json(msg=f"Storage '{name}' parameter '{readonly_param}' is readonly.")
+
+        if self.module.check_mode:
+            return True, f"Storage '{name}' would be updated."
+
+        update_storage["digest"] = current_storage["digest"]
+
+        try:
+            self.proxmox_api.storage(name).put(**update_storage)
+            return True, f"Storage '{name}' updated successfully."
+        except Exception as e:
+            self.module.fail_json(msg=f"Failed to update storage '{name}': {e}")
 
     def remove_storage(self, name):
         if self.module.check_mode:
