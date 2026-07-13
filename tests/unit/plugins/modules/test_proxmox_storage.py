@@ -330,6 +330,9 @@ class TestProxmoxStorageModule(ModuleTestCase):
     def _check_mode(self, **kwargs):
         return {**build_module_args(**kwargs), "_ansible_check_mode": True}
 
+    def _diff_mode(self, **kwargs):
+        return {**build_module_args(**kwargs), "_ansible_diff": True}
+
     # -- API errors
 
     def test_add_storage_post_api_failure(self):
@@ -393,6 +396,17 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert "would be created" in result["msg"]
         assert not self.mock_api_storage.post.called
 
+    def test_add_storage_diff_mode_new(self):
+        self.mock_api_storage.get.side_effect = [
+            Exception("storage does not exist"),
+            TEST_SCENARIOS[0]["expected_payload"],
+        ]
+
+        result = self._run_module(self._diff_mode(**TEST_SCENARIOS[0]["args"]))
+
+        assert result["changed"] is True
+        assert result["diff"] == {"before": None, "after": TEST_SCENARIOS[0]["expected_payload"]}
+
     def test_add_storage_check_mode_already_exists(self):
         self.mock_api_storage.get.return_value = TEST_SCENARIOS[0]["expected_payload"]
 
@@ -443,6 +457,17 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert result["changed"] is True
         assert "would be deleted" in result["msg"]
         self.mock_api_storage.return_value.delete.assert_not_called()
+
+    def test_remove_storage_diff_mode_existing(self):
+        self.mock_api_storage.get.side_effect = [
+            TEST_SCENARIOS[0]["expected_payload"],
+            Exception("storage does not exist"),
+        ]
+
+        result = self._run_module(self._diff_mode(state="absent", **TEST_SCENARIOS[0]["args"]))
+
+        assert result["changed"] is True
+        assert result["diff"] == {"before": TEST_SCENARIOS[0]["expected_payload"], "after": None}
 
     def test_remove_storage_check_mode_nonexistent(self):
         self.mock_api_storage.get.side_effect = Exception("storage does not exist")
