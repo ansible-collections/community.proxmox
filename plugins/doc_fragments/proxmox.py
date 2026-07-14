@@ -12,19 +12,17 @@ options:
       - Specify the target host of the Proxmox VE cluster.
       - Uses the E(PROXMOX_HOST) environment variable if not specified.
     type: str
-    required: true
   api_port:
     description:
       - Specify the target port of the Proxmox VE cluster.
       - Uses the E(PROXMOX_PORT) environment variable if not specified.
     type: int
-    required: false
   api_user:
     description:
       - Specify the user to authenticate with.
       - Uses the E(PROXMOX_USER) environment variable if not specified.
     type: str
-    required: true
+    default: root@pam
   api_password:
     description:
       - Specify the password to authenticate with.
