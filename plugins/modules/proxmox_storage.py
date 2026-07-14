@@ -611,9 +611,9 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         }
 
         if self.params.get("nodes") is not None:
-            storage_params["nodes"] = self.params.get("nodes")
+            storage_params["nodes"] = ",".join(sorted(self.params.get("nodes")))
         if self.params.get("content") is not None:
-            storage_params["content"] = self.params.get("content")
+            storage_params["content"] = ",".join(sorted(self.params.get("content")))
 
         return storage_params
 
