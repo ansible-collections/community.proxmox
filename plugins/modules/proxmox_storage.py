@@ -54,6 +54,10 @@ options:
     type: list
     elements: str
     choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
+  disable:
+    description:
+     - Flag to disable the storage.
+    type: bool
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -507,6 +511,7 @@ def module_args():
             type="list",
             elements="str",
         ),
+        disable=dict(type="bool"),
         cephfs_options=dict(
             type="dict",
             options={
@@ -641,6 +646,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             if key in storage_argument_spec["options"] and value is not None
         }
 
+        if self.params.get("disable") is not None:
+            storage_params["disable"] = ansible_to_proxmox_bool(self.params.get("disable"))
         if self.params.get("nodes") is not None:
             storage_params["nodes"] = ",".join(sorted(self.params.get("nodes")))
         if self.params.get("content") is not None:

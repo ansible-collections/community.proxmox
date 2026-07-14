@@ -52,6 +52,7 @@ TEST_SCENARIOS = [
             "type": "cifs",
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
+            "disable": False,
             "cifs_options": {
                 "server": "10.0.0.1",
                 "share": "myshare",
@@ -70,6 +71,7 @@ TEST_SCENARIOS = [
             "username": "user",
             "password": "secret",
             "subdir": "path",
+            "disable": 0,
         },
     },
     {
@@ -78,6 +80,7 @@ TEST_SCENARIOS = [
             "type": "dir",
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
+            "disable": True,
             "dir_options": {"path": "/dir"},
         },
         "expected_payload": {
@@ -86,6 +89,7 @@ TEST_SCENARIOS = [
             "nodes": "pve01,pve02",
             "content": "images",
             "path": "/dir",
+            "disable": 1,
         },
     },
     {
