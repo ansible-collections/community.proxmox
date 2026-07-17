@@ -662,7 +662,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             if desired_value != current_storage.get(param)
         }
         deletable_params = [
-            PROXMOX_FIELD_TRANSLATIONS.get(key, key) for key in self.params.get(f"{current_storage['type']}_options")
+            PROXMOX_FIELD_TRANSLATIONS.get(key, key) for key in self.params.get(f"{current_storage['type']}_options") or {}
         ]
         deleted_params = [
             param
