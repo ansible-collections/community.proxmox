@@ -502,7 +502,6 @@ def module_args():
                 "zfs",
                 "zfspool",
             ],
-            required=True,
         ),
         content=dict(
             type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
@@ -617,8 +616,9 @@ def module_args():
 
 
 def module_options():
-    return {}
-
+    return dict(
+        required_if=[("state", "present", ["type"])],
+    )
 
 class ProxmoxNodeAnsible(ProxmoxAnsible):
     def __init__(self, module):
