@@ -34,7 +34,6 @@ options:
       - The storage type/protocol to use when adding the storage.
     choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
     type: str
-    required: true
   nodes:
     description:
       - A list of nodes where this storage is available.
@@ -56,7 +55,7 @@ options:
     choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
   shared:
     description:
-     - Indicate that this is a single storage with the same contents on all nodes (or all listed in the C(nodes) option).
+     - Indicate that this is a single storage with the same contents on all nodes (or all listed in the O(nodes) option).
     type: bool
   disable:
     description:
@@ -64,9 +63,9 @@ options:
     type: bool
   prune_backups:
     description:
-      - Retention options for backups. For details, see Backup Retention. 
-      - https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention
-    type: string
+      - Retention options for backups. For details, see Backup Retention.
+      - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
+    type: str
   format:
     description:
       -  Default image format
@@ -75,7 +74,7 @@ options:
   preallocation:
     description:
       - Preallocation mode for raw and qcow2 images on file-based storages.
-      - The default is C(metadata), which is treated like C(off) for raw images.
+      - The default is V(metadata), which is treated like V(off) for raw images.
     type: str
     choices: ["off", "metadata", "falloc", "full"]
   cephfs_options:
@@ -346,21 +345,27 @@ options:
         required: true
       iscsiprovider:
         description:
-          - The iSCSI target implementation used on the remote machine .
+          - The iSCSI target implementation used on the remote machine.
+          - V(lio) and V(iet) for Linux.
+          - V(istgt) for FreeBSD.
+          - V(comstar) for Solaris.
         type: str
         required: true
         choices: ['lio', 'iet', 'istgt', 'comstar']
       comstar_tg:
         description:
           - The target group for comstar views.
+          - Only for O(zfs_options.iscsiprovider=comstar).
         type: str
       comstar_hg:
         description:
           - The host group for comstar views.
+          - Only for O(zfs_options.iscsiprovider=comstar).
         type: str
       lio_tpg:
         description:
           - The target portal group for Linux LIO targets.
+          - Only for O(zfs_options.iscsiprovider=lio).
         type: str
       nowritecache:
         description:
@@ -645,6 +650,7 @@ def module_options():
         required_if=[("state", "present", ["type"])],
     )
 
+
 class ProxmoxNodeAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super().__init__(module)
@@ -695,7 +701,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             if desired_value != current_storage.get(param)
         }
         deletable_params = [
-            PROXMOX_FIELD_TRANSLATIONS.get(key, key) for key in self.params.get(f"{current_storage['type']}_options") or {}
+            PROXMOX_FIELD_TRANSLATIONS.get(key, key)
+            for key in self.params.get(f"{current_storage['type']}_options") or {}
         ]
         deleted_params = [
             param
