@@ -138,6 +138,9 @@ TEST_SCENARIOS = [
             "type": "lvm",
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
+            "shared": True,
+            "format": "qcow2",
+            "preallocation": "off",
             "lvm_options": {
                 "vgname": "myvg",
                 "wipe_remove": True,
@@ -154,6 +157,9 @@ TEST_SCENARIOS = [
             "saferemove": True,
             "saferemove_throughput": "-1024",
             "snapshot-as-volume-chain": True,
+            "shared": 1,
+            "format": "qcow2",
+            "preallocation": "off",
         },
     },
     {
@@ -179,6 +185,7 @@ TEST_SCENARIOS = [
             "type": "nfs",
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
+            "prune_backups": "keep-last=3,keep-daily=13,keep-yearly=9",
             "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
         },
         "expected_payload": {
@@ -188,6 +195,7 @@ TEST_SCENARIOS = [
             "content": "images",
             "server": "10.10.10.10",
             "export": "/mnt/nfs",
+            "prune-backups": "keep-last=3,keep-daily=13,keep-yearly=9",
         },
     },
     {

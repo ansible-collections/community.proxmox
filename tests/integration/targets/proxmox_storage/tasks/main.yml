@@ -85,6 +85,9 @@
             name: "{{ nfs_storage }}"
             type: nfs
             disable: true
+            shared: true
+            format: qcow2
+            prune_backups: keep-last=3,keep-daily=13,keep-yearly=9
             nfs_options:
               server: nfs.pve
               export: /pve
@@ -103,6 +106,9 @@
             name: "{{ nfs_storage }}"
             type: nfs
             disable: true
+            shared: true
+            format: qcow2
+            prune_backups: keep-last=3,keep-daily=13,keep-yearly=9
             nfs_options:
               server: nfs.pve
               export: /pve
@@ -120,6 +126,9 @@
             name: "{{ nfs_storage }}"
             type: nfs
             disable: true
+            shared: true
+            format: qcow2
+            prune_backups: keep-last=3,keep-daily=13,keep-yearly=9
             nfs_options:
               server: nfs.pve
               export: /pve

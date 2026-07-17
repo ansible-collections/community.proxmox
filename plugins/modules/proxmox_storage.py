@@ -54,10 +54,30 @@ options:
     type: list
     elements: str
     choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
+  shared:
+    description:
+     - Indicate that this is a single storage with the same contents on all nodes (or all listed in the C(nodes) option).
+    type: bool
   disable:
     description:
      - Flag to disable the storage.
     type: bool
+  prune_backups:
+    description:
+      - Retention options for backups. For details, see Backup Retention. 
+      - https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention
+    type: string
+  format:
+    description:
+      -  Default image format
+    type: str
+    choices: ["raw", "qcow2", "vmdk"]
+  preallocation:
+    description:
+      - Preallocation mode for raw and qcow2 images on file-based storages.
+      - The default is C(metadata), which is treated like C(off) for raw images.
+    type: str
+    choices: ["off", "metadata", "falloc", "full"]
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -461,6 +481,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 )
 
 PROXMOX_FIELD_TRANSLATIONS = {
+    "prune_backups": "prune-backups",
     "fs_name": "fs-name",
     "saferemove_stepsize": "saferemove-stepsize",
     "snapshot_as_volume_chain": "snapshot-as-volume-chain",
@@ -510,7 +531,11 @@ def module_args():
             type="list",
             elements="str",
         ),
+        shared=dict(type="bool"),
         disable=dict(type="bool"),
+        prune_backups=dict(type="str"),
+        format=dict(type="str", choices=["raw", "qcow2", "vmdk"]),
+        preallocation=dict(type="str", choices=["off", "metadata", "falloc", "full"]),
         cephfs_options=dict(
             type="dict",
             options={
@@ -646,12 +671,20 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             if key in storage_argument_spec["options"] and value is not None
         }
 
-        if self.params.get("disable") is not None:
-            storage_params["disable"] = ansible_to_proxmox_bool(self.params.get("disable"))
         if self.params.get("nodes") is not None:
             storage_params["nodes"] = ",".join(sorted(self.params.get("nodes")))
         if self.params.get("content") is not None:
             storage_params["content"] = ",".join(sorted(self.params.get("content")))
+        if self.params.get("shared") is not None:
+            storage_params["shared"] = ansible_to_proxmox_bool(self.params.get("shared"))
+        if self.params.get("disable") is not None:
+            storage_params["disable"] = ansible_to_proxmox_bool(self.params.get("disable"))
+        if self.params.get("prune_backups") is not None:
+            storage_params["prune-backups"] = self.params.get("prune_backups")
+        if self.params.get("format") is not None:
+            storage_params["format"] = self.params.get("format")
+        if self.params.get("preallocation") is not None:
+            storage_params["preallocation"] = self.params.get("preallocation")
 
         return storage_params
 
