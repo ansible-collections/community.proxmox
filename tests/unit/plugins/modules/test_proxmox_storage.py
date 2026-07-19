@@ -300,6 +300,32 @@ TEST_SCENARIOS = [
             "path": "/mnt/data2/pve-storage",
         },
     },
+    {
+        "args": {
+            "name": "esxi-storage",
+            "type": "esxi",
+            "nodes": ["pve01", "pve02"],
+            "content": ["import"],
+            "esxi_options": {
+                "server": "esxi01.pve",
+                "username": "root",
+                "password": "SECRET",
+                "port": 12345,
+                "skip_cert_verification": True,
+            },
+        },
+        "expected_payload": {
+            "storage": "esxi-storage",
+            "type": "esxi",
+            "nodes": "pve01,pve02",
+            "content": "import",
+            "server": "esxi01.pve",
+            "username": "root",
+            "password": "SECRET",
+            "port": 12345,
+            "skip-cert-verification": 1,
+        },
+    },
 ]
 
 

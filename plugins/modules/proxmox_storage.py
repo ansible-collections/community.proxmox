@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['btrfs', 'cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
+    choices: ['btrfs', 'cephfs', 'cifs', 'dir', 'esxi', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
     type: str
   nodes:
     description:
@@ -182,6 +182,33 @@ options:
           - The required path of the direcotry on the node(s).
         type: str
         required: true
+  esxi_options:
+    description:
+      - Extended information for adding ESXi storage.
+    type: dict
+    suboptions:
+      server:
+        description:
+          - The required hostname or IP address of the remote ESXi system.
+        type: str
+        required: true
+      username:
+        description:
+          - The required username for the ESXi system.
+        type: str
+        required: true
+      password:
+        description:
+          - The password for the ESXi system.
+        type: str
+      skip_cert_verification:
+        description:
+          - Disable TLS certificate verification, only enable on fully trusted networks.
+        type: bool
+      port:
+        description:
+          - Use this port to connect to the storage instead of the default one.
+        type: int
   iscsi_options:
     description:
       - Extended information for adding iSCSI storage.
@@ -501,6 +528,7 @@ PROXMOX_FIELD_TRANSLATIONS = {
     "saferemove_stepsize": "saferemove-stepsize",
     "snapshot_as_volume_chain": "snapshot-as-volume-chain",
     "encryption_key": "encryption-key",
+    "skip_cert_verification": "skip-cert-verification",
 }
 
 
@@ -529,6 +557,7 @@ def module_args():
                 "cephfs",
                 "cifs",
                 "dir",
+                "esxi",
                 "iscsi",
                 "iscsidirect",
                 "lvm",
@@ -585,6 +614,16 @@ def module_args():
         dir_options=dict(
             type="dict",
             options={"path": dict(type="str", required=True)},
+        ),
+        esxi_options=dict(
+            type="dict",
+            options={
+                "server": dict(type="str", required=True),
+                "username": dict(type="str", required=True),
+                "password": dict(type="str", no_log=True),
+                "skip_cert_verification": dict(type="bool"),
+                "port": dict(type="int"),
+            },
         ),
         lvm_options=dict(
             type="dict",
