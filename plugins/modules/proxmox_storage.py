@@ -160,6 +160,10 @@ options:
         description:
           - Maximal number of protected backups per guest. Use -1 for unlimited.
         type: int
+      options:
+        description:
+          - The options to pass to the CephFS mount.
+        type: str
   cifs_options:
     description:
       - Extended information for adding CIFS storage.
@@ -226,6 +230,10 @@ options:
       path:
         description:
           - The mount path of the directory on the node(s).
+        type: str
+      options:
+        description:
+          - The options to pass to the CIFS mount.
         type: str
   dir_options:
     description:
@@ -719,6 +727,7 @@ def module_args():
                 "subdir": dict(type="str"),
                 "fs_name": dict(type="str", required=True),
                 "keyring": dict(type="str", aliases=["client_keyring"], no_log=True),
+                "options": dict(type="str"),
                 **module_file_storage_args(preallocation=False),
             },
         ),
@@ -733,6 +742,7 @@ def module_args():
                 "subdir": dict(type="str", aliases=["subdirectory"]),
                 "smbversion": dict(type="str", aliases=["smb_version"]),
                 "snapshot_as_volume_chain": dict(type="bool"),
+                "options": dict(type="str"),
                 **module_file_storage_args(),
                 "path": dict(type="str"),
             },
