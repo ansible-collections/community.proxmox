@@ -92,6 +92,7 @@ TEST_SCENARIOS = [
             "content": "images",
             "path": "/dir",
             "disable": 1,
+            "is_mountpoint": "no",
         },
     },
     {
@@ -297,6 +298,7 @@ TEST_SCENARIOS = [
             "content": ["images", "rootdir"],
             "btrfs_options": {
                 "path": "/mnt/data2/pve-storage",
+                "is_mountpoint": "/mnt/data2",
             },
         },
         "expected_payload": {
@@ -305,6 +307,7 @@ TEST_SCENARIOS = [
             "nodes": "pve01,pve02",
             "content": "images,rootdir",
             "path": "/mnt/data2/pve-storage",
+            "is_mountpoint": "/mnt/data2",
         },
     },
     {

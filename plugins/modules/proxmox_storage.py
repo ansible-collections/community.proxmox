@@ -96,6 +96,12 @@ options:
         description:
           - Maximal number of protected backups per guest. Use -1 for unlimited.
         type: int
+      is_mountpoint:
+        description:
+          - Assume the given path is an externally managed mountpoint and consider the storage offline if it is not mounted.
+          - Using a V(yes)/V(no) value serves as a shortcut to using the target path in this field
+        type: str
+        default: "no"
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -241,6 +247,12 @@ options:
         description:
           - Maximal number of protected backups per guest. Use -1 for unlimited.
         type: int
+      is_mountpoint:
+        description:
+          - Assume the given path is an externally managed mountpoint and consider the storage offline if it is not mounted.
+          - Using a V(yes)/V(no) value serves as a shortcut to using the target path in this field
+        type: str
+        default: "no"
   esxi_options:
     description:
       - Extended information for adding ESXi storage.
@@ -670,6 +682,7 @@ def module_args():
             type="dict",
             options={
                 "path": dict(type="str", required=True),
+                "is_mountpoint": dict(type="str", default="no"),
                 **module_file_storage_args(),
             },
         ),
@@ -704,6 +717,7 @@ def module_args():
             type="dict",
             options={
                 "path": dict(type="str", required=True),
+                "is_mountpoint": dict(type="str", default="no"),
                 **module_file_storage_args(),
             },
         ),
