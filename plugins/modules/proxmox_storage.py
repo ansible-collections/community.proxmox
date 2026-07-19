@@ -61,6 +61,11 @@ options:
     description:
      - Flag to disable the storage.
     type: bool
+  bwlimit:
+    description:
+      - Set I/O bandwidth limit for various operations (in KiB/s).
+      - Format for bwlimit is C([clone=<LIMIT>][,default=<LIMIT>][,migration=<LIMIT>][,move=<LIMIT>][,restore=<LIMIT>]).
+    type: str
   btrfs_options:
     description:
       - Extended information for adding BTRFS storage.
@@ -660,6 +665,7 @@ def module_args():
         ),
         shared=dict(type="bool"),
         disable=dict(type="bool"),
+        bwlimit=dict(type="str"),
         btrfs_options=dict(
             type="dict",
             options={
@@ -825,6 +831,8 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             storage_params["shared"] = ansible_to_proxmox_bool(self.params.get("shared"))
         if self.params.get("disable") is not None:
             storage_params["disable"] = ansible_to_proxmox_bool(self.params.get("disable"))
+        if self.params.get("bwlimit") is not None:
+            storage_params["bwlimit"] = self.params.get("bwlimit")
 
         return storage_params
 
