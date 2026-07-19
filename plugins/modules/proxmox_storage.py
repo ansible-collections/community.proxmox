@@ -61,22 +61,6 @@ options:
     description:
      - Flag to disable the storage.
     type: bool
-  prune_backups:
-    description:
-      - Retention options for backups. For details, see Backup Retention.
-      - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
-    type: str
-  format:
-    description:
-      -  Default image format
-    type: str
-    choices: ["raw", "qcow2", "vmdk"]
-  preallocation:
-    description:
-      - Preallocation mode for raw and qcow2 images on file-based storages.
-      - The default is V(metadata), which is treated like V(off) for raw images.
-    type: str
-    choices: ["off", "metadata", "falloc", "full"]
   btrfs_options:
     description:
       - Extended information for adding BTRFS storage.
@@ -87,6 +71,26 @@ options:
           - The required path of the directory on the node(s).
         type: str
         required: true
+      format:
+        description:
+          -  Default image format
+        type: str
+        choices: ["raw", "qcow2", "vmdk"]
+      preallocation:
+        description:
+          - Preallocation mode for raw and qcow2 images on file-based storages.
+          - The default is V(metadata), which is treated like V(off) for raw images.
+        type: str
+        choices: ["off", "metadata", "falloc", "full"]
+      prune_backups:
+        description:
+          - Retention options for backups. For details, see Backup Retention.
+          - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
+        type: str
+      max_protected_backups:
+        description:
+          - Maximal number of protected backups per guest. Use -1 for unlimited.
+        type: int
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -125,6 +129,20 @@ options:
           - The Ceph filesystem name
         type: str
         required: true
+      format:
+        description:
+          -  Default image format
+        type: str
+        choices: ["raw", "qcow2", "vmdk"]
+      prune_backups:
+        description:
+          - Retention options for backups. For details, see Backup Retention.
+          - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
+        type: str
+      max_protected_backups:
+        description:
+          - Maximal number of protected backups per guest. Use -1 for unlimited.
+        type: int
   cifs_options:
     description:
       - Extended information for adding CIFS storage.
@@ -168,10 +186,26 @@ options:
         description:
           - Enable support for creating snapshots through volume backing-chains.
         type: bool
+      format:
+        description:
+          -  Default image format
+        type: str
+        choices: ["raw", "qcow2", "vmdk"]
       preallocation:
         description:
-          - The preallocation mode for raw and qcow2 images.
+          - Preallocation mode for raw and qcow2 images.
+          - The default is V(metadata), which is treated like V(off) for raw images.
         type: str
+        choices: ["off", "metadata", "falloc", "full"]
+      prune_backups:
+        description:
+          - Retention options for backups. For details, see Backup Retention.
+          - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
+        type: str
+      max_protected_backups:
+        description:
+          - Maximal number of protected backups per guest. Use -1 for unlimited.
+        type: int
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -182,6 +216,26 @@ options:
           - The required path of the direcotry on the node(s).
         type: str
         required: true
+      format:
+        description:
+          -  Default image format
+        type: str
+        choices: ["raw", "qcow2", "vmdk"]
+      preallocation:
+        description:
+          - Preallocation mode for raw and qcow2 images.
+          - The default is V(metadata), which is treated like V(off) for raw images.
+        type: str
+        choices: ["off", "metadata", "falloc", "full"]
+      prune_backups:
+        description:
+          - Retention options for backups. For details, see Backup Retention.
+          - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
+        type: str
+      max_protected_backups:
+        description:
+          - Maximal number of protected backups per guest. Use -1 for unlimited.
+        type: int
   esxi_options:
     description:
       - Extended information for adding ESXi storage.
@@ -307,10 +361,26 @@ options:
         description:
           - The options to pass to the NFS service. (e.g., version, pNFS).
         type: str
+      format:
+        description:
+          -  Default image format
+        type: str
+        choices: ["raw", "qcow2", "vmdk"]
       preallocation:
         description:
-          - The preallocation mode for raw and qcow2 images.
+          - Preallocation mode for raw and qcow2 images.
+          - The default is V(metadata), which is treated like V(off) for raw images.
         type: str
+        choices: ["off", "metadata", "falloc", "full"]
+      prune_backups:
+        description:
+          - Retention options for backups. For details, see Backup Retention.
+          - See U(https://pve.proxmox.com/pve-docs/vzdump.1.html#vzdump_retention) for an overview.
+        type: str
+      max_protected_backups:
+        description:
+          - Maximal number of protected backups per guest. Use -1 for unlimited.
+        type: int
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -524,6 +594,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 
 PROXMOX_FIELD_TRANSLATIONS = {
     "prune_backups": "prune-backups",
+    "max_protected_backups": "max-protected-backups",
     "fs_name": "fs-name",
     "saferemove_stepsize": "saferemove-stepsize",
     "snapshot_as_volume_chain": "snapshot-as-volume-chain",
@@ -544,6 +615,17 @@ PROXMOX_FIELD_READONLY = [
     "thinpool",
     "vgname",
 ]
+
+
+def module_file_storage_args(preallocation=True):
+    file_storage_args = dict(
+        format=dict(type="str", choices=["raw", "qcow2", "vmdk"]),
+        prune_backups=dict(type="str"),
+        max_protected_backups=dict(type="int"),
+    )
+    if preallocation:
+        file_storage_args["preallocation"] = dict(type="str", choices=["off", "metadata", "falloc", "full"])
+    return file_storage_args
 
 
 def module_args():
@@ -578,12 +660,12 @@ def module_args():
         ),
         shared=dict(type="bool"),
         disable=dict(type="bool"),
-        prune_backups=dict(type="str"),
-        format=dict(type="str", choices=["raw", "qcow2", "vmdk"]),
-        preallocation=dict(type="str", choices=["off", "metadata", "falloc", "full"]),
         btrfs_options=dict(
             type="dict",
-            options={"path": dict(type="str", required=True)},
+            options={
+                "path": dict(type="str", required=True),
+                **module_file_storage_args(),
+            },
         ),
         cephfs_options=dict(
             type="dict",
@@ -595,6 +677,7 @@ def module_args():
                 "subdir": dict(type="str"),
                 "fs_name": dict(type="str", required=True),
                 "keyring": dict(type="str", aliases=["client_keyring"], no_log=True),
+                **module_file_storage_args(preallocation=False),
             },
         ),
         cifs_options=dict(
@@ -608,12 +691,15 @@ def module_args():
                 "subdir": dict(type="str", aliases=["subdirectory"]),
                 "smbversion": dict(type="str", aliases=["smb_version"]),
                 "snapshot_as_volume_chain": dict(type="bool"),
-                "preallocation": dict(type="str"),
+                **module_file_storage_args(),
             },
         ),
         dir_options=dict(
             type="dict",
-            options={"path": dict(type="str", required=True)},
+            options={
+                "path": dict(type="str", required=True),
+                **module_file_storage_args(),
+            },
         ),
         esxi_options=dict(
             type="dict",
@@ -657,7 +743,7 @@ def module_args():
                 "server": dict(type="str", required=True),
                 "export": dict(type="str", required=True),
                 "options": dict(type="str"),
-                "preallocation": dict(type="str"),
+                **module_file_storage_args(),
             },
         ),
         pbs_options=dict(
@@ -739,12 +825,6 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
             storage_params["shared"] = ansible_to_proxmox_bool(self.params.get("shared"))
         if self.params.get("disable") is not None:
             storage_params["disable"] = ansible_to_proxmox_bool(self.params.get("disable"))
-        if self.params.get("prune_backups") is not None:
-            storage_params["prune-backups"] = self.params.get("prune_backups")
-        if self.params.get("format") is not None:
-            storage_params["format"] = self.params.get("format")
-        if self.params.get("preallocation") is not None:
-            storage_params["preallocation"] = self.params.get("preallocation")
 
         return storage_params
 

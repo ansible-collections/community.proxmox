@@ -139,8 +139,6 @@ TEST_SCENARIOS = [
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
             "shared": True,
-            "format": "qcow2",
-            "preallocation": "off",
             "lvm_options": {
                 "vgname": "myvg",
                 "wipe_remove": True,
@@ -158,8 +156,6 @@ TEST_SCENARIOS = [
             "saferemove_throughput": "-1024",
             "snapshot-as-volume-chain": True,
             "shared": 1,
-            "format": "qcow2",
-            "preallocation": "off",
         },
     },
     {
@@ -185,8 +181,14 @@ TEST_SCENARIOS = [
             "type": "nfs",
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
-            "prune_backups": "keep-last=3,keep-daily=13,keep-yearly=9",
-            "nfs_options": {"server": "10.10.10.10", "export": "/mnt/nfs"},
+            "nfs_options": {
+                "server": "10.10.10.10",
+                "export": "/mnt/nfs",
+                "prune_backups": "keep-last=3,keep-daily=13,keep-yearly=9",
+                "max_protected_backups": 3,
+                "format": "qcow2",
+                "preallocation": "off",
+            },
         },
         "expected_payload": {
             "storage": "nfs-share",
@@ -196,6 +198,9 @@ TEST_SCENARIOS = [
             "server": "10.10.10.10",
             "export": "/mnt/nfs",
             "prune-backups": "keep-last=3,keep-daily=13,keep-yearly=9",
+            "max-protected-backups": 3,
+            "format": "qcow2",
+            "preallocation": "off",
         },
     },
     {
