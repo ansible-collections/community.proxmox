@@ -223,6 +223,10 @@ options:
         description:
           - Maximal number of protected backups per guest. Use -1 for unlimited.
         type: int
+      path:
+        description:
+          - The mount path of the directory on the node(s).
+        type: str
   dir_options:
     description:
       - Extended information for adding Directory storage.
@@ -412,6 +416,10 @@ options:
         description:
           - Enable support for creating snapshots through volume backing-chains.
         type: bool
+      path:
+        description:
+          - The mount path of the directory on the node(s).
+        type: str
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -726,6 +734,7 @@ def module_args():
                 "smbversion": dict(type="str", aliases=["smb_version"]),
                 "snapshot_as_volume_chain": dict(type="bool"),
                 **module_file_storage_args(),
+                "path": dict(type="str"),
             },
         ),
         dir_options=dict(
@@ -781,6 +790,7 @@ def module_args():
                 "options": dict(type="str"),
                 "snapshot_as_volume_chain": dict(type="bool"),
                 **module_file_storage_args(),
+                "path": dict(type="str"),
             },
         ),
         pbs_options=dict(
