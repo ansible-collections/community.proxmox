@@ -571,11 +571,18 @@ options:
       blocksize:
         description:
           - The ZFS blocksize parameter.
+          - A power of 2 with optional C(k) or C(m) suffix.
         type: str
       sparse:
         description:
           - Use ZFS thin-provisioning.
         type: bool
+      zfs_base_path:
+        description:
+          - Base path where to look for the created ZFS block devices.
+          - Set automatically during creation if not specified.
+          - Usually C(/dev/zvol).
+        type: str
   zfspool_options:
     description:
       - Extended information for adding ZFS storage.
@@ -586,10 +593,19 @@ options:
           - The required name of the ZFS pool to use.
         type: str
         required: true
+      blocksize:
+        description:
+          - The ZFS blocksize parameter.
+          - A power of 2 with optional k or m suffix.
+        type: str
       sparse:
         description:
           - Use ZFS thin-provisioning.
         type: bool
+      mountpoint:
+        description:
+          - The mount point of the ZFS pool/filesystem.
+        type: str
   update:
     description:
       - If V(true), the Storage will be updated with new value.
@@ -692,6 +708,7 @@ PROXMOX_FIELD_TRANSLATIONS = {
     "master_pubkey": "master-pubkey",
     "skip_cert_verification": "skip-cert-verification",
     "data_pool": "data-pool",
+    "zfs_base_path": "zfs-base-path",
 }
 
 
@@ -889,13 +906,16 @@ def module_args():
                 "nowritecache": dict(type="bool"),
                 "blocksize": dict(type="str"),
                 "sparse": dict(type="bool"),
+                "zfs_base_path": dict(type="str"),
             },
         ),
         zfspool_options=dict(
             type="dict",
             options={
                 "pool": dict(type="str", required=True),
+                "blocksize": dict(type="str"),
                 "sparse": dict(type="bool"),
+                "mountpoint": dict(type="str"),
             },
         ),
         update=dict(type="bool", default=False),
