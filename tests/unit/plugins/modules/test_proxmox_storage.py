@@ -282,6 +282,24 @@ TEST_SCENARIOS = [
             "lio_tpg": "tpg1",
         },
     },
+    {
+        "args": {
+            "name": "btrfs-storage",
+            "type": "btrfs",
+            "nodes": ["pve01", "pve02"],
+            "content": ["images", "rootdir"],
+            "btrfs_options": {
+                "path": "/mnt/data2/pve-storage",
+            },
+        },
+        "expected_payload": {
+            "storage": "btrfs-storage",
+            "type": "btrfs",
+            "nodes": "pve01,pve02",
+            "content": "images,rootdir",
+            "path": "/mnt/data2/pve-storage",
+        },
+    },
 ]
 
 

@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
+    choices: ['btrfs', 'cephfs', 'cifs', 'dir', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
     type: str
   nodes:
     description:
@@ -77,6 +77,16 @@ options:
       - The default is V(metadata), which is treated like V(off) for raw images.
     type: str
     choices: ["off", "metadata", "falloc", "full"]
+  btrfs_options:
+    description:
+      - Extended information for adding BTRFS storage.
+    type: dict
+    suboptions:
+      path:
+        description:
+          - The required path of the directory on the node(s).
+        type: str
+        required: true
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -515,6 +525,7 @@ def module_args():
         type=dict(
             type="str",
             choices=[
+                "btrfs",
                 "cephfs",
                 "cifs",
                 "dir",
@@ -541,6 +552,10 @@ def module_args():
         prune_backups=dict(type="str"),
         format=dict(type="str", choices=["raw", "qcow2", "vmdk"]),
         preallocation=dict(type="str", choices=["off", "metadata", "falloc", "full"]),
+        btrfs_options=dict(
+            type="dict",
+            options={"path": dict(type="str", required=True)},
+        ),
         cephfs_options=dict(
             type="dict",
             options={
