@@ -253,6 +253,10 @@ options:
         description:
           - Maximal number of protected backups per guest. Use -1 for unlimited.
         type: int
+      snapshot_as_volume_chain:
+        description:
+          - Enable support for creating snapshots through volume backing-chains.
+        type: bool
       is_mountpoint:
         description:
           - Assume the given path is an externally managed mountpoint and consider the storage offline if it is not mounted.
@@ -404,6 +408,10 @@ options:
         description:
           - Maximal number of protected backups per guest. Use -1 for unlimited.
         type: int
+      snapshot_as_volume_chain:
+        description:
+          - Enable support for creating snapshots through volume backing-chains.
+        type: bool
   pbs_options:
     description:
       - Extended information for adding Proxmox Backup Server as storage.
@@ -725,6 +733,7 @@ def module_args():
             options={
                 "path": dict(type="str", required=True),
                 "is_mountpoint": dict(type="str", default="no"),
+                "snapshot_as_volume_chain": dict(type="bool"),
                 **module_file_storage_args(),
             },
         ),
@@ -770,6 +779,7 @@ def module_args():
                 "server": dict(type="str", required=True),
                 "export": dict(type="str", required=True),
                 "options": dict(type="str"),
+                "snapshot_as_volume_chain": dict(type="bool"),
                 **module_file_storage_args(),
             },
         ),
