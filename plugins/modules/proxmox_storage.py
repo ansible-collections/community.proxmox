@@ -370,6 +370,10 @@ options:
         description:
           - Enable support for creating snapshots through volume backing-chains.
         type: bool
+      tagged_only:
+        description:
+          - Only list logical volumes tagged with C(pve-vm-ID).
+        type: bool
   lvmthin_options:
     description:
       - Extended information for adding LVM-Thin storage.
@@ -817,6 +821,7 @@ def module_args():
                 "saferemove_stepsize": dict(type="int", aliases=["wipe_remove_stepsize"], choices=[1, 2, 4, 8, 16, 32]),
                 "saferemove_throughput": dict(type="str", aliases=["wipe_remove_throughput"]),
                 "snapshot_as_volume_chain": dict(type="bool"),
+                "tagged_only": dict(type="bool"),
             },
         ),
         lvmthin_options=dict(
