@@ -164,6 +164,10 @@ options:
         description:
           - The options to pass to the CephFS mount.
         type: str
+      fuse:
+        description:
+          - Mount CephFS through FUSE.
+        type: bool
   cifs_options:
     description:
       - Extended information for adding CIFS storage.
@@ -755,6 +759,7 @@ def module_args():
                 "fs_name": dict(type="str", required=True),
                 "keyring": dict(type="str", aliases=["client_keyring"], no_log=True),
                 "options": dict(type="str"),
+                "fuse": dict(type="bool"),
                 **module_file_storage_args(preallocation=False),
             },
         ),
