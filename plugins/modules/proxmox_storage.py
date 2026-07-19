@@ -102,6 +102,12 @@ options:
           - Using a V(yes)/V(no) value serves as a shortcut to using the target path in this field
         type: str
         default: "no"
+      nocow:
+        description:
+          - Set the NOCOW flag on files. Disables data checksumming and causes data errors to be unrecoverable from while allowing direct I/O.
+          - Only use this if data does not need to be any more safe than on a single ext4 formatted disk with no underlying raid system.
+        type: bool
+        default: false
   cephfs_options:
     description:
       - Extended information for adding CephFS storage.
@@ -683,6 +689,7 @@ def module_args():
             options={
                 "path": dict(type="str", required=True),
                 "is_mountpoint": dict(type="str", default="no"),
+                "nocow": dict(type="bool", default=False),
                 **module_file_storage_args(),
             },
         ),

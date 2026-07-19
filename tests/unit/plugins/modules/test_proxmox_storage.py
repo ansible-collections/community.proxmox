@@ -308,6 +308,7 @@ TEST_SCENARIOS = [
             "content": "images,rootdir",
             "path": "/mnt/data2/pve-storage",
             "is_mountpoint": "/mnt/data2",
+            "nocow": 0,
         },
     },
     {
