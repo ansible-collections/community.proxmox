@@ -471,6 +471,15 @@ options:
           - Use V(autogen) to generate one automatically without passphrase.
           - Must be provided as a JSON-encoded string.
         type: str
+      master_pubkey:
+        description:
+          - Base64-encoded, PEM-formatted public RSA key.
+          - Used to encrypt a copy of the encryption-key which will be added to each encrypted backup.
+        type: str
+      port:
+        description:
+          - Use this port to connect to the storage instead of the default one.
+        type: int
   rbd_options:
     description:
       - Extended information for adding RBD storage.
@@ -676,6 +685,7 @@ PROXMOX_FIELD_TRANSLATIONS = {
     "saferemove_stepsize": "saferemove-stepsize",
     "snapshot_as_volume_chain": "snapshot-as-volume-chain",
     "encryption_key": "encryption-key",
+    "master_pubkey": "master-pubkey",
     "skip_cert_verification": "skip-cert-verification",
     "data_pool": "data-pool",
 }
@@ -845,6 +855,8 @@ def module_args():
                 "namespace": dict(type="str"),
                 "fingerprint": dict(type="str"),
                 "encryption_key": dict(type="str", no_log=True),
+                "master_pubkey": dict(type="str"),
+                "port": dict(type="int"),
             },
         ),
         rbd_options=dict(
