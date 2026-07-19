@@ -238,12 +238,16 @@ TEST_SCENARIOS = [
             "type": "rbd",
             "nodes": ["pve01", "pve02"],
             "content": ["images"],
-            "rbd_options": {"pool": "mypool"},
+            "rbd_options": {
+                "pool": "mypool",
+                "data_pool": "mydatapool",
+            },
         },
         "expected_payload": {
             "storage": "rbd-storage",
             "type": "rbd",
             "pool": "mypool",
+            "data-pool": "mydatapool",
             "nodes": "pve01,pve02",
             "content": "images",
         },

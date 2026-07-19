@@ -477,6 +477,32 @@ options:
           - The required RBD pool name.
         type: str
         required: true
+      data_pool:
+        description:
+          - The Data Pool (for erasure coding only).
+        type: str
+      monhost:
+        description:
+          - The hostname or IP address of the monhost (for external clusters).
+        type: list
+        elements: str
+      username:
+        description:
+          - The RBD Id.
+        type: str
+      keyring:
+        description:
+          - The client keyring to be used (for external clusters).
+        aliases: ["client_keyring"]
+        type: str
+      namespace:
+        description:
+          - The RBD Namespace.
+        type: str
+      krbd:
+        description:
+          - Always access rbd through krbd kernel module.
+        type: bool
   zfs_options:
     description:
       - Extended information for adding ZFS over iSCSI storage.
@@ -647,6 +673,7 @@ PROXMOX_FIELD_TRANSLATIONS = {
     "snapshot_as_volume_chain": "snapshot-as-volume-chain",
     "encryption_key": "encryption-key",
     "skip_cert_verification": "skip-cert-verification",
+    "data_pool": "data-pool",
 }
 
 
@@ -815,7 +842,18 @@ def module_args():
                 "encryption_key": dict(type="str", no_log=True),
             },
         ),
-        rbd_options=dict(type="dict", options={"pool": dict(type="str", required=True)}),
+        rbd_options=dict(
+            type="dict",
+            options={
+                "pool": dict(type="str", required=True),
+                "monhost": dict(type="list", elements="str"),
+                "data_pool": dict(type="str"),
+                "namespace": dict(type="str"),
+                "username": dict(type="str"),
+                "krbd": dict(type="bool"),
+                "keyring": dict(type="str", aliases=["client_keyring"], no_log=True),
+            },
+        ),
         zfs_options=dict(
             type="dict",
             options={
