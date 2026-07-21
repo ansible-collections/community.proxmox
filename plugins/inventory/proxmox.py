@@ -152,7 +152,7 @@ DOCUMENTATION = """
           - For QEMU VMs and LXC containers, the available variables are the fields of the cluster resource,
             for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
         type: str
-        version_added: 2.2.0
+        version_added: 2.1.0
       qemu_hostname:
         description:
           - A template for the inventory hostname of QEMU VMs, overriding O(hostname) for them.
