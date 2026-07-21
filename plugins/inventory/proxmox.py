@@ -160,7 +160,7 @@ DOCUMENTATION = """
           - The available variables are the fields of the cluster resource,
             for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
         type: str
-        version_added: 2.2.0
+        version_added: 2.1.0
       lxc_hostname:
         description:
           - A template for the inventory hostname of LXC containers, overriding O(hostname) for them.
