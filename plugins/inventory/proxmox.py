@@ -143,6 +143,32 @@ DOCUMENTATION = """
         type: list
         elements: str
         default: []
+      hostname:
+        description:
+          - A template for the inventory hostname of Proxmox nodes, QEMU VMs and LXC containers.
+          - For QEMU VMs and LXC containers it is only used when O(qemu_hostname) or O(lxc_hostname) is not set.
+          - If no template applies, the Proxmox name is used.
+          - For nodes, the available variables are C(name), C(level), C(nodeid), C(online), C(local), C(ip), C(id) and C(type).
+          - For QEMU VMs and LXC containers, the available variables are the fields of the cluster resource,
+            for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
+        type: str
+        version_added: 2.1.0
+      qemu_hostname:
+        description:
+          - A template for the inventory hostname of QEMU VMs, overriding O(hostname) for them.
+          - If neither this nor O(hostname) is provided, the Proxmox name is used.
+          - The available variables are the fields of the cluster resource,
+            for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
+        type: str
+        version_added: 2.1.0
+      lxc_hostname:
+        description:
+          - A template for the inventory hostname of LXC containers, overriding O(hostname) for them.
+          - If neither this nor O(hostname) is provided, the Proxmox name is used.
+          - The available variables are the fields of the cluster resource,
+            for example C(name), C(vmid), C(node), C(type), C(status) and C(template).
+        type: str
+        version_added: 2.1.0
 """
 
 EXAMPLES = """
@@ -238,6 +264,7 @@ from ansible.errors import AnsibleError
 from ansible.module_utils.ansible_release import __version__ as ansible_version
 from ansible.plugins.inventory import BaseInventoryPlugin, Cacheable, Constructable
 from ansible.utils.display import Display
+from ansible.utils.vars import combine_vars
 
 from ansible_collections.community.proxmox.plugins.module_utils.version import LooseVersion
 from ansible_collections.community.proxmox.plugins.plugin_utils.unsafe import make_unsafe
@@ -679,6 +706,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if not want_facts and want_post_filter_facts:
             self._safe_get_guest_facts(properties, node, vmid, ittype, name)
 
+        # rename the host in the inventory if a hostname template is set
+        hostname_template = self.get_option(f"{ittype}_hostname") or self.get_option("hostname")
+        if hostname_template:
+            self.templar.available_variables = combine_vars(dict(item), self._vars)
+            name = self.templar.template(hostname_template)
+
         # add the host to the inventory
         self._add_host(name, properties)
         if is_template:
@@ -700,7 +733,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _populate_pool_groups(self, added_hosts):
         """Generate groups from Proxmox resource pools, ignoring VMs and
-        containers that were skipped."""
+        containers that were skipped. added_hosts maps the Proxmox names of
+        the added guests to their inventory hostnames."""
         for pool in self._get_pools():
             poolid = pool.get("poolid")
             if not poolid:
@@ -711,7 +745,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             for member in self._get_members_per_pool(poolid):
                 name = member.get("name")
                 if name and name in added_hosts:
-                    self.inventory.add_child(pool_group, name)
+                    self.inventory.add_child(pool_group, added_hosts[name])
 
     def _populate(self):  # noqa: PLR0912
         # create common groups
@@ -730,23 +764,36 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         # gather VMs on nodes
         self._get_auth()
-        hosts = []
+        hosts = {}
         vms_by_node = self._get_vms_by_node()
         vm_items = []
+
+        hostname_template = self.get_option("hostname")
+
         for node in self._get_nodes():
+            hostvars = {}
+            for key, value in node.items():
+                hostvars[key] = value
+
+            if hostname_template:
+                self.templar.available_variables = combine_vars(hostvars, self._vars)
+                hostname = self.templar.template(hostname_template)
+            else:
+                hostname = node["name"]
+
             if not self.exclude_nodes:
-                self.inventory.add_host(node["name"])
-                self.inventory.add_child(nodes_group, node["name"])
+                self.inventory.add_host(hostname)
+                self.inventory.add_child(nodes_group, hostname)
                 if want_proxmox_nodes_ansible_host:
-                    self.inventory.set_variable(node["name"], "ansible_host", node["ip"])
+                    self.inventory.set_variable(hostname, "ansible_host", node["ip"])
 
             if node["online"] != 1:
                 continue
 
             # Setting composite variables
             if not self.exclude_nodes:
-                variables = self.inventory.get_host(node["name"]).get_vars()
-                self._set_composite_vars(self.get_option("compose"), variables, node["name"], strict=self.strict)
+                variables = self.inventory.get_host(hostname).get_vars()
+                self._set_composite_vars(self.get_option("compose"), variables, hostname, strict=self.strict)
 
             # add Qemu and LXC VMs for the node
             if not self.exclude_vms:
@@ -761,7 +808,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             guest_facts = guest_facts_by_item.get((node, ittype, item["vmid"]))
             name = self._handle_item(node, ittype, item, guest_facts=guest_facts)
             if name is not None:
-                hosts.append(name)
+                hosts[item["name"]] = name
 
         # gather vm's in pools
         if not self.exclude_vms:
@@ -772,6 +819,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             raise AnsibleError("This module requires Python Requests 1.1.0 or higher: https://github.com/psf/requests.")
 
         super().parse(inventory, loader, path)
+
+        # Allow using extra variables arguments as template variables (e.g.
+        # '--extra-vars my_var=my_value')
+        self.templar.available_variables = self._vars
 
         # read config from file, this sets 'options'
         self._read_config_data(path)
