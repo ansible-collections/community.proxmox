@@ -941,15 +941,20 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 return None
             self.module.fail_json(msg=f"Failed to retrieve storage {storage_name}: {e}")
 
+    def _normalize_value(self, value):
+        if isinstance(value, bool):
+            return ansible_to_proxmox_bool(value)
+        if isinstance(value, list):
+            return ",".join(sorted(value))
+        return value
+
     def _normalized_storage_params(self):
         storage_type = self.params.get("type")
         storage_params = self.params.get(f"{storage_type}_options") or {}
         storage_argument_spec = self.module.argument_spec.get(f"{storage_type}_options")
 
         storage_params = {
-            PROXMOX_FIELD_TRANSLATIONS.get(key, key): ansible_to_proxmox_bool(value)
-            if isinstance(value, bool)
-            else value
+            PROXMOX_FIELD_TRANSLATIONS.get(key, key): self._normalize_value(value)
             for key, value in storage_params.items()
             if key in storage_argument_spec["options"] and value is not None
         }

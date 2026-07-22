@@ -39,7 +39,7 @@ TEST_SCENARIOS = [
             "nodes": "pve01,pve02",
             "content": "images,rootdir",
             "bwlimit": "clone=1024,default=2048",
-            "monhost": ["10.0.0.1", "10.0.0.2"],
+            "monhost": "10.0.0.1,10.0.0.2",
             "fs-name": "mycephfs",
             "keyring": "AQ==",
             "subdir": "mydata",
