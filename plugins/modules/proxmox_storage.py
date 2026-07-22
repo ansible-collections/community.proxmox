@@ -50,9 +50,10 @@ options:
       - V(rootdir) container root directories.
       - V(snippets) cloud-init, hook scripts, etc.
       - V(vztmpl) container templates.
+      - V(none) do not used directly (for iSCSI).
     type: list
     elements: str
-    choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
+    choices: ["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl", "none"]
   shared:
     description:
      - Indicate that this is a single storage with the same contents on all nodes (or all listed in the O(nodes) option).
@@ -187,12 +188,10 @@ options:
         description:
           - The required username for the storage system.
         type: str
-        required: true
       password:
         description:
           - The required password for the storage system.
         type: str
-        required: true
       domain:
         description:
           - The required domain for the CIFS share.
@@ -460,7 +459,6 @@ options:
         description:
           - The required password for the Proxmox Backup Server.
         type: str
-        required: true
       namespace:
         description:
           - The namespace to use from the Proxmox Backup Server.
@@ -543,12 +541,18 @@ options:
       iscsiprovider:
         description:
           - The iSCSI target implementation used on the remote machine.
-          - V(lio) and V(iet) for Linux.
+          - V(LIO) and V(iet) for Linux.
           - V(istgt) for FreeBSD.
           - V(comstar) for Solaris.
         type: str
         required: true
-        choices: ['lio', 'iet', 'istgt', 'comstar']
+        choices: ['LIO', 'iet', 'istgt', 'comstar']
+      blocksize:
+        description:
+          - The ZFS blocksize parameter.
+          - A power of 2 with optional C(k) or C(m) suffix.
+        type: str
+        required: true
       comstar_tg:
         description:
           - The target group for comstar views.
@@ -568,11 +572,6 @@ options:
         description:
           - Disable write caching on the target.
         type: bool
-      blocksize:
-        description:
-          - The ZFS blocksize parameter.
-          - A power of 2 with optional C(k) or C(m) suffix.
-        type: str
       sparse:
         description:
           - Use ZFS thin-provisioning.
@@ -761,7 +760,9 @@ def module_args():
             ],
         ),
         content=dict(
-            type="list", elements="str", choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl"]
+            type="list",
+            elements="str",
+            choices=["backup", "images", "import", "iso", "rootdir", "snippets", "vztmpl", "none"],
         ),
         nodes=dict(
             type="list",
@@ -799,8 +800,8 @@ def module_args():
             options={
                 "server": dict(type="str", required=True),
                 "share": dict(type="str", required=True),
-                "username": dict(type="str", required=True),
-                "password": dict(type="str", no_log=True, required=True),
+                "username": dict(type="str"),
+                "password": dict(type="str", no_log=True),
                 "domain": dict(type="str"),
                 "subdir": dict(type="str", aliases=["subdirectory"]),
                 "smbversion": dict(type="str", aliases=["smb_version"]),
@@ -872,7 +873,7 @@ def module_args():
             options={
                 "server": dict(type="str", required=True),
                 "username": dict(type="str", required=True),
-                "password": dict(type="str", required=True, no_log=True),
+                "password": dict(type="str", no_log=True),
                 "datastore": dict(type="str", required=True),
                 "namespace": dict(type="str"),
                 "fingerprint": dict(type="str"),
@@ -899,12 +900,12 @@ def module_args():
                 "pool": dict(type="str", required=True),
                 "portal": dict(type="str", required=True),
                 "target": dict(type="str", required=True),
-                "iscsiprovider": dict(type="str", required=True, choices=["lio", "iet", "istgt", "comstar"]),
+                "blocksize": dict(type="str", required=True),
+                "iscsiprovider": dict(type="str", required=True, choices=["LIO", "iet", "istgt", "comstar"]),
                 "comstar_tg": dict(type="str"),
                 "comstar_hg": dict(type="str"),
                 "lio_tpg": dict(type="str"),
                 "nowritecache": dict(type="bool"),
-                "blocksize": dict(type="str"),
                 "sparse": dict(type="bool"),
                 "zfs_base_path": dict(type="str"),
             },

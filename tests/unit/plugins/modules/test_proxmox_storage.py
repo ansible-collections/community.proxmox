@@ -278,8 +278,9 @@ TEST_SCENARIOS = [
                 "pool": "mypool",
                 "portal": "192.0.2.111",
                 "target": "iqn.2003-01.org.linux-iscsi.lio.x8664:sn.xxxxxxxxxxxx",
-                "iscsiprovider": "lio",
+                "iscsiprovider": "LIO",
                 "lio_tpg": "tpg1",
+                "blocksize": "4k",
             },
         },
         "expected_payload": {
@@ -290,8 +291,9 @@ TEST_SCENARIOS = [
             "pool": "mypool",
             "portal": "192.0.2.111",
             "target": "iqn.2003-01.org.linux-iscsi.lio.x8664:sn.xxxxxxxxxxxx",
-            "iscsiprovider": "lio",
+            "iscsiprovider": "LIO",
             "lio_tpg": "tpg1",
+            "blocksize": "4k",
         },
     },
     {
