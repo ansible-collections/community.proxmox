@@ -1,0 +1,240 @@
+####################################################################
+# WARNING: These are designed specifically for Ansible tests       #
+# and should not be used as examples of how to write Ansible roles #
+####################################################################
+
+# Copyright (c) 2026, Marius Rieder <marius.rieder@durchmesser.ch>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Proxmox VE - iSCSI Storage
+  block:
+    - name: Create storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Verify check mode did not create storage
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Create iscsi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Create iscsi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update iscsi storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        bwlimit: clone=1024,default=2048
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+        update: true
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update iscsi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        bwlimit: clone=1024,default=2048
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update iscsi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        bwlimit: clone=1024,default=2048
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+        update: true
+      diff: true
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update (remove param) iscsi storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+        update: true
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update (remove param) iscsi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update (remove params) iscsi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+        disable: true
+        content: "none"
+        iscsi_options:
+          portal: 10.10.10.1
+          target: iqn.2006-01.openfiler.com:tsn.dcb5aaaddd
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update storage type in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: dir
+        disable: true
+        dir_options:
+          path: /pve
+        update: true
+      check_mode: true
+      ignore_errors: true
+      register: result
+
+    - assert:
+        that:
+          - result is failed
+          - "'type can not be changed' in result.msg"
+
+    - name: Delete iscsi storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        state: absent
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Verify check mode did not delete iscsi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        type: iscsi
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Delete iscsi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Remove iscsi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ iscsi_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success

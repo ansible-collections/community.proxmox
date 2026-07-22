@@ -3,4 +3,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
 dependencies:
-  - setup_proxmox_auth
+  - role: setup_proxmox_auth
+    tags: always

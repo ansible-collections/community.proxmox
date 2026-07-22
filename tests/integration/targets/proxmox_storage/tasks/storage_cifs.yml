@@ -1,0 +1,252 @@
+####################################################################
+# WARNING: These are designed specifically for Ansible tests       #
+# and should not be used as examples of how to write Ansible roles #
+####################################################################
+
+# Copyright (c) 2026, Marius Rieder <marius.rieder@durchmesser.ch>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Proxmox VE - CIFS Storage
+  block:
+    - name: Create storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+          username: "proxmox"
+          password: "SECRET"
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Verify check mode did not create storage
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Create cifs storage
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+          username: "proxmox"
+          password: "SECRET"
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Create cifs storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+          username: "proxmox"
+          password: "SECRET"
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update cifs storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        bwlimit: clone=1024,default=2048
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+          username: "proxmox"
+          domain: "PVE"
+          format: qcow2
+          prune_backups: keep-last=3,keep-daily=13,keep-yearly=9
+          preallocation: off
+        update: true
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update cifs storage
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        bwlimit: clone=1024,default=2048
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+          username: "proxmox"
+          domain: "PVE"
+          format: qcow2
+          prune_backups: keep-last=3,keep-daily=13,keep-yearly=9
+          preallocation: off
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update cifs storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        bwlimit: clone=1024,default=2048
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+          username: "proxmox"
+          domain: "PVE"
+          format: qcow2
+          prune_backups: keep-last=3,keep-daily=13,keep-yearly=9
+          preallocation: off
+        update: true
+      diff: true
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update (remove param) cifs storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+        update: true
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update (remove param) cifs storage
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update (remove params) cifs storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+        disable: true
+        cifs_options:
+          server: "cifs.pve"
+          share: "/proxmox"
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update storage type in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: dir
+        disable: true
+        dir_options:
+          path: /pve
+        update: true
+      check_mode: true
+      ignore_errors: true
+      register: result
+
+    - assert:
+        that:
+          - result is failed
+          - "'type can not be changed' in result.msg"
+
+    - name: Delete cifs storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        state: absent
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Verify check mode did not delete cifs storage
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        type: cifs
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Delete cifs storage
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Remove cifs storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ cifs_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
