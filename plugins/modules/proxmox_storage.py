@@ -981,7 +981,9 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
         deletable_params = [
             PROXMOX_FIELD_TRANSLATIONS.get(key, key)
             for key in self.params.get(f"{current_storage['type']}_options") or {}
+            if key not in PROXMOX_FIELD_READONLY
         ]
+        deletable_params += ["nodes", "bwlimit"]
         deleted_params = [
             param
             for param, current_value in current_storage.items()
