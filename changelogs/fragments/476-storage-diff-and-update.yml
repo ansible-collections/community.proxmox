@@ -3,5 +3,5 @@ minor_changes:
   - proxmox_storage - add diff mode functionality (https://github.com/ansible-collections/community.proxmox/pull/476).
   - proxmox_storage - add update functionality (https://github.com/ansible-collections/community.proxmox/pull/476).
   - proxmox_storage - add support for ``lvm`` and  ``lvm-thin`` storage types (https://github.com/ansible-collections/community.proxmox/issues/158).
-  - proxmox_storage - add support for ``iscsidirect`` and ``zfs`` storage types (https://github.com/ansible-collections/community.proxmox/pull/476).
+  - proxmox_storage - add support for ``btrfs``, ``esxi``, ``iscsidirect`` and ``zfs`` storage types (https://github.com/ansible-collections/community.proxmox/pull/476).
   - proxmox_storage - add  common storage properties ``shared``, ``prune_backups``, ``format`` and ``preallocation`` (https://github.com/ansible-collections/community.proxmox/pull/476).
