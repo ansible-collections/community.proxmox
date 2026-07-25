@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_qemu_api connection plugin - export ``HOME`` for every command executed through the QEMU guest agent, which starts processes without a login environment. With ``HOME`` unset, POSIX sh left ``~`` unexpanded, breaking ansible-core's remote tmpdir discovery and causing ``copy``, ``template`` and module payload transfers to fail after creating a literal ``/~`` directory on the guest (https://github.com/ansible-collections/community.proxmox/issues/461).
