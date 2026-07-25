@@ -1,0 +1,101 @@
+####################################################################
+# WARNING: These are designed specifically for Ansible tests       #
+# and should not be used as examples of how to write Ansible roles #
+####################################################################
+
+# Copyright (c) 2026, Marius Rieder <marius.rieder@durchmesser.ch>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Proxmox VE storage management
+  tags: ["storage"]
+  environment: "{{ environment_auth_vars }}"
+
+  block:
+    - name: Ensure clean state before starting
+      block:
+        - name: Delete test storages
+          community.proxmox.proxmox_storage:
+            name: "{{ item }}"
+            state: absent
+          ignore_errors: true
+          loop: "{{ test_storages }}"
+
+    - name: Test BTRFS Storage
+      ansible.builtin.import_tasks:
+        file: storage_btrfs.yml
+      tags: btrfs
+
+    - name: Test CephFS Storage
+      ansible.builtin.import_tasks:
+        file: storage_cephfs.yml
+      tags: cephfs
+
+    - name: Test CIFS Storage
+      ansible.builtin.import_tasks:
+        file: storage_cifs.yml
+      tags: cifs
+
+    - name: Test Directory Storage
+      ansible.builtin.import_tasks:
+        file: storage_dir.yml
+      tags: dir
+
+    - name: Test ESXi Storage
+      ansible.builtin.import_tasks:
+        file: storage_esxi.yml
+      tags: esxi
+
+    - name: Test iSCSI Storage
+      ansible.builtin.import_tasks:
+        file: storage_iscsi.yml
+      tags: iscsi
+
+    - name: Test iSCSI Direct Storage
+      ansible.builtin.import_tasks:
+        file: storage_iscsidirect.yml
+      tags: iscsidirect
+
+    - name: Test LVM Storage
+      ansible.builtin.import_tasks:
+        file: storage_lvm.yml
+      tags: lvs
+
+    - name: Test LVM-Thin Storage
+      ansible.builtin.import_tasks:
+        file: storage_lvmthin.yml
+      tags: lvsthin
+
+    - name: Test NFS Storage
+      ansible.builtin.import_tasks:
+        file: storage_nfs.yml
+      tags: nfs
+
+    - name: Test PBS Storage
+      ansible.builtin.import_tasks:
+        file: storage_pbs.yml
+      tags: pbs
+
+    - name: Test RBD Storage
+      ansible.builtin.import_tasks:
+        file: storage_rbd.yml
+      tags: rbd
+
+    - name: Test ZFS Storage
+      ansible.builtin.import_tasks:
+        file: storage_zfs.yml
+      tags: zfs
+
+    - name: Test ZFS Pool Storage
+      ansible.builtin.import_tasks:
+        file: storage_zfspool.yml
+      tags: zfspool
+
+  always:
+    - name: Remove test storages after top-level failure
+      community.proxmox.proxmox_storage:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ test_storages }}"
+      ignore_errors: true
+      tags: always

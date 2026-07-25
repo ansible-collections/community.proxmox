@@ -1,0 +1,34 @@
+# Copyright (c) 2026, Marius Rieder <marius.rieder@durchmesser.ch>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+btrfs_storage: test_storage_btrfs
+cephfs_storage: test_storage_cephfs
+cifs_storage: test_storage_cifs
+dir_storage: test_storage_dir
+esxi_storage: test_storage_esxi
+iscsi_storage: test_storage_iscsi
+iscsidirect_storage: test_storage_iscsidirect
+lvm_storage: test_storage_lvm
+lvmthin_storage: test_storage_lvmthin
+nfs_storage: test_storage_nfs
+pbs_storage: test_storage_pbs
+rbd_storage: test_storage_rbs
+zfs_storage: test_storage_zfs
+zfspool_storage: test_storage_zfspool
+
+test_storages:
+  - "{{ btrfs_storage }}"
+  - "{{ cephfs_storage }}"
+  - "{{ cifs_storage }}"
+  - "{{ dir_storage }}"
+  - "{{ esxi_storage }}"
+  - "{{ iscsi_storage }}"
+  - "{{ iscsidirect_storage }}"
+  - "{{ lvm_storage }}"
+  - "{{ lvmthin_storage }}"
+  - "{{ nfs_storage }}"
+  - "{{ pbs_storage }}"
+  - "{{ rbd_storage }}"
+  - "{{ zfs_storage }}"
+  - "{{ zfspool_storage }}"

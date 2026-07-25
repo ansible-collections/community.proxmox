@@ -1,0 +1,240 @@
+####################################################################
+# WARNING: These are designed specifically for Ansible tests       #
+# and should not be used as examples of how to write Ansible roles #
+####################################################################
+
+# Copyright (c) 2026, Marius Rieder <marius.rieder@durchmesser.ch>
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Proxmox VE - ESXi Storage
+  block:
+    - name: Create storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          password: "SECRET"
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Verify check mode did not create storage
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Create esxi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          password: "SECRET"
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Create esxi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          password: "SECRET"
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update esxi storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          skip_cert_verification: true
+          port: 12345
+        update: true
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update esxi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          skip_cert_verification: true
+          port: 12345
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update esxi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          skip_cert_verification: true
+          port: 12345
+        update: true
+      diff: true
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update (remove param) esxi storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          skip_cert_verification: true
+        update: true
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update (remove param) esxi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          skip_cert_verification: true
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Update (remove params) esxi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+        disable: true
+        esxi_options:
+          server: "esxi.pve"
+          username: "proxmox"
+          skip_cert_verification: true
+        update: true
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Update storage type in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: dir
+        disable: true
+        dir_options:
+          path: /pve
+        update: true
+      check_mode: true
+      ignore_errors: true
+      register: result
+
+    - assert:
+        that:
+          - result is failed
+          - "'type can not be changed' in result.msg"
+
+    - name: Delete esxi storage in check mode
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        state: absent
+      check_mode: true
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Verify check mode did not delete esxi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        type: esxi
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
+
+    - name: Delete esxi storage
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - result is success
+
+    - name: Remove esxi storage idempotently
+      community.proxmox.proxmox_storage:
+        name: "{{ esxi_storage }}"
+        state: absent
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+          - result is success
