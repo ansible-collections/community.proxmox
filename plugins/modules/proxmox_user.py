@@ -278,7 +278,6 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                         self.proxmox_api.access.users(userid)
                         .token(token["tokenid"])
                         .post(
-                            tokenid=token["tokenid"],
                             comment=token["comment"],
                             expire=token["expire"],
                             privsep=ansible_to_proxmox_bool(token["privsep"]),
