@@ -78,7 +78,7 @@ groups:
 ip_sets:
     description:
       - List of IP Sets.
-      - These are only supported on the O(level) = cluster, other inputs are ignored.
+      - These are only supported at O(level=cluster) and O(level=vm); other levels return an empty list.
     returned: on success
     type: list
     elements: dict
@@ -315,8 +315,10 @@ class ProxmoxFirewallInfoAnsible(ProxmoxSdnAnsible):
 
         rules = self.get_fw_rules(rules_obj, pos=self.params.get("pos"))
         groups = self.get_groups()
-        aliases = self.get_aliases(firewall_obj=firewall_obj)
-        ip_sets = self.get_ip_sets(firewall_obj=firewall_obj)
+        aliases_firewall_obj = firewall_obj if level in ("cluster", "vm") else None
+        ip_sets_firewall_obj = firewall_obj if level in ("cluster", "vm") else None
+        aliases = self.get_aliases(firewall_obj=aliases_firewall_obj)
+        ip_sets = self.get_ip_sets(firewall_obj=ip_sets_firewall_obj)
         self.module.exit_json(
             changed=False,
             firewall_rules=rules,

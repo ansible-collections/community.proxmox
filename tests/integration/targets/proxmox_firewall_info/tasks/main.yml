@@ -1,0 +1,25 @@
+# Copyright (c) Ansible Project
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Proxmox firewall info
+  tags: ["firewall"]
+  environment: "{{ environment_auth_vars }}"
+
+  block:
+    - name: Get node firewall configuration
+      community.proxmox.proxmox_firewall_info:
+        level: node
+        node: "{{ node }}"
+      register: result
+
+    - ansible.builtin.assert:
+        that:
+          - result is not changed
+          - result is success
+          - result.aliases == []
+          - result.ip_sets == []
+          - result.firewall_rules is defined
+          - result.firewall_rules is iterable
+          - result.groups is defined
+          - result.groups is iterable
