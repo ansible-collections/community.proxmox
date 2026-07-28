@@ -229,12 +229,19 @@ class ProxmoxAnsible:
             if api_port:
                 auth_args["port"] = api_port
 
-            auth_args["user"] = api_user
-
             if api_password:
+                auth_args["user"] = api_user
                 auth_args["password"] = api_password
             else:
-                auth_args["token_name"] = api_token_id
+                # Token authentication: parse api_token_id if it contains the user part
+                if api_token_id and "!" in api_token_id:
+                    # Format: username@realm!tokenid
+                    auth_args["user"] = api_token_id.split("!")[0]
+                    auth_args["token_name"] = api_token_id.split("!")[-1]
+                else:
+                    # Format: tokenid (user provided separately or defaults to "root@pam")
+                    auth_args["user"] = api_user
+                    auth_args["token_name"] = api_token_id
                 auth_args["token_value"] = api_token_secret
 
             auth_args["verify_ssl"] = validate_certs
