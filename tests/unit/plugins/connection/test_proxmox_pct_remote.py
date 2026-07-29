@@ -605,3 +605,51 @@ def test_reset(connection):
     connection._connected = False
     connection.reset()
     assert connection.close.call_count == 1
+
+
+@patch("paramiko.SSHClient")
+def test_connect_generic_exception_translated(mock_ssh, connection):
+    """Test that unexpected connect errors raise AnsibleConnectionFailure, not AttributeError (issue #477).
+
+    NoValidConnectionsError, socket timeouts and other OSErrors are not
+    subclasses of BadHostKeyException/AuthenticationException, so they reach
+    the generic handler, which must translate them instead of crashing.
+    """
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    mock_client.connect.side_effect = OSError("Connection refused")
+
+    with pytest.raises(AnsibleConnectionFailure, match="Connection refused"):
+        connection._connect()
+
+
+@patch("paramiko.SSHClient")
+def test_connect_pid_check_failed_raises_ansible_error(mock_ssh, connection):
+    """Test that the legacy paramiko 'PID check failed' error keeps its dedicated message."""
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    mock_client.connect.side_effect = Exception("PID check failed")
+
+    with pytest.raises(AnsibleError, match="paramiko version issue"):
+        connection._connect()
+
+
+@patch("paramiko.SSHClient")
+def test_connect_error_message_does_not_leak_options(mock_ssh, connection):
+    """Test that the translated error message does not embed the full options dict.
+
+    The pre-refactor code called ``self.get_options('remote_addr')`` (plural),
+    which would have rendered every connection option - including the password -
+    into the error message. The restored helper must use ``get_option``.
+    """
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    mock_client.connect.side_effect = Exception("Private key file is encrypted")
+
+    with pytest.raises(AnsibleConnectionFailure) as excinfo:
+        connection._connect()
+
+    message = str(excinfo.value)
+    assert "root@192.168.1.100:22" in message
+    assert "To connect as a different user" in message
+    assert "password" not in message

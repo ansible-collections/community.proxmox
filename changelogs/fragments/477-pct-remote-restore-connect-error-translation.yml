@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_pct_remote connection plugin - restore the ``_raise_paramiko_connect_exception`` helper that was referenced but not defined after a refactor, so unexpected SSH connection errors (connection refused, timeouts) are reported as ``AnsibleConnectionFailure`` with the real error message instead of crashing with ``AttributeError`` (https://github.com/ansible-collections/community.proxmox/issues/477).
