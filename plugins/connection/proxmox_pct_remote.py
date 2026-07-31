@@ -256,11 +256,11 @@ EXAMPLES = r"""
 # $ mkdir -p /opt/ansible-pct/.ssh
 # $ ssh-keygen -t ed25519 -C 'ansible' -N "" -f /opt/ansible-pct/.ssh/ansible <<< y > /dev/null
 # $ cat /opt/ansible-pct/.ssh/ansible
-# $ mv /opt/ansible-pct/.ssh/ansible.pub /opt/ansible-pct/.ssh/authorized-keys
+# $ mv /opt/ansible-pct/.ssh/ansible.pub /opt/ansible-pct/.ssh/authorized_keys
 # $ rm /opt/ansible-pct/.ssh/ansible*
 # $ chown -R ansible:ansible /opt/ansible-pct/.ssh
 # $ chmod 700 /opt/ansible-pct/.ssh
-# $ chmod 600 /opt/ansible-pct/.ssh/authorized-keys
+# $ chmod 600 /opt/ansible-pct/.ssh/authorized_keys
 # $ echo 'ansible ALL = (root) NOPASSWD: /usr/sbin/pct' > /etc/sudoers.d/ansible_pct
 #
 # Save the displayed private key and add it to your ssh-agent
@@ -303,7 +303,7 @@ EXAMPLES = r"""
 #     - name: Set public key as authorized key
 #       ansible.builtin.copy:
 #         src: /opt/ansible-pct/.ssh/ansible.pub
-#         dest: /opt/ansible-pct/.ssh/authorized-keys
+#         dest: /opt/ansible-pct/.ssh/authorized_keys
 #         remote_src: yes
 #         owner: ansible
 #         group: ansible
