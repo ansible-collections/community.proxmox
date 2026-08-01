@@ -218,7 +218,7 @@ def test_exec_command_success(mock_api, mock_sleep, connection):
     assert rc == 0
     assert stdout == "hello\n"
     assert stderr == ""
-    agent.exec.post.assert_called_once_with(command=["/bin/sh", "-c", "echo hello"])
+    agent.exec.post.assert_called_once_with(command=["/bin/sh", "-c", qemu_module.HOME_GUARD + "echo hello"])
 
 
 @patch.object(qemu_module.time, "sleep")
@@ -255,6 +255,76 @@ def test_exec_command_api_failure(mock_api, connection):
 
     with pytest.raises(AnsibleConnectionFailure, match="Failed to execute command"):
         connection.exec_command("echo hello")
+
+
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
+def test_exec_command_exports_home(mock_api, mock_sleep, connection):
+    """Test that exec_command prefixes the HOME guard (issue #461).
+
+    guest-exec provides no login environment, so HOME is unset and POSIX sh
+    (dash) leaves ``~`` unexpanded, breaking ansible-core's remote tmpdir
+    discovery. The guard must be prepended to every command.
+    """
+    mock_proxmox = MagicMock()
+    mock_api.return_value = mock_proxmox
+
+    agent = mock_proxmox.nodes("pve-1").qemu(TEST_VMID).agent
+    agent.exec.post.return_value = {"pid": 42}
+    agent("exec-status").get.return_value = {"exited": 1, "exitcode": 0, "out-data": "/root\n", "err-data": ""}
+
+    connection._connected = True
+    connection._proxmox = mock_proxmox
+
+    connection.exec_command("echo ~")
+
+    cmd = agent.exec.post.call_args[1]["command"]
+    assert cmd[0] == "/bin/sh"
+    assert cmd[1] == "-c"
+    assert cmd[2].startswith('export HOME="${HOME:-')
+    assert cmd[2].endswith("echo ~")
+
+
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
+def test_exec_command_home_guard_respects_existing_home(mock_api, mock_sleep, connection):
+    """Test that the HOME guard uses default-if-unset expansion.
+
+    ``${HOME:-...}`` must preserve a HOME that is already set, only filling it
+    in from the passwd database when it is missing or empty.
+    """
+    assert '"${HOME:-' in qemu_module.HOME_GUARD
+    assert "getent passwd" in qemu_module.HOME_GUARD
+    # The guard must be a single prefix statement terminated by ';' so the
+    # user command executes unconditionally afterwards.
+    assert qemu_module.HOME_GUARD.rstrip().endswith(";")
+
+
+@patch.object(qemu_module.time, "sleep")
+@patch.object(qemu_module, "ProxmoxAPI")
+def test_exec_command_home_guard_with_custom_executable(mock_api, mock_sleep, connection):
+    """Test that the HOME guard is applied regardless of the configured executable.
+
+    ansible-core wraps its own commands in an inner ``/bin/sh -c`` (dash) no
+    matter what ``executable`` is set to, so the exported HOME must come from
+    the outer wrapper to be inherited by that child shell (issue #461).
+    """
+    mock_proxmox = MagicMock()
+    mock_api.return_value = mock_proxmox
+    connection.set_option("executable", "/usr/bin/bash")
+
+    agent = mock_proxmox.nodes("pve-1").qemu(TEST_VMID).agent
+    agent.exec.post.return_value = {"pid": 42}
+    agent("exec-status").get.return_value = {"exited": 1, "exitcode": 0, "out-data": "", "err-data": ""}
+
+    connection._connected = True
+    connection._proxmox = mock_proxmox
+
+    connection.exec_command("/bin/sh -c 'echo ~'")
+
+    cmd = agent.exec.post.call_args[1]["command"]
+    assert cmd[0] == "/usr/bin/bash"
+    assert cmd[2].startswith("export HOME=")
 
 
 @patch.object(qemu_module.time, "sleep")
