@@ -186,3 +186,17 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         assert result["firewall_rules"] == RAW_FIREWALL_RULES
         assert result["groups"] == ["test1", "test2"]
         assert result["aliases"] == RAW_ALIASES
+
+    def test_aliases_and_ipsets_are_empty(self):
+        cases = [
+            ("node", {"node": "pve-test"}),
+            ("vnet", {"vnet": "vnet-test"}),
+            ("group", {"group": "group-test"}),
+        ]
+        for level, extra_args in cases:
+            with self.subTest(level=level, extra_args=extra_args):
+                with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args(level=level, **extra_args)):
+                    self.module.main()
+                result = exc_info.value.args[0]
+                assert result["aliases"] == []
+                assert result["ip_sets"] == []

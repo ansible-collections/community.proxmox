@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_firewall_info - skip aliases and ipsets API calls for firewall for node, vnet and group (https://github.com/ansible-collections/community.proxmox/pull/485).
