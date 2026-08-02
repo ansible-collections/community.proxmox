@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - "proxmox inventory - pass ``verify`` explicitly on HTTP requests so ``validate_certs: false`` is honored when ``REQUESTS_CA_BUNDLE`` is set (regression when only ``session.verify`` was used) (https://github.com/ansible-collections/community.proxmox/pull/491)."
