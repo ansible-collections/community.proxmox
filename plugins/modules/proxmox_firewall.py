@@ -710,7 +710,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
                 self.module.exit_json(changed=False, msg="Firewall rule already doesn't exist")
             rule_obj = getattr(rules_obj(), str(pos))
             digest = rule_obj.get().get("digest")
-            rule_obj.delete(pos=pos, digest=digest)
+            rule_obj.delete(digest=digest)
 
             self.module.exit_json(changed=True, msg="successfully deleted firewall rules")
         except Exception as e:
@@ -733,6 +733,7 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             try:
                 rule_obj = getattr(rules_obj(), str(rule["pos"]))
                 rule["digest"] = rule_obj.get().get("digest")  # Avoids concurrent changes
+                rule["pos"] = None
                 rule_obj.put(**rule)
 
             except Exception as e:
