@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_firewall - omit unsupported "pos" API parameter (https://github.com/ansible-collections/community.proxmox/issues/485).
