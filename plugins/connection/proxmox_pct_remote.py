@@ -594,6 +594,30 @@ class Connection(ConnectionBase):
         except Exception as e:
             self._raise_paramiko_connect_exception(e, port)
 
+    def _raise_paramiko_connect_exception(self, e: Exception, port: int) -> t.NoReturn:
+        """Translate an unexpected Paramiko connect error into an Ansible failure.
+
+        Restores the error translation that was inlined in ``_connect`` before
+        the refactor in #372 extracted ``_paramiko_connect_ssh`` and referenced
+        this helper without defining it (issue #477). Without it, any
+        unexpected connection error (e.g. connection refused, timeouts,
+        ``NoValidConnectionsError``) crashed with ``AttributeError`` instead of
+        reporting the real failure.
+
+        Uses ``get_option`` (singular); the pre-refactor code called
+        ``get_options('remote_addr')``, which would have rendered the entire
+        options dict - including the password - into the error message.
+        """
+        msg = to_text(e)
+        if "PID check failed" in msg:
+            raise AnsibleError("paramiko version issue, please upgrade paramiko on the machine running ansible") from e
+        if "Private key file is encrypted" in msg:
+            msg = (
+                f"ssh {self.get_option('remote_user')}@{self.get_option('remote_addr')}:{port} : "
+                f"{msg}\nTo connect as a different user, use -u <username>."
+            )
+        raise AnsibleConnectionFailure(msg) from e
+
     def _connect(self) -> Connection:
         """Open an SSH session to the Proxmox host via Paramiko."""
 
