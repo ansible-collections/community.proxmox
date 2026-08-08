@@ -238,7 +238,7 @@ class ProxmoxAnsible:
                     # Format: username@realm!tokenid
                     auth_args["user"], auth_args["token_name"] = api_token_id.split("!", maxsplit=1)
                 else:
-                    # Format: tokenid (user provided separately or defaults to "root@pam")
+                    # Format: tokenid (user provided separately)
                     auth_args["user"] = api_user
                     auth_args["token_name"] = api_token_id
                 auth_args["token_value"] = api_token_secret
