@@ -1026,12 +1026,14 @@ def test_get_json_uses_api_timeout(inventory, mocker):
     session = mocker.MagicMock()
     session.get.return_value = response
     inventory._get_session = mocker.MagicMock(return_value=session)
+    inventory.get_option = mocker.MagicMock(return_value=True)
 
     assert inventory._get_json("https://localhost:8006/api2/json/test") == [{"name": "test"}]
     session.get.assert_called_once_with(
         "https://localhost:8006/api2/json/test",
         headers={},
         timeout=12,
+        verify=True,
     )
 
 
