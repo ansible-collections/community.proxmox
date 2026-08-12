@@ -27,10 +27,23 @@ Examples below show authentication variables as you would typically define them 
 
 **API Token**
 
+You can use API tokens in two formats:
+
+*Format 1: Full token ID (recommended)*
+
 .. code-block:: yaml
 
    api_host: 10.0.0.1
    api_token_id: username@realm!tokenid
+   api_token_secret: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+*Format 2: Separate user and token ID*
+
+.. code-block:: yaml
+
+   api_host: 10.0.0.1
+   api_user: username@realm
+   api_token_id: tokenid
    api_token_secret: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 **Username/password**

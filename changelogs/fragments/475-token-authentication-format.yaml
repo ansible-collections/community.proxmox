@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - "All modules - support both API token authentication formats: ``api_token_id: username@realm!tokenid`` (recommended) and ``api_user: username@realm`` with ``api_token_id: tokenid``. Previously, the documented format with embedded user in the token ID was not working (https://github.com/ansible-collections/community.proxmox/issues/475)."
