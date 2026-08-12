@@ -594,6 +594,17 @@ class Connection(ConnectionBase):
         except Exception as e:
             self._raise_paramiko_connect_exception(e, port)
 
+    def _raise_paramiko_connect_exception(self, e: Exception, port: int) -> t.NoReturn:
+        msg = to_text(e)
+        if "PID check failed" in msg:
+            raise AnsibleError("paramiko version issue, please upgrade paramiko on the machine running ansible") from e
+        if "Private key file is encrypted" in msg:
+            msg = (
+                f"ssh {self.get_option('remote_user')}@{self.get_option('remote_addr')}:{port} : "
+                f"{msg}\nTo connect as a different user, use -u <username>."
+            )
+        raise AnsibleConnectionFailure(msg) from e
+
     def _connect(self) -> Connection:
         """Open an SSH session to the Proxmox host via Paramiko."""
 
