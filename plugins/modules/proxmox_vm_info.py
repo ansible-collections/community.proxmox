@@ -200,13 +200,13 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
                         config_type = 0 if config == "pending" else 1
                         # GET /nodes/{node}/qemu/{vmid}/config current=[0/1]
                         desired_vm["config"] = call_vm_getter(this_vm_id).config().get(current=config_type)
-                    if network:
-                        if resource_type == "qemu":
-                            desired_vm["network"] = (
-                                call_vm_getter(this_vm_id).agent("network-get-interfaces").get()["result"]
-                            )
-                        elif resource_type == "lxc":
-                            desired_vm["network"] = call_vm_getter(this_vm_id).interfaces.get()
+                        if network and desired_vm["status"] == "running":
+                            if resource_type == "qemu":
+                                desired_vm["network"] = (
+                                    call_vm_getter(this_vm_id).agent("network-get-interfaces").get()["result"]
+                                )
+                            elif resource_type == "lxc":
+                                desired_vm["network"] = call_vm_getter(this_vm_id).interfaces.get()
 
         return filtered_vms
 
