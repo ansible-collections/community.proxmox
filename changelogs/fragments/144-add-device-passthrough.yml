@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - proxmox - Add ``mount_devices`` option to allow mounting passthrough devices for LXC containers. Note that Proxmox currently requires root@pam password login to manage passthrough devices. (https://github.com/ansible-collections/community.general/pull/506)
