@@ -176,6 +176,39 @@ options:
           - O(mount_volumes[].options) is a dict of extra options.
           - The value of any given option must be a string, for example V("1").
         type: dict
+  mount_devices:
+    description:
+      - Add passthrough devices for the LXC container.
+      - Note that Proxmox currently requires root@pam password login to manage passthrough devices.
+    type: list
+    elements: dict
+    suboptions:
+      id:
+        description:
+          - O(mount_devices[].id) is the identifier of the mount point written as C(dev[n]).
+        type: str
+        required: true
+      path:
+        description:
+          - O(mount_devices[].path) is the path to the device file that should be passed through to the container.
+        type: str
+        required: true
+      deny_write:
+        description:
+          - C(true) if the device should be read-only within the container.
+        type: bool
+      uid:
+        description:
+          - The user ID (uid) of the owner of the device within the LXC container.
+        type: int
+      gid:
+        description:
+          - The group ID (gid) of the owner of the device within the LXC container.
+        type: int
+      mode:
+        description:
+          - The octal representation of the permissions assigned to the device inside the LXC container.
+          - "Example: C(\"060\") for group r+w on the device"
   ip_address:
     description:
       - Specifies the address the container will be assigned.
@@ -643,6 +676,18 @@ def module_args():
                 ("host_path", "size"),
             ],
         ),
+        mount_devices=dict(
+            type="list",
+            elements="dict",
+            options=dict(
+                id=dict(type="str", required=True),
+                path=dict(type="str", required=True),
+                deny_write=dict(type="bool"),
+                uid=dict(type="int"),
+                gid=dict(type="int"),
+                mode=dict(type="str"),
+            ),
+        ),
         ip_address=dict(),
         ostype=dict(
             default="auto",
@@ -828,6 +873,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                     memory=self.params.get("memory"),
                     mounts=self.params.get("mounts"),
                     mount_volumes=self.params.get("mount_volumes"),
+                    mount_devices=self.params.get("mount_devices"),
                     nameserver=self.params.get("nameserver"),
                     netif=self.params.get("netif"),
                     onboot=ansible_to_proxmox_bool(self.params.get("onboot")),
@@ -991,8 +1037,10 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             kwargs.pop("mounts", None),
             kwargs.pop("mount_volumes", None),
         )
+        devices_updates = self.process_device_keys(kwargs.pop("mount_devices", None))
         kwargs.update(disk_updates)
         kwargs.update(mounts_updates)
+        kwargs.update(devices_updates)
 
         if "cpus" in kwargs:
             kwargs["cpulimit"] = kwargs.pop("cpus")
@@ -1084,6 +1132,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 memory=self.params.get("memory"),
                 mounts=self.params.get("mounts"),
                 mount_volumes=self.params.get("mount_volumes"),
+                mount_devices=self.params.get("mount_devices"),
                 nameserver=self.params.get("nameserver"),
                 netif=self.params.get("netif"),
                 onboot=ansible_to_proxmox_bool(self.params.get("onboot")),
@@ -1130,8 +1179,12 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             kwargs.pop("mounts"),
             kwargs.pop("mount_volumes"),
         )
+        devices_updates = self.process_device_keys(
+            kwargs.pop("mount_devices"),
+        )
         kwargs.update(disk_updates)
         kwargs.update(mounts_updates)
+        kwargs.update(devices_updates)
 
         # Remove empty values from kwargs
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
@@ -1629,6 +1682,77 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                     changed=False,
                     msg=f"Feature {option} is only supported in PVE {version}+, and you're using PVE {self.version()}",
                 )
+
+    def process_device_keys(self, devices):
+        """
+        Process device keys for passthrough and turn them into a formatted dictionary appropriate
+        for the Proxmox API.
+
+        Args:
+             devices (List[Dict[str, Any]]): List of devices from the module arguments.
+
+        Returns:
+            Dict[str, str]: Formatted dictionary of device ID to comma-separated path and arguments.
+        """
+        if devices is None:
+            return {}
+        adjusted_devices = {}
+        device_id_regex = re.compile(r"^dev\d+$")
+        for device_entry in devices:
+            if device_id_regex.match(device_entry["id"]) is None:
+                self.module.fail_json(msg=f"Device {device_entry['id']} - Invalid device ID")
+
+            if device_entry["id"] in adjusted_devices:
+                self.module.fail_json(msg=f"Device {device_entry['id']} - Duplicate device ID")
+
+            adjusted_devices.update(self.build_device(device_entry))
+
+        return adjusted_devices
+
+    def build_device(self, device_entry):
+        """
+        Process a single passthrough device entry in the devices list and convert it to an ID -> path & args string.
+
+        Example return: {'dev0': '/dev/render0,deny-write=1,uid=1000,gid=1000,mode=660'}
+
+        Proxmox traditionally does not add the "path" key to the device entry, so this function follows
+        the same convention.
+
+        Args:
+            device_entry (Dict[str, Any]): Single device entry from the module's devices list.
+
+        Returns:
+            Dict[str, str]: Formatted dictionary of device ID to comma-separated path and arguments.
+        """
+        path, deny_write, uid, gid, mode = (
+            device_entry.get("path"),
+            device_entry.get("deny_write"),
+            device_entry.get("uid"),
+            device_entry.get("gid"),
+            device_entry.get("mode"),
+        )
+
+        if path is None or path == "":
+            self.module.fail_json(msg=f"Device {device_entry['id']} - Path is required")
+
+        device_parts = [f"{path}"]
+
+        if deny_write is not None:
+            deny_write_str = "1" if deny_write else "0"
+            device_parts.append(f"deny-write={deny_write_str}")
+
+        if uid is not None:
+            device_parts.append(f"uid={uid}")
+
+        if gid is not None:
+            device_parts.append(f"gid={gid}")
+
+        if mode is not None:
+            if not re.match(r"^[0-7]{3}$", mode):
+                self.module.fail_json(msg=f"Device {device_entry['id']} - Invalid mode")
+            device_parts.append(f"mode={mode}")
+
+        return {device_entry["id"]: ",".join(device_parts)}
 
 
 def isfloat(value):
