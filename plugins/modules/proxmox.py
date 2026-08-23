@@ -209,6 +209,7 @@ options:
         description:
           - The octal representation of the permissions assigned to the device inside the LXC container.
           - "Example: C(\"060\") for group r+w on the device"
+        type: str
   ip_address:
     description:
       - Specifies the address the container will be assigned.
