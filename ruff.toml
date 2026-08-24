@@ -22,6 +22,7 @@ ignore = [
     "D107", # undocumented-public-init
     "D203", # incorrect-blank-line-before-class, mutually exclusive to D211
     "D212", # multi-line-summary-first-line, mutually exclusive to D213
+    "PLR0917", # too-many-positional-only-arguments
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
