@@ -200,15 +200,23 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
                         config_type = 0 if config == "pending" else 1
                         # GET /nodes/{node}/qemu/{vmid}/config current=[0/1]
                         desired_vm["config"] = call_vm_getter(this_vm_id).config().get(current=config_type)
-                    if network:
-                        if resource_type == "qemu":
-                            desired_vm["network"] = (
-                                call_vm_getter(this_vm_id).agent("network-get-interfaces").get()["result"]
-                            )
-                        elif resource_type == "lxc":
-                            desired_vm["network"] = call_vm_getter(this_vm_id).interfaces.get()
+                        if network and desired_vm["status"] == "running":
+                            desired_vm["network"] = self.get_vm_network(call_vm_getter, this_vm_id, resource_type)
 
         return filtered_vms
+
+    def get_vm_network(self, call_vm_getter, vmid, resource_type):
+        try:
+            if resource_type == "qemu":
+                return call_vm_getter(vmid).agent("network-get-interfaces").get()["result"]
+            if resource_type == "lxc":
+                return call_vm_getter(vmid).interfaces.get()
+        except Exception as e:
+            msg = f"Failed to retrieve network information for {resource_type} VM {vmid}: {e}"
+            if "QEMU guest agent is not running" in str(e):
+                self.module.warn(msg)
+                return []
+            self.module.fail_json(msg)
 
     def get_qemu_vms(self, cluster_machines, vmid=None, name=None, node=None, config=None, network=False):  # noqa: PLR0913
         try:

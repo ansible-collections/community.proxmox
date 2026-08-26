@@ -310,6 +310,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.display.vvv('Skipping due to inventory source not ending in "proxmox.yaml" nor "proxmox.yml"')
         return valid
 
+    def _get_verify(self):
+        return self.get_option("validate_certs")
+
     def _get_session(self):
         session = getattr(self._thread_local, "session", None)
         if session is None:
@@ -317,13 +320,15 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             session.headers.update(
                 {"User-Agent": f"ansible {ansible_version} Python {python_version.split(' ', 1)[0]}"}
             )
-            session.verify = self.get_option("validate_certs")
-            if not session.verify:
+            verify = self._get_verify()
+            session.verify = verify
+            if not verify:
                 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             self._thread_local.session = session
         return session
 
     def _get_auth(self):
+        verify = self._get_verify()
         if self.proxmox_password:
             credentials = urlencode({"username": self.proxmox_user, "password": self.proxmox_password})
             a = self._get_session()
@@ -331,6 +336,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 f"{self.proxmox_url}/api2/json/access/ticket",
                 data=credentials,
                 timeout=self.api_timeout,
+                verify=verify,
             )
             json = ret.json()
             self.headers = {
@@ -363,8 +369,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         if not has_data:
             s = self._get_session()
+            verify = self._get_verify()
             while True:
-                ret = s.get(url, headers=self.headers, timeout=self.api_timeout)
+                ret = s.get(url, headers=self.headers, timeout=self.api_timeout, verify=verify)
                 if ignore_errors and ret.status_code in ignore_errors:
                     break
                 ret.raise_for_status()

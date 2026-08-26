@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_vm_info - ignore errors when retrieving VM network info if the QEMU guest agent is not running (https://github.com/ansible-collections/community.proxmox/pull/507).
