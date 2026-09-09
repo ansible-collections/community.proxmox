@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_user - report changed in check mode when deleting user (https://github.com/ansible-collections/community.proxmox/pull/515).
