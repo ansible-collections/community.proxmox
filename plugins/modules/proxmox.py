@@ -1040,7 +1040,10 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=False, vmid=vmid, msg="Container config is already up to date.")
 
         # update the config
-        getattr(proxmox_node, self.VZ_TYPE)(vmid).config.put(vmid=vmid, node=node, **kwargs)
+        for arg, sep in _LIST_FIELDS.items():
+            if arg in kwargs:
+                kwargs[arg] = sep.join(kwargs[arg])
+        getattr(proxmox_node, self.VZ_TYPE)(vmid).config.put(**kwargs)
 
     def new_lxc_instance(self, vmid, hostname, node, clone_from, ostemplate, force):  # noqa: PLR0913
         identifier = self.format_vm_identifier(vmid, hostname)

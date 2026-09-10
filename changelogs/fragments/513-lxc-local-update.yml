@@ -1,0 +1,2 @@
+bugfixes:
+  - proxmox - omit path parameters from LXC configuration update payloads and serialize tags as a semicolon-separated string, fixing updates with the local backend (https://github.com/ansible-collections/community.proxmox/issues/513).
