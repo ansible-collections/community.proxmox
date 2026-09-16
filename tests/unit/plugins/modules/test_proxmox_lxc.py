@@ -155,6 +155,7 @@ class TestProcessDeviceKeys(unittest.TestCase):
             ],
         )
 
+
 @pytest.fixture
 def lxc_ansible():
     instance = proxmox.ProxmoxLxcAnsible.__new__(proxmox.ProxmoxLxcAnsible)
