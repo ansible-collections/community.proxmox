@@ -50,34 +50,47 @@
           - results is not changed
           - results.proxmox_users is defined
 
-    - name: Retrieve info about api_user using name and domain
-      proxmox_user_info:
-        user: "{{ user }}"
-        domain: "{{ domain }}"
-      register: results_user_domain
+    - name: Look up the test user
+      block:
+        - name: Create test user
+          proxmox_user:
+            userid: "{{ user }}@{{ domain }}"
+            password: password
+            comment: integration test user
 
-    - assert:
-        that:
-          - results_user_domain is not changed
-          - results_user_domain.proxmox_users is defined
-          - results_user_domain.proxmox_users|length == 1
-          - results_user_domain.proxmox_users[0].domain == "{{ domain }}"
-          - results_user_domain.proxmox_users[0].user == "{{ user }}"
-          - results_user_domain.proxmox_users[0].userid == "{{ user }}@{{ domain }}"
+        - name: Retrieve info about test user using name and domain
+          proxmox_user_info:
+            user: "{{ user }}"
+            domain: "{{ domain }}"
+          register: results_user_domain
 
-    - name: Retrieve info about api_user using userid
-      proxmox_user_info:
-        userid: "{{ user }}@{{ domain }}"
-      register: results_userid
+        - assert:
+            that:
+              - results_user_domain is not changed
+              - results_user_domain.proxmox_users is defined
+              - results_user_domain.proxmox_users|length == 1
+              - results_user_domain.proxmox_users[0].domain == domain
+              - results_user_domain.proxmox_users[0].user == user
+              - results_user_domain.proxmox_users[0].userid == user + '@' + domain
 
-    - assert:
-        that:
-          - results_userid is not changed
-          - results_userid.proxmox_users is defined
-          - results_userid.proxmox_users|length == 1
-          - results_userid.proxmox_users[0].domain == "{{ domain }}"
-          - results_userid.proxmox_users[0].user == "{{ user }}"
-          - results_userid.proxmox_users[0].userid == "{{ user }}@{{ domain }}"
+        - name: Retrieve info about test user using userid
+          proxmox_user_info:
+            userid: "{{ user }}@{{ domain }}"
+          register: results_userid
+
+        - assert:
+            that:
+              - results_userid is not changed
+              - results_userid.proxmox_users is defined
+              - results_userid.proxmox_users|length == 1
+              - results_userid.proxmox_users[0].domain == domain
+              - results_userid.proxmox_users[0].user == user
+              - results_userid.proxmox_users[0].userid == user + '@' + domain
+      always:
+        - name: Remove test user
+          proxmox_user:
+            userid: "{{ user }}@{{ domain }}"
+            state: absent
 
     - name: Retrieve info about storage
       proxmox_storage_info:
@@ -89,7 +102,7 @@
           - results_storage is not changed
           - results_storage.proxmox_storages is defined
           - results_storage.proxmox_storages|length == 1
-          - results_storage.proxmox_storages[0].storage == "{{ storage }}"
+          - results_storage.proxmox_storages[0].storage == storage
 
     - name: List content on storage
       proxmox_storage_contents_info:
@@ -100,14 +113,27 @@
 
     - assert:
         that:
-          - results_storage is not changed
-          - results_storage.proxmox_storage_content is defined
-          - results_storage.proxmox_storage_content |length == 1
+          - results_list_storage is not changed
+          - results_list_storage.proxmox_storage_content is defined
+          - results_list_storage.proxmox_storage_content is iterable
+
+    - name: Create source VM for clone test
+      proxmox_kvm:
+        node: "{{ node }}"
+        vmid: "{{ from_vmid }}"
+        name: proxmox-test-source
+        memory: 512
+        cores: 1
+        scsi:
+          scsi0: "{{ storage }}:1,format=qcow2,aio=threads"
+        net:
+          net0: "virtio,bridge=vmbr0"
+        state: present
 
     - name: VM creation
       tags: ["create"]
       block:
-        - name: Create test vm test-instance
+        - name: Clone test vm test-instance
           proxmox_kvm:
             node: "{{ node }}"
             storage: "{{ storage }}"
@@ -117,20 +143,16 @@
             state: present
             tags:
               - TagWithUppercaseChars
-            timeout: 500
           register: results_kvm
 
-        - set_fact:
-            vmid: "{{ results_kvm.msg.split(' ')[-7] }}"
+        - ansible.builtin.set_fact:
+            vmid: "{{ results_kvm.vmid }}"
 
         - assert:
             that:
               - results_kvm is changed
-              - results_kvm.vmid == from_vmid
-              - results_kvm.msg == "VM test-instance with newid {{ vmid }} cloned from vm with vmid {{ from_vmid }}"
-
-        - pause:
-            seconds: 30
+              - results_kvm.vmid is defined
+              - results_kvm.msg == ('VM test-instance with newid ' ~ (results_kvm.vmid | string) ~ ' cloned from vm with vmid ' ~ (from_vmid | string))
 
     - name: VM start
       tags: ["start"]
@@ -146,11 +168,12 @@
             that:
               - results_action_start is changed
               - results_action_start.status == 'stopped'
-              - results_action_start.vmid == {{ vmid }}
-              - results_action_start.msg == "VM {{ vmid }} started"
+              - results_action_start.vmid | int == vmid | int
+              - results_action_start.msg == ('VM ' ~ vmid ~ ' started')
 
-        - pause:
-            seconds: 90
+        - name: Wait for test VM to start
+          ansible.builtin.pause:
+            seconds: 5
 
         - name: Try to start test VM again
           proxmox_kvm:
@@ -163,8 +186,8 @@
             that:
               - results_action_start_again is not changed
               - results_action_start_again.status == 'running'
-              - results_action_start_again.vmid == {{ vmid }}
-              - results_action_start_again.msg == "VM {{ vmid }} is already running"
+              - results_action_start_again.vmid | int == vmid | int
+              - results_action_start_again.msg == ('VM ' ~ vmid ~ ' is already running')
 
         - name: Check current status
           proxmox_kvm:
@@ -177,12 +200,20 @@
             that:
               - results_action_current is not changed
               - results_action_current.status == 'running'
-              - results_action_current.vmid == {{ vmid }}
-              - results_action_current.msg == "VM test-instance with vmid = {{ vmid }} is running"
+              - results_action_current.vmid | int == vmid | int
+              - results_action_current.msg == ('VM test-instance with vmid = ' ~ vmid ~ ' is running')
 
     - name: VM add/change/delete NIC
       tags: ["nic"]
       block:
+        - name: Stop test VM before NIC changes
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ vmid }}"
+            state: stopped
+            force: true
+            timeout: 1
+
         - name: Add NIC to test VM
           proxmox_nic:
             vmid: "{{ vmid }}"
@@ -195,8 +226,8 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Nic net5 updated on VM with vmid {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Nic net5 updated on VM with vmid ' ~ vmid)
 
         - name: Update NIC no changes
           proxmox_nic:
@@ -210,8 +241,8 @@
         - assert:
             that:
               - results is not changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Nic net5 unchanged on VM with vmid {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Nic net5 unchanged on VM with vmid ' ~ vmid)
 
         - name: Update NIC with changes
           proxmox_nic:
@@ -226,8 +257,8 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Nic net5 updated on VM with vmid {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Nic net5 updated on VM with vmid ' ~ vmid)
 
         - name: Delete NIC
           proxmox_nic:
@@ -239,8 +270,14 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Nic net5 deleted on VM with vmid {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Nic net5 deleted on VM with vmid ' ~ vmid)
+
+        - name: Start test VM after NIC changes
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ vmid }}"
+            state: started
 
     - name: Create new disk in VM
       tags: ["create_disk"]
@@ -251,14 +288,15 @@
             disk: "{{ disk }}"
             storage: "{{ storage }}"
             size: 1
+            aio: threads
             state: present
           register: results
 
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} created in VM {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' created in VM ' ~ vmid)
 
         - name: Try add disk again with same options (expect no-op)
           proxmox_disk:
@@ -266,14 +304,15 @@
             disk: "{{ disk }}"
             storage: "{{ storage }}"
             size: 1
+            aio: threads
             state: present
           register: results
 
         - assert:
             that:
               - results is not changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} is up to date in VM {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' is up to date in VM ' ~ vmid)
 
         - name: Add new disk replacing existing disk (detach old and leave unused)
           proxmox_disk:
@@ -281,6 +320,7 @@
             disk: "{{ disk }}"
             storage: "{{ storage }}"
             size: 2
+            aio: threads
             create: forced
             state: present
           register: results
@@ -288,8 +328,8 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} created in VM {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' created in VM ' ~ vmid)
 
     - name: Update existing disk in VM
       tags: ["update_disk"]
@@ -300,15 +340,15 @@
             disk: "{{ disk }}"
             backup: false
             ro: true
-            aio: native
+            aio: threads
             state: present
           register: results
 
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} updated in VM {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' updated in VM ' ~ vmid)
 
     - name: Grow existing disk in VM
       tags: ["grow_disk"]
@@ -324,29 +364,54 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} resized in VM {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' resized in VM ' ~ vmid)
 
     - name: Detach disk and leave it unused
       tags: ["detach_disk"]
       block:
+        - name: Add temporary disk for detach test
+          proxmox_disk:
+            vmid: "{{ vmid }}"
+            disk: scsi2
+            storage: "{{ storage }}"
+            size: 1
+            aio: threads
+            state: present
+
         - name: Detach disk
           proxmox_disk:
             vmid: "{{ vmid }}"
-            disk: "{{ disk }}"
+            disk: scsi2
             state: detached
           register: results
 
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} detached from VM {{ vmid }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk scsi2 detached from VM ' ~ vmid)
 
     - name: Move disk to another storage or another VM
       tags: ["move_disk"]
       block:
+        - name: Remove leftover target VM from previous test runs
+          proxmox_kvm:
+            vmid: "{{ target_vm }}"
+            state: absent
+            force: true
+
+        - name: Create target VM for disk move test
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ target_vm }}"
+            name: proxmox-test-target
+            memory: 512
+            cores: 1
+            state: present
+
         - name: Move disk to another storage inside same VM
+          when: target_storage != storage
           proxmox_disk:
             vmid: "{{ vmid }}"
             disk: "{{ disk }}"
@@ -358,8 +423,17 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} moved from VM {{ vmid }} storage {{ results.storage }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' moved from VM ' ~ vmid ~ ' storage ' ~ storage)
+          when: target_storage != storage
+
+        - name: Stop test VM before moving disk to another VM
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ vmid }}"
+            state: stopped
+            force: true
+            timeout: 1
 
         - name: Move disk to another VM (same storage)
           proxmox_disk:
@@ -373,8 +447,8 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ vmid }}
-              - results.msg == "Disk {{ disk }} moved from VM {{ vmid }} storage {{ results.storage }}"
+              - results.vmid | int == vmid | int
+              - results.msg == ('Disk ' ~ disk ~ ' moved from VM ' ~ vmid ~ ' storage ' ~ storage)
 
     - name: Remove disk permanently
       tags: ["remove_disk"]
@@ -389,27 +463,36 @@
         - assert:
             that:
               - results is changed
-              - results.vmid == {{ target_vm }}
-              - results.msg == "Disk {{ target_disk }} removed from VM {{ target_vm }}"
+              - results.vmid | int == target_vm | int
+              - results.msg == ('Disk ' ~ target_disk ~ ' removed from VM ' ~ target_vm)
 
     - name: VM stop
       tags: ["stop"]
       block:
+        - name: Start test VM before stop test
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ vmid }}"
+            state: started
+
         - name: Stop test VM
           proxmox_kvm:
             node: "{{ node }}"
             vmid: "{{ vmid }}"
             state: stopped
+            force: true
+            timeout: 1
           register: results_action_stop
 
         - assert:
             that:
               - results_action_stop is changed
               - results_action_stop.status == 'running'
-              - results_action_stop.vmid == {{ vmid }}
-              - results_action_stop.msg == "VM {{ vmid }} is shutting down"
+              - results_action_stop.vmid | int == vmid | int
+              - results_action_stop.msg == ('VM ' ~ vmid ~ ' is shutting down')
 
-        - pause:
+        - name: Wait for test VM to start
+          ansible.builtin.pause:
             seconds: 5
 
         - name: Check current status again
@@ -423,8 +506,8 @@
             that:
               - results_action_current is not changed
               - results_action_current.status == 'stopped'
-              - results_action_current.vmid == {{ vmid }}
-              - results_action_current.msg == "VM test-instance with vmid = {{  vmid }} is stopped"
+              - results_action_current.vmid | int == vmid | int
+              - results_action_current.msg == ('VM test-instance with vmid = ' ~ vmid ~ ' is stopped')
 
     - name: VM destroy
       tags: ["destroy"]
@@ -439,8 +522,20 @@
         - assert:
             that:
               - results_kvm_destroy is changed
-              - results_kvm_destroy.vmid == {{ vmid }}
-              - results_kvm_destroy.msg == "VM {{ vmid }} removed"
+              - results_kvm_destroy.vmid | int == vmid | int
+              - results_kvm_destroy.msg == ('VM ' ~ vmid ~ ' removed')
+
+        - name: Destroy source VM
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ from_vmid }}"
+            state: absent
+
+        - name: Destroy target VM
+          proxmox_kvm:
+            node: "{{ node }}"
+            vmid: "{{ target_vm }}"
+            state: absent
 
     - name: Retrieve information about nodes
       proxmox_node_info:

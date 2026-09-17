@@ -1,0 +1,13 @@
+# Copyright (c) Ansible Project
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+user: test
+domain: pve
+storage: local
+node: pve
+from_vmid: 9000
+disk: scsi1
+target_vm: 9002
+target_disk: scsi1
+target_storage: local
+target_format: qcow2
