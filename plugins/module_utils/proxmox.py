@@ -169,6 +169,7 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
                 and new_list[c_uid].get(existing_rule_param) != existing_parm_value
             ):
                 items_to_update.append(new_list[c_uid])
+                break
 
     return items_to_create, items_to_update
 
