@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_cluster_firewall_security_group - optional rule fields that are omitted from a rule entry are now removed from the existing rule on update using the API ``delete`` parameter instead of being preserved, and such updates are now reported as changed (https://github.com/ansible-collections/community.proxmox/issues/278).

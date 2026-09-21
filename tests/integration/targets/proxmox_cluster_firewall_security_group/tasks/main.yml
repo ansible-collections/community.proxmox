@@ -634,7 +634,7 @@
           - result is not changed
 
     # -------------------------------------------------------------------------
-    # Rules — preserve omitted optional fields on in-place update
+    # Rules — clear omitted optional fields on in-place update
     # -------------------------------------------------------------------------
 
     - name: Update rule while omitting existing optional fields (source, log)
@@ -659,10 +659,10 @@
         that:
           - result is changed
           - result.rules[0].action == "DROP"
-          - result.rules[0].source == "10.0.0.0/8"
-          - result.rules[0].log == "info"
+          - "'source' not in result.rules[0]"
+          - "'log' not in result.rules[0]"
 
-    - name: Omitted optional fields remain preserved (idempotent)
+    - name: Omitted optional fields stay removed (idempotent)
       community.proxmox.proxmox_cluster_firewall_security_group:
         name: "{{ sg_name }}"
         rules:
@@ -683,8 +683,8 @@
     - assert:
         that:
           - result is not changed
-          - result.rules[0].source == "10.0.0.0/8"
-          - result.rules[0].log == "info"
+          - "'source' not in result.rules[0]"
+          - "'log' not in result.rules[0]"
 
     # -------------------------------------------------------------------------
     # Rules — icmp_type API mapping and roundtrip
