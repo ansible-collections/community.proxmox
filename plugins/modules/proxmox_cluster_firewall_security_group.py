@@ -205,21 +205,20 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_to_ansible_bool,
 )
 
-_COMPARABLE_RULE_KEYS = {
-    "action",
-    "type",
-    "comment",
-    "dest",
-    "dport",
-    "enable",
-    "iface",
-    "log",
-    "macro",
-    "proto",
-    "source",
-    "sport",
-    "icmp-type",
+_OPTIONAL_RULE_TO_API = {
+    "comment": "comment",
+    "dest": "dest",
+    "dport": "dport",
+    "iface": "iface",
+    "log": "log",
+    "macro": "macro",
+    "proto": "proto",
+    "source": "source",
+    "sport": "sport",
+    "icmp_type": "icmp-type",
 }
+
+_COMPARABLE_RULE_KEYS = {"action", "type", "enable", *_OPTIONAL_RULE_TO_API.values()}
 
 _COMPARE_OPTIONAL_KEYS = tuple(k for k in _COMPARABLE_RULE_KEYS if k not in ("action", "type", "enable"))
 
@@ -244,20 +243,6 @@ def _normalize_for_return(r):
     out = dict(r)
     out.setdefault("enabled", True)
     return out
-
-
-_OPTIONAL_RULE_TO_API = {
-    "comment": "comment",
-    "dest": "dest",
-    "dport": "dport",
-    "iface": "iface",
-    "log": "log",
-    "macro": "macro",
-    "proto": "proto",
-    "source": "source",
-    "sport": "sport",
-    "icmp_type": "icmp-type",
-}
 
 
 def _build_create_rule_payload(desired_rule, position, group_name):
