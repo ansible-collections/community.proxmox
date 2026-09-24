@@ -756,14 +756,12 @@ class ProxmoxFirewallAnsible(ProxmoxSdnAnsible):
             # which we need to validate, to keep idempotence
             bare_ip_match = re.compile(r"(^\d+\.\d+\.\d+\.\d+(/\d+)?$)|(^.*:(.*)?:.*(/\d+)?$)")
             if re.search(bare_ip_match, cidr_entry):
-                # /32 and /128 → plain address
-                if cidr_entry.endswith(("/32", "/128")):
-                    return str(ipaddress.ip_address(cidr_entry.split("/", maxsplit=1)[0]))
-                # bare address → itself
-                if "/" not in cidr_entry:
-                    return str(ipaddress.ip_address(cidr_entry))
+                network = ipaddress.ip_network(cidr_entry, strict=False)
+                # Return bare addresses without their prefix, i.e. skip /32 for IPv4 and /128 for IPv6
+                if network.prefixlen == network.max_prefixlen:
+                    return str(network.network_address)
                 # real network → compressed network string
-                return str(ipaddress.ip_network(cidr_entry, strict=False))
+                return str(network)
             return cidr_entry
 
         try:
