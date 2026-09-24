@@ -73,7 +73,7 @@ options:
     target_size_ratio:
         description: The estimated target ratio of the pool for the placement groups autoscaler.
         required: false
-        type: int
+        type: float
 
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
@@ -142,7 +142,7 @@ def module_args():
         size=dict(type="int"),
         timeout=dict(type="int", default=5),
         target_size=dict(type="str"),
-        target_size_ratio=dict(type="int"),
+        target_size_ratio=dict(type="float"),
         state=dict(choices=["present", "absent"], required=True),
     )
 
