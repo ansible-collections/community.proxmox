@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_ceph_pool - add ``application`` parameter to configure Ceph pool profile (``rbd``, ``cephfs``, ``rgw``) (https://github.com/ansible-collections/community.proxmox/issues/523).
