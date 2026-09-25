@@ -112,6 +112,17 @@ def get_module_args_ipset(state, name, cidr=False, nomatch=False):
     }
 
 
+def get_module_args_ipset_cidrs(state, name, cidrs):
+    return {
+        "api_host": "host",
+        "api_user": "user",
+        "api_password": "password",
+        "level": "cluster",
+        "state": state,
+        "ip_sets": [{"name": name, "cidrs": [{"cidr": cidr} for cidr in cidrs]}],
+    }
+
+
 def get_module_args_fw_delete(pos, level="cluster", state="absent"):
     return {
         "api_host": "host",
@@ -153,6 +164,14 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         self.mock_module_helper.stop()
         self.version_mock.stop()
         super().tearDown()
+
+    def mock_ipset_cidrs(self, cidrs):
+        """Mock test_ipset as the only existing ipset with the given cidrs and return the ipset mock."""
+        ipset_list_obj = MagicMock(get=MagicMock(return_value=[{"name": "test_ipset"}]))
+        ipset_obj = MagicMock(get=MagicMock(return_value=cidrs))
+        mock_cluster = self.connect_mock.return_value.cluster.return_value.firewall
+        mock_cluster.ipset.side_effect = lambda name=None: ipset_obj if name else ipset_list_obj
+        return ipset_obj
 
     def test_create_group(self):
         with pytest.raises(SystemExit) as exc_info, set_module_args(get_module_args_group_conf(group="test")):
@@ -232,3 +251,45 @@ class TestProxmoxFirewallModule(ModuleTestCase):
         result = exc_info.value.args[0]
         assert result["changed"] is False
         assert result["msg"] == "Ipsets are absent."
+
+    def test_ipset_present_normalizes_cidrs_like_proxmox(self):
+        # Proxmox drops only the IPv4 /32 and IPv6 /128 prefixes, so an IPv6 /32 stays a network
+        for cidr, expected_cidr in [
+            ("2001:db8::/32", "2001:db8::/32"),
+            ("2001:db8::1/32", "2001:db8::/32"),
+            ("2001:db8::1/128", "2001:db8::1"),
+            ("192.168.1.10/32", "192.168.1.10"),
+            ("dc/test_alias", "dc/test_alias"),
+        ]:
+            ipset_obj = self.mock_ipset_cidrs([])
+            with pytest.raises(SystemExit) as exc_info, set_module_args(
+                get_module_args_ipset_cidrs(state="present", name="new_ipset", cidrs=[cidr])
+            ):
+                self.module.main()
+            result = exc_info.value.args[0]
+            assert result["changed"] is True
+            ipset_obj.post.assert_called_once_with(cidr=expected_cidr, nomatch=0, comment=None)
+
+    def test_ipset_present_ipv4_with_ipv6_host_prefix_fails(self):
+        with pytest.raises(SystemExit) as exc_info, set_module_args(
+            get_module_args_ipset_cidrs(state="present", name="new_ipset", cidrs=["192.168.1.10/128"])
+        ):
+            self.module.main()
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert result["msg"].startswith("Invalid CIDR in ipset")
+
+    def test_ipset_absent_deletes_normalized_cidrs(self):
+        # existing_cidr is the entry as Proxmox lists it
+        for cidr, existing_cidr in [
+            ("2001:db8::/32", "2001:db8::/32"),
+            ("192.168.1.10/32", "192.168.1.10"),
+        ]:
+            ipset_obj = self.mock_ipset_cidrs([{"cidr": existing_cidr}])
+            with pytest.raises(SystemExit) as exc_info, set_module_args(
+                get_module_args_ipset_cidrs(state="absent", name="test_ipset", cidrs=[cidr])
+            ):
+                self.module.main()
+            result = exc_info.value.args[0]
+            assert result["changed"] is True
+            getattr(ipset_obj, existing_cidr).delete.assert_called_once_with()
