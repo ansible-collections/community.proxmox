@@ -1009,7 +1009,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         getattr(proxmox_node, self.VZ_TYPE)(vmid).template.post()
         self.module.exit_json(changed=True, vmid=vmid, msg=f"VM {identifier} converted to template.")
 
-    def update_lxc_instance(self, vmid, node, **kwargs):  # noqa: PLR0912
+    def update_lxc_instance(self, vmid, node, **kwargs):  # noqa: PLR0912, PLR0915
         if self.VZ_TYPE != "lxc":
             self.module.fail_json(
                 msg="Updating LXC containers is only supported for LXC-enabled clusters in PVE 4.0 and above."
