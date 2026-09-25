@@ -1017,6 +1017,11 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if kwargs.get("cmode") == "default":
+            # Same as on instance creation: "default" is a sentinel meaning
+            # "do not send cmode at all", PVE rejects the literal value.
+            kwargs.pop("cmode")
+
         self.validate_tags(kwargs.get("tags", []))
 
         if "features" in kwargs:
