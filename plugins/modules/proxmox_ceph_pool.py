@@ -23,6 +23,12 @@ options:
         description: Add the new pool to the cluster storage configuration.
         required: false
         type: bool
+    application:
+        description: The Ceph pool application type.
+        required: false
+        type: str
+        choices: ["rbd", "cephfs", "rgw"]
+        default: rbd
     crush_rule:
         description: The rule to use for mapping object placement in the cluster.
         required: false
@@ -91,6 +97,7 @@ EXAMPLES = r"""
     api_password: secret
     node: proxmox
     name: ceph-pool
+    application: rbd
     state: present
 
 - name: Add a ceph pool and storage
@@ -132,6 +139,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 def module_args():
     return dict(
         add_storages=dict(type="bool"),
+        application=dict(type="str", choices=["rbd", "cephfs", "rgw"], default="rbd"),
         crush_rule=dict(type="str"),
         min_size=dict(type="int"),
         name=dict(type="str", required=True),
@@ -155,6 +163,7 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
     def get_params(self):
         params_list = [
             "add_storages",
+            "application",
             "crush_rule",
             "node",
             "name",
@@ -174,14 +183,32 @@ class ProxmoxCephPoolAnsible(ProxmoxAnsible):
         return params
 
     def is_equal(self, params, current):
-        return all(params[k] == current.get(k) for k in params if k not in ("add_storages", "node"))
+        for k, v in params.items():
+            if k in ("add_storages", "node", "name"):
+                continue
+            if k == "application":
+                app_metadata = current.get("application_metadata") or {}
+                if v not in app_metadata:
+                    return False
+                continue
+            if v != current.get(k):
+                return False
+        return True
 
     def check_pool(self, node, name):
         pools = self.proxmox_api.nodes(node).ceph.pool.get()
         return any(pool["pool_name"] == name for pool in pools)
 
     def get_pool(self, node, name):
-        return self.proxmox_api.nodes(node).ceph.pool(name).status.get()
+        pools = self.proxmox_api.nodes(node).ceph.pool.get()
+        for pool in pools:
+            if pool.get("pool_name") == name:
+                # Normalize keys so is_equal matches seamlessly
+                pool["name"] = pool.get("pool_name")
+                if "crush_rule_name" in pool:
+                    pool["crush_rule"] = pool["crush_rule_name"]
+                return pool
+        return {}
 
     def add_pool(self):
         node = self.params["node"]
