@@ -28,6 +28,7 @@ options:
         required: false
         type: str
         choices: ["rbd", "cephfs", "rgw"]
+        default: rbd
     crush_rule:
         description: The rule to use for mapping object placement in the cluster.
         required: false
@@ -138,7 +139,7 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 def module_args():
     return dict(
         add_storages=dict(type="bool"),
-        application=dict(type="str", choices=["rbd", "cephfs", "rgw"]),
+        application=dict(type="str", choices=["rbd", "cephfs", "rgw"], default="rbd"),
         crush_rule=dict(type="str"),
         min_size=dict(type="int"),
         name=dict(type="str", required=True),
