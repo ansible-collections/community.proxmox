@@ -23,7 +23,7 @@ class TestUpdateLxcCmode(unittest.TestCase):
         config = lxc_ansible.proxmox_api.nodes("node1").lxc(100).config
         config.get.return_value = {"hostname": "c1", "memory": "512", "cmode": "shell"}
         lxc_ansible.update_lxc_instance(100, "node1", cmode="default", memory="1024")
-        _, put_kwargs = config.put.call_args
+        put_kwargs = config.put.call_args[1]
         assert "cmode" not in put_kwargs
         assert put_kwargs["memory"] == "1024"
 
@@ -37,5 +37,5 @@ class TestUpdateLxcCmode(unittest.TestCase):
         config = lxc_ansible.proxmox_api.nodes("node1").lxc(100).config
         config.get.return_value = {"hostname": "c1", "memory": "512", "cmode": "shell"}
         lxc_ansible.update_lxc_instance(100, "node1", cmode="tty", memory="1024")
-        _, put_kwargs = config.put.call_args
+        put_kwargs = config.put.call_args[1]
         assert put_kwargs["cmode"] == "tty"
