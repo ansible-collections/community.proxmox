@@ -45,8 +45,9 @@ options:
       - Full ordered list of firewall rules for the group, with index C(0) as position C(0), etc.
       - Omitted to manage only the group and comment, leaving current rules unchanged.
       - V([]) to remove all rules.
-      - Optional rule fields (O(rules[].comment), O(rules[].dest), etc.) that are omitted in a rule
-        entry are preserved from the existing rule on updates.
+      - Each rule entry is the complete desired state of the rule at its position.
+      - Optional rule fields (O(rules[].comment), O(rules[].dest), etc.) that are omitted or set to
+        empty string C('') are removed from the existing rule.
     type: list
     elements: dict
     suboptions:
@@ -205,21 +206,20 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_to_ansible_bool,
 )
 
-_COMPARABLE_RULE_KEYS = {
-    "action",
-    "type",
-    "comment",
-    "dest",
-    "dport",
-    "enable",
-    "iface",
-    "log",
-    "macro",
-    "proto",
-    "source",
-    "sport",
-    "icmp-type",
+_OPTIONAL_RULE_TO_API = {
+    "comment": "comment",
+    "dest": "dest",
+    "dport": "dport",
+    "iface": "iface",
+    "log": "log",
+    "macro": "macro",
+    "proto": "proto",
+    "source": "source",
+    "sport": "sport",
+    "icmp_type": "icmp-type",
 }
+
+_COMPARABLE_RULE_KEYS = {"action", "type", "enable", *_OPTIONAL_RULE_TO_API.values()}
 
 _COMPARE_OPTIONAL_KEYS = tuple(k for k in _COMPARABLE_RULE_KEYS if k not in ("action", "type", "enable"))
 
@@ -246,20 +246,6 @@ def _normalize_for_return(r):
     return out
 
 
-_OPTIONAL_RULE_TO_API = {
-    "comment": "comment",
-    "dest": "dest",
-    "dport": "dport",
-    "iface": "iface",
-    "log": "log",
-    "macro": "macro",
-    "proto": "proto",
-    "source": "source",
-    "sport": "sport",
-    "icmp_type": "icmp-type",
-}
-
-
 def _build_create_rule_payload(desired_rule, position, group_name):
     payload = {
         "action": desired_rule["action"],
@@ -276,24 +262,37 @@ def _build_create_rule_payload(desired_rule, position, group_name):
     return {k: v for k, v in payload.items() if v or k == "enable"}
 
 
+def _is_unset(value):
+    return value is None or value == ""
+
+
 def _build_update_rule_payload(desired_rule, current_rule):
-    """Build API body for updating an existing rule, seeding from current state."""
-    payload = {}
-    if current_rule:
-        for k in _COMPARABLE_RULE_KEYS:
-            if current_rule.get(k) is not None:
-                payload[k] = current_rule[k]
-    payload["action"] = desired_rule["action"]
-    payload["type"] = desired_rule["type"]
-    payload["enable"] = ansible_to_proxmox_bool(desired_rule.get("enabled", True))
+    """Build API body for updating an existing rule from the desired rule only.
+
+    Proxmox merges a PUT body into the existing rule, so optional fields that are unset in the
+    desired rule but set on the current rule are listed in the API C(delete) parameter to remove
+    them from the rule.
+    """
+    payload = {
+        "action": desired_rule["action"],
+        "type": desired_rule["type"],
+        "enable": ansible_to_proxmox_bool(desired_rule.get("enabled", True)),
+    }
     for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items():
-        if desired_rule.get(ansible_key) is not None:
+        if not _is_unset(desired_rule.get(ansible_key)):
             payload[api_key] = desired_rule[ansible_key]
-    return {k: v for k, v in payload.items() if v is not None or k == "enable"}
+    deleted_keys = [
+        api_key
+        for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items()
+        if _is_unset(desired_rule.get(ansible_key)) and not _is_unset((current_rule or {}).get(api_key))
+    ]
+    if deleted_keys:
+        payload["delete"] = ",".join(sorted(deleted_keys))
+    return payload
 
 
 def _normalize_compare_optional(key, value):
-    if value is None or value == "":
+    if _is_unset(value):
         return None
     if key in ("dport", "sport") and isinstance(value, int):
         return str(value)

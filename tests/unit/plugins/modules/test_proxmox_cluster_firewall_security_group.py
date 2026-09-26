@@ -250,13 +250,70 @@ class TestBuildCreateRulePayload:
 
 
 class TestBuildUpdateRulePayload:
-    def test_seeds_optional_fields_from_current(self):
-        """Update payload must preserve omitted optional fields from current rule."""
-        desired = {"action": "ACCEPT", "type": "in"}
-        current = {"action": "DROP", "type": "in", "enable": 1, "proto": "tcp", "dport": "80"}
+    def test_omitted_optional_fields_are_deleted(self):
+        """Proxmox merges PUT bodies, so omitted fields must be listed in the API delete parameter and show up as drift."""
+        desired = {k: v for k, v in DESIRED_RULE_0.items() if k not in ("proto", "dport")}
+        payload = _build_update_rule_payload(desired, SAMPLE_RULE_0)
+        assert "proto" not in payload
+        assert "dport" not in payload
+        assert payload["delete"] == "dport,proto"
+        assert not _rules_content_equal(payload, SAMPLE_RULE_0)
+
+    def test_empty_string_treated_like_omitted_field(self):
+        """Empty strings are rejected by some rule properties, so they must clear via delete too."""
+        desired = {"action": "ACCEPT", "type": "in", "comment": "", "proto": ""}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1, "comment": "old", "proto": "tcp"}
         payload = _build_update_rule_payload(desired, current)
-        assert payload["proto"] == "tcp"  # preserved from current
-        assert payload["dport"] == "80"  # preserved from current
+        assert "comment" not in payload
+        assert "proto" not in payload
+        assert payload["delete"] == "comment,proto"
+
+    def test_fields_unset_on_current_are_not_deleted(self):
+        """Only fields actually set on the current rule need removal; the rest would be API noise."""
+        desired = {"action": "ACCEPT", "type": "in"}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1, "proto": "tcp", "comment": ""}
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["delete"] == "proto"
+
+    def test_required_and_metadata_keys_never_deleted(self):
+        """Deleting `type`/`action` fails with HTTP 400 and metadata keys are not rule properties."""
+        desired = {"action": "ACCEPT", "type": "in", "enabled": False}
+        current = {**SAMPLE_RULE_0, "group": GROUP_NAME, "ipversion": 4}
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["action"] == "ACCEPT"
+        assert payload["type"] == "in"
+        assert payload["enable"] == 0
+        assert payload["delete"] == "comment,dest,dport,proto"
+
+    def test_icmp_type_deleted_with_api_key_name(self):
+        """The API key `icmp-type`, not the Ansible key `icmp_type`, must be sent in delete."""
+        desired = {"action": "ACCEPT", "type": "in", "proto": "icmp"}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1, "proto": "icmp", "icmp-type": "echo-request"}
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["delete"] == "icmp-type"
+        assert "icmp-type" not in payload
+
+    def test_deleted_keys_are_sorted_alphabetically(self):
+        """`icmp-type` is last in the field map, so only sorting keeps the delete list alphabetical."""
+        desired = {"action": "ACCEPT", "type": "in"}
+        current = {
+            "action": "ACCEPT",
+            "type": "in",
+            "enable": 1,
+            "icmp-type": "echo-request",
+            "log": "info",
+            "source": "10.0.0.0/8",
+        }
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["delete"] == "icmp-type,log,source"
+
+    def test_icmp_type_set_with_api_key_name(self):
+        """A desired `icmp_type` must be sent under the API key `icmp-type`."""
+        desired = {"action": "ACCEPT", "type": "in", "icmp_type": "echo-request"}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1}
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["icmp-type"] == "echo-request"
+        assert "icmp_type" not in payload
 
     def test_desired_overrides_current_action(self):
         """Requested action must win over existing value during updates."""
@@ -279,6 +336,7 @@ class TestBuildUpdateRulePayload:
         assert payload["action"] == "ACCEPT"
         assert payload["type"] == "in"
         assert payload["dport"] == "80"
+        assert "delete" not in payload
 
 
 class TestNormalizeForReturn:
@@ -336,6 +394,13 @@ class TestPutRulePayload:
         merged = {"action": "DROP", "type": "out", "enable": 0, "proto": "tcp", "comment": "test"}
         result = _put_rule_payload(merged)
         assert result == merged
+
+    def test_keeps_delete_parameter(self):
+        """The API delete parameter must reach the PUT call to clear omitted rule fields."""
+        merged = {"action": "DROP", "type": "out", "enable": 0, "pos": 1, "delete": "log,source"}
+        result = _put_rule_payload(merged)
+        assert result["delete"] == "log,source"
+        assert "pos" not in result
 
 
 class TestSortRules:
@@ -619,6 +684,44 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         assert self.rule_at_pos.put.call_args[1].get("digest") == SAMPLE_RULE_0["digest"]
         self.rule_at_pos.delete.assert_not_called()
         assert result["rules"][0]["dport"] == "8080"
+
+    def test_present_clears_rule_fields_omitted_in_desired(self):
+        """Fields only present on the current rule must be removed via the API delete parameter."""
+        current_rule = {**SAMPLE_RULE_0, "source": "10.0.0.0/8", "log": "info"}
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.rule_at_pos.get.return_value = current_rule
+        self.groups_named.get.side_effect = [
+            [current_rule],  # _rules_would_change (current has extra fields)
+            [current_rule],  # _prune_excess_rules
+            [SAMPLE_RULE_0],  # final fetch
+        ]
+
+        result = self._run_module(build_module_args(rules=[DESIRED_RULE_0]))
+
+        assert result["changed"] is True
+        self.rule_at_pos.put.assert_called_once()
+        put_kwargs = self.rule_at_pos.put.call_args[1]
+        assert put_kwargs["delete"] == "log,source"
+        assert "source" not in put_kwargs
+        assert "log" not in put_kwargs
+        assert put_kwargs["digest"] == SAMPLE_RULE_0["digest"]
+
+    def test_present_idempotent_when_current_field_is_empty_string(self):
+        """A field PVE reports as an empty string is already cleared and must not cause drift."""
+        current_rule = {**SAMPLE_RULE_0, "comment": ""}
+        desired_rule = {k: v for k, v in DESIRED_RULE_0.items() if k != "comment"}
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.rule_at_pos.get.return_value = current_rule
+        self.groups_named.get.side_effect = [
+            [current_rule],  # _rules_would_change
+            [current_rule],  # final fetch (reconcile is skipped, nothing to change)
+        ]
+
+        result = self._run_module(build_module_args(rules=[desired_rule]))
+
+        assert result["changed"] is False
+        assert "already in desired state" in result["msg"]
+        self.rule_at_pos.put.assert_not_called()
 
     def test_present_creates_trailing_rule(self):
         """When desired list grows, missing trailing rules must be created."""
