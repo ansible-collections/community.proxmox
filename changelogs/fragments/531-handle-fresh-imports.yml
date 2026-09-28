@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Ensure proper update handling of disks with an incomplete value set within proxmoxs configuration layer. In particular freshly imported  disks from ESX.
