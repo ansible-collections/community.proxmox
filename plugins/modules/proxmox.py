@@ -207,8 +207,8 @@ options:
         type: int
       mode:
         description:
-          - The octal representation of the permissions assigned to the device inside the LXC container.
-          - "Example: C(\"060\") for group r+w on the device"
+          - The 4-digit octal representation of the permissions assigned to the device inside the LXC container.
+          - "Example: C(\"0060\") for group r+w on the device"
         type: str
   ip_address:
     description:
@@ -1757,7 +1757,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             device_parts.append(f"gid={gid}")
 
         if mode is not None:
-            if not re.match(r"^[0-7]{3}$", mode):
+            if not re.match(r"^[0-7]{4}$", mode):
                 self.module.fail_json(msg=f"Device {device_entry['id']} - Invalid mode")
             device_parts.append(f"mode={mode}")
 
