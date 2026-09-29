@@ -1,3 +1,3 @@
 ---
 bugfixes:
-  - proxmox - Update device mode validation for ``mount_devices`` to be what the proxmox api expects (https://github.com/ansible-collections/community.proxmox/pull/536).
+  - proxmox - update device mode validation for ``mount_devices`` to be what the proxmox api expects (https://github.com/ansible-collections/community.proxmox/pull/536).
