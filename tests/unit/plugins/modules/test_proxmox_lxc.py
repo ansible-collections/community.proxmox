@@ -35,13 +35,9 @@ def test_mount_formatting(mock_api, *_):
     assert mounts == {"mp0": "/mnt/dir,mp=mnt/dir"}
 
 
-@patch.object(ProxmoxAnsible, "__init__", return_value=None)
-@patch.object(ProxmoxAnsible, "version", return_value=LooseVersion("4.0"))
-@patch.object(ProxmoxAnsible, "proxmox_api", create=True)
-@patch.object(ProxmoxAnsible, "module", create=True)
-def test_device_string_generation(mock_api, *_):
+@pytest.mark.parametrize("mode", ["0060", "060", "666", "0666", "07777", "0888"])
+def test_device_string_generation(lxc_ansible, mode):
     """Test that build_device correctly formats a device string"""
-    lxc_ansible = proxmox.ProxmoxLxcAnsible(MagicMock(spec=AnsibleModule))
     lxc_ansible.module.fail_json.side_effect = SystemExit
     device_entry = {
         "id": "dev0",
@@ -49,10 +45,10 @@ def test_device_string_generation(mock_api, *_):
         "deny_write": True,
         "uid": 0,
         "gid": 0,
-        "mode": "060",
+        "mode": mode,
     }
 
-    device = "/dev/render0,deny-write=1,uid=0,gid=0,mode=060"
+    device = f"/dev/render0,deny-write=1,uid=0,gid=0,mode={mode}"
     assert lxc_ansible.build_device(device_entry) == {"dev0": device}
 
 
@@ -73,7 +69,7 @@ class TestProcessDeviceKeys(unittest.TestCase):
                 "deny_write": False,
                 "uid": 100,
                 "gid": 200,
-                "mode": "070",
+                "mode": "0070",
             },
             {
                 "id": "dev1",
@@ -84,15 +80,15 @@ class TestProcessDeviceKeys(unittest.TestCase):
                 "id": "dev2",
                 "path": "/dev/video1",
                 "gid": 400,
-                "mode": "060",
+                "mode": "0060",
             },
         ]
 
         result = lxc_ansible.process_device_keys(devices)
         assert result == {
-            "dev0": "/dev/render0,deny-write=0,uid=100,gid=200,mode=070",
+            "dev0": "/dev/render0,deny-write=0,uid=100,gid=200,mode=0070",
             "dev1": "/dev/video0,uid=300",
-            "dev2": "/dev/video1,gid=400,mode=060",
+            "dev2": "/dev/video1,gid=400,mode=0060",
         }
 
     @patch.object(ProxmoxAnsible, "__init__", return_value=None)
