@@ -169,7 +169,7 @@ class TestProcessDeviceKeys(unittest.TestCase):
             lxc_ansible.process_device_keys,
             [
                 {"id": "dev0", "path": "/dev/render0", "mode": "600"},
-            ]
+            ],
         )
 
 
