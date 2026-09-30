@@ -208,7 +208,7 @@ options:
       mode:
         description:
           - The octal representation of the permissions assigned to the device inside the LXC container.
-          - "Example: C(\"060\") for group r+w on the device"
+          - "Example: C(\"0060\") for group r+w on the device"
         type: str
   ip_address:
     description:
@@ -1009,13 +1009,18 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         getattr(proxmox_node, self.VZ_TYPE)(vmid).template.post()
         self.module.exit_json(changed=True, vmid=vmid, msg=f"VM {identifier} converted to template.")
 
-    def update_lxc_instance(self, vmid, node, **kwargs):  # noqa: PLR0912
+    def update_lxc_instance(self, vmid, node, **kwargs):  # noqa: PLR0912, PLR0915
         if self.VZ_TYPE != "lxc":
             self.module.fail_json(
                 msg="Updating LXC containers is only supported for LXC-enabled clusters in PVE 4.0 and above."
             )
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        if kwargs.get("cmode") == "default":
+            # Same as on instance creation: "default" is a sentinel meaning
+            # "do not send cmode at all", PVE rejects the literal value.
+            kwargs.pop("cmode")
 
         self.validate_tags(kwargs.get("tags", []))
 
@@ -1752,8 +1757,6 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             device_parts.append(f"gid={gid}")
 
         if mode is not None:
-            if not re.match(r"^[0-7]{3}$", mode):
-                self.module.fail_json(msg=f"Device {device_entry['id']} - Invalid mode")
             device_parts.append(f"mode={mode}")
 
         return {device_entry["id"]: ",".join(device_parts)}
