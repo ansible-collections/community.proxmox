@@ -57,6 +57,7 @@ options:
       - name: proxmox_api_password
     env:
       - name: PROXMOX_PASSWORD
+    secret: true
   api_token_id:
     description:
       - API token ID (for example V(user@pam!token_name)).
@@ -76,6 +77,7 @@ options:
       - name: proxmox_api_token_secret
     env:
       - name: PROXMOX_TOKEN_SECRET
+    secret: true
   node:
     description: Proxmox node name where the VM resides.
     required: true
