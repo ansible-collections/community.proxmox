@@ -1,0 +1,3 @@
+---
+trivial:
+  - proxmox_cluster_firewall_security_group - add the ``purge_omitted_rule_fields`` option to make the rules of a security group fully declarative (https://github.com/ansible-collections/community.proxmox/issues/278, https://github.com/ansible-collections/community.proxmox/pull/527).

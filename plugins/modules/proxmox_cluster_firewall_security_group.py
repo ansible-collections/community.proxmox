@@ -45,10 +45,12 @@ options:
       - Full ordered list of firewall rules for the group, with index C(0) as position C(0), etc.
       - Omitted to manage only the group and comment, leaving current rules unchanged.
       - V([]) to remove all rules.
-      - Optional rule fields (O(rules[].comment), O(rules[].dest), etc.) that are omitted in a rule
-        entry are preserved from the existing rule on updates.
+      - If O(purge_omitted_rule_fields=true), each rule entry is the complete desired state of the
+        rule at its position. Otherwise, optional rule fields (O(rules[].comment), O(rules[].dest),
+        etc.) that are omitted from a rule entry are preserved from the existing rule on updates.
       - Optional rule fields except O(rules[].log) can be removed from the existing rule by
         setting them to V('').
+      - O(rules[].log) can only be removed with O(purge_omitted_rule_fields=true).
     type: list
     elements: dict
     suboptions:
@@ -136,6 +138,16 @@ options:
         description:
           - ICMP type (when O(rules[].proto) is C(icmp) or C(icmpv6)/C(ipv6-icmp)).
         type: str
+  purge_omitted_rule_fields:
+    description:
+      - Whether each O(rules) entry is the complete desired state of the rule at its position.
+      - If V(true), the rules of the group are fully declarative. Optional rule fields that are
+        omitted from a rule entry are removed from the existing rule.
+      - If V(false), optional rule fields that are omitted from a rule entry are preserved from
+        the existing rule.
+      - Only used when O(rules) is set.
+    type: bool
+    default: false
 
 seealso:
   - name: Proxmox VE security group reference
@@ -265,7 +277,7 @@ def _is_unset(value):
     return value is None or value == ""
 
 
-def _build_update_rule_payload(desired_rule, current_rule):
+def _build_update_rule_payload(desired_rule, current_rule, purge_omitted_rule_fields=False):
     """Build the PUT body. Proxmox merges it into the rule, so fields to remove go in the API delete parameter."""
     current_rule = current_rule or {}
     payload = {
@@ -276,7 +288,7 @@ def _build_update_rule_payload(desired_rule, current_rule):
     deleted_keys = []
     for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items():
         value = desired_rule.get(ansible_key)
-        if value is None:
+        if value is None and not purge_omitted_rule_fields:
             value = current_rule.get(api_key)
         if not _is_unset(value):
             payload[api_key] = value
@@ -360,6 +372,7 @@ def module_args():
                 icmp_type=dict(type="str"),
             ),
         ),
+        purge_omitted_rule_fields=dict(type="bool", default=False),
     )
 
 
@@ -548,7 +561,7 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
         if len(desired) != len(current):
             return True
         for i, d in enumerate(desired):
-            want = _build_update_rule_payload(d, current[i])
+            want = _build_update_rule_payload(d, current[i], self.params["purge_omitted_rule_fields"])
             if not _rules_content_equal(want, current[i]):
                 return True
         return False
@@ -615,7 +628,9 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
             while True:
                 try:
                     current_rule = self.proxmox_api.cluster().firewall().groups(name)(i).get()
-                    want = _build_update_rule_payload(desired[i], current_rule)
+                    want = _build_update_rule_payload(
+                        desired[i], current_rule, self.params["purge_omitted_rule_fields"]
+                    )
                     if current_rule.get("digest"):
                         want["digest"] = current_rule["digest"]
                     if _rules_content_equal(want, current_rule):

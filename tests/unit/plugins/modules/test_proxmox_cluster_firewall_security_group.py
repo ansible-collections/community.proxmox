@@ -651,6 +651,48 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         self.rule_at_pos.delete.assert_not_called()
         assert result["rules"][0]["dport"] == "8080"
 
+    def test_present_purges_rule_fields_omitted_in_desired(self):
+        """Fields only present on the current rule must be removed via the API delete parameter."""
+        current_rule = {**SAMPLE_RULE_0, "source": "10.0.0.0/8", "log": "info"}
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.rule_at_pos.get.return_value = current_rule
+        self.groups_named.get.side_effect = [
+            [current_rule],  # _rules_would_change (current has extra fields)
+            [current_rule],  # _prune_excess_rules
+            [SAMPLE_RULE_0],  # final fetch
+        ]
+
+        result = self._run_module(build_module_args(rules=[DESIRED_RULE_0], purge_omitted_rule_fields=True))
+
+        assert result["changed"] is True
+        self.rule_at_pos.put.assert_called_once()
+        put_kwargs = self.rule_at_pos.put.call_args[1]
+        assert put_kwargs["delete"] == "log,source"
+        assert "source" not in put_kwargs
+        assert "log" not in put_kwargs
+
+    def test_present_preserves_rule_fields_omitted_in_desired(self):
+        """By default, fields only present on the current rule must be re-sent, not deleted."""
+        current_rule = {**SAMPLE_RULE_0, "source": "10.0.0.0/8", "log": "info"}
+        updated_rule = {**current_rule, "action": "DROP"}
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.rule_at_pos.get.return_value = current_rule
+        self.groups_named.get.side_effect = [
+            [current_rule],  # _rules_would_change (action differs)
+            [current_rule],  # _prune_excess_rules
+            [updated_rule],  # final fetch
+        ]
+
+        result = self._run_module(build_module_args(rules=[{**DESIRED_RULE_0, "action": "DROP"}]))
+
+        assert result["changed"] is True
+        self.rule_at_pos.put.assert_called_once()
+        put_kwargs = self.rule_at_pos.put.call_args[1]
+        assert put_kwargs["action"] == "DROP"
+        assert put_kwargs["source"] == "10.0.0.0/8"
+        assert put_kwargs["log"] == "info"
+        assert "delete" not in put_kwargs
+
     def test_present_creates_trailing_rule(self):
         """When desired list grows, missing trailing rules must be created."""
         # Start with no rules, add one.
