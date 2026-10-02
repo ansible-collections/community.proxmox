@@ -916,3 +916,35 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         assert result["rules"][0]["dport"] == "8080"
         self.rule_at_pos.put.assert_not_called()
         self.groups_named.post.assert_not_called()
+
+    # -- purge_omitted_rule_fields default ------------------------------------
+
+    def test_deprecates_unset_purge_omitted_rule_fields(self):
+        """The default of purge_omitted_rule_fields changes in 3.0.0, so users must be warned."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.groups_named.get.return_value = [SAMPLE_RULE_0]
+
+        with patch.object(basic.AnsibleModule, "deprecate") as deprecate_mock:
+            self._run_module(build_module_args(rules=[DESIRED_RULE_0]))
+
+        deprecate_mock.assert_called_once()
+        assert deprecate_mock.call_args[1] == {"version": "3.0.0", "collection_name": "community.proxmox"}
+
+    def test_no_deprecation_when_purge_omitted_rule_fields_set(self):
+        """An explicit false must count as set, so it silences the warning."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.groups_named.get.return_value = [SAMPLE_RULE_0]
+
+        with patch.object(basic.AnsibleModule, "deprecate") as deprecate_mock:
+            self._run_module(build_module_args(rules=[DESIRED_RULE_0], purge_omitted_rule_fields=False))
+
+        deprecate_mock.assert_not_called()
+
+    def test_no_deprecation_without_rules(self):
+        """The option is only used with rules, so managing only the group must not warn."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+
+        with patch.object(basic.AnsibleModule, "deprecate") as deprecate_mock:
+            self._run_module(build_module_args())
+
+        deprecate_mock.assert_not_called()
