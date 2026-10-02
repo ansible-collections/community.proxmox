@@ -207,23 +207,20 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_to_ansible_bool,
 )
 
-_COMPARABLE_RULE_KEYS = {
-    "action",
-    "type",
-    "comment",
-    "dest",
-    "dport",
-    "enable",
-    "iface",
-    "log",
-    "macro",
-    "proto",
-    "source",
-    "sport",
-    "icmp-type",
+_OPTIONAL_RULE_TO_API = {
+    "comment": "comment",
+    "dest": "dest",
+    "dport": "dport",
+    "iface": "iface",
+    "log": "log",
+    "macro": "macro",
+    "proto": "proto",
+    "source": "source",
+    "sport": "sport",
+    "icmp_type": "icmp-type",
 }
 
-_COMPARE_OPTIONAL_KEYS = tuple(k for k in _COMPARABLE_RULE_KEYS if k not in ("action", "type", "enable"))
+_COMPARE_OPTIONAL_KEYS = tuple(_OPTIONAL_RULE_TO_API.values())
 
 
 def _api_rule_to_ansible(r):
@@ -248,20 +245,6 @@ def _normalize_for_return(r):
     return out
 
 
-_OPTIONAL_RULE_TO_API = {
-    "comment": "comment",
-    "dest": "dest",
-    "dport": "dport",
-    "iface": "iface",
-    "log": "log",
-    "macro": "macro",
-    "proto": "proto",
-    "source": "source",
-    "sport": "sport",
-    "icmp_type": "icmp-type",
-}
-
-
 def _build_create_rule_payload(desired_rule, position, group_name):
     payload = {
         "action": desired_rule["action"],
@@ -278,27 +261,34 @@ def _build_create_rule_payload(desired_rule, position, group_name):
     return {k: v for k, v in payload.items() if v or k == "enable"}
 
 
+def _is_unset(value):
+    return value is None or value == ""
+
+
 def _build_update_rule_payload(desired_rule, current_rule):
-    """Build API body for updating an existing rule, seeding from current state."""
-    payload = {}
-    if current_rule:
-        for k in _COMPARABLE_RULE_KEYS:
-            if current_rule.get(k) is not None:
-                payload[k] = current_rule[k]
-    payload["action"] = desired_rule["action"]
-    payload["type"] = desired_rule["type"]
-    payload["enable"] = ansible_to_proxmox_bool(desired_rule.get("enabled", True))
+    """Build the PUT body. Proxmox merges it into the rule, so fields to remove go in the API delete parameter."""
+    current_rule = current_rule or {}
+    payload = {
+        "action": desired_rule["action"],
+        "type": desired_rule["type"],
+        "enable": ansible_to_proxmox_bool(desired_rule.get("enabled", True)),
+    }
+    deleted_keys = []
     for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items():
         value = desired_rule.get(ansible_key)
-        # a group rule cannot have an iface, so there is nothing to remove
-        if value is None or (api_key == "iface" and value == ""):
-            continue
-        payload[api_key] = value
-    return {k: v for k, v in payload.items() if v is not None or k == "enable"}
+        if value is None:
+            value = current_rule.get(api_key)
+        if not _is_unset(value):
+            payload[api_key] = value
+        elif not _is_unset(current_rule.get(api_key)):
+            deleted_keys.append(api_key)
+    if deleted_keys:
+        payload["delete"] = ",".join(deleted_keys)
+    return payload
 
 
 def _normalize_compare_optional(key, value):
-    if value is None or value == "":
+    if _is_unset(value):
         return None
     if key in ("dport", "sport") and isinstance(value, int):
         return str(value)
