@@ -39,6 +39,13 @@ options:
       - Uses the api_password parameter if not specified.
     type: str
     required: false
+  nodeid:
+    description:
+      - Node ID for this node in the cluster.
+      - Must be greater than or equal to 1.
+      - This value is immutable once the node or cluster is initialized.
+    type: int
+    required: false
   fingerprint:
     description:
       - The fingerprint of the cluster master when joining the cluster.
@@ -69,6 +76,14 @@ EXAMPLES = r"""
     link1: 10.10.2.1
     cluster_name: "devcluster"
 
+- name: Create a Proxmox VE Cluster with explicit node ID
+  community.proxmox.proxmox_cluster:
+    state: present
+    nodeid: 1
+    link0: 10.10.1.1
+    link1: 10.10.2.1
+    cluster_name: "devcluster"
+
 - name: Join a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
@@ -79,6 +94,13 @@ EXAMPLES = r"""
   community.proxmox.proxmox_cluster:
     state: present
     master_api_password: "{{ master_node_api_password }}"
+    master_ip: "{{ primary_node }}"
+    fingerprint: "{{ cluster_fingerprint }}"
+
+- name: Join a Proxmox VE Cluster with explicit node ID
+  community.proxmox.proxmox_cluster:
+    state: present
+    nodeid: 2
     master_ip: "{{ primary_node }}"
     fingerprint: "{{ cluster_fingerprint }}"
 """
@@ -109,6 +131,7 @@ def module_args():
         master_ip=dict(type="str"),
         master_api_password=dict(type="str", no_log=True),
         fingerprint=dict(type="str"),
+        nodeid=dict(type="int"),
     )
 
 
@@ -129,14 +152,51 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
     def check_already_in_right_cluster(self, cluster_status, master_ip):
         return any(master_ip in (d.get("ip"), d.get("name")) for d in cluster_status)
 
+    def validate_nodeid(self):
+        nodeid = self.module.params.get("nodeid")
+        if nodeid is not None and nodeid < 1:
+            self.module.fail_json(msg="Parameter 'nodeid' must be an integer greater than or equal to 1.")
+        return nodeid
+
+    def get_current_node(self, cluster_status):
+        """Identify the node handling the API call via the 'local' flag"""
+        for entry in cluster_status:
+            if entry.get("type") == "node" and entry.get("local") == 1:
+                return entry
+        return None
+
+    def check_nodeid_drift(self, cluster_status, desired_nodeid):
+        """Fail fast if the active node ID does not match the desired node ID"""
+        if desired_nodeid is None:
+            return
+
+        current_node = self.get_current_node(cluster_status)
+        if not current_node:
+            self.module.fail_json(
+                msg="Cluster state verification failed: unable to identify the local node in /cluster/status."
+            )
+
+        current_nodeid = current_node.get("nodeid")
+        if current_nodeid is not None and int(current_nodeid) != desired_nodeid:
+            nodename = current_node.get("name", "local")
+            self.module.fail_json(
+                msg=(
+                    f"Node '{nodename}' is already in the cluster with nodeid {current_nodeid}, "
+                    f"but nodeid {desired_nodeid} was requested. "
+                    "Corosync nodeid is immutable via the Proxmox VE API."
+                )
+            )
+
     def cluster_create(self):
         cluster_name = self.module.params.get("cluster_name") or self.module.params.get("api_host")
+        desired_nodeid = self.validate_nodeid()
         payload = {"clustername": cluster_name}
 
         cluster_status = self.proxmox_api.cluster.status.get()
 
         if self.check_is_cluster(cluster_status):
             if self.get_cluster_name(cluster_status) == cluster_name:
+                self.check_nodeid_drift(cluster_status, desired_nodeid)
                 self.module.exit_json(
                     changed=False, msg=f"Cluster '{cluster_name}' already present.", cluster=cluster_name
                 )
@@ -149,6 +209,8 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             payload["link0"] = self.module.params.get("link0")
         if self.module.params.get("link1") is not None:
             payload["link1"] = self.module.params.get("link1")
+        if desired_nodeid is not None:
+            payload["nodeid"] = desired_nodeid
 
         if self.module.check_mode:
             self.module.exit_json(changed=True, msg=f"Cluster '{cluster_name}' would be created.", cluster=cluster_name)
@@ -160,6 +222,7 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             self.module.fail_json(msg=f"Error while creating cluster: {str(e)}")
 
     def cluster_join(self):
+        desired_nodeid = self.validate_nodeid()
         payload = {}
         master_ip = self.module.params.get("master_ip")
 
@@ -171,11 +234,14 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             payload["link0"] = self.module.params.get("link0")
         if self.module.params.get("link1") is not None:
             payload["link1"] = self.module.params.get("link1")
+        if desired_nodeid is not None:
+            payload["nodeid"] = desired_nodeid
 
         cluster_status = self.proxmox_api.cluster.status.get()
 
         if self.check_is_cluster(cluster_status):
             if self.check_already_in_right_cluster(cluster_status, master_ip):
+                self.check_nodeid_drift(cluster_status, desired_nodeid)
                 self.module.exit_json(changed=False, msg="Node already in the cluster.")
 
             self.module.fail_json(msg="Error while joining cluster: Node is already part of a cluster.")

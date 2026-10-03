@@ -279,6 +279,198 @@ class TestProxmoxCluster(ModuleTestCase):
         assert result["failed"] is True
         assert result["msg"] == "Error while joining cluster: Node is already part of a cluster."
 
+    def test_invalid_nodeid(self):
+        """Boundary validation: nodeid < 1 must fail immediately."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "cluster_name": "devcluster",
+                "nodeid": 0,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert result["msg"] == "Parameter 'nodeid' must be an integer greater than or equal to 1."
+
+    def test_create_with_nodeid(self):
+        """Verify nodeid is injected into cluster creation payload."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "link0": "192.192.168.21",
+                "link1": "10.10.2.1",
+                "cluster_name": "devcluster",
+                "nodeid": 1,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is True
+        assert result["msg"] == "Cluster 'devcluster' created."
+        mock_obj.cluster.config.post.assert_called_once_with(
+            clustername="devcluster",
+            link0="192.192.168.21",
+            link1="10.10.2.1",
+            nodeid=1,
+        )
+
+    def test_create_nodeid_idempotent(self):
+        """Idempotency check: matching nodeid in active cluster results in changed=False."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = CLUSTER  # Local node srv-proxmox-03 has nodeid=3
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.23",
+                "cluster_name": "devcluster",
+                "nodeid": 3,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is False
+        assert result["msg"] == "Cluster 'devcluster' already present."
+
+    def test_create_nodeid_drift(self):
+        """Drift check: differing nodeid in active cluster must raise fail_json."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = CLUSTER  # Local node srv-proxmox-03 has nodeid=3
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.23",
+                "cluster_name": "devcluster",
+                "nodeid": 1,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert (
+            result["msg"]
+            == "Node 'srv-proxmox-03' is already in the cluster with nodeid 3, but nodeid 1 was requested. Corosync nodeid is immutable via the Proxmox VE API."
+        )
+
+    def test_create_nodeid_missing_local_node(self):
+        """Defensive check: fail fast if no local node (local=1) exists in /cluster/status."""
+        mock_obj = self.connect_mock.return_value
+        # Cluster payload without any node containing local=1
+        mock_obj.cluster.status.get.return_value = [
+            {"id": "cluster", "name": "devcluster", "type": "cluster"},
+            {"id": "node/pve", "name": "pve", "type": "node", "local": 0, "nodeid": 1},
+        ]
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.21",
+                "cluster_name": "devcluster",
+                "nodeid": 1,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert (
+            result["msg"] == "Cluster state verification failed: unable to identify the local node in /cluster/status."
+        )
+
+    def test_join_with_nodeid(self):
+        """Verify nodeid is injected into cluster join payload."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = SINGLE_NODE
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.22",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.21",
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "nodeid": 2,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is True
+        assert result["msg"] == "Node joined the cluster."
+        mock_obj.cluster.config.join.post.assert_called_once_with(
+            hostname="192.168.1.21",
+            fingerprint="BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+            password="secret",
+            nodeid=2,
+        )
+
+    def test_join_nodeid_idempotent(self):
+        """Idempotency check: matching nodeid when already part of cluster results in changed=False."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = CLUSTER  # Local node is srv-proxmox-03 (nodeid=3)
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.23",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.21",  # srv-proxmox-01 is in CLUSTER fixture
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "nodeid": 3,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is False
+        assert result["msg"] == "Node already in the cluster."
+
+    def test_join_nodeid_drift(self):
+        """Drift check: differing nodeid when already part of cluster must raise fail_json."""
+        mock_obj = self.connect_mock.return_value
+        mock_obj.cluster.status.get.return_value = CLUSTER  # Local node is srv-proxmox-03 (nodeid=3)
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "192.168.1.23",
+                "master_api_password": "secret",
+                "master_ip": "192.168.1.21",  # srv-proxmox-01 is in CLUSTER fixture
+                "fingerprint": "BD:D0:A4:04:E6:05:30:74:30:E6:5A:83:78:A8:8F:F7:4C:25:71:DB:07:92:7C:A1:04:B9:CB:12:BB:3C:BE:4D",
+                "nodeid": 4,
+                "state": "present",
+            }
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert (
+            result["msg"]
+            == "Node 'srv-proxmox-03' is already in the cluster with nodeid 3, but nodeid 4 was requested. Corosync nodeid is immutable via the Proxmox VE API."
+        )
+
 
 @pytest.fixture
 def module_args_join():
