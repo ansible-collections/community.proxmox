@@ -47,6 +47,8 @@ options:
       - V([]) to remove all rules.
       - Optional rule fields (O(rules[].comment), O(rules[].dest), etc.) that are omitted in a rule
         entry are preserved from the existing rule on updates.
+      - Optional rule fields except O(rules[].log) can be removed from the existing rule by
+        setting them to V('').
     type: list
     elements: dict
     suboptions:
@@ -287,8 +289,11 @@ def _build_update_rule_payload(desired_rule, current_rule):
     payload["type"] = desired_rule["type"]
     payload["enable"] = ansible_to_proxmox_bool(desired_rule.get("enabled", True))
     for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items():
-        if desired_rule.get(ansible_key) is not None:
-            payload[api_key] = desired_rule[ansible_key]
+        value = desired_rule.get(ansible_key)
+        # a group rule cannot have an iface, so there is nothing to remove
+        if value is None or (api_key == "iface" and value == ""):
+            continue
+        payload[api_key] = value
     return {k: v for k, v in payload.items() if v is not None or k == "enable"}
 
 
