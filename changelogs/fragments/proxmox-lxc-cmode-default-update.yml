@@ -1,0 +1,4 @@
+bugfixes:
+  - proxmox - do not send ``cmode`` on LXC container update when it is set to
+    the ``default`` sentinel value (PVE rejects the literal value, same as was
+    already handled on instance creation).

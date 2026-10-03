@@ -10,7 +10,8 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
 SCHEMA = {
     "enabled": {
         "api": "enable",
-        "default": False,
+        # Proxmox VE enables the host firewall unless host.fw states 'enable: 0'
+        "default": True,
         "to_api": ansible_to_proxmox_bool,
         "from_api": proxmox_to_ansible_bool,
     },

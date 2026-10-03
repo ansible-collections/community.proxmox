@@ -258,6 +258,14 @@ class TestBuildUpdateRulePayload:
         assert payload["proto"] == "tcp"  # preserved from current
         assert payload["dport"] == "80"  # preserved from current
 
+    def test_empty_iface_is_not_sent(self):
+        """Proxmox rejects an empty `iface`, but removes other fields that are sent as an empty string."""
+        desired = {"action": "ACCEPT", "type": "in", "iface": "", "source": ""}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1, "source": "10.0.0.0/8"}
+        payload = _build_update_rule_payload(desired, current)
+        assert "iface" not in payload
+        assert payload["source"] == ""
+
     def test_desired_overrides_current_action(self):
         """Requested action must win over existing value during updates."""
         desired = {"action": "DROP", "type": "in"}

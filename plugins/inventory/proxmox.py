@@ -52,6 +52,7 @@ DOCUMENTATION = """
         type: str
         env:
           - name: PROXMOX_PASSWORD
+        secret: true
       token_id:
         description:
           - Proxmox authentication token ID.
@@ -71,6 +72,7 @@ DOCUMENTATION = """
         type: str
         env:
           - name: PROXMOX_TOKEN_SECRET
+        secret: true
       validate_certs:
         description: Verify SSL certificate if using HTTPS.
         type: boolean

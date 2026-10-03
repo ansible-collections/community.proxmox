@@ -1,0 +1,2 @@
+bugfixes:
+  - proxmox_ceph_pool - change `target_size_ratio` parameter type from `int` to `float` to match Ceph and Proxmox VE API schema (https://github.com/ansible-collections/community.proxmox/issues/524).

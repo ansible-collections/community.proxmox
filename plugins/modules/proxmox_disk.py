@@ -685,7 +685,8 @@ class ProxmoxDiskAnsible(ProxmoxAnsible):
 
             # Append to playbook_config fields which are constants for disk images
             for option in ["size", "storage_name", "volume", "volume_name"]:
-                playbook_config.update({option: proxmox_config[option]})
+                if option in proxmox_config:
+                    playbook_config.update({option: proxmox_config[option]})
             # CD-ROM is special disk device and its disk image is subject to change
             if iso_image is not None:
                 playbook_config["volume"] = iso_image

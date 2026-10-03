@@ -67,7 +67,7 @@ SAMPLE_POOL_2 = {
         {
             "id": "1",
             "node": "node01",
-            "vmid": "101",
+            "vmid": 101,
             "type": "qemu",
         },
         {
@@ -79,7 +79,7 @@ SAMPLE_POOL_2 = {
         {
             "id": "3",
             "node": "node01",
-            "vmid": "102",
+            "vmid": 102,
             "type": "lxc",
         },
     ],

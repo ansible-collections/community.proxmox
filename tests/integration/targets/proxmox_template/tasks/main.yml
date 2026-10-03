@@ -40,7 +40,8 @@
     - assert:
         that:
           - result is failed
-          - result.msg is match('\'requests_toolbelt\' module is required to upload files larger than 256MB')
+          - '"requests_toolbelt" in result.msg'
+          - '"upload files larger than 256MB" in result.msg'
 
     - name: Make smaller dummy file
       ansible.builtin.command:
@@ -88,3 +89,11 @@
       ansible.builtin.file:
         path: '{{ filename }}'
         state: absent
+
+    - name: Delete uploaded ISO from Proxmox
+      proxmox_template:
+        node: '{{ node }}'
+        template: dummy.iso
+        content_type: iso
+        state: absent
+      ignore_errors: true

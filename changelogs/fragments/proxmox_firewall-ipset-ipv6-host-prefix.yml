@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - proxmox_firewall - keep the prefix of IPv6 ``/32`` networks such as ``2001:db8::/32`` in ipsets instead of normalizing them to the single address ``2001:db8::/128``. This also fixes ``state=absent`` not removing such a network from an ipset (https://github.com/ansible-collections/community.proxmox/pull/530).
+  - proxmox_firewall - fail on ipset entries that combine an IPv4 address with the IPv6 host prefix ``/128`` instead of silently treating them as the plain IPv4 address. Proxmox rejects such entries as well (https://github.com/ansible-collections/community.proxmox/pull/530).

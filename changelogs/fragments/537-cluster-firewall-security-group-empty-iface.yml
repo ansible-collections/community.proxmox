@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_cluster_firewall_security_group - a rule entry with ``iface`` set to an empty string no longer fails to update an existing rule (https://github.com/ansible-collections/community.proxmox/pull/537).

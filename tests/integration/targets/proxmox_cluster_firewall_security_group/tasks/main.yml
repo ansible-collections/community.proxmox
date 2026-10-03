@@ -687,6 +687,60 @@
           - result.rules[0].log == "info"
 
     # -------------------------------------------------------------------------
+    # Rules — set optional fields to an empty string
+    # -------------------------------------------------------------------------
+
+    - name: Set optional fields (source, iface) to an empty string
+      community.proxmox.proxmox_cluster_firewall_security_group:
+        name: "{{ sg_name }}"
+        rules:
+          - type: in
+            action: DROP
+            source: ""
+            iface: ""
+            dport: "22"
+            proto: tcp
+          - type: in
+            action: ACCEPT
+            dport: "80"
+            proto: tcp
+          - type: out
+            action: ACCEPT
+            dport: "443"
+            proto: tcp
+      register: result
+
+    - assert:
+        that:
+          - result is changed
+          - "'source' not in result.rules[0]"
+          - result.rules[0].log == "info"
+
+    - name: Set optional fields to an empty string (idempotent)
+      community.proxmox.proxmox_cluster_firewall_security_group:
+        name: "{{ sg_name }}"
+        rules:
+          - type: in
+            action: DROP
+            source: ""
+            iface: ""
+            dport: "22"
+            proto: tcp
+          - type: in
+            action: ACCEPT
+            dport: "80"
+            proto: tcp
+          - type: out
+            action: ACCEPT
+            dport: "443"
+            proto: tcp
+      register: result
+
+    - assert:
+        that:
+          - result is not changed
+
+    # -------------------------------------------------------------------------
     # Rules — icmp_type API mapping and roundtrip
     # -------------------------------------------------------------------------
 

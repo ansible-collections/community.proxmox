@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_firewall - fix updating a rule when more than one field differs, which queued the rule multiple times and failed (https://github.com/ansible-collections/community.proxmox/pull/493).
