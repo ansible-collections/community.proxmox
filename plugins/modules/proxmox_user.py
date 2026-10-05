@@ -345,6 +345,12 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
         if tokens is None:
             tokens = []
         if existing_user:
+            if password and self.module.params["api_token_id"]:
+                self.module.warn(
+                    "Password cannot be updated when using API Token authentication. Ignoring password parameter.",
+                )
+                password = None
+
             needs_update = self._user_needs_update(
                 existing_user, comment, email, enable, expire, firstname, lastname, groups, keys
             ) or self._tokens_need_update(existing_user.get("tokens"), tokens)
@@ -356,6 +362,11 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                     userid=userid,
                     msg=f"Would update {userid} (check mode)",
                 )
+
+            result = {
+                "userid": userid,
+                "changed": False,
+            }
 
             if needs_update:
                 try:
@@ -373,36 +384,22 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
                         if value is not None:
                             update_params[field] = value
                     self.proxmox_api.access.users(userid).put(**update_params)
+                    result["changed"] = True
 
-                    result_tokens = self.create_update_delete_tokens(userid, tokens)
-
-                    self.module.exit_json(
-                        changed=True, userid=userid, secrets=result_tokens, msg=f"User {userid} updated"
-                    )
+                    result["secrets"] = self.create_update_delete_tokens(userid, tokens)
                 except Exception as e:
-                    self.module.fail_json(
-                        changed=False, userid=userid, msg=f"Failed to update user with ID {userid}: {e}"
-                    )
+                    self.module.fail_json(msg=f"Failed to update user with ID {userid}: {e}", **result)
 
             # We have no way of testing if the user's password needs to be changed
             # so, if it's provided we will update it anyway
             if password:
-                # The password cannot be updated when using API Token authentication
-                if self.module.params["api_token_id"]:
-                    self.module.warn(
-                        "Password cannot be updated when using API Token authentication. Ignoring password parameter.",
-                    )
-                    self.module.exit_json(changed=False, userid=userid, msg=f"User {userid} already up to date")
-
                 try:
                     self.proxmox_api.access.password.put(userid=userid, password=password)
-                    self.module.exit_json(changed=True, userid=userid, msg=f"User {userid} updated")
+                    result["changed"] = True
                 except Exception as e:
-                    self.module.fail_json(
-                        changed=False,
-                        userid=userid,
-                        msg=f"Failed to update user password for user ID {userid}: {e}",
-                    )
+                    self.module.fail_json(msg=f"Failed to update user password for user ID {userid}: {e}", **result)
+
+            self.module.exit_json(msg=f"User {userid} updated", **result)
 
         if self.module.check_mode:
             self.module.exit_json(changed=True, userid=userid, msg=f"Would create user {userid} (check mode)")
