@@ -45,10 +45,12 @@ options:
       - Full ordered list of firewall rules for the group, with index C(0) as position C(0), etc.
       - Omitted to manage only the group and comment, leaving current rules unchanged.
       - V([]) to remove all rules.
-      - Optional rule fields (O(rules[].comment), O(rules[].dest), etc.) that are omitted in a rule
-        entry are preserved from the existing rule on updates.
+      - If O(purge_omitted_rule_fields=true), each rule entry is the complete desired state of the
+        rule at its position. Otherwise, optional rule fields (O(rules[].comment), O(rules[].dest),
+        etc.) that are omitted from a rule entry are preserved from the existing rule on updates.
       - Optional rule fields except O(rules[].log) can be removed from the existing rule by
         setting them to V('').
+      - O(rules[].log) can only be removed with O(purge_omitted_rule_fields=true).
     type: list
     elements: dict
     suboptions:
@@ -136,6 +138,17 @@ options:
         description:
           - ICMP type (when O(rules[].proto) is C(icmp) or C(icmpv6)/C(ipv6-icmp)).
         type: str
+  purge_omitted_rule_fields:
+    description:
+      - Whether each O(rules) entry is the complete desired state of the rule at its position.
+      - If V(true), the rules of the group are fully declarative. Optional rule fields that are
+        omitted from a rule entry are removed from the existing rule.
+      - If V(false), optional rule fields that are omitted from a rule entry are preserved from
+        the existing rule.
+      - Only used when O(rules) is set.
+      - If not set, V(false) is used and a deprecation warning is shown when O(rules) is set.
+        The default will change to V(true) in community.proxmox 3.0.0.
+    type: bool
 
 seealso:
   - name: Proxmox VE security group reference
@@ -156,6 +169,7 @@ EXAMPLES = r"""
   community.proxmox.proxmox_cluster_firewall_security_group:
     name: webserver
     comment: Managed by Ansible
+    purge_omitted_rule_fields: true
     rules:
       - type: in
         action: ACCEPT
@@ -207,23 +221,20 @@ from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     proxmox_to_ansible_bool,
 )
 
-_COMPARABLE_RULE_KEYS = {
-    "action",
-    "type",
-    "comment",
-    "dest",
-    "dport",
-    "enable",
-    "iface",
-    "log",
-    "macro",
-    "proto",
-    "source",
-    "sport",
-    "icmp-type",
+_OPTIONAL_RULE_TO_API = {
+    "comment": "comment",
+    "dest": "dest",
+    "dport": "dport",
+    "iface": "iface",
+    "log": "log",
+    "macro": "macro",
+    "proto": "proto",
+    "source": "source",
+    "sport": "sport",
+    "icmp_type": "icmp-type",
 }
 
-_COMPARE_OPTIONAL_KEYS = tuple(k for k in _COMPARABLE_RULE_KEYS if k not in ("action", "type", "enable"))
+_COMPARE_OPTIONAL_KEYS = tuple(_OPTIONAL_RULE_TO_API.values())
 
 
 def _api_rule_to_ansible(r):
@@ -248,20 +259,6 @@ def _normalize_for_return(r):
     return out
 
 
-_OPTIONAL_RULE_TO_API = {
-    "comment": "comment",
-    "dest": "dest",
-    "dport": "dport",
-    "iface": "iface",
-    "log": "log",
-    "macro": "macro",
-    "proto": "proto",
-    "source": "source",
-    "sport": "sport",
-    "icmp_type": "icmp-type",
-}
-
-
 def _build_create_rule_payload(desired_rule, position, group_name):
     payload = {
         "action": desired_rule["action"],
@@ -278,27 +275,34 @@ def _build_create_rule_payload(desired_rule, position, group_name):
     return {k: v for k, v in payload.items() if v or k == "enable"}
 
 
-def _build_update_rule_payload(desired_rule, current_rule):
-    """Build API body for updating an existing rule, seeding from current state."""
-    payload = {}
-    if current_rule:
-        for k in _COMPARABLE_RULE_KEYS:
-            if current_rule.get(k) is not None:
-                payload[k] = current_rule[k]
-    payload["action"] = desired_rule["action"]
-    payload["type"] = desired_rule["type"]
-    payload["enable"] = ansible_to_proxmox_bool(desired_rule.get("enabled", True))
+def _is_unset(value):
+    return value is None or value == ""
+
+
+def _build_update_rule_payload(desired_rule, current_rule, purge_omitted_rule_fields=False):
+    """Build the PUT body. Proxmox merges it into the rule, so fields to remove go in the API delete parameter."""
+    current_rule = current_rule or {}
+    payload = {
+        "action": desired_rule["action"],
+        "type": desired_rule["type"],
+        "enable": ansible_to_proxmox_bool(desired_rule.get("enabled", True)),
+    }
+    deleted_keys = []
     for ansible_key, api_key in _OPTIONAL_RULE_TO_API.items():
         value = desired_rule.get(ansible_key)
-        # a group rule cannot have an iface, so there is nothing to remove
-        if value is None or (api_key == "iface" and value == ""):
-            continue
-        payload[api_key] = value
-    return {k: v for k, v in payload.items() if v is not None or k == "enable"}
+        if value is None and not purge_omitted_rule_fields:
+            value = current_rule.get(api_key)
+        if not _is_unset(value):
+            payload[api_key] = value
+        elif not _is_unset(current_rule.get(api_key)):
+            deleted_keys.append(api_key)
+    if deleted_keys:
+        payload["delete"] = ",".join(deleted_keys)
+    return payload
 
 
 def _normalize_compare_optional(key, value):
-    if value is None or value == "":
+    if _is_unset(value):
         return None
     if key in ("dport", "sport") and isinstance(value, int):
         return str(value)
@@ -370,6 +374,7 @@ def module_args():
                 icmp_type=dict(type="str"),
             ),
         ),
+        purge_omitted_rule_fields=dict(type="bool"),
     )
 
 
@@ -381,6 +386,17 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
     def __init__(self, module):
         super().__init__(module)
         self.params = module.params
+        if self.params["purge_omitted_rule_fields"] is None:
+            if self.params["rules"] is not None:
+                module.deprecate(
+                    "The default of purge_omitted_rule_fields will change from false to true in "
+                    "community.proxmox 3.0.0. With true, optional rule fields that are omitted from a rules "
+                    "entry are removed from the existing rule. Set purge_omitted_rule_fields explicitly to "
+                    "silence this warning",
+                    version="3.0.0",
+                    collection_name="community.proxmox",
+                )
+            self.params["purge_omitted_rule_fields"] = False
 
     def run(self):
         state = self.params["state"]
@@ -558,7 +574,7 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
         if len(desired) != len(current):
             return True
         for i, d in enumerate(desired):
-            want = _build_update_rule_payload(d, current[i])
+            want = _build_update_rule_payload(d, current[i], self.params["purge_omitted_rule_fields"])
             if not _rules_content_equal(want, current[i]):
                 return True
         return False
@@ -625,7 +641,9 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
             while True:
                 try:
                     current_rule = self.proxmox_api.cluster().firewall().groups(name)(i).get()
-                    want = _build_update_rule_payload(desired[i], current_rule)
+                    want = _build_update_rule_payload(
+                        desired[i], current_rule, self.params["purge_omitted_rule_fields"]
+                    )
                     if current_rule.get("digest"):
                         want["digest"] = current_rule["digest"]
                     if _rules_content_equal(want, current_rule):

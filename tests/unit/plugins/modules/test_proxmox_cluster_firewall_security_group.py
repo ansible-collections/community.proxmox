@@ -257,14 +257,37 @@ class TestBuildUpdateRulePayload:
         payload = _build_update_rule_payload(desired, current)
         assert payload["proto"] == "tcp"  # preserved from current
         assert payload["dport"] == "80"  # preserved from current
+        assert "delete" not in payload
 
-    def test_empty_iface_is_not_sent(self):
-        """Proxmox rejects an empty `iface`, but removes other fields that are sent as an empty string."""
-        desired = {"action": "ACCEPT", "type": "in", "iface": "", "source": ""}
-        current = {"action": "ACCEPT", "type": "in", "enable": 1, "source": "10.0.0.0/8"}
+    def test_empty_string_fields_are_deleted(self):
+        """Proxmox rejects an empty `iface`, so empty strings must go in the API delete parameter."""
+        desired = {"action": "ACCEPT", "type": "in", "comment": "", "iface": ""}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1, "comment": "old"}
         payload = _build_update_rule_payload(desired, current)
+        assert "comment" not in payload
         assert "iface" not in payload
-        assert payload["source"] == ""
+        assert payload["delete"] == "comment"
+
+    def test_enabled_false_maps_to_zero(self):
+        """Proxmox merges PUT bodies, so `enable=0` must be sent to disable an enabled rule."""
+        payload = _build_update_rule_payload({"action": "ACCEPT", "type": "in", "enabled": False}, SAMPLE_RULE_0)
+        assert payload["enable"] == 0
+
+    def test_icmp_type_deleted_with_api_key_name(self):
+        """Proxmox rejects `icmp_type` in delete, so the API key `icmp-type` must be used."""
+        desired = {"action": "ACCEPT", "type": "in", "proto": "icmp", "icmp_type": ""}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1, "proto": "icmp", "icmp-type": "echo-request"}
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["delete"] == "icmp-type"
+        assert "icmp-type" not in payload
+
+    def test_icmp_type_set_with_api_key_name(self):
+        """A desired `icmp_type` must be sent under the API key `icmp-type`."""
+        desired = {"action": "ACCEPT", "type": "in", "icmp_type": "echo-request"}
+        current = {"action": "ACCEPT", "type": "in", "enable": 1}
+        payload = _build_update_rule_payload(desired, current)
+        assert payload["icmp-type"] == "echo-request"
+        assert "icmp_type" not in payload
 
     def test_desired_overrides_current_action(self):
         """Requested action must win over existing value during updates."""
@@ -341,7 +364,7 @@ class TestPutRulePayload:
 
     def test_keeps_all_other_fields(self):
         """Ensure sanitization only removes forbidden keys and preserves valid fields."""
-        merged = {"action": "DROP", "type": "out", "enable": 0, "proto": "tcp", "comment": "test"}
+        merged = {"action": "DROP", "type": "out", "enable": 0, "proto": "tcp", "comment": "test", "delete": "iface"}
         result = _put_rule_payload(merged)
         assert result == merged
 
@@ -628,6 +651,48 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         self.rule_at_pos.delete.assert_not_called()
         assert result["rules"][0]["dport"] == "8080"
 
+    def test_present_purges_rule_fields_omitted_in_desired(self):
+        """Fields only present on the current rule must be removed via the API delete parameter."""
+        current_rule = {**SAMPLE_RULE_0, "source": "10.0.0.0/8", "log": "info"}
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.rule_at_pos.get.return_value = current_rule
+        self.groups_named.get.side_effect = [
+            [current_rule],  # _rules_would_change (current has extra fields)
+            [current_rule],  # _prune_excess_rules
+            [SAMPLE_RULE_0],  # final fetch
+        ]
+
+        result = self._run_module(build_module_args(rules=[DESIRED_RULE_0], purge_omitted_rule_fields=True))
+
+        assert result["changed"] is True
+        self.rule_at_pos.put.assert_called_once()
+        put_kwargs = self.rule_at_pos.put.call_args[1]
+        assert put_kwargs["delete"] == "log,source"
+        assert "source" not in put_kwargs
+        assert "log" not in put_kwargs
+
+    def test_present_preserves_rule_fields_omitted_in_desired(self):
+        """By default, fields only present on the current rule must be re-sent, not deleted."""
+        current_rule = {**SAMPLE_RULE_0, "source": "10.0.0.0/8", "log": "info"}
+        updated_rule = {**current_rule, "action": "DROP"}
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.rule_at_pos.get.return_value = current_rule
+        self.groups_named.get.side_effect = [
+            [current_rule],  # _rules_would_change (action differs)
+            [current_rule],  # _prune_excess_rules
+            [updated_rule],  # final fetch
+        ]
+
+        result = self._run_module(build_module_args(rules=[{**DESIRED_RULE_0, "action": "DROP"}]))
+
+        assert result["changed"] is True
+        self.rule_at_pos.put.assert_called_once()
+        put_kwargs = self.rule_at_pos.put.call_args[1]
+        assert put_kwargs["action"] == "DROP"
+        assert put_kwargs["source"] == "10.0.0.0/8"
+        assert put_kwargs["log"] == "info"
+        assert "delete" not in put_kwargs
+
     def test_present_creates_trailing_rule(self):
         """When desired list grows, missing trailing rules must be created."""
         # Start with no rules, add one.
@@ -851,3 +916,35 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
         assert result["rules"][0]["dport"] == "8080"
         self.rule_at_pos.put.assert_not_called()
         self.groups_named.post.assert_not_called()
+
+    # -- purge_omitted_rule_fields default ------------------------------------
+
+    def test_deprecates_unset_purge_omitted_rule_fields(self):
+        """The default of purge_omitted_rule_fields changes in 3.0.0, so users must be warned."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.groups_named.get.return_value = [SAMPLE_RULE_0]
+
+        with patch.object(basic.AnsibleModule, "deprecate") as deprecate_mock:
+            self._run_module(build_module_args(rules=[DESIRED_RULE_0]))
+
+        deprecate_mock.assert_called_once()
+        assert deprecate_mock.call_args[1] == {"version": "3.0.0", "collection_name": "community.proxmox"}
+
+    def test_no_deprecation_when_purge_omitted_rule_fields_set(self):
+        """An explicit false must count as set, so it silences the warning."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+        self.groups_named.get.return_value = [SAMPLE_RULE_0]
+
+        with patch.object(basic.AnsibleModule, "deprecate") as deprecate_mock:
+            self._run_module(build_module_args(rules=[DESIRED_RULE_0], purge_omitted_rule_fields=False))
+
+        deprecate_mock.assert_not_called()
+
+    def test_no_deprecation_without_rules(self):
+        """The option is only used with rules, so managing only the group must not warn."""
+        self.groups_base.get.return_value = [SAMPLE_GROUP]
+
+        with patch.object(basic.AnsibleModule, "deprecate") as deprecate_mock:
+            self._run_module(build_module_args())
+
+        deprecate_mock.assert_not_called()
