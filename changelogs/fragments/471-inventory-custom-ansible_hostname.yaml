@@ -1,3 +1,0 @@
----
-minor_changes:
-  - inventory - allow to customize generated ansible_hostname (https://github.com/ansible-collections/community.proxmox/pull/471).

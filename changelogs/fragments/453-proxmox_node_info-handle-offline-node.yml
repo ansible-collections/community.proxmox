@@ -1,3 +1,0 @@
----
-bugfixes:
-  - proxmox_node_info - skip node ``network`` and ``version`` info when node is offline to prevent errors (https://github.com/ansible-collections/community.proxmox/issues/453).

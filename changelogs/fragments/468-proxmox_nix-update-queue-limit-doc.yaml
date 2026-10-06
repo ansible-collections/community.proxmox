@@ -1,3 +1,0 @@
----
-minor_changes:
-  - proxmox_nic - increase max queues to 64 (https://github.com/ansible-collections/community.proxmox/pull/468).

@@ -1,3 +1,0 @@
----
-bugfixes:
-  - proxmox - fix default value for ``cmode`` parameter (https://github.com/ansible-collections/community.proxmox/pull/440).

@@ -1,2 +1,0 @@
-minor_changes:
-  - proxmox_cluster - add support for optional ``nodeid`` parameter during cluster creation and join operations.

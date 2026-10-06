@@ -1,3 +1,0 @@
----
-bugfixes:
-  - proxmox_vm_info - skip VM network info when VM is stopped (https://github.com/ansible-collections/community.proxmox/pull/504).

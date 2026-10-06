@@ -2,61 +2,154 @@
 
 **Topics**
 
-- <a href="#v2-0-0">v2\.0\.0</a>
+- <a href="#v2-1-0">v2\.1\.0</a>
     - <a href="#release-summary">Release Summary</a>
     - <a href="#minor-changes">Minor Changes</a>
-    - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
+    - <a href="#deprecated-features">Deprecated Features</a>
     - <a href="#bugfixes">Bugfixes</a>
+    - <a href="#new-modules">New Modules</a>
+- <a href="#v2-0-0">v2\.0\.0</a>
+    - <a href="#release-summary-1">Release Summary</a>
+    - <a href="#minor-changes-1">Minor Changes</a>
+    - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
+    - <a href="#bugfixes-1">Bugfixes</a>
     - <a href="#new-plugins">New Plugins</a>
         - <a href="#connection">Connection</a>
-    - <a href="#new-modules">New Modules</a>
-- <a href="#v1-6-0">v1\.6\.0</a>
-    - <a href="#release-summary-1">Release Summary</a>
-    - <a href="#major-changes">Major Changes</a>
-    - <a href="#minor-changes-1">Minor Changes</a>
-    - <a href="#deprecated-features">Deprecated Features</a>
-    - <a href="#bugfixes-1">Bugfixes</a>
     - <a href="#new-modules-1">New Modules</a>
-- <a href="#v1-5-0">v1\.5\.0</a>
+- <a href="#v1-6-0">v1\.6\.0</a>
     - <a href="#release-summary-2">Release Summary</a>
+    - <a href="#major-changes">Major Changes</a>
     - <a href="#minor-changes-2">Minor Changes</a>
+    - <a href="#deprecated-features-1">Deprecated Features</a>
     - <a href="#bugfixes-2">Bugfixes</a>
     - <a href="#new-modules-2">New Modules</a>
-- <a href="#v1-4-0">v1\.4\.0</a>
+- <a href="#v1-5-0">v1\.5\.0</a>
     - <a href="#release-summary-3">Release Summary</a>
     - <a href="#minor-changes-3">Minor Changes</a>
     - <a href="#bugfixes-3">Bugfixes</a>
     - <a href="#new-modules-3">New Modules</a>
-- <a href="#v1-3-0">v1\.3\.0</a>
+- <a href="#v1-4-0">v1\.4\.0</a>
     - <a href="#release-summary-4">Release Summary</a>
     - <a href="#minor-changes-4">Minor Changes</a>
     - <a href="#bugfixes-4">Bugfixes</a>
     - <a href="#new-modules-4">New Modules</a>
-- <a href="#v1-2-0">v1\.2\.0</a>
+- <a href="#v1-3-0">v1\.3\.0</a>
     - <a href="#release-summary-5">Release Summary</a>
     - <a href="#minor-changes-5">Minor Changes</a>
+    - <a href="#bugfixes-5">Bugfixes</a>
     - <a href="#new-modules-5">New Modules</a>
-- <a href="#v1-1-0">v1\.1\.0</a>
+- <a href="#v1-2-0">v1\.2\.0</a>
     - <a href="#release-summary-6">Release Summary</a>
     - <a href="#minor-changes-6">Minor Changes</a>
-    - <a href="#bugfixes-5">Bugfixes</a>
     - <a href="#new-modules-6">New Modules</a>
-- <a href="#v1-0-1">v1\.0\.1</a>
+- <a href="#v1-1-0">v1\.1\.0</a>
     - <a href="#release-summary-7">Release Summary</a>
     - <a href="#minor-changes-7">Minor Changes</a>
-- <a href="#v1-0-0">v1\.0\.0</a>
-    - <a href="#release-summary-8">Release Summary</a>
-    - <a href="#minor-changes-8">Minor Changes</a>
-    - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes-6">Bugfixes</a>
     - <a href="#new-modules-7">New Modules</a>
-- <a href="#v0-1-0">v0\.1\.0</a>
+- <a href="#v1-0-1">v1\.0\.1</a>
+    - <a href="#release-summary-8">Release Summary</a>
+    - <a href="#minor-changes-8">Minor Changes</a>
+- <a href="#v1-0-0">v1\.0\.0</a>
     - <a href="#release-summary-9">Release Summary</a>
+    - <a href="#minor-changes-9">Minor Changes</a>
+    - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
+    - <a href="#bugfixes-7">Bugfixes</a>
+    - <a href="#new-modules-8">New Modules</a>
+- <a href="#v0-1-0">v0\.1\.0</a>
+    - <a href="#release-summary-10">Release Summary</a>
+
+<a id="v2-1-0"></a>
+## v2\.1\.0
+
+<a id="release-summary"></a>
+### Release Summary
+
+See [https\://github\.com/ansible\-collections/community\.proxmox/blob/main/CHANGELOG\.rst](https\://github\.com/ansible\-collections/community\.proxmox/blob/main/CHANGELOG\.rst) for all changes\.
+
+<a id="minor-changes"></a>
+### Minor Changes
+
+* inventory \- allow to customize generated ansible\_hostname \([https\://github\.com/ansible\-collections/community\.proxmox/pull/471](https\://github\.com/ansible\-collections/community\.proxmox/pull/471)\)\.
+* inventory plugin \- add api\_timeout option for Proxmox API requests and keep hosts in inventory when optional LXC/QEMU fact gathering fails \([https\://github\.com/ansible\-collections/community\.proxmox/pull/257](https\://github\.com/ansible\-collections/community\.proxmox/pull/257)\)\.
+* inventory plugin \- add exclude\_vms option \([https\://github\.com/ansible\-collections/community\.proxmox/pull/257](https\://github\.com/ansible\-collections/community\.proxmox/pull/257)\)\.
+* inventory plugin \- add facts\_concurrency option for concurrent LXC/QEMU fact gathering \([https\://github\.com/ansible\-collections/community\.proxmox/pull/257](https\://github\.com/ansible\-collections/community\.proxmox/pull/257)\)\.
+* inventory plugin \- fetch QEMU and LXC inventory records from /api2/json/cluster/resources\?type\=vm instead of querying every online node \([https\://github\.com/ansible\-collections/community\.proxmox/pull/257](https\://github\.com/ansible\-collections/community\.proxmox/pull/257)\)\.
+* inventory plugin \- fetch nodes from /api2/json/cluster/status instead of /api2/json/nodes \([https\://github\.com/ansible\-collections/community\.proxmox/pull/257](https\://github\.com/ansible\-collections/community\.proxmox/pull/257)\)\.
+* proxmox \- add <code>mount\_devices</code> option to allow mounting passthrough devices for LXC containers\. Note that Proxmox currently requires [root\@pam](mailto\:root\@pam) password login to manage passthrough devices \([https\://github\.com/ansible\-collections/community\.proxmox/pull/506](https\://github\.com/ansible\-collections/community\.proxmox/pull/506)\)\.
+* proxmox \- make <code>api\_host</code> optional to support <code>local</code> backend \([https\://github\.com/ansible\-collections/community\.proxmox/pull/349](https\://github\.com/ansible\-collections/community\.proxmox/pull/349)\)\.
+* proxmox \- make <code>api\_user</code> optional and default to <code>root\@pam</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/349](https\://github\.com/ansible\-collections/community\.proxmox/pull/349)\)\.
+* proxmox \- use <code>local</code> backend if no <code>api\_host</code> is specified \([https\://github\.com/ansible\-collections/community\.proxmox/pull/349](https\://github\.com/ansible\-collections/community\.proxmox/pull/349)\)\.
+* proxmox\_ceph\_pool \- add <code>application</code> parameter to configure Ceph pool profile \(<code>rbd</code>\, <code>cephfs</code>\, <code>rgw</code>\)\, defaulting to <code>rbd</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/523](https\://github\.com/ansible\-collections/community\.proxmox/issues/523)\)\.
+* proxmox\_cluster \- add support for optional <code>nodeid</code> parameter during cluster creation and join operations\.
+* proxmox\_cluster\_firewall \- rename to proxmox\_cluster\_firewall\_options \([https\://github\.com/ansible\-collections/community\.proxmox/issues/450](https\://github\.com/ansible\-collections/community\.proxmox/issues/450)\)\.
+* proxmox\_domain \- add <code>openid\_audiences</code> parameter introduced in Proxmox VE 9\.2 \([https\://github\.com/ansible\-collections/community\.proxmox/pull/437](https\://github\.com/ansible\-collections/community\.proxmox/pull/437)\)\.
+* proxmox\_kvm \- add <code>allow\_ksm</code> parameter to control the Proxmox VE <code>allow\-ksm</code> QEMU option\.
+* proxmox\_nic \- increase max queues to 64 \([https\://github\.com/ansible\-collections/community\.proxmox/pull/468](https\://github\.com/ansible\-collections/community\.proxmox/pull/468)\)\.
+* proxmox\_node\_firewall \- rename to proxmox\_node\_firewall\_options \([https\://github\.com/ansible\-collections/community\.proxmox/issues/450](https\://github\.com/ansible\-collections/community\.proxmox/issues/450)\)\.
+* proxmox\_node\_firewall\_info \- rename to proxmox\_node\_firewall\_options\_info \([https\://github\.com/ansible\-collections/community\.proxmox/issues/450](https\://github\.com/ansible\-collections/community\.proxmox/issues/450)\)\.
+* proxmox\_pct\_remote connection plugin \- the <code>password</code> and <code>token\_secret</code> options are now marked as <code>secret\=true</code> for ansible\-core 2\.22\+\'s secret masking \([https\://github\.com/ansible\-collections/community\.proxmox/pull/535](https\://github\.com/ansible\-collections/community\.proxmox/pull/535)\)\.
+* proxmox\_pct\_remote connection plugin \- the <code>password</code> option is now marked as <code>secret\=true</code> for ansible\-core 2\.22\+\'s secret masking \([https\://github\.com/ansible\-collections/community\.proxmox/pull/535](https\://github\.com/ansible\-collections/community\.proxmox/pull/535)\)\.
+* proxmox\_pool\_member \- add <code>allow\_move</code> parameter to allow adding a guest even if already in another pool \([https\://github\.com/ansible\-collections/community\.proxmox/pull/467](https\://github\.com/ansible\-collections/community\.proxmox/pull/467)\)\.
+* proxmox\_qemu\_api \- adds extra debug logging \(exceptions\) when trying to connect to guest agent \([https\://github\.com/ansible\-collections/community\.proxmox/pull/460](https\://github\.com/ansible\-collections/community\.proxmox/pull/460)\)\.
+* proxmox\_qemu\_api connection plugin \- the <code>api\_password</code> and <code>api\_token\_secret</code> options are now marked as <code>secret\=true</code> for ansible\-core 2\.22\+\'s secret masking \([https\://github\.com/ansible\-collections/community\.proxmox/pull/535](https\://github\.com/ansible\-collections/community\.proxmox/pull/535)\)\.
+* proxmox\_storage \- add  common storage properties <code>shared</code>\, <code>prune\_backups</code>\, <code>format</code> and <code>preallocation</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/476](https\://github\.com/ansible\-collections/community\.proxmox/pull/476)\)\.
+* proxmox\_storage \- add diff mode functionality \([https\://github\.com/ansible\-collections/community\.proxmox/pull/476](https\://github\.com/ansible\-collections/community\.proxmox/pull/476)\)\.
+* proxmox\_storage \- add support for <code>btrfs</code>\, <code>esxi</code>\, <code>iscsidirect</code> and <code>zfs</code> storage types \([https\://github\.com/ansible\-collections/community\.proxmox/pull/476](https\://github\.com/ansible\-collections/community\.proxmox/pull/476)\)\.
+* proxmox\_storage \- add support for <code>lvm</code> and  <code>lvm\-thin</code> storage types \([https\://github\.com/ansible\-collections/community\.proxmox/issues/158](https\://github\.com/ansible\-collections/community\.proxmox/issues/158)\)\.
+* proxmox\_storage \- add update functionality \([https\://github\.com/ansible\-collections/community\.proxmox/pull/476](https\://github\.com/ansible\-collections/community\.proxmox/pull/476)\)\.
+
+<a id="deprecated-features"></a>
+### Deprecated Features
+
+* proxmox\_cluster\_firewall \- add deprecation notice for <code>proxmox\_cluster\_firewall</code> module\. This module will be renamed to <code>proxmox\_cluster\_firewall\_options</code> in 3\.0\.0\.
+* proxmox\_cluster\_firewall\_security\_group \- the default of <code>purge\_omitted\_rule\_fields</code> will change from <code>false</code> to <code>true</code> in community\.proxmox 3\.0\.0\. With <code>true</code>\, optional rule fields that are omitted from a <code>rules</code> entry are removed from the existing rule\. Set <code>purge\_omitted\_rule\_fields\=false</code> to keep preserving omitted rule fields in 3\.0\.0 \([https\://github\.com/ansible\-collections/community\.proxmox/issues/278](https\://github\.com/ansible\-collections/community\.proxmox/issues/278)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/527](https\://github\.com/ansible\-collections/community\.proxmox/pull/527)\)\.
+* proxmox\_node\_firewall \- add deprecation notice for <code>proxmox\_node\_firewall</code> module\. This module will be renamed to <code>proxmox\_node\_firewall\_options</code> in 3\.0\.0\.
+* proxmox\_node\_firewall\_info \- add deprecation notice for <code>proxmox\_node\_firewall\_info</code> module\. This module will be renamed to <code>proxmox\_node\_firewall\_options\_info</code> in 3\.0\.0\.
+
+<a id="bugfixes"></a>
+### Bugfixes
+
+* All modules \- support both API token authentication formats\: <code>api\_token\_id\: username\@realm\!tokenid</code> \(recommended\) and <code>api\_user\: username\@realm</code> with <code>api\_token\_id\: tokenid</code>\. Previously\, the documented format with embedded user in the token ID was not working \([https\://github\.com/ansible\-collections/community\.proxmox/issues/475](https\://github\.com/ansible\-collections/community\.proxmox/issues/475)\)\.
+* proxmox \- delegate <code>mount\_devices\[\]\.mode</code> validation to the Proxmox API\, allowing the API\-required four\-digit octal format such as <code>0666</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/533](https\://github\.com/ansible\-collections/community\.proxmox/issues/533)\)\.
+* proxmox \- do not send <code>cmode</code> on LXC container update when it is set to the <code>default</code> sentinel value \(PVE rejects the literal value\, same as was already handled on instance creation\)\.
+* proxmox \- fix default value for <code>cmode</code> parameter \([https\://github\.com/ansible\-collections/community\.proxmox/pull/440](https\://github\.com/ansible\-collections/community\.proxmox/pull/440)\)\.
+* proxmox \- omit path parameters from LXC configuration update payloads and serialize tags as a semicolon\-separated string\, fixing updates with the local backend \([https\://github\.com/ansible\-collections/community\.proxmox/issues/513](https\://github\.com/ansible\-collections/community\.proxmox/issues/513)\)\.
+* proxmox inventory \- fetch pool members via the <code>GET /pools\?poolid\=\<id\></code> query form instead of the deprecated <code>GET /pools/\{poolid\}</code> path form\, which returned a 501 error and aborted inventory parsing for nested pool IDs \(poolid containing a slash\, e\.g\. <code>parent/child</code>\) introduced in Proxmox VE 8\.1 \([https\://github\.com/ansible\-collections/community\.proxmox/issues/472](https\://github\.com/ansible\-collections/community\.proxmox/issues/472)\)\.
+* proxmox inventory \- pass <code>verify</code> explicitly on HTTP requests so <code>validate\_certs\: false</code> is honored when <code>REQUESTS\_CA\_BUNDLE</code> is set \(regression when only <code>session\.verify</code> was used\) \([https\://github\.com/ansible\-collections/community\.proxmox/pull/491](https\://github\.com/ansible\-collections/community\.proxmox/pull/491)\)\.
+* proxmox\_ceph\_pool \- change <em class="title-reference">target\_size\_ratio</em> parameter type from <em class="title-reference">int</em> to <em class="title-reference">float</em> to match Ceph and Proxmox VE API schema \([https\://github\.com/ansible\-collections/community\.proxmox/issues/524](https\://github\.com/ansible\-collections/community\.proxmox/issues/524)\)\.
+* proxmox\_cluster\_firewall\_security\_group \- a rule entry with <code>iface</code> set to an empty string no longer fails to update an existing rule \([https\://github\.com/ansible\-collections/community\.proxmox/pull/537](https\://github\.com/ansible\-collections/community\.proxmox/pull/537)\)\.
+* proxmox\_disk module \- Ensure proper update handling of disks with an incomplete value set within proxmoxs configuration layer\. In particular freshly imported  disks from ESX\. \([https\://github\.com/ansible\-collections/community\.proxmox/pull/531](https\://github\.com/ansible\-collections/community\.proxmox/pull/531)\)
+* proxmox\_domain \- ignore immutable fields \(<code>type</code> and <code>username\-claim</code>\) when updating existing realms \([https\://github\.com/ansible\-collections/community\.proxmox/issues/448](https\://github\.com/ansible\-collections/community\.proxmox/issues/448)\)\.
+* proxmox\_firewall \- fail on ipset entries that combine an IPv4 address with the IPv6 host prefix <code>/128</code> instead of silently treating them as the plain IPv4 address\. Proxmox rejects such entries as well \([https\://github\.com/ansible\-collections/community\.proxmox/pull/530](https\://github\.com/ansible\-collections/community\.proxmox/pull/530)\)\.
+* proxmox\_firewall \- fix updating a rule when more than one field differs\, which queued the rule multiple times and failed \([https\://github\.com/ansible\-collections/community\.proxmox/pull/493](https\://github\.com/ansible\-collections/community\.proxmox/pull/493)\)\.
+* proxmox\_firewall \- keep the prefix of IPv6 <code>/32</code> networks such as <code>2001\:db8\:\:/32</code> in ipsets instead of normalizing them to the single address <code>2001\:db8\:\:/128</code>\. This also fixes <code>state\=absent</code> not removing such a network from an ipset \([https\://github\.com/ansible\-collections/community\.proxmox/pull/530](https\://github\.com/ansible\-collections/community\.proxmox/pull/530)\)\.
+* proxmox\_firewall \- omit unsupported \"pos\" API parameter \([https\://github\.com/ansible\-collections/community\.proxmox/issues/485](https\://github\.com/ansible\-collections/community\.proxmox/issues/485)\)\.
+* proxmox\_firewall\_info \- skip aliases and ipsets API calls for firewall for node\, vnet and group \([https\://github\.com/ansible\-collections/community\.proxmox/pull/485](https\://github\.com/ansible\-collections/community\.proxmox/pull/485)\)\.
+* proxmox\_node\_firewall\_options \- apply <code>state\=disabled</code> on a node whose <code>host\.fw</code> does not set <code>enable</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/511](https\://github\.com/ansible\-collections/community\.proxmox/issues/511)\)\.
+* proxmox\_node\_firewall\_options\_info \- report <code>enabled</code> as <code>true</code> for a node whose <code>host\.fw</code> does not set <code>enable</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/511](https\://github\.com/ansible\-collections/community\.proxmox/issues/511)\)\.
+* proxmox\_node\_info \- skip node <code>network</code> and <code>version</code> info when node is offline to prevent errors \([https\://github\.com/ansible\-collections/community\.proxmox/issues/453](https\://github\.com/ansible\-collections/community\.proxmox/issues/453)\)\.
+* proxmox\_pct\_remote connection plugin \- restore the <code>\_raise\_paramiko\_connect\_exception</code> helper that was referenced but not defined after a refactor\, so unexpected SSH connection errors \(connection refused\, timeouts\) are reported as <code>AnsibleConnectionFailure</code> with the real error message instead of crashing with <code>AttributeError</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/477](https\://github\.com/ansible\-collections/community\.proxmox/issues/477)\)\.
+* proxmox\_pool\_member \- fix incorrect type when adding members \([https\://github\.com/ansible\-collections/community\.proxmox/issues/459](https\://github\.com/ansible\-collections/community\.proxmox/issues/459)\)\.
+* proxmox\_pool\_member \- fix support adding and removing in one execution in <code>exclusive</code> mode \([https\://github\.com/ansible\-collections/community\.proxmox/pull/467](https\://github\.com/ansible\-collections/community\.proxmox/pull/467)\)\.
+* proxmox\_qemu\_api connection plugin \- export <code>HOME</code> for every command executed through the QEMU guest agent\, which starts processes without a login environment\. With <code>HOME</code> unset\, POSIX sh left <code>\~</code> unexpanded\, breaking ansible\-core\'s remote tmpdir discovery and causing <code>copy</code>\, <code>template</code> and module payload transfers to fail after creating a literal <code>/\~</code> directory on the guest \([https\://github\.com/ansible\-collections/community\.proxmox/issues/461](https\://github\.com/ansible\-collections/community\.proxmox/issues/461)\)\.
+* proxmox\_template \- fix error if <code>api\_host</code> and upload target <em class="title-reference">node</em> are not the same \([https\://github\.com/ansible\-collections/community\.proxmox/issues/222](https\://github\.com/ansible\-collections/community\.proxmox/issues/222)\)\.
+* proxmox\_user \- allow password change with e\.g\. local backend \([https\://github\.com/ansible\-collections/community\.proxmox/issues/482](https\://github\.com/ansible\-collections/community\.proxmox/issues/482)\)\.
+* proxmox\_user \- ignore <code>password</code> parameter when updating an existing user using API Token authentication \([https\://github\.com/ansible\-collections/community\.proxmox/issues/451](https\://github\.com/ansible\-collections/community\.proxmox/issues/451)\)\.
+* proxmox\_user \- omit unknown API parameter \([https\://github\.com/ansible\-collections/community\.proxmox/issues/481](https\://github\.com/ansible\-collections/community\.proxmox/issues/481)\)\.
+* proxmox\_user \- report changed in check mode when deleting user \([https\://github\.com/ansible\-collections/community\.proxmox/pull/515](https\://github\.com/ansible\-collections/community\.proxmox/pull/515)\)\.
+* proxmox\_vm\_info \- ignore errors when retrieving VM network info if the QEMU guest agent is not running \([https\://github\.com/ansible\-collections/community\.proxmox/pull/507](https\://github\.com/ansible\-collections/community\.proxmox/pull/507)\)\.
+* proxmox\_vm\_info \- skip VM network info when VM is stopped \([https\://github\.com/ansible\-collections/community\.proxmox/pull/504](https\://github\.com/ansible\-collections/community\.proxmox/pull/504)\)\.
+
+<a id="new-modules"></a>
+### New Modules
+
+* community\.proxmox\.proxmox\_cluster\_firewall\_security\_group \- Cluster firewall security group management for Proxmox VE\.
 
 <a id="v2-0-0"></a>
 ## v2\.0\.0
 
-<a id="release-summary"></a>
+<a id="release-summary-1"></a>
 ### Release Summary
 
 This is the major release of the <code>community\.proxmox</code> collection\.
@@ -65,7 +158,7 @@ that have been made after the previous release\.
 
 Please note that this version of the collection now requires proxmoxer 2\.3\.0 or higher\.
 
-<a id="minor-changes"></a>
+<a id="minor-changes-1"></a>
 ### Minor Changes
 
 * proxmox \- add <code>destroy\_unreferenced\_disks</code> parameter \([https\://github\.com/ansible\-collections/community\.proxmox/pull/422](https\://github\.com/ansible\-collections/community\.proxmox/pull/422)\)\.
@@ -98,7 +191,7 @@ Please note that this version of the collection now requires proxmoxer 2\.3\.0 o
 
 * proxmox\_pool\_member \- move <em class="title-reference">member</em> parameter to a <em class="title-reference">members</em> list to manage multiple pool members at once\. Add a new <em class="title-reference">exclusive</em> parameter to switch between full and incremental mode \([https\://github\.com/ansible\-collections/community\.proxmox/pull/373](https\://github\.com/ansible\-collections/community\.proxmox/pull/373) / issue [https\://github\.com/ansible\-collections/community\.proxmox/issues/320](https\://github\.com/ansible\-collections/community\.proxmox/issues/320)\)\.
 
-<a id="bugfixes"></a>
+<a id="bugfixes-1"></a>
 ### Bugfixes
 
 * proxmox \- fix <code>tags</code> always being reported as changed on LXC container updates because the list value was compared against Proxmox\'s semicolon\-delimited string form \([https\://github\.com/ansible\-collections/community\.proxmox/pull/415](https\://github\.com/ansible\-collections/community\.proxmox/pull/415)\)\.
@@ -126,7 +219,7 @@ Please note that this version of the collection now requires proxmoxer 2\.3\.0 o
 
 * community\.proxmox\.proxmox\_qemu\_api \- Connect to QEMU VMs via the Proxmox guest agent API\.
 
-<a id="new-modules"></a>
+<a id="new-modules-1"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_acme\_account \- Manages an ACME account\.
@@ -138,17 +231,14 @@ Please note that this version of the collection now requires proxmoxer 2\.3\.0 o
 * community\.proxmox\.proxmox\_acme\_plugin\_info \- Retrieves a single ACME plugin\.
 * community\.proxmox\.proxmox\_acme\_plugins\_info \- Retrieves the list of ACME plugins\.
 * community\.proxmox\.proxmox\_ceph\_pool \- Manage Ceph Pool\.
-* community\.proxmox\.proxmox\_cluster\_firewall \- Cluster\-level firewall options management for Proxmox VE cluster\.
 * community\.proxmox\.proxmox\_cluster\_ha\_rules\_info \- Retrieve Proxmox VE HA rules\.
 * community\.proxmox\.proxmox\_domain \- Manage authentication realms\.
 * community\.proxmox\.proxmox\_domain\_sync \- Sync realms\.
-* community\.proxmox\.proxmox\_node\_firewall \- Node\-level firewall options management for Proxmox VE cluster\.
-* community\.proxmox\.proxmox\_node\_firewall\_info \- Get node\-level firewall options for Proxmox VE cluster\.
 
 <a id="v1-6-0"></a>
 ## v1\.6\.0
 
-<a id="release-summary-1"></a>
+<a id="release-summary-2"></a>
 ### Release Summary
 
 This is the minor release of the <code>community\.proxmox</code> collection\.
@@ -160,7 +250,7 @@ that have been made after the previous release\.
 
 * proxmox \- Add ca\_path option to specify a ca\-certificate for tls validation \([https\://github\.com/ansible\-collections/community\.proxmox/pull/256](https\://github\.com/ansible\-collections/community\.proxmox/pull/256)\)\.
 
-<a id="minor-changes-1"></a>
+<a id="minor-changes-2"></a>
 ### Minor Changes
 
 * inventory plugin \- add want\_post\_filtering\_facts to delay fact gathering until filtering has completed \([https\://github\.com/ansible\-collections/community\.proxmox/pull/261](https\://github\.com/ansible\-collections/community\.proxmox/pull/261)\)\.
@@ -173,12 +263,12 @@ that have been made after the previous release\.
 * proxmox\_storage\_contents\_info \- Add support for content type <code>import</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/260](https\://github\.com/ansible\-collections/community\.proxmox/pull/260)\)\.
 * proxmox\_zone\, proxmox\_vnet\, proxmox\_subnet \- make sdn modules compatible with pve8 \([https\://github\.com/ansible\-collections/community\.proxmox/pull/254](https\://github\.com/ansible\-collections/community\.proxmox/pull/254)\)\.
 
-<a id="deprecated-features"></a>
+<a id="deprecated-features-1"></a>
 ### Deprecated Features
 
 * proxmox \- Certificate verification default changes from <code>false</code> to <code>true</code> with version 2\.0\.0 \([https\://github\.com/ansible\-collections/community\.proxmox/pull/256](https\://github\.com/ansible\-collections/community\.proxmox/pull/256)\)\.
 
-<a id="bugfixes-1"></a>
+<a id="bugfixes-2"></a>
 ### Bugfixes
 
 * proxmox\_cluster \- make cluster join idempotent \([https\://github\.com/ansible\-collections/community\.proxmox/pull/244](https\://github\.com/ansible\-collections/community\.proxmox/pull/244)\)\.
@@ -186,7 +276,7 @@ that have been made after the previous release\.
 * proxmox\_firewall \- Enable ipsets on vm level and fix bugs regarding the cidr notation the proxmox api expects \([https\://github\.com/ansible\-collections/community\.proxmox/pull/248](https\://github\.com/ansible\-collections/community\.proxmox/pull/248)\)\.
 * proxmox\_role \- when privs is omitted\, keep existing role privileges unchanged instead of treating it as no privileges \([https\://github\.com/ansible\-collections/community\.proxmox/pull/284](https\://github\.com/ansible\-collections/community\.proxmox/pull/284)\)\.
 
-<a id="new-modules-1"></a>
+<a id="new-modules-2"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_role \- Role management for Proxmox VE cluster\.
@@ -194,14 +284,14 @@ that have been made after the previous release\.
 <a id="v1-5-0"></a>
 ## v1\.5\.0
 
-<a id="release-summary-2"></a>
+<a id="release-summary-3"></a>
 ### Release Summary
 
 This is the minor release of the <code>community\.proxmox</code> collection\.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release\.
 
-<a id="minor-changes-2"></a>
+<a id="minor-changes-3"></a>
 ### Minor Changes
 
 * inventory plugin\, plugin\_utils \- replace deprecated <code>ansible\.module\_utils\.common\.\_collections\_compat</code> imports with <code>collections\.abc</code> from the Python standard library \([https\://github\.com/ansible\-collections/community\.proxmox/issues/241](https\://github\.com/ansible\-collections/community\.proxmox/issues/241)\)\.
@@ -216,7 +306,7 @@ that have been made after the previous release\.
 * proxmox\_storage \- fix passing nfs\_options to API payload \([https\://github\.com/ansible\-collections/community\.proxmox/issues/203](https\://github\.com/ansible\-collections/community\.proxmox/issues/203)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/221](https\://github\.com/ansible\-collections/community\.proxmox/pull/221)\)\.
 * proxmox\_storage \- fixed CIFS authentication by sending username and password parameters to proxmoxer \([https\://github\.com/ansible\-collections/community\.proxmox/pull/214](https\://github\.com/ansible\-collections/community\.proxmox/pull/214)\)\.
 
-<a id="bugfixes-2"></a>
+<a id="bugfixes-3"></a>
 ### Bugfixes
 
 * proxmox all \- add missing timeout parameter to proxmoxer object creation \([https\://github\.com/ansible\-collections/community\.proxmox/pull/218](https\://github\.com/ansible\-collections/community\.proxmox/pull/218)\)\.
@@ -224,7 +314,7 @@ that have been made after the previous release\.
 * proxmox\_zone \- fix validation logic for VXLAN zones to accept either <code>fabric</code> or <code>peers</code> parameter\. Previously\, only <code>fabric</code> was accepted\, but Proxmox VE also supports creating VXLAN zones with a peer address list \([https\://github\.com/ansible\-collections/community\.proxmox/issues/216](https\://github\.com/ansible\-collections/community\.proxmox/issues/216)\)\.
 * remove wrong api endpoints and error messages from proxmod\_node certificate management\([https\://github\.com/ansible\-collections/community\.proxmox/pull/232](https\://github\.com/ansible\-collections/community\.proxmox/pull/232)\)\.
 
-<a id="new-modules-2"></a>
+<a id="new-modules-3"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_ceph\_mds \- Add or delete Ceph Mds\.
@@ -235,14 +325,14 @@ that have been made after the previous release\.
 <a id="v1-4-0"></a>
 ## v1\.4\.0
 
-<a id="release-summary-3"></a>
+<a id="release-summary-4"></a>
 ### Release Summary
 
 This is the minor release of the <code>community\.proxmox</code> collection\.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release\.
 
-<a id="minor-changes-3"></a>
+<a id="minor-changes-4"></a>
 ### Minor Changes
 
 * proxmox \- Add delete parameter to delete settings \([https\://github\.com/ansible\-collections/community\.proxmox/pull/195](https\://github\.com/ansible\-collections/community\.proxmox/pull/195)\)\.
@@ -253,7 +343,7 @@ that have been made after the previous release\.
 * proxmox\_tasks\_info \- add source option to specify tasks to consider \([https\://github\.com/ansible\-collections/community\.proxmox/pull/179](https\://github\.com/ansible\-collections/community\.proxmox/pull/179)\)
 * proxmox\_template \-  Add \'import\' to allowed content types of proxmox\_template\, so disk images and can be used as disk images on VM creation \([https\://github\.com/ansible\-collections/community\.proxmox/pull/162](https\://github\.com/ansible\-collections/community\.proxmox/pull/162)\)\.
 
-<a id="bugfixes-3"></a>
+<a id="bugfixes-4"></a>
 ### Bugfixes
 
 * proxmox inventory plugin and proxmox module utils \- avoid Python 2 compatibility imports \([https\://github\.com/ansible\-collections/community\.proxmox/pull/175](https\://github\.com/ansible\-collections/community\.proxmox/pull/175)\)\.
@@ -263,7 +353,7 @@ that have been made after the previous release\.
 * proxmox\_user \- added a third case when testing for not\-yet\-existant user \([https\://github\.com/ansible\-collections/community\.proxmox/issues/163](https\://github\.com/ansible\-collections/community\.proxmox/issues/163)\)
 * proxmox\_vm\_info \- do not throw exception when iterating through machines and optional api results are missing \([https\://github\.com/ansible\-collections/community\.proxmox/pull/191](https\://github\.com/ansible\-collections/community\.proxmox/pull/191)\)
 
-<a id="new-modules-3"></a>
+<a id="new-modules-4"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_cluster\_ha\_rules \- Management of HA rules\.
@@ -279,14 +369,14 @@ that have been made after the previous release\.
 <a id="v1-3-0"></a>
 ## v1\.3\.0
 
-<a id="release-summary-4"></a>
+<a id="release-summary-5"></a>
 ### Release Summary
 
 This is the minor release of the <code>community\.proxmox</code> collection\.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release\.
 
-<a id="minor-changes-4"></a>
+<a id="minor-changes-5"></a>
 ### Minor Changes
 
 * proxmox\* modules \- added fallback environment variables for <code>api\_token</code>\, <code>api\_secret</code>\, and <code>validate\_certs</code> \([https\://github\.com/ansible\-collections/community\.proxmox/issues/63](https\://github\.com/ansible\-collections/community\.proxmox/issues/63)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/136](https\://github\.com/ansible\-collections/community\.proxmox/pull/136)\)\.
@@ -295,12 +385,12 @@ that have been made after the previous release\.
 * proxmox\_kvm \- Add missing \'storage\' parameter to create\_vm\(\)\-call\.
 * proxmox\_kvm \- add new purge parameter to proxmox\_kvm module \([https\://github\.com/ansible\-collections/community\.proxmox/issues/60](https\://github\.com/ansible\-collections/community\.proxmox/issues/60)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/148](https\://github\.com/ansible\-collections/community\.proxmox/pull/148)\)\.
 
-<a id="bugfixes-4"></a>
+<a id="bugfixes-5"></a>
 ### Bugfixes
 
 * proxmox\_pct\_remote connection plugin \- avoid deprecated ansible\-core paramiko import helper\, import paramiko directly instead \([https\://github\.com/ansible\-collections/community\.proxmox/issues/146](https\://github\.com/ansible\-collections/community\.proxmox/issues/146)\, [https\://github\.com/ansible\-collections/community\.proxmox/pull/151](https\://github\.com/ansible\-collections/community\.proxmox/pull/151)\)\.
 
-<a id="new-modules-4"></a>
+<a id="new-modules-5"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_storage \- Manage storage in PVE clusters and nodes\.
@@ -308,20 +398,20 @@ that have been made after the previous release\.
 <a id="v1-2-0"></a>
 ## v1\.2\.0
 
-<a id="release-summary-5"></a>
+<a id="release-summary-6"></a>
 ### Release Summary
 
 This is the minor release of the <code>community\.proxmox</code> collection\.
 This changelog contains all changes to the modules and plugins in this collection that have been made after the previous release\.
 
-<a id="minor-changes-5"></a>
+<a id="minor-changes-6"></a>
 ### Minor Changes
 
 * proxmox inventory plugin \- always provide basic information regardless of want\_facts \([https\://github\.com/ansible\-collections/community\.proxmox/pull/124](https\://github\.com/ansible\-collections/community\.proxmox/pull/124)\)\.
 * proxmox\_cluster \- cluster creation has been made idempotent \([https\://github\.com/ansible\-collections/community\.proxmox/pull/125](https\://github\.com/ansible\-collections/community\.proxmox/pull/125)\)\.
 * proxmox\_pct\_remote \- allow forward agent with paramiko \([https\://github\.com/ansible\-collections/community\.proxmox/pull/130](https\://github\.com/ansible\-collections/community\.proxmox/pull/130)\)\.
 
-<a id="new-modules-5"></a>
+<a id="new-modules-6"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_group \- Group management for Proxmox VE cluster\.
@@ -331,25 +421,25 @@ This changelog contains all changes to the modules and plugins in this collectio
 <a id="v1-1-0"></a>
 ## v1\.1\.0
 
-<a id="release-summary-6"></a>
+<a id="release-summary-7"></a>
 ### Release Summary
 
 This is the minor release of the <code>community\.proxmox</code> collection\.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release\.
 
-<a id="minor-changes-6"></a>
+<a id="minor-changes-7"></a>
 ### Minor Changes
 
 * proxmox \- allow force deletion of LXC containers \([https\://github\.com/ansible\-collections/community\.proxmox/pull/105](https\://github\.com/ansible\-collections/community\.proxmox/pull/105)\)\.
 * proxmox \- validate the cluster name length \([https\://github\.com/ansible\-collections/community\.proxmox/pull/119](https\://github\.com/ansible\-collections/community\.proxmox/pull/119)\)\.
 
-<a id="bugfixes-5"></a>
+<a id="bugfixes-6"></a>
 ### Bugfixes
 
 * proxmox inventory plugin \- avoid using deprecated option when templating options \([https\://github\.com/ansible\-collections/community\.proxmox/pull/108](https\://github\.com/ansible\-collections/community\.proxmox/pull/108)\)\.
 
-<a id="new-modules-6"></a>
+<a id="new-modules-7"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_access\_acl \- Manages ACLs on the Proxmox PVE cluster\.
@@ -359,14 +449,14 @@ that have been made after the previous release\.
 <a id="v1-0-1"></a>
 ## v1\.0\.1
 
-<a id="release-summary-7"></a>
+<a id="release-summary-8"></a>
 ### Release Summary
 
 This is a minor bugfix release for the <code>community\.proxmox</code> collections\.
 This changelog contains all changes to the modules and plugins in this collection
 that have been made after the previous release\.
 
-<a id="minor-changes-7"></a>
+<a id="minor-changes-8"></a>
 ### Minor Changes
 
 * proxmox module utils \- fix handling warnings in LXC tasks \([https\://github\.com/ansible\-collections/community\.proxmox/pull/104](https\://github\.com/ansible\-collections/community\.proxmox/pull/104)\)\.
@@ -374,12 +464,12 @@ that have been made after the previous release\.
 <a id="v1-0-0"></a>
 ## v1\.0\.0
 
-<a id="release-summary-8"></a>
+<a id="release-summary-9"></a>
 ### Release Summary
 
 This is the first stable release of the <code>community\.proxmox</code> collection since moving from <code>community\.general</code>\, released on 2025\-06\-08\.
 
-<a id="minor-changes-8"></a>
+<a id="minor-changes-9"></a>
 ### Minor Changes
 
 * proxmox \- add support for creating and updating containers in the same task \([https\://github\.com/ansible\-collections/community\.proxmox/pull/92](https\://github\.com/ansible\-collections/community\.proxmox/pull/92)\)\.
@@ -394,12 +484,12 @@ This is the first stable release of the <code>community\.proxmox</code> collecti
 * proxmox \- <code>update</code> and <code>force</code> are now mutually exclusive \([https\://github\.com/ansible\-collections/community\.proxmox/pull/92](https\://github\.com/ansible\-collections/community\.proxmox/pull/92)\)\.
 * proxmox \- the default of <code>update</code> changed from <code>false</code> to <code>true</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/92](https\://github\.com/ansible\-collections/community\.proxmox/pull/92)\)\.
 
-<a id="bugfixes-6"></a>
+<a id="bugfixes-7"></a>
 ### Bugfixes
 
 * proxmox \- fix crash in module when the used on an existing LXC container with <code>state\=present</code> and <code>force\=true</code> \([https\://github\.com/ansible\-collections/community\.proxmox/pull/91](https\://github\.com/ansible\-collections/community\.proxmox/pull/91)\)\.
 
-<a id="new-modules-7"></a>
+<a id="new-modules-8"></a>
 ### New Modules
 
 * community\.proxmox\.proxmox\_backup\_schedule \- Schedule VM backups and removing them\.
@@ -409,7 +499,7 @@ This is the first stable release of the <code>community\.proxmox</code> collecti
 <a id="v0-1-0"></a>
 ## v0\.1\.0
 
-<a id="release-summary-9"></a>
+<a id="release-summary-10"></a>
 ### Release Summary
 
 This is the first community\.proxmox release\. It contains mainly the state of the Proxmox content in community\.general 10\.6\.0\.
