@@ -420,9 +420,6 @@ releases:
       - 340-proxmox-cluster-firewall-ratelimit-validation.yml
       - 365-proxmox-snap-fail-on-missing-snapname.yml
     modules:
-      - description: Cluster-level firewall options management for Proxmox VE cluster.
-        name: proxmox_cluster_firewall
-        namespace: ''
       - description: Retrieve Proxmox VE HA rules.
         name: proxmox_cluster_ha_rules_info
         namespace: ''
@@ -527,15 +524,201 @@ releases:
       - description: Manage Ceph Pool.
         name: proxmox_ceph_pool
         namespace: ''
-      - description: Node-level firewall options management for Proxmox VE cluster.
-        name: proxmox_node_firewall
-        namespace: ''
-      - description: Get node-level firewall options for Proxmox VE cluster.
-        name: proxmox_node_firewall_info
-        namespace: ''
     plugins:
       connection:
         - description: Connect to QEMU VMs via the Proxmox guest agent API.
           name: proxmox_qemu_api
           namespace: null
     release_date: '2026-05-20'
+  2.1.0:
+    changes:
+      bugfixes:
+        - 'All modules - support both API token authentication formats: ``api_token_id:
+          username@realm!tokenid`` (recommended) and ``api_user: username@realm``
+          with ``api_token_id: tokenid``. Previously, the documented format with embedded
+          user in the token ID was not working (https://github.com/ansible-collections/community.proxmox/issues/475).'
+        - proxmox - delegate ``mount_devices[].mode`` validation to the Proxmox API,
+          allowing the API-required four-digit octal format such as ``0666`` (https://github.com/ansible-collections/community.proxmox/issues/533).
+        - proxmox - do not send ``cmode`` on LXC container update when it is set to
+          the ``default`` sentinel value (PVE rejects the literal value, same as was
+          already handled on instance creation).
+        - proxmox - fix default value for ``cmode`` parameter (https://github.com/ansible-collections/community.proxmox/pull/440).
+        - proxmox - omit path parameters from LXC configuration update payloads and
+          serialize tags as a semicolon-separated string, fixing updates with the
+          local backend (https://github.com/ansible-collections/community.proxmox/issues/513).
+        - proxmox inventory - fetch pool members via the ``GET /pools?poolid=<id>``
+          query form instead of the deprecated ``GET /pools/{poolid}`` path form,
+          which returned a 501 error and aborted inventory parsing for nested pool
+          IDs (poolid containing a slash, e.g. ``parent/child``) introduced in Proxmox
+          VE 8.1 (https://github.com/ansible-collections/community.proxmox/issues/472).
+        - 'proxmox inventory - pass ``verify`` explicitly on HTTP requests so ``validate_certs:
+          false`` is honored when ``REQUESTS_CA_BUNDLE`` is set (regression when only
+          ``session.verify`` was used) (https://github.com/ansible-collections/community.proxmox/pull/491).'
+        - proxmox_ceph_pool - change `target_size_ratio` parameter type from `int`
+          to `float` to match Ceph and Proxmox VE API schema (https://github.com/ansible-collections/community.proxmox/issues/524).
+        - proxmox_cluster_firewall_security_group - a rule entry with ``iface`` set
+          to an empty string no longer fails to update an existing rule (https://github.com/ansible-collections/community.proxmox/pull/537).
+        - proxmox_disk module - Ensure proper update handling of disks with an incomplete
+          value set within proxmoxs configuration layer. In particular freshly imported  disks
+          from ESX. (https://github.com/ansible-collections/community.proxmox/pull/531)
+        - proxmox_domain - ignore immutable fields (``type`` and ``username-claim``)
+          when updating existing realms (https://github.com/ansible-collections/community.proxmox/issues/448).
+        - proxmox_firewall - fail on ipset entries that combine an IPv4 address with
+          the IPv6 host prefix ``/128`` instead of silently treating them as the plain
+          IPv4 address. Proxmox rejects such entries as well (https://github.com/ansible-collections/community.proxmox/pull/530).
+        - proxmox_firewall - fix updating a rule when more than one field differs,
+          which queued the rule multiple times and failed (https://github.com/ansible-collections/community.proxmox/pull/493).
+        - proxmox_firewall - keep the prefix of IPv6 ``/32`` networks such as ``2001:db8::/32``
+          in ipsets instead of normalizing them to the single address ``2001:db8::/128``.
+          This also fixes ``state=absent`` not removing such a network from an ipset
+          (https://github.com/ansible-collections/community.proxmox/pull/530).
+        - proxmox_firewall - omit unsupported "pos" API parameter (https://github.com/ansible-collections/community.proxmox/issues/485).
+        - proxmox_firewall_info - skip aliases and ipsets API calls for firewall for
+          node, vnet and group (https://github.com/ansible-collections/community.proxmox/pull/485).
+        - proxmox_node_firewall_options - apply ``state=disabled`` on a node whose
+          ``host.fw`` does not set ``enable`` (https://github.com/ansible-collections/community.proxmox/issues/511).
+        - proxmox_node_firewall_options_info - report ``enabled`` as ``true`` for
+          a node whose ``host.fw`` does not set ``enable`` (https://github.com/ansible-collections/community.proxmox/issues/511).
+        - proxmox_node_info - skip node ``network`` and ``version`` info when node
+          is offline to prevent errors (https://github.com/ansible-collections/community.proxmox/issues/453).
+        - proxmox_pct_remote connection plugin - restore the ``_raise_paramiko_connect_exception``
+          helper that was referenced but not defined after a refactor, so unexpected
+          SSH connection errors (connection refused, timeouts) are reported as ``AnsibleConnectionFailure``
+          with the real error message instead of crashing with ``AttributeError``
+          (https://github.com/ansible-collections/community.proxmox/issues/477).
+        - proxmox_pool_member - fix incorrect type when adding members (https://github.com/ansible-collections/community.proxmox/issues/459).
+        - proxmox_pool_member - fix support adding and removing in one execution in
+          ``exclusive`` mode (https://github.com/ansible-collections/community.proxmox/pull/467).
+        - proxmox_qemu_api connection plugin - export ``HOME`` for every command executed
+          through the QEMU guest agent, which starts processes without a login environment.
+          With ``HOME`` unset, POSIX sh left ``~`` unexpanded, breaking ansible-core's
+          remote tmpdir discovery and causing ``copy``, ``template`` and module payload
+          transfers to fail after creating a literal ``/~`` directory on the guest
+          (https://github.com/ansible-collections/community.proxmox/issues/461).
+        - proxmox_template - fix error if ``api_host`` and upload target `node` are
+          not the same (https://github.com/ansible-collections/community.proxmox/issues/222).
+        - proxmox_user - allow password change with e.g. local backend (https://github.com/ansible-collections/community.proxmox/issues/482).
+        - proxmox_user - ignore ``password`` parameter when updating an existing user
+          using API Token authentication (https://github.com/ansible-collections/community.proxmox/issues/451).
+        - proxmox_user - omit unknown API parameter (https://github.com/ansible-collections/community.proxmox/issues/481).
+        - proxmox_user - report changed in check mode when deleting user (https://github.com/ansible-collections/community.proxmox/pull/515).
+        - proxmox_vm_info - ignore errors when retrieving VM network info if the QEMU
+          guest agent is not running (https://github.com/ansible-collections/community.proxmox/pull/507).
+        - proxmox_vm_info - skip VM network info when VM is stopped (https://github.com/ansible-collections/community.proxmox/pull/504).
+      deprecated_features:
+        - proxmox_cluster_firewall - add deprecation notice for ``proxmox_cluster_firewall``
+          module. This module will be renamed to ``proxmox_cluster_firewall_options``
+          in 3.0.0.
+        - proxmox_cluster_firewall_security_group - the default of ``purge_omitted_rule_fields``
+          will change from ``false`` to ``true`` in community.proxmox 3.0.0. With
+          ``true``, optional rule fields that are omitted from a ``rules`` entry are
+          removed from the existing rule. Set ``purge_omitted_rule_fields=false``
+          to keep preserving omitted rule fields in 3.0.0 (https://github.com/ansible-collections/community.proxmox/issues/278,
+          https://github.com/ansible-collections/community.proxmox/pull/527).
+        - proxmox_node_firewall - add deprecation notice for ``proxmox_node_firewall``
+          module. This module will be renamed to ``proxmox_node_firewall_options``
+          in 3.0.0.
+        - proxmox_node_firewall_info - add deprecation notice for ``proxmox_node_firewall_info``
+          module. This module will be renamed to ``proxmox_node_firewall_options_info``
+          in 3.0.0.
+      minor_changes:
+        - inventory - allow to customize generated ansible_hostname (https://github.com/ansible-collections/community.proxmox/pull/471).
+        - inventory plugin - add api_timeout option for Proxmox API requests and keep
+          hosts in inventory when optional LXC/QEMU fact gathering fails (https://github.com/ansible-collections/community.proxmox/pull/257).
+        - inventory plugin - add exclude_vms option (https://github.com/ansible-collections/community.proxmox/pull/257).
+        - inventory plugin - add facts_concurrency option for concurrent LXC/QEMU
+          fact gathering (https://github.com/ansible-collections/community.proxmox/pull/257).
+        - inventory plugin - fetch QEMU and LXC inventory records from /api2/json/cluster/resources?type=vm
+          instead of querying every online node (https://github.com/ansible-collections/community.proxmox/pull/257).
+        - inventory plugin - fetch nodes from /api2/json/cluster/status instead of
+          /api2/json/nodes (https://github.com/ansible-collections/community.proxmox/pull/257).
+        - proxmox - add ``mount_devices`` option to allow mounting passthrough devices
+          for LXC containers. Note that Proxmox currently requires root@pam password
+          login to manage passthrough devices (https://github.com/ansible-collections/community.proxmox/pull/506).
+        - proxmox - make ``api_host`` optional to support ``local`` backend (https://github.com/ansible-collections/community.proxmox/pull/349).
+        - proxmox - make ``api_user`` optional and default to ``root@pam`` (https://github.com/ansible-collections/community.proxmox/pull/349).
+        - proxmox - use ``local`` backend if no ``api_host`` is specified (https://github.com/ansible-collections/community.proxmox/pull/349).
+        - proxmox_ceph_pool - add ``application`` parameter to configure Ceph pool
+          profile (``rbd``, ``cephfs``, ``rgw``), defaulting to ``rbd`` (https://github.com/ansible-collections/community.proxmox/issues/523).
+        - proxmox_cluster - add support for optional ``nodeid`` parameter during cluster
+          creation and join operations.
+        - proxmox_cluster_firewall - rename to proxmox_cluster_firewall_options (https://github.com/ansible-collections/community.proxmox/issues/450).
+        - proxmox_domain - add ``openid_audiences`` parameter introduced in Proxmox
+          VE 9.2 (https://github.com/ansible-collections/community.proxmox/pull/437).
+        - proxmox_kvm - add ``allow_ksm`` parameter to control the Proxmox VE ``allow-ksm``
+          QEMU option.
+        - proxmox_nic - increase max queues to 64 (https://github.com/ansible-collections/community.proxmox/pull/468).
+        - proxmox_node_firewall - rename to proxmox_node_firewall_options (https://github.com/ansible-collections/community.proxmox/issues/450).
+        - proxmox_node_firewall_info - rename to proxmox_node_firewall_options_info
+          (https://github.com/ansible-collections/community.proxmox/issues/450).
+        - proxmox_pct_remote connection plugin - the ``password`` and ``token_secret``
+          options are now marked as ``secret=true`` for ansible-core 2.22+'s secret
+          masking (https://github.com/ansible-collections/community.proxmox/pull/535).
+        - proxmox_pct_remote connection plugin - the ``password`` option is now marked
+          as ``secret=true`` for ansible-core 2.22+'s secret masking (https://github.com/ansible-collections/community.proxmox/pull/535).
+        - proxmox_pool_member - add ``allow_move`` parameter to allow adding a guest
+          even if already in another pool (https://github.com/ansible-collections/community.proxmox/pull/467).
+        - proxmox_qemu_api - adds extra debug logging (exceptions) when trying to
+          connect to guest agent (https://github.com/ansible-collections/community.proxmox/pull/460).
+        - proxmox_qemu_api connection plugin - the ``api_password`` and ``api_token_secret``
+          options are now marked as ``secret=true`` for ansible-core 2.22+'s secret
+          masking (https://github.com/ansible-collections/community.proxmox/pull/535).
+        - proxmox_storage - add  common storage properties ``shared``, ``prune_backups``,
+          ``format`` and ``preallocation`` (https://github.com/ansible-collections/community.proxmox/pull/476).
+        - proxmox_storage - add diff mode functionality (https://github.com/ansible-collections/community.proxmox/pull/476).
+        - proxmox_storage - add support for ``btrfs``, ``esxi``, ``iscsidirect`` and
+          ``zfs`` storage types (https://github.com/ansible-collections/community.proxmox/pull/476).
+        - proxmox_storage - add support for ``lvm`` and  ``lvm-thin`` storage types
+          (https://github.com/ansible-collections/community.proxmox/issues/158).
+        - proxmox_storage - add update functionality (https://github.com/ansible-collections/community.proxmox/pull/476).
+      release_summary: See https://github.com/ansible-collections/community.proxmox/blob/main/CHANGELOG.rst
+        for all changes.
+    fragments:
+      - 144-add-device-passthrough.yml
+      - 2.1.0.yml
+      - 257-inventory_speedup_exclude_vms.yml
+      - 349-local-backend.yml
+      - 437-add-openid-audiences-parameter.yaml
+      - 440-proxmox-lxc-cmode-default-value.yml
+      - 448-proxmox-domain-immutable-fields.yml
+      - 450-add-deprecation-notice-firewall-modules.yml
+      - 450-rename-modules-proxmox-firewall-options.yml
+      - 451-proxmox-user-handle-password-with-api-token-auth.yml
+      - 453-proxmox_node_info-handle-offline-node.yml
+      - 460-add-exception-in-debug-logging.yml
+      - 461-qemu-agent-home-guard.yml
+      - 467-pool-member-allow-mode.yml
+      - 468-proxmox_nix-update-queue-limit-doc.yaml
+      - 470-fix-proxmox-template-cross-node.yml
+      - 471-inventory-custom-ansible_hostname.yaml
+      - 472-proxmox-inventory-nested-pools.yml
+      - 474-proxmox-kvm-allow-ksm.yml
+      - 475-token-authentication-format.yaml
+      - 476-storage-diff-and-update.yml
+      - 477-pct-remote-restore-connect-error-translation.yml
+      - 481-omit-unknown-api-parameter.yml
+      - 482-allow-password-change.yml
+      - 485-omit-unknown-api-parameter.yml
+      - 485-proxmox-firewall-info-ipsets-aliases.yaml
+      - 493-proxmox-firewall-update-rule-once.yml
+      - 504-vm-network-info-when-stopped.yml
+      - 507-proxmox_vm_info-ignore-guest-agent-error.yml
+      - 511-node-firewall-options-enable-default.yml
+      - 513-lxc-local-update.yml
+      - 515-report-changed-proxmox-user-delete.yml
+      - 523-add-proxmox-ceph-pool-application.yml
+      - 524-fix-target-size-ratio.yml
+      - 527-cluster-firewall-security-group-purge-omitted-rule-fields.yml
+      - 531-handle-fresh-imports.yml
+      - 533-proxmox-lxc-device-mode.yml
+      - 535-secrets.yml
+      - 537-cluster-firewall-security-group-empty-iface.yml
+      - 538-add-proxmox-cluster-nodeid-parameter.yml
+      - inventory-validate-certs-requests-ca-bundle.yml
+      - proxmox-lxc-cmode-default-update.yml
+      - proxmox_firewall-ipset-ipv6-host-prefix.yml
+    modules:
+      - description: Cluster firewall security group management for Proxmox VE.
+        name: proxmox_cluster_firewall_security_group
+        namespace: ''
+    release_date: '2026-10-06'

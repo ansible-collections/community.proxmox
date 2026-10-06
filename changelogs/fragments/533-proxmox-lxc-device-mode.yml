@@ -1,2 +1,0 @@
-bugfixes:
-  - proxmox - delegate ``mount_devices[].mode`` validation to the Proxmox API, allowing the API-required four-digit octal format such as ``0666`` (https://github.com/ansible-collections/community.proxmox/issues/533).

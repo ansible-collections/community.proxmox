@@ -1,3 +1,0 @@
----
-minor_changes:
- - proxmox_qemu_api - adds extra debug logging (exceptions) when trying to connect to guest agent (https://github.com/ansible-collections/community.proxmox/pull/460).
