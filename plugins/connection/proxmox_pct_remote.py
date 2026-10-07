@@ -246,7 +246,8 @@ notes:
     e.g. C(sudo), installed on Proxmox and setup so we can run it without prompting for the password.
     Inside the container, we need a shell, for example C(sh) and the C(cat) command to be available in the C(PATH) for this plugin to work.
   - >
-    When there is no key, agent key or password to offer, the plugin asks the SSH server for the C(none) authentication method before giving up.
+    When there is no key, agent key or password to offer, the plugin asks the SSH server for the C(none) authentication method
+    instead of failing with C(No authentication methods available).
     Servers that admit a client by its network identity, for example Tailscale SSH, accept it.
 """
 
@@ -437,6 +438,10 @@ except ImportError:
 
 display = Display()
 
+# What Paramiko's SSHClient.connect() raises when it had no key, agent key or password to try.
+# It gets that far only after it has accepted the server's host key, and it has sent no authentication request.
+PARAMIKO_NOTHING_TO_TRY = "No authentication methods available"
+
 
 def authenticity_msg(hostname: str, ktype: str, fingerprint: str) -> str:
     msg = f"""
@@ -597,38 +602,34 @@ class Connection(ConnectionBase):
         except paramiko.ssh_exception.AuthenticationException as e:
             raise AnsibleAuthenticationFailure(f"Failed to authenticate: {e}") from e
         except paramiko.ssh_exception.SSHException as e:
-            if not self._paramiko_auth_none(ssh, e, port):
+            if to_text(e) != PARAMIKO_NOTHING_TO_TRY:
                 self._raise_paramiko_connect_exception(e, port)
+            self._paramiko_auth_none(ssh, e)
         except Exception as e:
             self._raise_paramiko_connect_exception(e, port)
 
-    def _paramiko_auth_none(self, ssh: paramiko.SSHClient, error: Exception, port: int) -> bool:
-        """Ask for the SSH none method on a connection that had nothing to offer; return False if it had something.
+    def _paramiko_auth_none(self, ssh: paramiko.SSHClient, error: Exception) -> None:
+        """Ask for the SSH none method on a connection that Paramiko gave up on with nothing to try.
 
-        With no key, agent key or password, Paramiko gives up without sending an authentication request and
-        leaves the connection open. A server that admits a client by its network identity, such as Tailscale
-        SSH, accepts the none method (RFC 4252, section 5.2), which the OpenSSH client always sends first.
+        Paramiko has accepted the server's host key, sent no authentication request and left the connection open.
+        A server that admits a client by its network identity, such as Tailscale SSH, accepts the none method
+        (RFC 4252, section 5.2), which the OpenSSH client always sends first.
         """
-        transport = ssh.get_transport()
-        if (
-            self.get_option("password") is not None
-            or self.get_option("private_key_file")
-            or transport is None
-            or not transport.is_active()
-        ):
-            return False
-
         display.vvv("NOTHING TO OFFER, ASKING FOR SSH NONE AUTHENTICATION", host=self.get_option("remote_addr"))
         try:
-            if transport.auth_none(self.get_option("remote_user") or getpass.getuser()):
-                raise paramiko.ssh_exception.AuthenticationException("further authentication is required")
+            more = ssh.get_transport().auth_none(self.get_option("remote_user") or getpass.getuser())
         except paramiko.ssh_exception.AuthenticationException as none_error:
             raise AnsibleAuthenticationFailure(
                 f"{error}; the server did not accept the SSH none method either: {none_error}"
             ) from none_error
         except Exception as none_error:
-            self._raise_paramiko_connect_exception(none_error, port)
-        return True
+            raise AnsibleConnectionFailure(
+                f"{error}; asking for the SSH none method failed: {none_error}"
+            ) from none_error
+        if more:
+            raise AnsibleAuthenticationFailure(
+                f"{error}; the server accepted the SSH none method and asks for more: {more}"
+            )
 
     def _raise_paramiko_connect_exception(self, e: Exception, port: int) -> t.NoReturn:
         msg = to_text(e)
