@@ -653,3 +653,124 @@ def test_connect_error_message_does_not_leak_options(mock_ssh, connection):
     assert "root@192.168.1.100:22" in message
     assert "To connect as a different user" in message
     assert "password" not in message
+
+
+@patch("paramiko.SSHClient")
+def test_connect_auth_arguments(mock_ssh, connection):
+    """Test the authentication arguments given to paramiko."""
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+
+    connection._connect()
+
+    mock_client.connect.assert_called_once_with(
+        "192.168.1.100",
+        username="root",
+        allow_agent=False,
+        look_for_keys=True,
+        key_filename=None,
+        password="password",
+        timeout=10,
+        port=22,
+        disabled_algorithms={},
+        auth_timeout=10,
+        banner_timeout=30,
+    )
+
+
+def _connect_gives_up(mock_client, error, active=True, server_accepts_none=False):
+    """Make the mocked client fail to connect, leaving a transport that has not authenticated."""
+    transport = MagicMock()
+    transport.is_active.return_value = active
+    transport.is_authenticated.return_value = False
+
+    def auth_none(username):
+        if not server_accepts_none:
+            raise paramiko.BadAuthenticationType("Bad authentication type", ["publickey", "password"])
+        transport.is_authenticated.return_value = True
+        return []
+
+    transport.auth_none.side_effect = auth_none
+    mock_client.get_transport.return_value = transport
+    mock_client.connect.side_effect = error
+    return transport
+
+
+@patch("paramiko.SSHClient")
+def test_connect_asks_for_none_with_nothing_to_offer(mock_ssh, connection):
+    """Test that the SSH none method is requested when paramiko gives up with nothing to offer."""
+    connection.set_option("password", None)
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    transport = _connect_gives_up(mock_client, paramiko.SSHException("Nothing to offer"), server_accepts_none=True)
+
+    connection._connect()
+
+    transport.auth_none.assert_called_once_with("root")
+    assert connection._connected
+
+
+@patch("paramiko.SSHClient")
+def test_connect_none_refused_with_nothing_to_offer(mock_ssh, connection):
+    """Test that a server refusing the none method is an authentication failure that keeps paramiko's own message."""
+    connection.set_option("password", None)
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    transport = _connect_gives_up(mock_client, paramiko.SSHException("Nothing to offer"))
+
+    with pytest.raises(AnsibleAuthenticationFailure) as excinfo:
+        connection._connect()
+
+    transport.auth_none.assert_called_once_with("root")
+    message = str(excinfo.value)
+    assert "Nothing to offer" in message
+    assert "did not accept the SSH none method either" in message
+    assert "allowed types: ['publickey', 'password']" in message
+
+
+@pytest.mark.parametrize(
+    ("options", "error", "active"),
+    [
+        ({"password": "refused"}, paramiko.AuthenticationException("Authentication failed."), True),
+        ({"password": "unused"}, paramiko.SSHException("Something else"), True),
+        ({"password": None, "private_key_file": "/unusable"}, paramiko.SSHException("Bad key"), True),
+        ({"password": None}, paramiko.AuthenticationException("Authentication failed."), True),
+        ({"password": None}, paramiko.SSHException("Connection lost"), False),
+    ],
+    ids=[
+        "password refused",
+        "password, other error",
+        "key file, other error",
+        "found key refused",
+        "connection closed",
+    ],
+)
+@patch("paramiko.SSHClient")
+def test_connect_never_asks_for_none_otherwise(mock_ssh, connection, options, error, active):
+    """Test that the none method is not requested when a credential was offered or the connection is closed."""
+    for option, value in options.items():
+        connection.set_option(option, value)
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    transport = _connect_gives_up(mock_client, error, active=active, server_accepts_none=True)
+    refused = isinstance(error, paramiko.AuthenticationException)
+
+    with pytest.raises(AnsibleConnectionFailure, match=str(error)) as excinfo:
+        connection._connect()
+
+    assert isinstance(excinfo.value, AnsibleAuthenticationFailure) == refused
+    assert not transport.auth_none.called
+
+
+@patch("paramiko.SSHClient")
+def test_connect_none_not_enough_with_nothing_to_offer(mock_ssh, connection):
+    """Test that a server asking for more after the none method is an authentication failure."""
+    connection.set_option("password", None)
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    transport = _connect_gives_up(mock_client, paramiko.SSHException("Nothing to offer"))
+    transport.auth_none.side_effect = None
+    transport.auth_none.return_value = ["password"]
+
+    with pytest.raises(AnsibleAuthenticationFailure, match="further authentication is required"):
+        connection._connect()

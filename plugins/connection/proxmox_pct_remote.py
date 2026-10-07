@@ -245,6 +245,9 @@ notes:
     When NOT using this plugin as root, you need to have a become mechanism,
     e.g. C(sudo), installed on Proxmox and setup so we can run it without prompting for the password.
     Inside the container, we need a shell, for example C(sh) and the C(cat) command to be available in the C(PATH) for this plugin to work.
+  - >
+    When there is no key, agent key or password to offer, the plugin asks the SSH server for the C(none) authentication method before giving up.
+    Servers that admit a client by its network identity, for example Tailscale SSH, accept it.
 """
 
 EXAMPLES = r"""
@@ -401,6 +404,7 @@ EXAMPLES = r"""
       ansible.builtin.ping:
 """
 
+import getpass
 import os
 import pathlib
 import socket
@@ -592,8 +596,39 @@ class Connection(ConnectionBase):
             raise AnsibleConnectionFailure(f"host key mismatch for {to_text(e.hostname)}") from e
         except paramiko.ssh_exception.AuthenticationException as e:
             raise AnsibleAuthenticationFailure(f"Failed to authenticate: {e}") from e
+        except paramiko.ssh_exception.SSHException as e:
+            if not self._paramiko_auth_none(ssh, e, port):
+                self._raise_paramiko_connect_exception(e, port)
         except Exception as e:
             self._raise_paramiko_connect_exception(e, port)
+
+    def _paramiko_auth_none(self, ssh: paramiko.SSHClient, error: Exception, port: int) -> bool:
+        """Ask for the SSH none method on a connection that had nothing to offer; return False if it had something.
+
+        With no key, agent key or password, Paramiko gives up without sending an authentication request and
+        leaves the connection open. A server that admits a client by its network identity, such as Tailscale
+        SSH, accepts the none method (RFC 4252, section 5.2), which the OpenSSH client always sends first.
+        """
+        transport = ssh.get_transport()
+        if (
+            self.get_option("password") is not None
+            or self.get_option("private_key_file")
+            or transport is None
+            or not transport.is_active()
+        ):
+            return False
+
+        display.vvv("NOTHING TO OFFER, ASKING FOR SSH NONE AUTHENTICATION", host=self.get_option("remote_addr"))
+        try:
+            if transport.auth_none(self.get_option("remote_user") or getpass.getuser()):
+                raise paramiko.ssh_exception.AuthenticationException("further authentication is required")
+        except paramiko.ssh_exception.AuthenticationException as none_error:
+            raise AnsibleAuthenticationFailure(
+                f"{error}; the server did not accept the SSH none method either: {none_error}"
+            ) from none_error
+        except Exception as none_error:
+            self._raise_paramiko_connect_exception(none_error, port)
+        return True
 
     def _raise_paramiko_connect_exception(self, e: Exception, port: int) -> t.NoReturn:
         msg = to_text(e)
