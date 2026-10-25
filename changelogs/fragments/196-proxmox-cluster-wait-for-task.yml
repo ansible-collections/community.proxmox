@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - proxmox_cluster - wait for the cluster create or join task to finish, and fail if the task fails. Before, the module reported a change when the API accepted the request, also if the task failed later (https://github.com/ansible-collections/community.proxmox/issues/196).
+minor_changes:
+  - proxmox_cluster - add the ``timeout`` option. It sets the time in seconds that the module waits for the cluster create or join task (https://github.com/ansible-collections/community.proxmox/issues/196).
