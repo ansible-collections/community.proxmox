@@ -32,7 +32,7 @@ options:
   type:
     description:
       - The storage type/protocol to use when adding the storage.
-    choices: ['btrfs', 'cephfs', 'cifs', 'dir', 'esxi', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
+    choices: ['btrfs', 'cephfs', 'cifs', 'dir', 'drbd', 'esxi', 'iscsi', 'iscsidirect', 'lvm', 'lvmthin', 'nfs', 'pbs', 'rbd', 'zfs', 'zfspool']
     type: str
   nodes:
     description:
@@ -278,6 +278,63 @@ options:
           - Using a V(yes)/V(no) value serves as a shortcut to using the target path in this field
         type: str
         default: "no"
+  drbd_options:
+    description:
+      - Extended information for adding LINSTOR storage, the V(drbd) type of the C(linstor-proxmox) plugin.
+      - The plugin must be installed on the node serving the API, since it registers the storage type and its options.
+      - See U(https://github.com/LINBIT/linstor-proxmox) for the plugin.
+    type: dict
+    suboptions:
+      resourcegroup:
+        description:
+          - The required LINSTOR resource group that new volumes are created from.
+        type: str
+        required: true
+      controller:
+        description:
+          - Comma-separated list of LINSTOR controller addresses.
+        type: str
+      preferlocal:
+        description:
+          - Prefer a replica on the node that creates the volume.
+        type: str
+        choices: ["yes", "no"]
+      exactsize:
+        description:
+          - Set the size in the DRBD resource files, which allows online moves from another storage.
+          - Set it only temporarily.
+        type: str
+        choices: ["yes", "no"]
+      allowtwoprimaries:
+        description:
+          - Set C(allow-two-primaries) on the DRBD resources.
+          - V(no) allows DRBD protocols other than C, but disables live migration.
+        type: str
+        choices: ["yes", "no"]
+      statuscache:
+        description:
+          - Seconds the plugin caches status information, V(0) means no extra cache.
+        type: int
+      clusterlocktimeout:
+        description:
+          - Timeout in seconds for the cluster storage lock, V(0) means the Proxmox VE default.
+        type: int
+      apica:
+        description:
+          - Path to the CA certificate of the LINSTOR REST API.
+        type: str
+      apicrt:
+        description:
+          - Path to the client certificate for the LINSTOR REST API.
+        type: str
+      apikey:
+        description:
+          - Path to the client private key for the LINSTOR REST API.
+        type: str
+      searchdomain:
+        description:
+          - Domain suffix appended to the Proxmox VE host name, for LINSTOR nodes registered with FQDNs.
+        type: str
   esxi_options:
     description:
       - Extended information for adding ESXi storage.
@@ -679,6 +736,16 @@ EXAMPLES = r"""
       pool: rpool/data
       sparse: true
     update: true
+
+- name: Add LINSTOR storage to Proxmox VE Cluster
+  community.proxmox.proxmox_storage:
+    state: present
+    name: linstor-storage
+    type: drbd
+    content: ["images", "rootdir"]
+    drbd_options:
+      resourcegroup: pve-rg
+      controller: 192.168.1.10,192.168.1.11
 """
 
 RETURN = r"""
@@ -747,6 +814,7 @@ def module_args():
                 "cephfs",
                 "cifs",
                 "dir",
+                "drbd",
                 "esxi",
                 "iscsi",
                 "iscsidirect",
@@ -818,6 +886,22 @@ def module_args():
                 "is_mountpoint": dict(type="str", default="no"),
                 "snapshot_as_volume_chain": dict(type="bool"),
                 **module_file_storage_args(),
+            },
+        ),
+        drbd_options=dict(
+            type="dict",
+            options={
+                "resourcegroup": dict(type="str", required=True),
+                "controller": dict(type="str"),
+                "preferlocal": dict(type="str", choices=["yes", "no"]),
+                "exactsize": dict(type="str", choices=["yes", "no"]),
+                "allowtwoprimaries": dict(type="str", choices=["yes", "no"]),
+                "statuscache": dict(type="int"),
+                "clusterlocktimeout": dict(type="int"),
+                "apica": dict(type="str"),
+                "apicrt": dict(type="str"),
+                "apikey": dict(type="str", no_log=False),
+                "searchdomain": dict(type="str"),
             },
         ),
         esxi_options=dict(
