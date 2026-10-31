@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_storage - do not report a change with ``update=true`` when the API returns ``content`` or ``nodes`` in a different order than the task lists them.
