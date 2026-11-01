@@ -956,7 +956,8 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         if lxc_status == "mounted":
             if force:
-                self.umount_lxc_instance(vmid, hostname, timeout)
+                self.umount_lxc_instance(vmid, node, timeout)
+                self.module.exit_json(changed=True, vmid=vmid, msg=f"VM {identifier} unmounted.")
             else:
                 self.module.exit_json(
                     changed=False,

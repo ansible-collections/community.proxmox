@@ -200,3 +200,20 @@ def test_update_lxc_tags_unchanged(lxc_ansible, current, tags):
         changed=False, vmid=1003, msg="Container config is already up to date."
     )
     config.put.assert_not_called()
+
+
+def test_lxc_stopped_force_unmounts_on_container_node(lxc_ansible):
+    """A mounted container is unmounted on its node, and not shut down afterwards."""
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "name": "my-lxc", "node": "pve1"})
+    lxc_ansible.get_lxc_status = MagicMock(return_value="mounted")
+    lxc_ansible.handle_api_timeout = MagicMock()
+    lxc_ansible.module.exit_json.side_effect = SystemExit
+
+    with pytest.raises(SystemExit):
+        lxc_ansible.lxc_stopped(None, "my-lxc", None, 30, True)
+
+    lxc_ansible.proxmox_api.nodes.assert_called_once_with("pve1")
+    status = lxc_ansible.proxmox_api.nodes.return_value.lxc.return_value.status
+    status.unmount.post.assert_called_once_with()
+    status.shutdown.post.assert_not_called()
+    lxc_ansible.module.exit_json.assert_called_once_with(changed=True, vmid="100", msg="VM my-lxc (100) unmounted.")
