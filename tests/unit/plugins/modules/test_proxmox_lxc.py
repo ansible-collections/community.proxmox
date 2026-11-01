@@ -200,3 +200,73 @@ def test_update_lxc_tags_unchanged(lxc_ansible, current, tags):
         changed=False, vmid=1003, msg="Container config is already up to date."
     )
     config.put.assert_not_called()
+
+
+def _present_params(**overrides):
+    params = {"clone": None, "ostemplate": "local:vztmpl/debian.tar.zst", "timeout": 30}
+    params.update(overrides)
+    return params
+
+
+def test_present_force_removes_existing_container_before_create(lxc_ansible):
+    lxc_ansible.params = _present_params()
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=True)
+    calls = MagicMock()
+    lxc_ansible.remove_lxc_instance = calls.remove
+    lxc_ansible.new_lxc_instance = calls.create
+
+    lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    assert [c[0] for c in calls.mock_calls] == ["remove", "create"]
+    calls.remove.assert_called_once_with(
+        100, "node1", timeout=30, purge=False, destroy_unreferenced_disks=False, force=True
+    )
+    lxc_ansible.content_check.assert_called_once_with("node1", "local:vztmpl/debian.tar.zst", "local")
+
+
+def test_present_force_creates_missing_container_without_remove(lxc_ansible):
+    lxc_ansible.params = _present_params()
+    lxc_ansible.get_lxc_resource = MagicMock(side_effect=LookupError)
+    lxc_ansible.remove_lxc_instance = MagicMock()
+    lxc_ansible.new_lxc_instance = MagicMock()
+
+    lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    lxc_ansible.remove_lxc_instance.assert_not_called()
+    lxc_ansible.new_lxc_instance.assert_called_once()
+
+
+def test_present_force_keeps_container_when_ostemplate_is_missing(lxc_ansible):
+    lxc_ansible.params = _present_params()
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=False)
+    lxc_ansible.module.fail_json.side_effect = SystemExit
+    lxc_ansible.remove_lxc_instance = MagicMock()
+
+    with pytest.raises(SystemExit):
+        lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    lxc_ansible.remove_lxc_instance.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("params", "update", "force"),
+    [
+        (_present_params(), False, False),
+        (_present_params(clone=200, ostemplate=None), False, True),
+    ],
+)
+def test_present_does_not_remove_existing_container(lxc_ansible, params, update, force):
+    lxc_ansible.params = params
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.module.exit_json.side_effect = SystemExit
+    lxc_ansible.remove_lxc_instance = MagicMock()
+    lxc_ansible.new_lxc_instance = MagicMock()
+
+    try:
+        lxc_ansible.lxc_present(100, "ct1", "node1", update=update, force=force)
+    except SystemExit:
+        pass
+
+    lxc_ansible.remove_lxc_instance.assert_not_called()
