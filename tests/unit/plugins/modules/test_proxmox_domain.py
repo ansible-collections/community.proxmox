@@ -37,6 +37,7 @@ RAW_LDAP = {
     "base_dn": "cn=accounts,dc=example,dc=test",
     "digest": "c21f05ca10e3c1c4f0a69095072d2b8a060fe83d",
     "bind_dn": "uid=sa-proxmox,cn=users,cn=accounts,dc=example,dc=test",
+    "group_dn": "cn=groups,cn=accounts,dc=example,dc=test",
     "group_filter": "cn=admins-proxmox",
     "server1": "ipa.example.test",
     "filter": "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test",
@@ -52,6 +53,7 @@ RAW_OPENID = {
 }
 
 RAW_AD = {
+    "group_dn": "cn=groups,cn=accounts,dc=example,dc=test",
     "group_filter": "cn=admins-proxmox",
     "digest": "91ac19ca27eaccc4a057ca97072dab7b9603aa19",
     "filter": "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test",
@@ -102,6 +104,7 @@ def build_ldap_arg(state, realm, check=False):
     args["ldap_bind_dn"] = "uid=sa-proxmox,cn=users,cn=accounts,dc=example,dc=test"
     args["default"] = True
     args["ldap_filter"] = "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
+    args["ldap_group_dn"] = "cn=groups,cn=accounts,dc=example,dc=test"
     args["ldap_group_filter"] = "cn=admins-proxmox"
     args["ldap_group_name_attr"] = "cn"
     args["ldap_mode"] = "ldaps"
@@ -130,6 +133,7 @@ def build_openid_arg(state, realm, check=False):
 def build_ad_arg(state, realm, check=False):
     args = build_base_arg(state, realm, check)
     args["type"] = "ad"
+    args["ad_group_dn"] = "cn=groups,cn=accounts,dc=example,dc=test"
     args["ad_group_filter"] = "cn=admins-proxmox"
     args["ad_filter"] = "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
     args["comment"] = "ad domain"
@@ -342,3 +346,32 @@ class TestProxmoxDomain(ModuleTestCase):
 
         assert result["msg"] == "Domain ad edited."
         assert result["changed"] is True
+
+    def test_add_ldap_domain_group_dn(self):
+        self.mock_obj.access.domains.get.side_effect = [RAW_DOMAINS, RAW_LDAP]
+
+        args = build_ldap_arg("present", "other_realm", False)
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_domain.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["msg"] == "Domain other_realm added."
+        assert result["changed"] is True
+        create_params = self.mock_obj.access.domains.create.call_args[1]
+        assert create_params["group_dn"] == "cn=groups,cn=accounts,dc=example,dc=test"
+
+    def test_edit_ad_domain_group_dn(self):
+        self.mock_obj.access.domains.get.side_effect = [RAW_DOMAINS, RAW_AD]
+
+        args = build_ad_arg("present", "ad", False)
+        args["ad_group_dn"] = "ou=groups,dc=example,dc=test"
+        with set_module_args(args), pytest.raises(SystemExit) as exc_info:
+            proxmox_domain.main()
+
+        result = exc_info.value.args[0]
+
+        assert result["msg"] == "Domain ad edited."
+        assert result["changed"] is True
+        put_params = self.mock_obj.access.domains.return_value.put.call_args[1]
+        assert put_params["group_dn"] == "ou=groups,dc=example,dc=test"
