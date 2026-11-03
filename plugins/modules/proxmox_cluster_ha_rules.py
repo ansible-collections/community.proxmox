@@ -26,8 +26,11 @@ attributes:
 options:
     affinity:
         description: |
-            Describes whether the HA resource are supposed to be kept on the same node V(positive),
+            For O(type=resource-affinity), describes whether the HA resources are supposed to be kept on the same node V(positive),
             or are supposed to be kept on separate nodes V(negative).
+            For O(type=node-affinity), describes whether the HA resources are supposed to be placed on the given nodes V(positive),
+            or on any but the given nodes V(negative). If not specified, the Proxmox API default V(positive) will be used.
+            Negative node affinity rules must not specify node priorities.
             Required if O(type=resource-affinity).
         required: false
         choices: ['positive', 'negative']
@@ -117,6 +120,20 @@ EXAMPLES = r"""
     nodes: proxmox01:10,proxmox02:20
     resources: vm:100
     disable: false
+  delegate_to: localhost
+
+- name: Configure ha rule (node-affinity) - negative node affinity
+  community.proxmox.proxmox_cluster_ha_rules:
+    name: node-affinity-rule-3
+    state: present
+    type: node-affinity
+    comment: VM 100 is supposed to run on any node but proxmox03
+    affinity: negative
+    nodes:
+      - proxmox03
+    resources:
+      - vm:100
+    strict: true
   delegate_to: localhost
 
 - name: Configure ha rule (resource-affinity) - resource affinity
@@ -230,6 +247,8 @@ class ProxmoxClusterHARuleAnsible(ProxmoxAnsible):
                 payload["strict"] = int(self.module.params["strict"])
             if self.module.params["nodes"] is not None:
                 payload["nodes"] = ",".join(sorted(self.module.params["nodes"]))
+            if self.module.params["affinity"] is not None:
+                payload["affinity"] = self.module.params["affinity"]
 
         if self.module.params["type"] == "resource-affinity":
             payload["affinity"] = self.module.params["affinity"]
