@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_cluster_ha_rules - pass the ``affinity`` option to the Proxmox API for rules of type ``node-affinity``. Previously it was silently ignored, so ``affinity=negative`` created or kept a positive node affinity rule, which pins the HA resources to the given nodes instead of keeping them away from them (https://github.com/ansible-collections/community.proxmox/issues/556).
