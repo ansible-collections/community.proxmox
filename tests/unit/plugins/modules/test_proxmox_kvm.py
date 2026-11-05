@@ -128,6 +128,30 @@ class TestProxmoxKvmModule(ModuleTestCase):
         assert result["changed"] is True
         assert result["msg"] == "VM existing.vm.local with vmid 101 deployed"
 
+    def test_clone_returns_newid_when_target_vmid_already_exists(self):
+        template_vmid = 100
+        clone_vmid = 200
+        with set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "clone": "template.local",
+                "name": "clone.local",
+                "newid": clone_vmid,
+                "node": "pve",
+            }
+        ), patch.object(proxmox_utils.ProxmoxAnsible, "get_vmid") as get_vmid_mock:
+            get_vmid_mock.return_value = template_vmid
+            self.get_vm_mock.return_value = {"vmid": clone_vmid, "name": "clone.local"}
+            with pytest.raises(AnsibleExitJson) as exc_info:
+                self.module.main()
+
+        get_vmid_mock.assert_called_once_with("template.local", ignore_missing=True)
+        result = exc_info.value.args[0]
+        assert result["changed"] is False
+        assert result["vmid"] == clone_vmid
+
     def test_parse_mac(self):
         assert proxmox_kvm.parse_mac("virtio=00:11:22:AA:BB:CC,bridge=vmbr0,firewall=1") == "00:11:22:AA:BB:CC"
 
