@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox - keep the current MAC address of a network interface on update when ``netif`` does not set ``hwaddr``, instead of letting PVE generate a new one (https://github.com/ansible-collections/community.proxmox/issues/192, https://github.com/ansible-collections/community.proxmox/pull/562).
