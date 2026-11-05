@@ -887,9 +887,9 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 self.module.exit_json(changed=True, vmid=vmid, msg=f"VM {identifier} has been updated.")
             elif not force:
                 # We're done if it shouldn't be forcefully created
-                identifier = self.format_vm_identifier(vmid, lxc["name"])
+                identifier = self.format_vm_identifier(vmid, lxc.get("name"))
                 self.module.exit_json(changed=False, vmid=vmid, msg=f"VM {identifier} already exists.")
-            identifier = self.format_vm_identifier(vmid, lxc["name"])
+            identifier = self.format_vm_identifier(vmid, lxc.get("name"))
             self.module.debug(
                 f"VM {identifier} already exists, but we don't update and instead forcefully recreate it."
             )
@@ -935,7 +935,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
     def lxc_started(self, vmid, hostname, node, timeout):
         lxc = self.get_lxc_resource(vmid, hostname)
         vmid = vmid or lxc["id"].split("/")[-1]
-        hostname = hostname or lxc["name"]
+        hostname = hostname or lxc.get("name")
         identifier = self.format_vm_identifier(vmid, hostname)
         node = node or lxc["node"]
         lxc_status = self.get_lxc_status(vmid, lxc["node"])
@@ -949,7 +949,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
     def lxc_stopped(self, vmid, hostname, node, timeout, force):
         lxc = self.get_lxc_resource(vmid, hostname)
         vmid = vmid or lxc["id"].split("/")[-1]
-        hostname = hostname or lxc["name"]
+        hostname = hostname or lxc.get("name")
         identifier = self.format_vm_identifier(vmid, hostname)
         node = node or lxc["node"]
         lxc_status = self.get_lxc_status(vmid, node)
@@ -974,7 +974,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         lxc = self.get_lxc_resource(vmid, hostname)
 
         vmid = vmid or lxc["id"].split("/")[-1]
-        hostname = hostname or lxc["name"]
+        hostname = hostname or lxc.get("name")
         node = node or lxc["node"]
 
         identifier = self.format_vm_identifier(vmid, hostname)
@@ -990,7 +990,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
     def lxc_to_template(self, vmid, hostname, node, timeout, force):
         lxc = self.get_lxc_resource(vmid, hostname)
         vmid = vmid or lxc["id"].split("/")[-1]
-        hostname = hostname or lxc["name"]
+        hostname = hostname or lxc.get("name")
         node = node or lxc["node"]
         identifier = self.format_vm_identifier(vmid, hostname)
 
@@ -1618,7 +1618,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
     def get_lxc_resource_by_hostname(self, hostname):
         vms = self.get_vm_resources()
 
-        vms = [vm for vm in vms if vm["name"] == hostname]
+        vms = [vm for vm in vms if vm.get("name") == hostname]
         if len(vms) == 0:
             raise LookupError(f"VM with hostname {hostname} does not exist in cluster.")
         elif len(vms) > 1:
