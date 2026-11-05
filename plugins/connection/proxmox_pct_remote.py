@@ -502,6 +502,7 @@ class Connection(ConnectionBase):
     """SSH based connections (paramiko) to Proxmox pct"""
 
     transport = "community.proxmox.proxmox_pct_remote"
+    has_pipelining = True
     _log_channel: str | None = None
 
     def __init__(self, play_context, new_stdin, *args, **kwargs):
@@ -728,11 +729,13 @@ class Connection(ConnectionBase):
                 msg += f": {text_e}"
             raise AnsibleConnectionFailure(to_native(msg)) from e
 
-    def _configure_exec_channel(self, chan: t.Any, cmd: str, sudoable: bool) -> None:
+    def _configure_exec_channel(self, chan: t.Any, cmd: str, sudoable: bool, in_data: bytes | None = None) -> None:
         # sudo usually requires a PTY (cf. requiretty option), therefore
         # we give it one by default (pty=True in ansible.cfg), and we try
-        # to initialise from the calling environment when sudoable is enabled
-        if self.get_option("pty") and sudoable:
+        # to initialise from the calling environment when sudoable is enabled.
+        # Data sent on stdin, such as a pipelined module, would be echoed and
+        # mangled by a PTY, so those commands run without one, as with ssh.
+        if self.get_option("pty") and sudoable and not in_data:
             chan.get_pty(
                 term=os.getenv("TERM", "vt100"),
                 width=int(os.getenv("COLUMNS", "0")),
@@ -821,7 +824,7 @@ class Connection(ConnectionBase):
         bufsize = 4096
 
         chan = self._open_exec_channel()
-        self._configure_exec_channel(chan, cmd, sudoable)
+        self._configure_exec_channel(chan, cmd, sudoable, in_data)
 
         cmd_bytes = to_bytes(cmd, errors="surrogate_or_strict")
         no_prompt_out, no_prompt_err = self._exec_channel_cmd_and_stdin(chan, cmd_bytes, in_data, bufsize)
