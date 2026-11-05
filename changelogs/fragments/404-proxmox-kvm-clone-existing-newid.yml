@@ -1,3 +1,5 @@
 ---
 bugfixes:
   - proxmox_kvm - when cloning to a ``newid`` that already exists, return ``newid`` as ``vmid`` instead of the vmid of the clone source, so later tasks do not act on the template (https://github.com/ansible-collections/community.proxmox/issues/404, https://github.com/ansible-collections/community.proxmox/pull/559).
+breaking_changes:
+  - proxmox_kvm - when cloning to a ``newid`` that already exists, the returned ``vmid`` is now ``newid`` and no longer the vmid of the clone source. Playbooks that relied on getting the source vmid back in this case need to be updated (https://github.com/ansible-collections/community.proxmox/issues/404, https://github.com/ansible-collections/community.proxmox/pull/559).
