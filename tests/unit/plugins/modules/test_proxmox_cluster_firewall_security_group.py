@@ -662,7 +662,7 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
             [SAMPLE_RULE_0],  # final fetch
         ]
 
-        result = self._run_module(build_module_args(rules=[DESIRED_RULE_0], purge_omitted_rule_fields=True))
+        result = self._run_module(build_module_args(rules=[DESIRED_RULE_0]))
 
         assert result["changed"] is True
         self.rule_at_pos.put.assert_called_once()
@@ -683,7 +683,7 @@ class TestProxmoxClusterFirewallSecurityGroupModule(ModuleTestCase):
             [updated_rule],  # final fetch
         ]
 
-        result = self._run_module(build_module_args(rules=[{**DESIRED_RULE_0, "action": "DROP"}]))
+        result = self._run_module(build_module_args(rules=[{**DESIRED_RULE_0, "action": "DROP"}], purge_omitted_rule_fields=False))
 
         assert result["changed"] is True
         self.rule_at_pos.put.assert_called_once()
