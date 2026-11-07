@@ -1104,6 +1104,14 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
                 # Wait an extra second as the API can be a ahead of the hypervisor
                 time.sleep(1)
                 return True
+            if self.api_task_failed(node, taskid):
+                # The task has already stopped with an error, so waiting longer will not help
+                task = self.proxmox_api.nodes(node).tasks(taskid)
+                exitstatus = task.status.get().get("exitstatus")
+                self.module.fail_json(
+                    msg=f"Task {taskid} on node {node} failed: {exitstatus}. Last line in task log: {task.log.get()[-1:]}"
+                )
+                return False
             timeout = timeout - 1
             if timeout == 0:
                 break
@@ -1420,7 +1428,7 @@ def main():  # noqa: PLR0912, PLR0915
 
         # Ensure the chosen VM id doesn't already exist when cloning
         if proxmox.get_vm(newid, ignore_missing=True):
-            module.exit_json(changed=False, vmid=vmid, msg=f"vmid {newid} with VM name {name} already exists")
+            module.exit_json(changed=False, vmid=newid, msg=f"vmid {newid} with VM name {name} already exists")
 
     if delete is not None:
         try:
