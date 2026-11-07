@@ -1104,6 +1104,14 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
                 # Wait an extra second as the API can be a ahead of the hypervisor
                 time.sleep(1)
                 return True
+            if self.api_task_failed(node, taskid):
+                # The task has already stopped with an error, so waiting longer will not help
+                task = self.proxmox_api.nodes(node).tasks(taskid)
+                exitstatus = task.status.get().get("exitstatus")
+                self.module.fail_json(
+                    msg=f"Task {taskid} on node {node} failed: {exitstatus}. Last line in task log: {task.log.get()[-1:]}"
+                )
+                return False
             timeout = timeout - 1
             if timeout == 0:
                 break

@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - "proxmox_kvm - fail as soon as a Proxmox VE task (for example a clone) stops with an error, instead of waiting until ``timeout`` and reporting a timeout (https://github.com/ansible-collections/community.proxmox/issues/540)."
