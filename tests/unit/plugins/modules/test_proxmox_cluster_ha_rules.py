@@ -331,6 +331,125 @@ class TestProxmoxClusterHARules(ModuleTestCase):
             },
         )
 
+    # new node-affinity rule with negative affinity
+    def test_create_ha_rule_node_negative_affinity(self):
+        self.mock_get.side_effect = [
+            [],  # first call to get does return an empty list (rule does not exist yet)
+            [{"rule": "my-rule"}],
+        ]
+
+        module_params = {
+            "affinity": "negative",
+            "comment": "My rule",
+            "name": "my-rule",
+            "nodes": ["pve03"],
+            "resources": ["vm:100", "vm:101"],
+            "state": "present",
+            "strict": True,
+            "type": "node-affinity",
+        }
+
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
+
+        result = exc_info.value.args[0]
+
+        assert result.get("changed") is True
+        assert self.mock_get.call_count == 2  # noqa: PLR2004
+        assert self.mock_put.call_count == 0
+        assert self.mock_delete.call_count == 0
+        self.mock_post.assert_called_once_with(
+            {
+                "affinity": "negative",
+                "comment": "My rule",
+                "nodes": "pve03",
+                "resources": "vm:100,vm:101",
+                "rule": "my-rule",
+                "strict": 1,
+                "type": "node-affinity",
+            }
+        )
+
+    # existing positive node-affinity rule is switched to negative affinity
+    def test_update_ha_rule_node_affinity_to_negative(self):
+        self.mock_get.side_effect = [
+            [
+                {
+                    "affinity": "positive",
+                    "comment": "My rule",
+                    "nodes": "pve03",
+                    "resources": "vm:100,vm:101",
+                    "rule": "my-rule",
+                    "type": "node-affinity",
+                }
+            ]
+        ]
+
+        module_params = {
+            "affinity": "negative",
+            "comment": "My rule",
+            "name": "my-rule",
+            "nodes": ["pve03"],
+            "resources": ["vm:100", "vm:101"],
+            "state": "present",
+            "type": "node-affinity",
+        }
+
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
+
+        result = exc_info.value.args[0]
+
+        assert result.get("changed") is True
+        assert result.get("rule", {}).get("affinity") == "negative"
+        assert self.mock_post.call_count == 0
+        assert self.mock_delete.call_count == 0
+        self.mock_put.assert_called_once_with(
+            "my-rule",
+            {
+                "affinity": "negative",
+                "comment": "My rule",
+                "nodes": "pve03",
+                "resources": "vm:100,vm:101",
+                "rule": "my-rule",
+                "type": "node-affinity",
+            },
+        )
+
+    # affinity omitted on an existing node-affinity rule keeps it unchanged
+    def test_update_ha_rule_node_affinity_omitted_no_change(self):
+        self.mock_get.side_effect = [
+            [
+                {
+                    "affinity": "negative",
+                    "comment": "My rule",
+                    "nodes": "pve03",
+                    "resources": "vm:100,vm:101",
+                    "rule": "my-rule",
+                    "type": "node-affinity",
+                }
+            ]
+        ]
+
+        module_params = {
+            "comment": "My rule",
+            "name": "my-rule",
+            "nodes": ["pve03"],
+            "resources": ["vm:100", "vm:101"],
+            "state": "present",
+            "type": "node-affinity",
+        }
+
+        with set_module_args(self.build_module_params(module_params)), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_cluster_ha_rules.main()
+
+        result = exc_info.value.args[0]
+
+        assert result.get("changed") is False
+        assert self.mock_post.call_count == 0
+        assert self.mock_put.call_count == 0
+        assert self.mock_delete.call_count == 0
+
     def test_update_ha_rule_no_change(self):
         self.mock_get.side_effect = [
             [
