@@ -1428,7 +1428,7 @@ def main():  # noqa: PLR0912, PLR0915
 
         # Ensure the chosen VM id doesn't already exist when cloning
         if proxmox.get_vm(newid, ignore_missing=True):
-            module.exit_json(changed=False, vmid=vmid, msg=f"vmid {newid} with VM name {name} already exists")
+            module.exit_json(changed=False, vmid=newid, msg=f"vmid {newid} with VM name {name} already exists")
 
     if delete is not None:
         try:
