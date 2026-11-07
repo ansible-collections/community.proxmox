@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - "proxmox - with ``state=stopped`` and ``force=true``, unmount a mounted container on its Proxmox VE node instead of passing the container hostname as the node name, and do not try to shut down the container after unmounting it (https://github.com/ansible-collections/community.proxmox/pull/552)."
