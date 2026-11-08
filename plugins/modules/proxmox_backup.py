@@ -209,6 +209,7 @@ from ansible.module_utils.common.text.converters import to_native
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    task_exitstatus_ok,
 )
 
 
@@ -380,7 +381,7 @@ class ProxmoxBackupAnsible(ProxmoxAnsible):
                         # proxmox.api_task_ok does not suffice, since it only
                         # is true at `stopped` and `ok`
                         status = self._get_taskok(node["node"], node["upid"])
-                        if status["status"] == "stopped" and status["exitstatus"] == "OK":
+                        if status["status"] == "stopped" and task_exitstatus_ok(status.get("exitstatus")):
                             node["status"] = "success"
                         if status["status"] == "stopped" and status["exitstatus"] == "job errors":
                             node["status"] = "failed"
