@@ -1329,9 +1329,14 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         try:
             proxmox_node = self.proxmox_api.nodes(vm["node"])
             if proxmox_node.qemu(vmid).status.current.get()["status"] == "running" and force:
-                self.stop_instance(vm, vmid, timeout, force)
-            # not sure why, but templating a container doesn't return a taskid
-            proxmox_node.qemu(vmid).template.post()
+                self.stop_vm(vm, force=force, timeout=timeout)
+            taskid = proxmox_node.qemu(vmid).template.post()
+            # Older Proxmox VE releases convert the VM synchronously and return no task ID
+            if taskid and not self.wait_for_task(vm["node"], taskid):
+                self.module.fail_json(
+                    msg=f"Reached timeout while converting VM to template. Last line in task: {proxmox_node.tasks(taskid).log.get()[:1]}"
+                )
+                return False
             return True
         except Exception as e:
             self.module.fail_json(vmid=vmid, msg=f"conversion of VM {vmid} to template failed with exception: {e}")

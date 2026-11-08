@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_kvm - wait for the template conversion task to finish for ``state=template``, so that the next task does not see a VM that is still being converted, and stop a running VM with ``force=true`` instead of failing with ``'ProxmoxKvmAnsible' object has no attribute 'stop_instance'`` (https://github.com/ansible-collections/community.proxmox/issues/410).

@@ -198,3 +198,59 @@ def test_wait_for_task_returns_true_when_the_task_succeeds(mock_sleep):
 
     assert kvm.wait_for_task("pve", "UPID:pve:1") is True
     kvm.module.fail_json.assert_not_called()
+
+
+def _kvm_for_template(vm_status):
+    kvm = proxmox_kvm.ProxmoxKvmAnsible.__new__(proxmox_kvm.ProxmoxKvmAnsible)
+    kvm.module = MagicMock()
+    kvm.module.params = {"timeout": 30, "state": "template"}
+    kvm.proxmox_api = MagicMock()
+    qemu = kvm.proxmox_api.nodes.return_value.qemu.return_value
+    qemu.status.current.get.return_value = {"status": vm_status}
+    return kvm, qemu
+
+
+def test_convert_to_template_waits_for_the_task():
+    kvm, qemu = _kvm_for_template("stopped")
+    qemu.template.post.return_value = "UPID:pve:template"
+
+    with patch.object(kvm, "wait_for_task", return_value=True) as wait_for_task:
+        assert kvm.convert_to_template({"vmid": 100, "node": "pve"}, timeout=30, force=False) is True
+
+    wait_for_task.assert_called_once_with("pve", "UPID:pve:template")
+    kvm.module.fail_json.assert_not_called()
+
+
+def test_convert_to_template_fails_when_the_task_does_not_finish():
+    kvm, qemu = _kvm_for_template("stopped")
+    qemu.template.post.return_value = "UPID:pve:template"
+    kvm.module.fail_json.side_effect = SystemExit
+
+    with patch.object(kvm, "wait_for_task", return_value=False), pytest.raises(SystemExit):
+        kvm.convert_to_template({"vmid": 100, "node": "pve"}, timeout=30, force=False)
+
+    assert "converting VM to template" in kvm.module.fail_json.call_args.kwargs["msg"]
+
+
+def test_convert_to_template_without_task_id():
+    kvm, qemu = _kvm_for_template("stopped")
+    qemu.template.post.return_value = None
+
+    with patch.object(kvm, "wait_for_task") as wait_for_task:
+        assert kvm.convert_to_template({"vmid": 100, "node": "pve"}, timeout=30, force=False) is True
+
+    wait_for_task.assert_not_called()
+
+
+def test_convert_to_template_stops_a_running_vm_when_forced():
+    kvm, qemu = _kvm_for_template("running")
+    qemu.template.post.return_value = "UPID:pve:template"
+    vm = {"vmid": 100, "node": "pve"}
+
+    with patch.object(kvm, "stop_vm", return_value=True) as stop_vm, patch.object(
+        kvm, "wait_for_task", return_value=True
+    ):
+        assert kvm.convert_to_template(vm, timeout=30, force=True) is True
+
+    stop_vm.assert_called_once_with(vm, force=True, timeout=30)
+    kvm.module.fail_json.assert_not_called()
