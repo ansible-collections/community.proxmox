@@ -141,6 +141,15 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
         vms = [vm for vm in vmInfo if vm["name"] == vmname]
         return vms[0]["vmid"]
 
+    def get_job_vmids(self, backup_job_info):
+        """Return the vmids of a job that selects guests by vmid, fail for jobs that select all guests or a pool."""
+        if "vmid" not in backup_job_info:
+            self.module.fail_json(
+                msg=f"Backup job {backup_job_info['id']} does not select guests by vmid (it uses all or pool), "
+                "so a vmid cannot be added to or removed from it."
+            )
+        return backup_job_info["vmid"].split(",")
+
     def ensure_backup_present(self, vm_id, backup_id):
         """Add vmid to backup job."""
         backup_job_info = self.get_backup_job_info(backup_id)
@@ -148,7 +157,7 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
         """If backup_job_info is a list, get the first item (assuming there's only one backup job returned)."""
         if isinstance(backup_job_info, list):
             backup_job_info = backup_job_info[0]
-        vmids = backup_job_info["vmid"].split(",")
+        vmids = self.get_job_vmids(backup_job_info)
         if str(vm_id) not in vmids:
             updated_backup_vmids = backup_job_info["vmid"] + "," + str(vm_id)
             self.update_backup_job_vmid(backup_id, updated_backup_vmids)
@@ -162,7 +171,7 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
             backup_job_info = self.get_backup_job_info(backup_id)
             if isinstance(backup_job_info, list):
                 backup_job_info = backup_job_info[0]
-            vmids = backup_job_info["vmid"].split(",")
+            vmids = self.get_job_vmids(backup_job_info)
             if str(vm_id) in vmids:
                 if len(vmids) > 1:
                     vmids.remove(str(vm_id))
@@ -178,6 +187,9 @@ class ProxmoxSetVMBackupAnsible(ProxmoxAnsible):
             list_backup_jobs_vm_deleted = []
             list_backups = self.list_backup_schedules()
             for backup_job in list_backups:
+                # Jobs that back up all guests or a pool have no vmid list to remove the guest from
+                if "vmid" not in backup_job:
+                    continue
                 vmids = list(backup_job["vmid"].split(","))
                 if str(vm_id) in vmids:
                     if len(vmids) > 1:
