@@ -343,7 +343,7 @@ def main():  # noqa: PLR0912, PLR0915
 
             if proxmox.snapshot_create(vm, vmid, timeout, snapname, description, vmstate, unbind, retention):
                 if module.check_mode:
-                    module.exit_json(changed=False, msg=f"Snapshot {snapname} would be created")
+                    module.exit_json(changed=True, msg=f"Snapshot {snapname} would be created")
                 else:
                     module.exit_json(changed=True, msg=f"Snapshot {snapname} created")
 
@@ -363,7 +363,7 @@ def main():  # noqa: PLR0912, PLR0915
                 module.exit_json(changed=False, msg=f"Snapshot {snapname} does not exist")
             elif proxmox.snapshot_remove(vm, vmid, timeout, snapname, force):
                 if module.check_mode:
-                    module.exit_json(changed=False, msg=f"Snapshot {snapname} would be removed")
+                    module.exit_json(changed=True, msg=f"Snapshot {snapname} would be removed")
                 else:
                     module.exit_json(changed=True, msg=f"Snapshot {snapname} removed")
 
