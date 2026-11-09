@@ -5,6 +5,7 @@
 
 
 import os
+import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
@@ -12,6 +13,7 @@ import pytest
 proxmoxer = pytest.importorskip("proxmoxer")
 
 from ansible_collections.community.internal_test_tools.tests.unit.plugins.modules.utils import (
+    AnsibleExitJson,
     AnsibleFailJson,
     ModuleTestCase,
     set_module_args,
@@ -55,3 +57,68 @@ class TestProxmoxTemplateModule(ModuleTestCase):
         result = exc_info.value.args[0]
         assert result["failed"] is True
         assert "upload files larger than 256MB" in result["msg"]
+
+    def _upload(self, extra_args):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            src = os.path.join(tmp_dir, "local-build.iso")
+            with open(src, "wb") as f:
+                f.write(b"iso-content")
+            proxmox_api = Mock()
+            storage_api = proxmox_api.nodes.return_value.storage.return_value
+            storage_api.content.get.return_value = []
+            storage_api.upload.post.return_value = "UPID:pve:upload"
+            args = {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "src": src,
+                "content_type": "iso",
+            }
+            args.update(extra_args)
+            with patch.object(self.module.ProxmoxTemplateAnsible, "_connect", return_value=proxmox_api), patch.object(
+                self.module.ProxmoxTemplateAnsible, "task_status", return_value=True
+            ), set_module_args(args), pytest.raises(AnsibleExitJson) as exc_info:
+                self.module.main()
+
+            upload = storage_api.upload.post.call_args[1]["filename"]
+            try:
+                assert upload.read() == b"iso-content"
+                # proxmoxer sends the base name of `name` as the multipart file name
+                # (requests.utils.guess_filename), and Proxmox VE stores the upload under it.
+                return exc_info.value.args[0], os.path.basename(upload.name)
+            finally:
+                upload.close()
+
+    def test_upload_stores_file_under_template_name(self):
+        result, upload_name = self._upload({"template": "debian-13.iso"})
+
+        assert upload_name == "debian-13.iso"
+        assert result["changed"] is True
+        assert result["msg"] == "template with volid=local:iso/debian-13.iso uploaded"
+
+    def test_upload_defaults_to_src_file_name(self):
+        result, upload_name = self._upload({})
+
+        assert upload_name == "local-build.iso"
+        assert result["msg"] == "template with volid=local:iso/local-build.iso uploaded"
+
+    def test_upload_skips_existing_template_name(self):
+        proxmox_api = Mock()
+        storage_api = proxmox_api.nodes.return_value.storage.return_value
+        storage_api.content.get.return_value = [{"volid": "local:iso/debian-13.iso"}]
+        with patch.object(self.module.ProxmoxTemplateAnsible, "_connect", return_value=proxmox_api), set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "node": "pve",
+                "src": "/tmp/local-build.iso",
+                "template": "debian-13.iso",
+                "content_type": "iso",
+            }
+        ), pytest.raises(AnsibleExitJson) as exc_info:
+            self.module.main()
+
+        assert exc_info.value.args[0]["changed"] is False
+        storage_api.upload.post.assert_not_called()
