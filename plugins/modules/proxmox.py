@@ -614,6 +614,21 @@ from ansible_collections.community.proxmox.plugins.module_utils.version import L
 _LIST_FIELDS = {"tags": ";"}
 
 
+def keep_current_hwaddr(requested, current):
+    """Add the current MAC address to a netX value that does not set one.
+
+    PVE generates a new MAC address whenever a netX value without hwaddr is sent.
+    """
+    if not isinstance(requested, str) or not current:
+        return requested
+    if any(part.startswith("hwaddr=") for part in requested.split(",")):
+        return requested
+    for part in current.split(","):
+        if part.startswith("hwaddr="):
+            return f"{requested},{part}"
+    return requested
+
+
 def module_args():
     return dict(
         vmid=dict(type="int", required=False),
@@ -1051,8 +1066,8 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
 
         if "cpus" in kwargs:
             kwargs["cpulimit"] = kwargs.pop("cpus")
-        if "netif" in kwargs:
-            kwargs.update(kwargs.pop("netif"))
+        netif = kwargs.pop("netif", {})
+        kwargs.update(netif)
 
         if "pubkey" in kwargs:
             pubkey = kwargs.pop("pubkey")
@@ -1064,6 +1079,9 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
         # fetch current config
         proxmox_node = self.proxmox_api.nodes(node)
         current_config = getattr(proxmox_node, self.VZ_TYPE)(vmid).config.get()
+
+        for key in netif:
+            kwargs[key] = keep_current_hwaddr(kwargs[key], current_config.get(key))
 
         # create diff between the current and requested config
         diff = {}
