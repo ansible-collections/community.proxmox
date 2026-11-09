@@ -9,7 +9,6 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
-import requests
 
 proxmoxer = pytest.importorskip("proxmoxer")
 
@@ -85,8 +84,9 @@ class TestProxmoxTemplateModule(ModuleTestCase):
             upload = storage_api.upload.post.call_args.kwargs["filename"]
             try:
                 assert upload.read() == b"iso-content"
-                # proxmoxer sends this as the multipart file name, and Proxmox VE stores the upload under it.
-                return exc_info.value.args[0], requests.utils.guess_filename(upload)
+                # proxmoxer sends the base name of `name` as the multipart file name
+                # (requests.utils.guess_filename), and Proxmox VE stores the upload under it.
+                return exc_info.value.args[0], os.path.basename(upload.name)
             finally:
                 upload.close()
 
