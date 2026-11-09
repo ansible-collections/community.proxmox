@@ -97,6 +97,26 @@ TEST_SCENARIOS = [
     },
     {
         "args": {
+            "name": "drbd-storage",
+            "type": "drbd",
+            "content": ["images", "rootdir"],
+            "drbd_options": {
+                "resourcegroup": "pve-rg",
+                "controller": "10.0.0.1,10.0.0.2",
+                "preferlocal": "yes",
+            },
+        },
+        "expected_payload": {
+            "storage": "drbd-storage",
+            "type": "drbd",
+            "content": "images,rootdir",
+            "resourcegroup": "pve-rg",
+            "controller": "10.0.0.1,10.0.0.2",
+            "preferlocal": "yes",
+        },
+    },
+    {
+        "args": {
             "name": "iscsi-storage",
             "type": "iscsi",
             "nodes": ["pve01", "pve02"],
