@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-from unittest.mock import DEFAULT, patch
+from unittest.mock import DEFAULT, MagicMock, patch
 
 import pytest
 
@@ -128,6 +128,30 @@ class TestProxmoxKvmModule(ModuleTestCase):
         assert result["changed"] is True
         assert result["msg"] == "VM existing.vm.local with vmid 101 deployed"
 
+    def test_clone_returns_newid_when_target_vmid_already_exists(self):
+        template_vmid = 100
+        clone_vmid = 200
+        with set_module_args(
+            {
+                "api_host": "host",
+                "api_user": "user",
+                "api_password": "password",
+                "clone": "template.local",
+                "name": "clone.local",
+                "newid": clone_vmid,
+                "node": "pve",
+            }
+        ), patch.object(proxmox_utils.ProxmoxAnsible, "get_vmid") as get_vmid_mock:
+            get_vmid_mock.return_value = template_vmid
+            self.get_vm_mock.return_value = {"vmid": clone_vmid, "name": "clone.local"}
+            with pytest.raises(AnsibleExitJson) as exc_info:
+                self.module.main()
+
+        get_vmid_mock.assert_called_once_with("template.local", ignore_missing=True)
+        result = exc_info.value.args[0]
+        assert result["changed"] is False
+        assert result["vmid"] == clone_vmid
+
     def test_parse_mac(self):
         assert proxmox_kvm.parse_mac("virtio=00:11:22:AA:BB:CC,bridge=vmbr0,firewall=1") == "00:11:22:AA:BB:CC"
 
@@ -135,3 +159,42 @@ class TestProxmoxKvmModule(ModuleTestCase):
         assert proxmox_kvm.parse_dev("local-lvm:vm-1000-disk-0,format=qcow2") == "local-lvm:vm-1000-disk-0"
         assert proxmox_kvm.parse_dev("local-lvm:vm-101-disk-1,size=8G") == "local-lvm:vm-101-disk-1"
         assert proxmox_kvm.parse_dev("local-zfs:vm-1001-disk-0") == "local-zfs:vm-1001-disk-0"
+
+
+@patch.object(proxmox_kvm.time, "sleep")
+def test_wait_for_task_fails_as_soon_as_the_task_fails(mock_sleep):
+    """A task that already stopped with an error must not be waited on until the timeout."""
+    kvm = proxmox_kvm.ProxmoxKvmAnsible.__new__(proxmox_kvm.ProxmoxKvmAnsible)
+    kvm.module = MagicMock()
+    kvm.module.params = {"timeout": 300, "state": "present"}
+    kvm.module.fail_json.side_effect = SystemExit
+    kvm.proxmox_api = MagicMock()
+    task = kvm.proxmox_api.nodes.return_value.tasks.return_value
+    task.status.get.return_value = {"status": "stopped", "exitstatus": "clone failed: disk is locked"}
+    task.log.get.return_value = [{"n": 1, "t": "create full clone of drive scsi0"}, {"n": 2, "t": "TASK ERROR"}]
+
+    with pytest.raises(SystemExit):
+        kvm.wait_for_task("pve", "UPID:pve:1")
+
+    mock_sleep.assert_not_called()
+    kvm.module.fail_json.assert_called_once_with(
+        msg="Task UPID:pve:1 on node pve failed: clone failed: disk is locked. "
+        "Last line in task log: [{'n': 2, 't': 'TASK ERROR'}]"
+    )
+
+
+@patch.object(proxmox_kvm.time, "sleep")
+def test_wait_for_task_returns_true_when_the_task_succeeds(mock_sleep):
+    kvm = proxmox_kvm.ProxmoxKvmAnsible.__new__(proxmox_kvm.ProxmoxKvmAnsible)
+    kvm.module = MagicMock()
+    kvm.module.params = {"timeout": 300, "state": "present"}
+    kvm.proxmox_api = MagicMock()
+    task = kvm.proxmox_api.nodes.return_value.tasks.return_value
+    task.status.get.side_effect = [
+        {"status": "running"},
+        {"status": "running"},
+        {"status": "stopped", "exitstatus": "OK"},
+    ]
+
+    assert kvm.wait_for_task("pve", "UPID:pve:1") is True
+    kvm.module.fail_json.assert_not_called()

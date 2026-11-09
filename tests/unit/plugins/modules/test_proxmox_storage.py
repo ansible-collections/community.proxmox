@@ -547,6 +547,20 @@ class TestProxmoxStorageModule(ModuleTestCase):
         assert "updated successfully" in result["msg"]
         self.mock_api_storage.return_value.put.assert_called_once_with(nodes="pve01,pve02", digest="mock")
 
+    def test_update_storage_unordered_lists(self):
+        self.mock_api_storage.get.return_value = {
+            **TEST_SCENARIOS[0]["expected_payload"],
+            "nodes": "pve02,pve01",
+            "content": "rootdir,images",
+            "digest": "mock",
+        }
+
+        result = self._run_module(build_module_args(update=True, **TEST_SCENARIOS[0]["args"]))
+
+        assert result["changed"] is False
+        assert "already present" in result["msg"]
+        assert not self.mock_api_storage.return_value.put.called
+
     def test_update_storage_delete(self):
         self.mock_api_storage.get.return_value = {
             "storage": "lvm-storage",

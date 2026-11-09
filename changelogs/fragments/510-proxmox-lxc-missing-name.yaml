@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - "proxmox - do not fail with ``KeyError: 'name'`` when the ``/cluster/resources`` entry of a container has no ``name`` yet, which happens for containers created in the last Proxmox VE stats cycle (https://github.com/ansible-collections/community.proxmox/issues/510, https://github.com/ansible-collections/community.proxmox/pull/551)."

@@ -653,3 +653,177 @@ def test_connect_error_message_does_not_leak_options(mock_ssh, connection):
     assert "root@192.168.1.100:22" in message
     assert "To connect as a different user" in message
     assert "password" not in message
+
+
+NOTHING_TO_TRY = "No authentication methods available"
+
+
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [
+        ({}, {"password": "password", "allow_agent": False, "key_filename": None, "look_for_keys": True}),
+        ({"password": None}, {"password": None, "allow_agent": True, "key_filename": None, "look_for_keys": True}),
+        (
+            {"password": None, "private_key_file": "/keys/id", "look_for_keys": False},
+            {"password": None, "allow_agent": True, "key_filename": "/keys/id", "look_for_keys": False},
+        ),
+    ],
+    ids=["password", "nothing", "key file"],
+)
+@patch("paramiko.SSHClient")
+def test_connect_auth_arguments(mock_ssh, connection, options, expected):
+    """Test the authentication arguments given to paramiko, which decide what it has to try."""
+    for option, value in options.items():
+        connection.set_option(option, value)
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+
+    connection._connect()
+
+    mock_client.connect.assert_called_once_with(
+        "192.168.1.100",
+        username="root",
+        timeout=10,
+        port=22,
+        disabled_algorithms={},
+        auth_timeout=10,
+        banner_timeout=30,
+        **expected,
+    )
+
+
+@pytest.mark.parametrize(
+    ("policy", "nothing_to_try"),
+    [(paramiko.MissingHostKeyPolicy, True), (paramiko.RejectPolicy, False)],
+    ids=["host key accepted", "host key rejected"],
+)
+def test_paramiko_reports_nothing_to_try_after_the_host_key(policy, nothing_to_try):
+    """Test the installed paramiko: its wording, and that an unaccepted host key comes first.
+
+    The none fallback acts on this message alone, so a paramiko that words it differently must fail here.
+    """
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(policy())
+
+    with patch("paramiko.client.Transport") as mock_transport, pytest.raises(paramiko.SSHException) as excinfo:
+        mock_transport.return_value.gss_kex_used = False  # paramiko before 5.0 skips the host key after a GSS exchange
+        mock_transport.return_value.get_remote_server_key.return_value.get_fingerprint.return_value = b"fingerprint"
+        client.connect("192.168.1.100", sock=MagicMock(), allow_agent=False, look_for_keys=False)
+
+    assert (str(excinfo.value) == NOTHING_TO_TRY) == nothing_to_try
+
+
+def _connect_gives_up(mock_ssh, error=NOTHING_TO_TRY):
+    """Make the mocked client fail to connect; its transport refuses the none method."""
+    transport = mock_ssh.return_value.get_transport.return_value
+    transport.auth_none.side_effect = paramiko.BadAuthenticationType("Bad authentication type", ["publickey"])
+    mock_ssh.return_value.connect.side_effect = paramiko.SSHException(error) if isinstance(error, str) else error
+    return transport
+
+
+@pytest.mark.parametrize(
+    ("remote_user", "username"), [("root", "root"), (None, "local-user")], ids=["remote user", "no remote user"]
+)
+@patch("getpass.getuser", return_value="local-user")
+@patch("ansible_collections.community.proxmox.plugins.connection.proxmox_pct_remote.display")
+@patch("paramiko.SSHClient")
+def test_connect_asks_for_none_with_nothing_to_try(  # noqa: PLR0913
+    mock_ssh, mock_display, mock_getuser, connection, remote_user, username
+):
+    """Test that the none method is requested, as the user paramiko would use, when paramiko had nothing to try."""
+    connection.set_option("password", None)
+    connection.set_option("remote_user", remote_user)
+    transport = _connect_gives_up(mock_ssh)
+    transport.auth_none.side_effect = None
+    transport.auth_none.return_value = []
+
+    connection._connect()
+
+    transport.auth_none.assert_called_once_with(username)
+    mock_display.vvv.assert_called_with("NOTHING TO OFFER, ASKING FOR SSH NONE AUTHENTICATION", host="192.168.1.100")
+    assert connection._connected
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        paramiko.SSHException("No existing session"),
+        paramiko.SSHException("Invalid key"),
+        paramiko.SSHException(f"{NOTHING_TO_TRY} for this key"),
+        paramiko.SSHException(NOTHING_TO_TRY.lower()),
+        paramiko.AuthenticationException(NOTHING_TO_TRY),
+    ],
+    ids=["key exchange unfinished", "unusable key", "message and more", "message in lower case", "credential refused"],
+)
+@patch("paramiko.SSHClient")
+def test_connect_never_asks_for_none_otherwise(mock_ssh, connection, error):
+    """Test that the none method is not requested when paramiko failed for any other reason."""
+    connection.set_option("password", None)
+    transport = _connect_gives_up(mock_ssh, error)
+    refused = isinstance(error, paramiko.AuthenticationException)
+
+    with pytest.raises(AnsibleConnectionFailure, match=str(error)) as excinfo:
+        connection._connect()
+
+    assert isinstance(excinfo.value, AnsibleAuthenticationFailure) == refused
+    assert not transport.auth_none.called
+
+
+@pytest.mark.parametrize(
+    "refusal",
+    [
+        paramiko.BadAuthenticationType("Bad authentication type", ["publickey"]),
+        paramiko.AuthenticationException("Authentication failed: transport shut down or saw EOF"),
+    ],
+    ids=["method not allowed", "connection closed"],
+)
+@patch("paramiko.SSHClient")
+def test_connect_none_refused(mock_ssh, connection, refusal):
+    """Test that a server refusing the none method is an authentication failure that keeps paramiko's message."""
+    connection.set_option("password", None)
+    transport = _connect_gives_up(mock_ssh)
+    transport.auth_none.side_effect = refusal
+
+    with pytest.raises(AnsibleAuthenticationFailure) as excinfo:
+        connection._connect()
+
+    assert excinfo.value.args[0].endswith(
+        f"{NOTHING_TO_TRY}; the server did not accept the SSH none method either: {refusal}"
+    )
+
+
+@patch("paramiko.SSHClient")
+def test_connect_none_accepted_but_not_enough(mock_ssh, connection):
+    """Test that a server accepting the none method and asking for more is reported as that."""
+    connection.set_option("password", None)
+    transport = _connect_gives_up(mock_ssh)
+    transport.auth_none.side_effect = None
+    transport.auth_none.return_value = ["publickey", "pass\x1b[2Jword"]
+
+    with pytest.raises(AnsibleAuthenticationFailure) as excinfo:
+        connection._connect()
+
+    assert excinfo.value.args[0].endswith(
+        f"{NOTHING_TO_TRY}; the server accepted the SSH none method and asks for more: "
+        r"['publickey', 'pass\x1b[2Jword']"
+    )
+    assert not connection._connected
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [OSError("Connection reset by peer"), paramiko.SSHException("No existing session")],
+    ids=["socket error", "session gone"],
+)
+@patch("paramiko.SSHClient")
+def test_connect_none_request_fails(mock_ssh, connection, failure):
+    """Test that another failure of the none request is a connection failure that keeps paramiko's message."""
+    connection.set_option("password", None)
+    transport = _connect_gives_up(mock_ssh)
+    transport.auth_none.side_effect = failure
+
+    with pytest.raises(AnsibleConnectionFailure) as excinfo:
+        connection._connect()
+
+    assert not isinstance(excinfo.value, AnsibleAuthenticationFailure)
+    assert excinfo.value.args[0] == f"{NOTHING_TO_TRY}; asking for the SSH none method failed: {failure}"

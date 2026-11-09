@@ -654,3 +654,44 @@ class TestProxmoxVmInfoModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["proxmox_vms"] == expected_output
+
+    def test_network_returned_without_config_for_running_qemu_vm(self):
+        network_value = [{"name": "eth0", "hardware-address": "4e:79:9f:a8:ee:e4"}]
+        qemu_getter = self.connect_mock.return_value.nodes.return_value.qemu.return_value
+        qemu_getter.agent.return_value.get.return_value = {"result": network_value}
+
+        with pytest.raises(AnsibleExitJson) as exc_info:
+            vmid = 100
+            with set_module_args({**get_module_args(resource_type="qemu", vmid=vmid), "network": True}):
+                self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result["proxmox_vms"][0]["network"] == network_value
+        assert "config" not in result["proxmox_vms"][0]
+        qemu_getter.agent.assert_called_with("network-get-interfaces")
+
+    def test_network_returned_without_config_for_running_lxc_vm(self):
+        network_value = [{"name": "eth0", "hwaddr": "4e:79:9f:a8:ee:e5", "inet": "192.168.1.10/24"}]
+        lxc_getter = self.connect_mock.return_value.nodes.return_value.lxc.return_value
+        lxc_getter.interfaces.get.return_value = network_value
+
+        with pytest.raises(AnsibleExitJson) as exc_info:
+            vmid = 102
+            with set_module_args({**get_module_args(resource_type="lxc", vmid=vmid), "network": True}):
+                self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result["proxmox_vms"][0]["network"] == network_value
+        assert "config" not in result["proxmox_vms"][0]
+
+    def test_network_skipped_for_stopped_vm(self):
+        qemu_getter = self.connect_mock.return_value.nodes.return_value.qemu.return_value
+
+        with pytest.raises(AnsibleExitJson) as exc_info:
+            vmid = 101
+            with set_module_args({**get_module_args(resource_type="qemu", vmid=vmid), "network": True}):
+                self.module.main()
+
+        result = exc_info.value.args[0]
+        assert "network" not in result["proxmox_vms"][0]
+        qemu_getter.agent.assert_not_called()
