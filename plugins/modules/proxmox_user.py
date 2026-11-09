@@ -225,13 +225,8 @@ class ProxmoxUserAnsible(ProxmoxAnsible):
             if new_value is not None and existing_user.get(field, default) != new_value:
                 return True
 
-        # Check groups (API returns list, we send comma-separated string)
-        if groups is not None:
-            existing_groups_str = ",".join(existing_user.get("groups", []))
-            if existing_groups_str != groups:
-                return True
-
-        return False
+        # Check groups (API returns list, we send comma-separated string), the order does not matter
+        return groups is not None and set(existing_user.get("groups") or []) != set(groups.split(","))
 
     def _tokens_need_update(self, existing_tokens, new_tokens):
         """Check if tokens need updating by comparing current vs desired state"""
