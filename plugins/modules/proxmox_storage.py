@@ -711,6 +711,9 @@ PROXMOX_FIELD_TRANSLATIONS = {
 }
 
 
+# The API returns these comma-separated lists in its own order, not sorted
+PROXMOX_FIELD_UNORDERED_LISTS = ["content", "nodes"]
+
 PROXMOX_FIELD_READONLY = [
     "type",
     "base",
@@ -973,11 +976,16 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
 
         return storage_params
 
+    def _comparable_value(self, param, value):
+        if param in PROXMOX_FIELD_UNORDERED_LISTS and isinstance(value, str):
+            return ",".join(sorted(value.split(",")))
+        return value
+
     def _update_storage_params(self, current_storage, desired_storage):
         update = {
             param: desired_value
             for param, desired_value in desired_storage.items()
-            if desired_value != current_storage.get(param)
+            if desired_value != self._comparable_value(param, current_storage.get(param))
         }
         deletable_params = [
             PROXMOX_FIELD_TRANSLATIONS.get(key, key)
