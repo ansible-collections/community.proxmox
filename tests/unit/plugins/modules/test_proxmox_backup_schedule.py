@@ -166,6 +166,24 @@ BACKUP_JOBS = [
         "storage": "local",
         "id": "backup-003",
     },
+    {
+        "schedule": "sun 01:00",
+        "mode": "snapshot",
+        "type": "vzdump",
+        "enabled": 1,
+        "all": 1,
+        "storage": "local",
+        "id": "backup-all",
+    },
+    {
+        "schedule": "sun 02:00",
+        "mode": "snapshot",
+        "type": "vzdump",
+        "enabled": 1,
+        "pool": "production",
+        "storage": "local",
+        "id": "backup-pool",
+    },
 ]
 
 
@@ -302,3 +320,52 @@ class TestProxmoxBackupScheduleModule(ModuleTestCase):
 
         result = exc_info.value.args[0]
         assert result["msg"] == "No more than one vmid is assigned to backup-003. You just can remove job."
+
+    def test_delete_vmid_skips_jobs_without_vmid_list(self):
+        with pytest.raises(AnsibleExitJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 103,
+                "state": "absent",
+            }
+        ):
+            self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is True
+        self.connect_mock.return_value.cluster.backup.put.assert_called_once_with("backup-002", vmid="101,102")
+
+    def test_fail_when_adding_vmid_to_job_that_backs_up_all_guests(self):
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 105,
+                "backup_id": "backup-all",
+                "state": "present",
+            }
+        ):
+            self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result["msg"].startswith("Backup job backup-all does not select guests by vmid")
+        self.connect_mock.return_value.cluster.backup.put.assert_not_called()
+
+    def test_fail_when_removing_vmid_from_pool_job(self):
+        with pytest.raises(AnsibleFailJson) as exc_info, set_module_args(
+            {
+                "api_host": "proxmoxhost",
+                "api_user": "root@pam",
+                "api_password": "supersecret",
+                "vm_id": 105,
+                "backup_id": "backup-pool",
+                "state": "absent",
+            }
+        ):
+            self.module.main()
+
+        result = exc_info.value.args[0]
+        assert result["msg"].startswith("Backup job backup-pool does not select guests by vmid")
