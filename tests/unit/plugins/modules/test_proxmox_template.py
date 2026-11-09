@@ -81,7 +81,7 @@ class TestProxmoxTemplateModule(ModuleTestCase):
             ), set_module_args(args), pytest.raises(AnsibleExitJson) as exc_info:
                 self.module.main()
 
-            upload = storage_api.upload.post.call_args.kwargs["filename"]
+            upload = storage_api.upload.post.call_args[1]["filename"]
             try:
                 assert upload.read() == b"iso-content"
                 # proxmoxer sends the base name of `name` as the multipart file name
