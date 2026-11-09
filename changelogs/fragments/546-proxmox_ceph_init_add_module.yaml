@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_ceph_init - add a module to initialize a Ceph cluster through the PVE API.
