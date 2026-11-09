@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_snap - report ``changed=true`` in check mode when a snapshot would be created or removed, instead of ``changed=false`` with a "would be created" or "would be removed" message.
