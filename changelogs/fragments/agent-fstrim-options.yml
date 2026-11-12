@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_kvm - add ``agent_type``, ``agent_freeze_fs`` and ``agent_fstrim_cloned_disks`` options to control the QEMU Guest Agent. When used, defaults are ``type=virtio``, ``freeze-fs-on-backup=1`` and ``fstrim_cloned_disks=0``.
