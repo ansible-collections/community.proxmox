@@ -198,3 +198,19 @@ def test_wait_for_task_returns_true_when_the_task_succeeds(mock_sleep):
 
     assert kvm.wait_for_task("pve", "UPID:pve:1") is True
     kvm.module.fail_json.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("args", "expected"),
+    [
+        (("1", None, None, None), "1"),
+        ((None, None, None, None), None),
+        (("1", "isa", None, None), "enabled=1,type=isa,freeze-fs-on-backup=1,fstrim_cloned_disks=0"),
+        (("yes", None, False, True), "enabled=1,type=virtio,freeze-fs-on-backup=0,fstrim_cloned_disks=1"),
+        (("0", "isa", True, True), "0"),
+    ],
+)
+def test_build_agent_param(args, expected):
+    from ansible_collections.community.proxmox.plugins.modules.proxmox_kvm import build_agent_param
+
+    assert build_agent_param(*args) == expected
