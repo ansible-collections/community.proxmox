@@ -270,6 +270,8 @@ def test_present_does_not_remove_existing_container(lxc_ansible, params, update,
         pass
 
     lxc_ansible.remove_lxc_instance.assert_not_called()
+
+
 def test_lxc_stopped_force_unmounts_on_container_node(lxc_ansible):
     """A mounted container is unmounted on its node, and not shut down afterwards."""
     lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "name": "my-lxc", "node": "pve1"})
