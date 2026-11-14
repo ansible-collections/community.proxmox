@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox - with ``state=present``, ``force=true``, and ``ostemplate``, remove an existing container before the module creates it again. Before, the module failed with ``CT <vmid> already exists``, because Proxmox VE uses ``force`` only to restore a backup (https://github.com/ansible-collections/community.proxmox/issues/178, https://github.com/ansible-collections/community.proxmox/pull/545).
