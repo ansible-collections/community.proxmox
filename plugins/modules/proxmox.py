@@ -268,7 +268,7 @@ options:
     description:
       - Forcing operations.
       - Can be used only with states V(absent), V(present), V(stopped), and V(restarted).
-      - With O(state=present) and O(ostemplate), force option removes an existing container, also if it is running,
+      - With O(state=present) and O(ostemplate), force option removes an existing container, even if it is running,
         and creates it again. Proxmox VE also removes the ACLs, the pool membership, and the firewall configuration
         of the container.
       - With O(state=absent) force option will force stop the container before deletion.
@@ -600,6 +600,7 @@ EXAMPLES = r"""
     pubkey: 'ssh-ed25519 AAAAC3NzaC1...hBWA ansibleuser@ansiblehost'
 """
 
+import copy
 import re
 import time
 
@@ -900,6 +901,13 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 # Proxmox VE uses 'force' on create only to restore a backup over a container,
                 # so remove the container first.
                 self.check_ostemplate(vmid, node, ostemplate)
+                # Checks only: the removal changes what build_volume() reads, so the create builds the volumes again.
+                self.process_disk_keys(vmid, node, self.params.get("disk"), self.params.get("disk_volume"))
+                self.process_mount_keys(
+                    vmid, node, self.params.get("mounts"), copy.deepcopy(self.params.get("mount_volumes"))
+                )
+                self.process_device_keys(self.params.get("mount_devices"))
+                self.validate_tags(self.params.get("tags") or [])
                 self.remove_lxc_instance(
                     vmid,
                     node,

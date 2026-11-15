@@ -251,6 +251,68 @@ def test_present_force_keeps_container_when_ostemplate_is_missing(lxc_ansible):
 
 
 @pytest.mark.parametrize(
+    ("overrides", "error"),
+    [
+        ({"disk": "bad volume"}, ValueError),
+        ({"disk_volume": {"storage": "local-lvm", "volume": "vm-100-disk-9", "size": 8}}, SystemExit),
+        ({"mounts": {"mp0": "bad volume"}}, ValueError),
+        ({"mount_volumes": [{"id": "mp0", "mountpoint": "/mnt/data"}]}, ValueError),
+        ({"mount_devices": [{"id": "notadev", "path": "/dev/null"}]}, SystemExit),
+        ({"tags": ["bad!tag"]}, SystemExit),
+    ],
+)
+def test_present_force_keeps_container_when_input_is_invalid(lxc_ansible, overrides, error):
+    lxc_ansible.params = _present_params(**overrides)
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=True)
+    lxc_ansible.get_storage_content = MagicMock(return_value=[])
+    lxc_ansible.handle_api_timeout = MagicMock()
+    lxc_ansible.module.fail_json.side_effect = SystemExit
+
+    with pytest.raises(error):
+        lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    lxc_ansible.proxmox_api.nodes.return_value.lxc.delete.assert_not_called()
+
+
+def test_present_force_builds_volumes_again_after_removal(lxc_ansible):
+    lxc_ansible.params = _present_params(
+        disk_volume={"storage": "local-lvm", "size": 8},
+        mount_volumes=[{"id": "mp0", "host_path": "/srv/data", "mountpoint": "/mnt/data"}],
+    )
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=True)
+    lxc_ansible.handle_api_timeout = MagicMock()
+    lxc_ansible.module.exit_json.side_effect = SystemExit
+    lxc_api = lxc_ansible.proxmox_api.nodes.return_value.lxc
+
+    def get_config(_path):
+        if lxc_api.delete.called:
+            raise LookupError("Configuration file does not exist")
+        return {"rootfs": "local-lvm:vm-100-disk-0,size=8G"}
+
+    lxc_api.return_value.get.side_effect = get_config
+
+    with pytest.raises(SystemExit):
+        lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    assert lxc_api.create.call_args[1]["rootfs"] == "local-lvm:8"
+    assert lxc_api.create.call_args[1]["mp0"] == "/srv/data,mp=/mnt/data"
+
+
+def test_present_force_removes_container_on_requested_node(lxc_ansible):
+    lxc_ansible.params = _present_params()
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node2", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=True)
+    lxc_ansible.remove_lxc_instance = MagicMock()
+    lxc_ansible.new_lxc_instance = MagicMock()
+
+    lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    assert lxc_ansible.remove_lxc_instance.call_args[0] == (100, "node1")
+
+
+@pytest.mark.parametrize(
     ("params", "update", "force"),
     [
         (_present_params(), False, False),
