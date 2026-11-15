@@ -111,9 +111,10 @@ class TestProxmoxCluster(ModuleTestCase):
         self.fail_json_mock = self.fail_json_patcher.start()
         self.exit_json_patcher.start()
 
-        self.connect_mock = patch(
+        self.connect_patcher = patch(
             "ansible_collections.community.proxmox.plugins.module_utils.proxmox.ProxmoxAnsible._connect",
-        ).start()
+        )
+        self.connect_mock = self.connect_patcher.start()
 
         mock_obj = self.connect_mock.return_value
         mock_obj.cluster.config.post.return_value = CREATE_UPID
@@ -122,11 +123,13 @@ class TestProxmoxCluster(ModuleTestCase):
         self.task_status.return_value = TASK_OK
 
         self.sleep_patcher = patch.object(proxmox_cluster, "sleep")
-        self.sleep_patcher.start()
+        self.sleep_mock = self.sleep_patcher.start()
+        # No test polls this often, so more sleeps than this mean the wait ignores its deadline.
+        self.sleep_mock.side_effect = [None] * 5 + [AssertionError("the module waits past its deadline")]
 
     def tearDown(self):
         self.sleep_patcher.stop()
-        self.connect_mock.stop()
+        self.connect_patcher.stop()
         self.exit_json_patcher.stop()
         self.fail_json_patcher.stop()
         super().tearDown()
@@ -347,6 +350,64 @@ class TestProxmoxCluster(ModuleTestCase):
             f"Error while joining the cluster: task {JOIN_UPID} did not finish in 30 seconds. "
             "Last API error: 401 Unauthorized: Authentication failed!"
         )
+
+    def test_join_task_still_running_at_timeout(self):
+        self.connect_mock.return_value.cluster.status.get.return_value = SINGLE_NODE
+        self.task_status.return_value = TASK_RUNNING
+        with set_module_args({**JOIN_ARGS, "timeout": 30}), patch.object(
+            proxmox_cluster, "monotonic", side_effect=[0, 10, 40]
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert result["msg"] == f"Error while joining the cluster: task {JOIN_UPID} did not finish in 30 seconds."
+        assert self.task_status.call_count == 2  # noqa: PLR2004
+        self.sleep_mock.assert_called_once_with(1)
+
+    def test_join_timeout_reports_failed_reconnect(self):
+        api = self.connect_mock.return_value
+        api.cluster.status.get.return_value = SINGLE_NODE
+        self.task_status.side_effect = Exception("401 Unauthorized: Authentication failed!")
+        self.connect_mock.side_effect = [api, Exception("Couldn't authenticate user: root@pam")]
+        with set_module_args({**JOIN_ARGS, "timeout": 30}), patch.object(
+            proxmox_cluster, "monotonic", side_effect=[0, 40]
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert result["msg"] == (
+            f"Error while joining the cluster: task {JOIN_UPID} did not finish in 30 seconds. "
+            "Last API error: Couldn't authenticate user: root@pam"
+        )
+
+    def test_join_reads_task_status_with_new_login(self):
+        old_api = self.connect_mock.return_value
+        old_api.cluster.status.get.return_value = SINGLE_NODE
+        self.task_status.side_effect = Exception("401 Unauthorized: Authentication failed!")
+        new_api = MagicMock()
+        new_api.nodes.return_value.tasks.return_value.status.get.return_value = TASK_OK
+        self.connect_mock.side_effect = [old_api, new_api]
+        with set_module_args({**JOIN_ARGS, "timeout": 30}), patch.object(
+            proxmox_cluster, "monotonic", side_effect=[0, 10, 40]
+        ), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is True
+        assert self.task_status.call_count == 1
+        new_api.nodes.return_value.tasks.assert_called_once_with(JOIN_UPID)
+
+    def test_join_task_stopped_without_exitstatus(self):
+        self.connect_mock.return_value.cluster.status.get.return_value = SINGLE_NODE
+        self.task_status.return_value = {"status": "stopped"}
+        with set_module_args(JOIN_ARGS), pytest.raises(SystemExit) as exc_info:
+            proxmox_cluster.main()
+
+        result = exc_info.value.args[0]
+        assert result["failed"] is True
+        assert result["msg"] == "Error while joining the cluster: "
 
     def test_join_idempotent(self):
         mock_obj = self.connect_mock.return_value
