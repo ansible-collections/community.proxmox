@@ -268,7 +268,9 @@ options:
     description:
       - Forcing operations.
       - Can be used only with states V(absent), V(present), V(stopped), and V(restarted).
-      - With O(state=present) force option allow to overwrite existing container.
+      - With O(state=present) and O(ostemplate), force option removes an existing container, even if it is running,
+        and creates it again. Proxmox VE also removes the ACLs, the pool membership, and the firewall configuration
+        of the container.
       - With O(state=absent) force option will force stop the container before deletion.
       - With states V(stopped), V(restarted) allow to force stop instance.
       - When specifying O(force), O(update) must not be specified.
@@ -598,6 +600,7 @@ EXAMPLES = r"""
     pubkey: 'ssh-ed25519 AAAAC3NzaC1...hBWA ansibleuser@ansiblehost'
 """
 
+import copy
 import re
 import time
 
@@ -893,6 +896,26 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             self.module.debug(
                 f"VM {identifier} already exists, but we don't update and instead forcefully recreate it."
             )
+            ostemplate = self.params.get("ostemplate")
+            if ostemplate is not None:
+                # Proxmox VE uses 'force' on create only to restore a backup over a container,
+                # so remove the container first.
+                self.check_ostemplate(vmid, node, ostemplate)
+                # Checks only: the removal changes what build_volume() reads, so the create builds the volumes again.
+                self.process_disk_keys(vmid, node, self.params.get("disk"), self.params.get("disk_volume"))
+                self.process_mount_keys(
+                    vmid, node, self.params.get("mounts"), copy.deepcopy(self.params.get("mount_volumes"))
+                )
+                self.process_device_keys(self.params.get("mount_devices"))
+                self.validate_tags(self.params.get("tags") or [])
+                self.remove_lxc_instance(
+                    vmid,
+                    node,
+                    timeout=self.params.get("timeout"),
+                    purge=False,
+                    destroy_unreferenced_disks=False,
+                    force=True,
+                )
 
         self.new_lxc_instance(
             vmid,
@@ -1169,13 +1192,16 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             msg=f"VM {identifier} does not exist but neither clone nor ostemplate were specified!",
         )
 
-    def create_lxc_instance(self, vmid, node, ostemplate, timeout, **kwargs):
+    def check_ostemplate(self, vmid, node, ostemplate):
         template_store = ostemplate.split(":")[0]
         if not self.content_check(node, ostemplate, template_store):
             self.module.fail_json(
                 vmid=vmid,
                 msg=f"ostemplate {ostemplate} does not exist on node {node} and storage {template_store}.",
             )
+
+    def create_lxc_instance(self, vmid, node, ostemplate, timeout, **kwargs):
+        self.check_ostemplate(vmid, node, ostemplate)
 
         disk_updates = self.process_disk_keys(
             vmid,
