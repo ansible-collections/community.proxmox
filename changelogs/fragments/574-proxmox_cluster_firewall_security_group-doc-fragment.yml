@@ -1,0 +1,2 @@
+trivial:
+  - proxmox_cluster_firewall_security_group - fix doc fragment name (https://github.com/ansible-collections/community.proxmox/pull/574).
