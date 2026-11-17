@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_pct_remote connection plugin - support pipelining, enabled with the ``pipelining`` setting (``ANSIBLE_PIPELINING``, ``ansible_pipelining``), which runs each module with a single ``pct exec`` instead of several. Commands that receive data on stdin run without a PTY, as with ``ansible.builtin.ssh`` (https://github.com/ansible-collections/community.proxmox/issues/548, https://github.com/ansible-collections/community.proxmox/pull/549).

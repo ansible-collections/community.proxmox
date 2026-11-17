@@ -234,6 +234,35 @@ def test_exec_command_success(mock_ssh, connection):
     mock_transport.set_keepalive.assert_called_once_with(5)
 
 
+def test_has_pipelining(connection):
+    """Test that the connection supports pipelining"""
+    assert connection.has_pipelining
+
+
+@patch("paramiko.SSHClient")
+def test_exec_command_with_in_data_skips_pty(mock_ssh, connection):
+    """Test that a command fed on stdin, such as a pipelined module, runs without a PTY"""
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    mock_channel = MagicMock()
+    mock_transport = MagicMock()
+
+    mock_client.get_transport.return_value = mock_transport
+    mock_transport.open_session.return_value = mock_channel
+    mock_channel.recv_exit_status.return_value = 0
+    mock_channel.makefile.return_value = [to_bytes("stdout")]
+    mock_channel.makefile_stderr.return_value = [to_bytes("")]
+
+    connection._connected = True
+    connection.ssh = mock_client
+
+    connection.exec_command("/bin/sh -c /usr/bin/python3", in_data=b"module data")
+
+    mock_channel.get_pty.assert_not_called()
+    mock_channel.send.assert_called_once_with(b"module data")
+    mock_channel.shutdown_write.assert_called_once()
+
+
 @patch("paramiko.SSHClient")
 def test_exec_command_pct_not_found(mock_ssh, connection):
     """Test command execution when PCT is not found"""
