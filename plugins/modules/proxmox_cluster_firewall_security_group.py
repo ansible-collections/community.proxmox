@@ -161,7 +161,7 @@ seealso:
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
-  - community.proxmox.proxmox.attributes
+  - community.proxmox.attributes
 """
 
 EXAMPLES = r"""
