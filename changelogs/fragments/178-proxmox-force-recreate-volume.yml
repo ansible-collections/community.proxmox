@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox - with ``state=present``, ``force=true``, and ``ostemplate``, fail before the existing container is removed if ``disk``, ``disk_volume``, ``mounts``, or ``mount_volumes`` names a volume of that container. Proxmox VE deletes the volume with the container, so the new container cannot use it (https://github.com/ansible-collections/community.proxmox/issues/178).
