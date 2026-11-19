@@ -222,3 +222,20 @@ class TestProxmoxUserInternals:
             existing_user_with_groups, None, None, 1, None, None, None, "admins", None
         )
         assert different_groups is True
+
+    def test_groups_order_does_not_matter(self, user_manager):
+        """Groups given in another order than the API returns them do not need an update."""
+        existing_user_with_groups = {"userid": "testuser@pam", "groups": ["admins", "users"]}
+
+        assert (
+            user_manager._user_needs_update(
+                existing_user_with_groups, None, None, 1, None, None, None, "users,admins", None
+            )
+            is False
+        )
+        assert (
+            user_manager._user_needs_update(
+                existing_user_with_groups, None, None, 1, None, None, None, "users,admins,ops", None
+            )
+            is True
+        )
