@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_kvm - pass ``description`` to the clone API call when cloning a VM, so the new VM gets the given description instead of the one of the clone source (https://github.com/ansible-collections/community.proxmox/issues/572).

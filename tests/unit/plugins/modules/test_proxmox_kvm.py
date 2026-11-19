@@ -34,10 +34,7 @@ class TestProxmoxKvmModule(ModuleTestCase):
         self.create_vm_mock = patch.object(proxmox_kvm.ProxmoxKvmAnsible, "create_vm").start()
 
     def tearDown(self):
-        self.create_vm_mock.stop()
-        self.get_vm_mock.stop()
-        self.get_node_mock.stop()
-        self.connect_mock.stop()
+        patch.stopall()
         super().tearDown()
 
     def test_module_fail_when_required_args_missing(self):
@@ -198,3 +195,32 @@ def test_wait_for_task_returns_true_when_the_task_succeeds(mock_sleep):
 
     assert kvm.wait_for_task("pve", "UPID:pve:1") is True
     kvm.module.fail_json.assert_not_called()
+
+
+def test_create_vm_clone_sends_description():
+    kvm = proxmox_kvm.ProxmoxKvmAnsible.__new__(proxmox_kvm.ProxmoxKvmAnsible)
+    kvm.module = MagicMock()
+    kvm.module.params = {
+        "api_user": "user@pve",
+        "args": None,
+        "skiplock": None,
+        "clone": "template.local",
+        "description": "hello from ansible",
+        "format": None,
+        "full": True,
+        "pool": None,
+        "snapname": None,
+        "storage": None,
+        "target": None,
+    }
+    kvm.proxmox_api = MagicMock()
+
+    with patch.multiple(kvm, version=DEFAULT, wait_for_task=DEFAULT) as mocks:
+        mocks["version"].return_value = proxmox_kvm.LooseVersion("9.0")
+        mocks["wait_for_task"].return_value = True
+        assert kvm.create_vm(
+            100, 200, "pve", "clone01", None, None, None, None, False, False, description="hello from ansible"
+        )
+
+    clone = kvm.proxmox_api.nodes.return_value.qemu.return_value.clone
+    clone.post.assert_called_once_with(newid=200, name="clone01", description="hello from ansible", full=1)

@@ -1125,7 +1125,7 @@ class ProxmoxKvmAnsible(ProxmoxAnsible):
         only_v8 = ["ciupgrade"]
 
         # valid clone parameters
-        valid_clone_params = ["format", "full", "pool", "snapname", "storage", "target"]
+        valid_clone_params = ["description", "format", "full", "pool", "snapname", "storage", "target"]
         clone_params = {}
 
         proxmox_node = self.proxmox_api.nodes(node)
