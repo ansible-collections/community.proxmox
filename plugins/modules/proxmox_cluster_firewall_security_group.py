@@ -145,9 +145,7 @@ options:
         omitted from a rule entry are removed from the existing rule.
       - If V(false), optional rule fields that are omitted from a rule entry are preserved from
         the existing rule.
-      - Only used when O(rules) is set.
-      - If not set, V(false) is used and a deprecation warning is shown when O(rules) is set.
-        The default will change to V(true) in community.proxmox 3.0.0.
+      - Only used when O(rules) is set and then defaults to V(true).
     type: bool
 
 seealso:
@@ -387,16 +385,7 @@ class ProxmoxClusterFirewallSecurityGroupAnsible(ProxmoxAnsible):
         super().__init__(module)
         self.params = module.params
         if self.params["purge_omitted_rule_fields"] is None:
-            if self.params["rules"] is not None:
-                module.deprecate(
-                    "The default of purge_omitted_rule_fields will change from false to true in "
-                    "community.proxmox 3.0.0. With true, optional rule fields that are omitted from a rules "
-                    "entry are removed from the existing rule. Set purge_omitted_rule_fields explicitly to "
-                    "silence this warning",
-                    version="3.0.0",
-                    collection_name="community.proxmox",
-                )
-            self.params["purge_omitted_rule_fields"] = False
+            self.params["purge_omitted_rule_fields"] = True
 
     def run(self):
         state = self.params["state"]

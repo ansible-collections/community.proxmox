@@ -1,0 +1,3 @@
+---
+breaking_changes:
+  - proxmox_cluster_firewall_security_group - the option `purge_omitted_rule_fields` changed its default to True and now removes rules not explicitly specified in the module configuration (https://github.com/ansible-collections/community.proxmox/pull/561).
