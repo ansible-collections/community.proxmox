@@ -20,6 +20,7 @@ action_groups:
     - proxmox_backup
     - proxmox_backup_info
     - proxmox_backup_schedule
+    - proxmox_ceph_init
     - proxmox_ceph_mds
     - proxmox_ceph_mgr
     - proxmox_ceph_mon
