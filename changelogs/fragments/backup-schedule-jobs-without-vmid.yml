@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_backup_schedule - skip backup jobs that select all guests or a pool when removing a guest from every job, instead of failing with ``KeyError 'vmid'``; adding a guest to or removing it from such a job by ``backup_id`` now fails with a clear message.
