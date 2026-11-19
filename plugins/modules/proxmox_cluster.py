@@ -62,6 +62,12 @@ options:
       - Possible module state to perform the required steps within the Proxmox VE API.
     choices: ["present"]
     type: str
+  timeout:
+    description:
+      - Time in seconds to wait for the cluster create or join task to finish.
+      - The module fails if the task does not finish in this time.
+    type: int
+    default: 60
 extends_documentation_fragment:
   - community.proxmox.proxmox.actiongroup_proxmox
   - community.proxmox.proxmox.documentation
@@ -115,6 +121,7 @@ cluster:
 
 
 import re
+from time import monotonic, sleep
 
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
@@ -132,6 +139,7 @@ def module_args():
         master_api_password=dict(type="str", no_log=True),
         fingerprint=dict(type="str"),
         nodeid=dict(type="int"),
+        timeout=dict(type="int", default=60),
     )
 
 
@@ -187,6 +195,39 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
                 )
             )
 
+    def wait_for_task(self, upid, error_msg):
+        """Wait for a cluster task to stop and fail the module if the task does not succeed"""
+        node = self.upid_to_node(upid)
+        timeout = self.module.params["timeout"]
+        deadline = monotonic() + timeout
+        last_error = None
+        while True:
+            try:
+                status = self.proxmox_api.nodes(node).tasks(upid).status.get()
+            except Exception as e:
+                # The task restarts pve-cluster, so the API can refuse requests for some seconds.
+                # A join also replaces the key that signs API tickets, so the old ticket stops working.
+                last_error = e
+                try:
+                    self.proxmox_api = self._connect(fail_on_error=False)
+                except Exception as connect_error:
+                    last_error = connect_error
+            else:
+                if status["status"] == "stopped":
+                    exitstatus = status.get("exitstatus") or ""
+                    if exitstatus == "OK" or exitstatus.startswith("WARN"):
+                        return
+                    self.module.fail_json(msg=f"{error_msg}: {exitstatus}")
+
+            if monotonic() >= deadline:
+                break
+            sleep(1)
+
+        msg = f"{error_msg}: task {upid} did not finish in {timeout} seconds."
+        if last_error is not None:
+            msg += f" Last API error: {last_error}"
+        self.module.fail_json(msg=msg)
+
     def cluster_create(self):
         cluster_name = self.module.params.get("cluster_name") or self.module.params.get("api_host")
         desired_nodeid = self.validate_nodeid()
@@ -216,10 +257,12 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=True, msg=f"Cluster '{cluster_name}' would be created.", cluster=cluster_name)
 
         try:
-            self.proxmox_api.cluster.config.post(**payload)
-            self.module.exit_json(changed=True, msg=f"Cluster '{cluster_name}' created.", cluster=cluster_name)
+            upid = self.proxmox_api.cluster.config.post(**payload)
         except Exception as e:
             self.module.fail_json(msg=f"Error while creating cluster: {str(e)}")
+
+        self.wait_for_task(upid, "Error while creating cluster")
+        self.module.exit_json(changed=True, msg=f"Cluster '{cluster_name}' created.", cluster=cluster_name)
 
     def cluster_join(self):
         desired_nodeid = self.validate_nodeid()
@@ -250,13 +293,14 @@ class ProxmoxClusterAnsible(ProxmoxAnsible):
             self.module.exit_json(changed=True, msg="Node would join the cluster.")
 
         try:
-            self.proxmox_api.cluster.config.join.post(**payload)
-            self.module.exit_json(changed=True, msg="Node joined the cluster.")
-
+            upid = self.proxmox_api.cluster.config.join.post(**payload)
         except Exception as e:
             self.module.fail_json(
                 msg=f"Error while joining the cluster: {str(e)}",
             )
+
+        self.wait_for_task(upid, "Error while joining the cluster")
+        self.module.exit_json(changed=True, msg="Node joined the cluster.")
 
 
 def validate_cluster_name(module, min_length=1, max_length=15):
