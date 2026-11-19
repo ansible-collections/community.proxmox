@@ -28,7 +28,31 @@ options:
   agent:
     description:
       - Specify if the QEMU Guest Agent should be enabled/disabled.
+      - Can also be a raw Proxmox property string such as V(enabled=1,type=isa), unless one of
+        O(agent_type), O(agent_freeze_fs) or O(agent_fstrim_cloned_disks) is used.
     type: str
+  agent_type:
+    description:
+      - Type of the QEMU Guest Agent communication channel.
+      - Requires O(agent). Ignored when the agent is disabled.
+      - If the agent is enabled and this option is given together with another agent option, the default is V(virtio).
+    type: str
+    choices: [virtio, isa]
+    version_added: 2.2.0
+  agent_freeze_fs:
+    description:
+      - Freeze and thaw guest filesystems on backup for consistency (C(freeze-fs-on-backup)).
+      - Requires O(agent). Ignored when the agent is disabled.
+      - If the agent is enabled and this option is given together with another agent option, the default is V(true).
+    type: bool
+    version_added: 2.2.0
+  agent_fstrim_cloned_disks:
+    description:
+      - Run fstrim after moving a disk or migrating the VM (C(fstrim_cloned_disks)).
+      - Requires O(agent). Ignored when the agent is disabled.
+      - If the agent is enabled and this option is given together with another agent option, the default is V(false).
+    type: bool
+    version_added: 2.2.0
   allow_ksm:
     description:
       - Allow memory pages of this guest to be merged via KSM (Kernel Samepage Merging).
@@ -898,11 +922,31 @@ def parse_dev(devstr):
     return re.search("(.*?)(,|$)", devstr).group(1)
 
 
+def build_agent_param(agent, agent_type, freeze_fs, fstrim_cloned_disks):
+    """Build the ``agent`` property string, applying defaults when the agent is enabled.
+
+    Without any of the agent sub-options the ``agent`` value is passed through unchanged.
+    """
+    if agent_type is None and freeze_fs is None and fstrim_cloned_disks is None:
+        return agent
+    if not boolean(agent, strict=False):
+        return "0"
+    freeze_fs = True if freeze_fs is None else freeze_fs
+    fstrim_cloned_disks = False if fstrim_cloned_disks is None else fstrim_cloned_disks
+    return (
+        f"enabled=1,type={agent_type or 'virtio'},"
+        f"freeze-fs-on-backup={int(freeze_fs)},fstrim_cloned_disks={int(fstrim_cloned_disks)}"
+    )
+
+
 def module_args():
     return dict(
         archive=dict(type="str"),
         acpi=dict(type="bool"),
         agent=dict(type="str"),
+        agent_type=dict(type="str", choices=["virtio", "isa"]),
+        agent_freeze_fs=dict(type="bool"),
+        agent_fstrim_cloned_disks=dict(type="bool"),
         allow_ksm=dict(type="bool"),
         args=dict(type="str"),
         audio=dict(type="dict"),
@@ -1052,6 +1096,11 @@ def module_options():
         ],
         required_one_of=[("name", "vmid")],
         required_if=[("state", "present", ["node"])],
+        required_by={
+            "agent_type": "agent",
+            "agent_freeze_fs": "agent",
+            "agent_fstrim_cloned_disks": "agent",
+        },
     )
 
 
@@ -1487,7 +1536,12 @@ def main():  # noqa: PLR0912, PLR0915
                 update_unsafe,
                 archive=module.params["archive"],
                 acpi=module.params["acpi"],
-                agent=module.params["agent"],
+                agent=build_agent_param(
+                    module.params["agent"],
+                    module.params["agent_type"],
+                    module.params["agent_freeze_fs"],
+                    module.params["agent_fstrim_cloned_disks"],
+                ),
                 allow_ksm=module.params["allow_ksm"],
                 audio=module.params["audio"],
                 autostart=module.params["autostart"],
