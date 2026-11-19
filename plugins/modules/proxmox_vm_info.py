@@ -186,7 +186,14 @@ class ProxmoxVmInfoAnsible(ProxmoxAnsible):
         for this_node in nodes:
             # resource_type is "qemu" or "lxc" - matches Proxmox API nodes(node).qemu / nodes(node).lxc attributes.
             call_vm_getter = getattr(self.proxmox_api.nodes(this_node), resource_type)
-            vms_from_this_node = call_vm_getter().get()
+            try:
+                vms_from_this_node = call_vm_getter().get()
+            except Exception as e:
+                self.module.warn(
+                    f"Failed to retrieve {resource_type.upper()} VMs from node {this_node}: {e}. "
+                    f"Using cluster resource data only for VMs on this node."
+                )
+                continue
             for detected_vm in vms_from_this_node:
                 this_vm_id = int(detected_vm["vmid"])
                 desired_vm = filtered_vms.get(this_vm_id)
