@@ -174,6 +174,16 @@ def compare_list_of_dicts(existing_list, new_list, uid, params_to_ignore=None):
     return items_to_create, items_to_update
 
 
+def task_exitstatus_ok(exitstatus) -> bool:
+    """Whether a finished task succeeded, possibly with warnings.
+
+    Proxmox VE ends a task that logged warnings with the exit status
+    ``WARNINGS: <count>`` and does not treat it as an error.
+    """
+    exitstatus = to_native(exitstatus or "")
+    return exitstatus == "OK" or exitstatus.startswith("WARNINGS")
+
+
 def is_not_found_error(exception: Exception) -> bool:
     """Check if the exception is a not found error."""
     error_str = str(exception).lower()
@@ -367,8 +377,7 @@ class ProxmoxAnsible:
         """
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
-            exitstatus = to_native(status.get("exitstatus") or "")
-            return status["status"] == "stopped" and (exitstatus == "OK" or exitstatus.startswith("WARN"))
+            return status["status"] == "stopped" and task_exitstatus_ok(status.get("exitstatus"))
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve API task ID from node {node}: {e}")
 
@@ -386,7 +395,7 @@ class ProxmoxAnsible:
         """
         try:
             status = self.proxmox_api.nodes(node).tasks(taskid).status.get()
-            return status["status"] == "stopped" and status["exitstatus"] != "OK"
+            return status["status"] == "stopped" and not task_exitstatus_ok(status.get("exitstatus"))
         except Exception as e:
             self.module.fail_json(msg=f"Unable to retrieve API task ID from node {node}: {e}")
 
@@ -410,7 +419,7 @@ class ProxmoxAnsible:
                 self.module.fail_json(msg=f"Unable to retrieve API task ID from node {node_name}: {e}")
 
             if status["status"] == "stopped":
-                if status["exitstatus"] == "OK":
+                if task_exitstatus_ok(status.get("exitstatus")):
                     return True, None
                 else:
                     return False, status["exitstatus"]
