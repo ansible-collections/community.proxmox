@@ -270,7 +270,7 @@ options:
       - Can be used only with states V(absent), V(present), V(stopped), and V(restarted).
       - With O(state=present) and O(ostemplate), force option removes an existing container, even if it is running,
         and creates it again. Proxmox VE also removes the ACLs, the pool membership, and the firewall configuration
-        of the container.
+        of the container, and the volumes in its configuration, so the new container cannot use one of those volumes.
       - With O(state=absent) force option will force stop the container before deletion.
       - With states V(stopped), V(restarted) allow to force stop instance.
       - When specifying O(force), O(update) must not be specified.
@@ -908,6 +908,7 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
                 )
                 self.process_device_keys(self.params.get("mount_devices"))
                 self.validate_tags(self.params.get("tags") or [])
+                self.check_volumes_survive_removal(vmid, node)
                 self.remove_lxc_instance(
                     vmid,
                     node,
@@ -1198,6 +1199,26 @@ class ProxmoxLxcAnsible(ProxmoxAnsible):
             self.module.fail_json(
                 vmid=vmid,
                 msg=f"ostemplate {ostemplate} does not exist on node {node} and storage {template_store}.",
+            )
+
+    def check_volumes_survive_removal(self, vmid, node):
+        disks = [self.params.get("disk"), *(self.params.get("mounts") or {}).values()]
+        volumes = [self.parse_disk_string(disk) for disk in disks if disk is not None]
+        volumes += [self.params.get("disk_volume") or {}, *(self.params.get("mount_volumes") or [])]
+        requested = {f"{volume['storage']}:{volume['volume']}" for volume in volumes if volume.get("volume")}
+        if not requested:
+            return
+
+        # Proxmox VE deletes the volumes in the current and the pending config with the container.
+        config = getattr(self.proxmox_api.nodes(node), self.VZ_TYPE)(vmid).pending.get()
+        volume_items = [item for item in config if re.fullmatch(r"rootfs|mp\d+|unused\d+", item["key"])]
+        values = [str(item.get(field)) for item in volume_items for field in ("value", "pending")]
+        # A value names its volume as "<volid>" or "volume=<volid>", next to other comma-separated options.
+        used = {part.split("=", 1)[-1] for value in values for part in value.split(",")}
+        owned = ", ".join(sorted(requested & used))
+        if owned:
+            self.module.fail_json(
+                vmid=vmid, msg=f"VM {vmid} was not removed, because the forced removal would also delete {owned}."
             )
 
     def create_lxc_instance(self, vmid, node, ostemplate, timeout, **kwargs):
