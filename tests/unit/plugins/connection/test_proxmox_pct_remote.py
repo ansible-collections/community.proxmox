@@ -361,6 +361,36 @@ def test_put_file(connection):
 
 
 @patch("paramiko.SSHClient")
+def test_put_file_with_become_does_not_wait_for_prompt(mock_ssh, connection):
+    """put_file sends the file right away when the task uses become with a password"""
+    mock_client = MagicMock()
+    mock_channel = MagicMock()
+    mock_transport = MagicMock()
+
+    mock_client.get_transport.return_value = mock_transport
+    mock_transport.open_session.return_value = mock_channel
+    connection._connected = True
+    connection.ssh = mock_client
+
+    connection.become = MagicMock()
+    connection.become.expect_prompt.return_value = True
+
+    mock_channel.recv.return_value = b""
+    mock_channel.recv_exit_status.return_value = 0
+    mock_channel.makefile.return_value = [b""]
+    mock_channel.makefile_stderr.return_value = [b""]
+
+    with patch("builtins.open", create=True) as mock_open:
+        mock_open.return_value.__enter__.return_value.read.return_value = b"test content"
+        connection.put_file("/local/path", "/remote/path")
+
+    mock_channel.recv.assert_not_called()
+    mock_channel.sendall.assert_not_called()
+    mock_channel.send.assert_called_once_with(b"test content")
+    mock_channel.shutdown_write.assert_called_once()
+
+
+@patch("paramiko.SSHClient")
 def test_put_file_general_error(mock_ssh, connection):
     """Test put_file with general error"""
     mock_client = MagicMock()
