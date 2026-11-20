@@ -789,7 +789,7 @@ class Connection(ConnectionBase):
         return no_prompt_out, no_prompt_err
 
     def _exec_channel_cmd_and_stdin(
-        self, chan: t.Any, cmd: bytes, in_data: bytes | None, bufsize: int
+        self, chan: t.Any, cmd: bytes, in_data: bytes | None, bufsize: int, sudoable: bool = True
     ) -> tuple[bytes, bytes]:
         no_prompt_out = b""
         no_prompt_err = b""
@@ -797,7 +797,10 @@ class Connection(ConnectionBase):
 
         try:
             chan.exec_command(cmd)
-            if self.become and self.become.expect_prompt():
+            # Only commands built with become print a become prompt or the
+            # success marker. Waiting for one on any other command, such as the
+            # cat that put_file runs, blocks before stdin is sent.
+            if sudoable and self.become and self.become.expect_prompt():
                 np, ne = self._resolve_become_prompt(chan, bufsize, become_buf)
                 no_prompt_out += np
                 no_prompt_err += ne
@@ -827,7 +830,7 @@ class Connection(ConnectionBase):
         self._configure_exec_channel(chan, cmd, sudoable, in_data)
 
         cmd_bytes = to_bytes(cmd, errors="surrogate_or_strict")
-        no_prompt_out, no_prompt_err = self._exec_channel_cmd_and_stdin(chan, cmd_bytes, in_data, bufsize)
+        no_prompt_out, no_prompt_err = self._exec_channel_cmd_and_stdin(chan, cmd_bytes, in_data, bufsize, sudoable)
 
         stdout = b"".join(chan.makefile("rb", bufsize))
         stderr = b"".join(chan.makefile_stderr("rb", bufsize))

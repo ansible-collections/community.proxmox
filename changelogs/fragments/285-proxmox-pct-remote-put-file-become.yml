@@ -1,0 +1,2 @@
+bugfixes:
+  - proxmox_pct_remote connection plugin - do not wait for a become prompt on commands that are not run with become. With become and a become password, ``put_file`` waited for a prompt that never came and hung before sending the file, so tasks such as ``ansible.builtin.copy`` with ``src`` never finished (https://github.com/ansible-collections/community.proxmox/issues/285).
