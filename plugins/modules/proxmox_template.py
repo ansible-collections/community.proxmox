@@ -35,6 +35,7 @@ options:
       - The template name.
       - Required for O(state=absent) to delete a template.
       - Required for O(state=present) to download an appliance container template (pveam).
+      - With O(src), the name the uploaded file is stored under. Defaults to the file name of O(src).
     type: str
   content_type:
     description:
@@ -155,6 +156,7 @@ EXAMPLES = r"""
     src: proxmox.iso
 """
 
+import io
 import os
 import time
 import traceback
@@ -178,6 +180,21 @@ try:
 except ImportError:
     HAS_REQUESTS_TOOLBELT = False
     REQUESTS_TOOLBELT_ERR = traceback.format_exc()
+
+
+class UploadFile(io.BufferedReader):
+    """Local file whose ``name`` is the name the upload is stored under.
+
+    proxmoxer takes the multipart file name from ``name``, and Proxmox VE stores the upload under that name.
+    """
+
+    def __init__(self, path, upload_name):
+        super().__init__(io.FileIO(path, "rb"))
+        self.upload_name = upload_name
+
+    @property
+    def name(self):
+        return self.upload_name
 
 
 def module_args():
@@ -235,7 +252,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             time.sleep(1)
         return False
 
-    def upload_template(self, node, storage, content_type, realpath, timeout):
+    def upload_template(self, node, storage, content_type, realpath, timeout, template):  # noqa: PLR0913
         stats = os.stat(realpath)
         if stats.st_size > MAX_FILE_SIZE_WITHOUT_REQUESTS_TOOLBELT and not HAS_REQUESTS_TOOLBELT:
             self.module.fail_json(
@@ -247,7 +264,7 @@ class ProxmoxTemplateAnsible(ProxmoxAnsible):
             taskid = (
                 self.proxmox_api.nodes(node)
                 .storage(storage)
-                .upload.post(content=content_type, filename=open(realpath, "rb"))  # noqa: SIM115
+                .upload.post(content=content_type, filename=UploadFile(realpath, template))
             )
             return self.task_status(taskid, timeout)
         except Exception as e:
@@ -336,7 +353,8 @@ def main():  # noqa: PLR0912, PLR0915
         if not src and not url:
             module.fail_json(msg="src or url param for uploading template file is mandatory")
         elif not url:
-            template = os.path.basename(src)
+            if not template:
+                template = os.path.basename(src)
             if proxmox.has_template(node, storage, content_type, template) and not module.params["force"]:
                 module.exit_json(
                     changed=False, msg=f"template with volid={storage}:{content_type}/{template} already exists"
@@ -344,7 +362,7 @@ def main():  # noqa: PLR0912, PLR0915
             elif not (os.path.exists(src) and os.path.isfile(src)):
                 module.fail_json(msg=f"template file on path {src} not exists")
 
-            if proxmox.upload_template(node, storage, content_type, src, timeout):
+            if proxmox.upload_template(node, storage, content_type, src, timeout, template):
                 module.exit_json(changed=True, msg=f"template with volid={storage}:{content_type}/{template} uploaded")
         elif not src:
             if not template:

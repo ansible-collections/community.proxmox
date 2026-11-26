@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_template - store an uploaded file under the name given in ``template`` instead of always using the file name of ``src`` (https://github.com/ansible-collections/community.proxmox/issues/507).
