@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - proxmox_domain - add ``ldap_group_dn`` parameter (alias ``ad_group_dn``) to set the LDAP base domain name for group sync (https://github.com/ansible-collections/community.proxmox/pull/558).

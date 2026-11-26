@@ -105,6 +105,14 @@ options:
             - Supported for O(type=ldap) and O(type=ad).
         type: str
         aliases: ["ad_group_classes"]
+    ldap_group_dn:
+        description:
+            - LDAP base domain name for group sync.
+            - If not set, O(ldap_base_dn) is used.
+            - Supported for O(type=ldap) and O(type=ad).
+        type: str
+        aliases: ["ad_group_dn"]
+        version_added: 2.2.0
     ldap_group_filter:
         description:
             - LDAP filter for group sync.
@@ -246,6 +254,7 @@ EXAMPLES = r"""
     ldap_base_dn: "cn=accounts,dc=example,dc=test"
     ldap_bind_dn: "uid=sa-proxmox,cn=users,cn=accounts,dc=example,dc=test"
     ldap_filter: "memberof=cn=admins-proxmox,cn=groups,cn=accounts,dc=example,dc=test"
+    ldap_group_dn: "cn=groups,cn=accounts,dc=example,dc=test"
     ldap_group_filter: "cn=admins-proxmox"
     ldap_group_name_attr: "cn"
     ldap_mode: "ldaps"
@@ -322,6 +331,7 @@ def module_args():
         ldap_user_attr=dict(type="str"),
         ldap_bind_dn=dict(aliases=["ad_bind_dn"], type="str"),
         ldap_filter=dict(aliases=["ad_filter"], type="str"),
+        ldap_group_dn=dict(aliases=["ad_group_dn"], type="str"),
         ldap_group_filter=dict(aliases=["ad_group_filter"], type="str"),
         ldap_group_classes=dict(aliases=["ad_group_classes"], type="str"),
         ldap_group_name_attr=dict(aliases=["ad_group_name_attr"], type="str"),
@@ -443,6 +453,7 @@ class ProxmoxDomainAnsible(ProxmoxAnsible):
             "ldap_bind_dn": "bind_dn",
             "ldap_filter": "filter",
             "ldap_group_classes": "group_classes",
+            "ldap_group_dn": "group_dn",
             "ldap_group_filter": "group_filter",
             "ldap_group_name_attr": "group_name_attr",
             "ldap_mode": "mode",
