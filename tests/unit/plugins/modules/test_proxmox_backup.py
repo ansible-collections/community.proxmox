@@ -316,6 +316,29 @@ class TestProxmoxBackup(ModuleTestCase):
         assert self.mock_get_taskok.call_count == 1
         assert self.mock_post_vzdump.call_count == 1
 
+    def test_create_backup_with_wait_succeeds_when_the_task_has_warnings(self):
+        self.mock_get_taskok.side_effect = None
+        self.mock_get_taskok.return_value = {**TASK_API_RETURN["node1"], "exitstatus": "WARNINGS: 1"}
+        with set_module_args(
+            {
+                "api_user": "root@pam",
+                "api_password": "secret",
+                "api_host": "127.0.0.1",
+                "mode": "include",
+                "node": "node1",
+                "storage": "backup",
+                "vmids": [100],
+                "wait": True,
+                "wait_timeout": 1,
+            }
+        ), pytest.raises(AnsibleExitJson) as exc_info:
+            proxmox_backup.main()
+
+        result = exc_info.value.args[0]
+        assert result["changed"] is True
+        assert result["msg"] == "Backups succeeded"
+        assert self.mock_get_taskok.call_count == 1
+
     def test_fail_insufficient_permissions(self):
         with set_module_args(
             {

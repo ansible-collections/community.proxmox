@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - "proxmox_backup - with ``wait=true``, treat a backup task that ended with ``WARNINGS: <count>`` as successful instead of waiting for it until ``wait_timeout`` and failing."
+  - "proxmox_ceph_pool, proxmox_disk, proxmox_acme_account, proxmox_acme_certificate - treat a task that ended with ``WARNINGS: <count>`` as successful, as Proxmox VE does, instead of failing the module."
+  - "proxmox_tasks_info - do not set ``failed=true`` on tasks that ended with ``WARNINGS: <count>``."

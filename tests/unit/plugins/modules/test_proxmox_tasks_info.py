@@ -196,3 +196,16 @@ def test_get_non_existent_task(connect_mock, capfd, mocker):
     assert "proxmox_tasks" not in json.loads(out)
     assert not json.loads(out)["changed"]
     assert json.loads(out)["msg"] == "Task: UPID:nonexistent does not exist on node: node01."
+
+
+def test_task_with_warnings_is_not_failed():
+    task = proxmox_tasks_info.ProxmoxTask({"upid": TASK_UPID, "status": "WARNINGS: 1"})
+
+    assert task.info["status"] == "WARNINGS: 1"
+    assert "failed" not in task.info
+
+
+def test_task_with_error_is_failed():
+    task = proxmox_tasks_info.ProxmoxTask({"upid": TASK_UPID, "status": "command 'ifreload -a' failed: exit code 1"})
+
+    assert task.info["failed"] is True

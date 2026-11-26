@@ -4,7 +4,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-from ansible_collections.community.proxmox.plugins.module_utils.proxmox import compare_list_of_dicts
+from unittest.mock import MagicMock
+
+import pytest
+
+from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
+    ProxmoxAnsible,
+    compare_list_of_dicts,
+    task_exitstatus_ok,
+)
 
 EXISTING_RULES = [
     {"pos": 0, "type": "out", "action": "ACCEPT", "source": "1.1.1.1", "log": "nolog", "digest": "abc"},
@@ -38,3 +46,46 @@ def test_compare_list_of_dicts_queues_item_with_added_param_once():
     assert items_to_create == []
     # Only the item with the added param is queued, the identical one is left alone
     assert [item["pos"] for item in items_to_update] == [0]
+
+
+@pytest.mark.parametrize(
+    ("exitstatus", "expected"),
+    [
+        ("OK", True),
+        ("WARNINGS: 1", True),
+        ("WARNINGS: 12", True),
+        ("job errors", False),
+        ("unexpected status", False),
+        ("", False),
+        (None, False),
+    ],
+)
+def test_task_exitstatus_ok(exitstatus, expected):
+    """OK and WARNINGS: <count> are successful exit statuses, anything else is an error."""
+    assert task_exitstatus_ok(exitstatus) is expected
+
+
+def _proxmox_with_task_status(status):
+    proxmox = ProxmoxAnsible.__new__(ProxmoxAnsible)
+    proxmox.module = MagicMock()
+    proxmox.proxmox_api = MagicMock()
+    proxmox.proxmox_api.nodes.return_value.tasks.return_value.status.get.return_value = status
+    return proxmox
+
+
+def test_task_with_warnings_is_ok_and_not_failed():
+    """A task that ended with warnings counts as a success in every task helper."""
+    proxmox = _proxmox_with_task_status({"status": "stopped", "exitstatus": "WARNINGS: 2"})
+
+    assert proxmox.api_task_ok("pve", "UPID:pve:1") is True
+    assert proxmox.api_task_failed("pve", "UPID:pve:1") is False
+    assert proxmox.api_task_complete("pve", "UPID:pve:1", 1) == (True, None)
+
+
+def test_task_with_error_is_failed():
+    """A task that ended with an error counts as a failure in every task helper."""
+    proxmox = _proxmox_with_task_status({"status": "stopped", "exitstatus": "command failed"})
+
+    assert proxmox.api_task_ok("pve", "UPID:pve:1") is False
+    assert proxmox.api_task_failed("pve", "UPID:pve:1") is True
+    assert proxmox.api_task_complete("pve", "UPID:pve:1", 1) == (False, "command failed")

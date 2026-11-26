@@ -117,6 +117,7 @@ msg:
 from ansible_collections.community.proxmox.plugins.module_utils.proxmox import (
     ProxmoxAnsible,
     create_proxmox_module,
+    task_exitstatus_ok,
 )
 
 
@@ -150,7 +151,7 @@ class ProxmoxTask:
         for k, v in task.items():
             if k == "status" and isinstance(v, str):
                 self.info[k] = v
-                if v != "OK":
+                if not task_exitstatus_ok(v):
                     self.info["failed"] = True
             else:
                 self.info[k] = v
