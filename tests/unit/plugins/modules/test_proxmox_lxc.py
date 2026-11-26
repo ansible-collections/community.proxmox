@@ -298,17 +298,98 @@ def test_present_force_builds_volumes_again_after_removal(lxc_ansible):
 
     assert lxc_api.create.call_args[1]["rootfs"] == "local-lvm:8"
     assert lxc_api.create.call_args[1]["mp0"] == "/srv/data,mp=/mnt/data"
+    lxc_api.return_value.pending.get.assert_not_called()
+
+
+OLD_CONTAINER_CONFIG = [
+    {"key": "memory", "value": 512},
+    {"key": "description", "value": "local-lvm:vm-100-disk-2"},
+    {"key": "rootfs", "value": "local-lvm:vm-100-disk-0,size=8G"},
+    {
+        "key": "mp0",
+        "value": "local-lvm:vm-100-disk-1,mp=/mnt/data,size=4G",
+        "pending": "mp=/mnt/data,volume=local-lvm:vm-100-disk-3",
+    },
+    {"key": "unused0", "value": "local-lvm:vm-100-disk-20"},
+]
+
+
+@pytest.mark.parametrize(
+    ("overrides", "volids"),
+    [
+        ({"disk": "local-lvm:vm-100-disk-0,size=8G"}, "local-lvm:vm-100-disk-0"),
+        ({"disk_volume": {"storage": "local-lvm", "volume": "vm-100-disk-0", "size": 8}}, "local-lvm:vm-100-disk-0"),
+        ({"mounts": {"mp0": "local-lvm:vm-100-disk-1,mp=/mnt/data,size=4G"}}, "local-lvm:vm-100-disk-1"),
+        (
+            {"mount_volumes": [{"id": "mp0", "storage": "local-lvm", "volume": "vm-100-disk-1", "size": 4}]},
+            "local-lvm:vm-100-disk-1",
+        ),
+        (
+            {"mount_volumes": [{"id": "mp0", "storage": "local-lvm", "volume": "vm-100-disk-20", "size": 4}]},
+            "local-lvm:vm-100-disk-20",
+        ),
+        (
+            {"mount_volumes": [{"id": "mp0", "storage": "local-lvm", "volume": "vm-100-disk-3", "size": 4}]},
+            "local-lvm:vm-100-disk-3",
+        ),
+        (
+            {
+                "disk_volume": {"storage": "local-lvm", "volume": "vm-100-disk-0", "size": 8},
+                "mount_volumes": [{"id": "mp0", "storage": "local-lvm", "volume": "vm-100-disk-1", "size": 4}],
+            },
+            "local-lvm:vm-100-disk-0, local-lvm:vm-100-disk-1",
+        ),
+    ],
+)
+def test_present_force_keeps_container_when_volume_belongs_to_it(lxc_ansible, overrides, volids):
+    lxc_ansible.params = _present_params(**overrides)
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=True)
+    lxc_ansible.get_storage_content = MagicMock(return_value=[{"volid": volid} for volid in volids.split(", ")])
+    lxc_ansible.handle_api_timeout = MagicMock()
+    lxc_ansible.module.fail_json.side_effect = SystemExit
+    lxc_api = lxc_ansible.proxmox_api.nodes.return_value.lxc
+    lxc_api.return_value.pending.get.return_value = OLD_CONTAINER_CONFIG
+
+    with pytest.raises(SystemExit):
+        lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    lxc_api.delete.assert_not_called()
+    lxc_ansible.module.fail_json.assert_called_once_with(
+        vmid=100, msg=f"VM 100 was not removed, because the forced removal would also delete {volids}."
+    )
+
+
+@pytest.mark.parametrize(("storage", "volume"), [("local-lvm", "vm-100-disk-2"), ("tank", "vm-100-disk-1")])
+def test_present_force_reuses_volume_that_container_does_not_use(lxc_ansible, storage, volume):
+    lxc_ansible.params = _present_params(mount_volumes=[{"id": "mp0", "storage": storage, "volume": volume, "size": 4}])
+    lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node1", "name": "ct1"})
+    lxc_ansible.content_check = MagicMock(return_value=True)
+    lxc_ansible.get_storage_content = MagicMock(return_value=[{"volid": f"{storage}:{volume}"}])
+    lxc_ansible.handle_api_timeout = MagicMock()
+    lxc_ansible.module.exit_json.side_effect = SystemExit
+    lxc_api = lxc_ansible.proxmox_api.nodes.return_value.lxc
+    lxc_api.return_value.pending.get.return_value = OLD_CONTAINER_CONFIG
+
+    with pytest.raises(SystemExit):
+        lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
+
+    lxc_ansible.module.fail_json.assert_not_called()
+    lxc_api.delete.assert_called_once_with(100, force=1)
+    assert lxc_api.create.call_args[1]["mp0"] == f"{storage}:{volume},size=4G"
 
 
 def test_present_force_removes_container_on_requested_node(lxc_ansible):
-    lxc_ansible.params = _present_params()
+    lxc_ansible.params = _present_params(disk_volume={"storage": "local-lvm", "volume": "vm-100-disk-2", "size": 8})
     lxc_ansible.get_lxc_resource = MagicMock(return_value={"id": "lxc/100", "node": "node2", "name": "ct1"})
     lxc_ansible.content_check = MagicMock(return_value=True)
+    lxc_ansible.get_storage_content = MagicMock(return_value=[{"volid": "local-lvm:vm-100-disk-2"}])
     lxc_ansible.remove_lxc_instance = MagicMock()
     lxc_ansible.new_lxc_instance = MagicMock()
 
     lxc_ansible.lxc_present(100, "ct1", "node1", update=True, force=True)
 
+    lxc_ansible.proxmox_api.nodes.assert_called_once_with("node1")
     assert lxc_ansible.remove_lxc_instance.call_args[0] == (100, "node1")
 
 
