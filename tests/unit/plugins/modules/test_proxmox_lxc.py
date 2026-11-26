@@ -349,3 +349,48 @@ def test_lxc_stopped_force_unmounts_on_container_node(lxc_ansible):
     status.unmount.post.assert_called_once_with()
     status.shutdown.post.assert_not_called()
     lxc_ansible.module.exit_json.assert_called_once_with(changed=True, vmid="100", msg="VM my-lxc (100) unmounted.")
+
+
+NET0 = "name=eth0,bridge=vmbr0,ip=dhcp,type=veth"
+NET0_HWADDR = "hwaddr=BC:24:11:AA:BB:CC"
+
+
+@pytest.mark.parametrize(
+    ("current", "requested", "expected"),
+    [
+        (
+            {"net0": f"name=eth0,bridge=vmbr0,{NET0_HWADDR},ip=dhcp,type=veth", "description": "old"},
+            {"netif": {"net0": NET0}, "description": "new"},
+            {"net0": f"{NET0},{NET0_HWADDR}", "description": "new"},
+        ),
+        (
+            {"net0": f"name=eth0,bridge=vmbr0,{NET0_HWADDR},ip=dhcp,type=veth"},
+            {"netif": {"net0": "name=eth0,bridge=vmbr0,ip=10.0.0.2/24,type=veth"}},
+            {"net0": f"name=eth0,bridge=vmbr0,ip=10.0.0.2/24,type=veth,{NET0_HWADDR}"},
+        ),
+        (
+            {"net0": f"name=eth0,bridge=vmbr0,{NET0_HWADDR},ip=dhcp,type=veth"},
+            {"netif": {"net0": f"{NET0},hwaddr=BC:24:11:00:00:01"}},
+            {"net0": f"{NET0},hwaddr=BC:24:11:00:00:01"},
+        ),
+        ({}, {"netif": {"net0": NET0}}, {"net0": NET0}),
+    ],
+)
+def test_update_lxc_keeps_hwaddr(lxc_ansible, current, requested, expected):
+    config = lxc_ansible.proxmox_api.nodes.return_value.lxc.return_value.config
+    config.get.return_value = current
+
+    lxc_ansible.update_lxc_instance(1003, "example", **requested)
+
+    config.put.assert_called_once_with(**expected)
+
+
+def test_update_lxc_netif_without_hwaddr_unchanged(lxc_ansible):
+    config = lxc_ansible.proxmox_api.nodes.return_value.lxc.return_value.config
+    config.get.return_value = {"net0": f"name=eth0,bridge=vmbr0,{NET0_HWADDR},ip=dhcp,type=veth"}
+    lxc_ansible.module.exit_json.side_effect = SystemExit
+
+    with pytest.raises(SystemExit):
+        lxc_ansible.update_lxc_instance(1003, "example", netif={"net0": NET0})
+
+    config.put.assert_not_called()
