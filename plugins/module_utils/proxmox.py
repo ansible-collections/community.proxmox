@@ -205,7 +205,7 @@ class ProxmoxAnsible:
         except Exception as e:
             module.fail_json(msg=f"{e}", exception=traceback.format_exc())
 
-    def _connect(self):
+    def _connect(self, fail_on_error=True):
         api_host = self.module.params["api_host"]
         api_port = self.module.params["api_port"]
         api_user = self.module.params["api_user"]
@@ -255,6 +255,8 @@ class ProxmoxAnsible:
         try:
             return ProxmoxAPI(*api_host, timeout=api_timeout, **auth_args)
         except Exception as e:
+            if not fail_on_error:
+                raise
             self.module.fail_json(msg=f"{e}", exception=traceback.format_exc())
 
     def version(self):
