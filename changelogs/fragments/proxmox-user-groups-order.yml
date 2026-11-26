@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - proxmox_user - compare ``groups`` regardless of order, so a user whose groups are listed in another order than the API returns them is no longer updated and reported as changed on every run.
