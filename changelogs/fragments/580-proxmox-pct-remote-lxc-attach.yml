@@ -1,0 +1,2 @@
+minor_changes:
+  - proxmox_pct_remote connection plugin - run commands with ``lxc-attach`` instead of the ``pct exec`` CLI, which loads the Proxmox VE API stack on every call and costs about two seconds of CPU per command on older hardware. When the SSH user is not root, the become command now runs ``/usr/bin/lxc-attach`` instead of ``/usr/sbin/pct`` (https://github.com/ansible-collections/community.proxmox/issues/580).

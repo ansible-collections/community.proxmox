@@ -9,11 +9,11 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 author: Nils Stein (@mietzen) <github.nstein@mailbox.org>
 name: proxmox_pct_remote
-short_description: Run tasks in Proxmox LXC container instances using pct CLI via SSH
+short_description: Run tasks in Proxmox LXC container instances using lxc-attach via SSH
 requirements:
   - paramiko
 description:
-  - Run commands or put/fetch files to an existing Proxmox LXC container using pct CLI via SSH.
+  - Run commands or put/fetch files to an existing Proxmox LXC container using lxc-attach via SSH.
   - Uses the Python SSH implementation (Paramiko) to connect to the Proxmox host.
 options:
   remote_addr:
@@ -253,7 +253,7 @@ notes:
 
 EXAMPLES = r"""
 # --------------------------------------------------------------
-# Setup sudo with password less access to pct for user 'ansible':
+# Setup sudo with password less access to lxc-attach for user 'ansible':
 # --------------------------------------------------------------
 #
 # Open a Proxmox root shell and execute:
@@ -266,7 +266,7 @@ EXAMPLES = r"""
 # $ chown -R ansible:ansible /opt/ansible-pct/.ssh
 # $ chmod 700 /opt/ansible-pct/.ssh
 # $ chmod 600 /opt/ansible-pct/.ssh/authorized_keys
-# $ echo 'ansible ALL = (root) NOPASSWD: /usr/sbin/pct' > /etc/sudoers.d/ansible_pct
+# $ echo 'ansible ALL = (root) NOPASSWD: /usr/bin/lxc-attach' > /etc/sudoers.d/ansible_pct
 #
 # Save the displayed private key and add it to your ssh-agent
 #
@@ -316,7 +316,7 @@ EXAMPLES = r"""
 #
 #     - name: Add sudoers entry for ansible user
 #       ansible.builtin.copy:
-#         content: 'ansible ALL = (root) NOPASSWD: /usr/sbin/pct'
+#         content: 'ansible ALL = (root) NOPASSWD: /usr/bin/lxc-attach'
 #         dest: /etc/sudoers.d/ansible_pct
 #         owner: root
 #         group: root
@@ -707,13 +707,15 @@ class Connection(ConnectionBase):
                     if added_this_time:
                         f.write(f"{hostname} {keytype} {key.get_base64()}\n")
 
-    def _build_pct_command(self, cmd: str) -> str:
-        cmd = ["/usr/sbin/pct", "exec", str(self.get_option("vmid")), "--", cmd]
+    def _build_container_command(self, cmd: str) -> str:
+        # pct exec is a Perl CLI that loads the PVE API stack on every call,
+        # which costs seconds per command. lxc-attach is what it execs into.
+        cmd = ["/usr/bin/lxc-attach", "-n", str(self.get_option("vmid")), "--keep-env", "--", cmd]
         if self.get_option("remote_user") != "root":
             cmd = [self.get_option("proxmox_become_method")] + cmd
             display.vvv(
-                f"INFO Running as non root user: {self.get_option('remote_user')}, trying to run pct with become method: "
-                + f"{self.get_option('proxmox_become_method')}",
+                f"INFO Running as non root user: {self.get_option('remote_user')}, trying to run lxc-attach with "
+                + f"become method: {self.get_option('proxmox_become_method')}",
                 host=self.get_option("remote_addr"),
             )
         return " ".join(cmd)
@@ -817,7 +819,7 @@ class Connection(ConnectionBase):
     def exec_command(self, cmd: str, in_data: bytes | None = None, sudoable: bool = True) -> tuple[int, bytes, bytes]:
         """run a command on inside the LXC container"""
 
-        cmd = self._build_pct_command(cmd)
+        cmd = self._build_container_command(cmd)
 
         super().exec_command(cmd, in_data=in_data, sudoable=sudoable)
 
@@ -833,8 +835,11 @@ class Connection(ConnectionBase):
         stderr = b"".join(chan.makefile_stderr("rb", bufsize))
         returncode = chan.recv_exit_status()
 
-        if "pct: not found" in stderr.decode("utf-8"):
-            raise AnsibleError(f"pct not found in path of host: {to_text(self.get_option('remote_addr'))}")
+        if "lxc-attach: not found" in stderr.decode("utf-8"):
+            raise AnsibleError(f"lxc-attach not found on host: {to_text(self.get_option('remote_addr'))}")
+
+        if "Failed to get init pid" in stderr.decode("utf-8"):
+            raise AnsibleError(f"container {self.get_option('vmid')} is not running")
 
         return (returncode, no_prompt_out + stdout, no_prompt_out + stderr)
 

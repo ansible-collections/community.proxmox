@@ -197,17 +197,17 @@ def test_save_ssh_host_keys(mock_tempfile, mock_stat, mock_exists, connection):
     mock_open_obj().write.assert_called_with("host1 ssh-rsa KEY1\n")
 
 
-def test_build_pct_command(connection):
-    """Test PCT command building with different users"""
+def test_build_container_command(connection):
+    """Test container command building with different users"""
     connection.set_option("vmid", "100")
 
-    cmd = connection._build_pct_command('/bin/sh -c "ls -la"')
-    assert cmd == '/usr/sbin/pct exec 100 -- /bin/sh -c "ls -la"'
+    cmd = connection._build_container_command('/bin/sh -c "ls -la"')
+    assert cmd == '/usr/bin/lxc-attach -n 100 --keep-env -- /bin/sh -c "ls -la"'
 
     connection.set_option("remote_user", "user")
     connection.set_option("proxmox_become_method", "sudo")
-    cmd = connection._build_pct_command('/bin/sh -c "ls -la"')
-    assert cmd == 'sudo /usr/sbin/pct exec 100 -- /bin/sh -c "ls -la"'
+    cmd = connection._build_container_command('/bin/sh -c "ls -la"')
+    assert cmd == 'sudo /usr/bin/lxc-attach -n 100 --keep-env -- /bin/sh -c "ls -la"'
 
 
 @patch("paramiko.SSHClient")
@@ -264,8 +264,8 @@ def test_exec_command_with_in_data_skips_pty(mock_ssh, connection):
 
 
 @patch("paramiko.SSHClient")
-def test_exec_command_pct_not_found(mock_ssh, connection):
-    """Test command execution when PCT is not found"""
+def test_exec_command_lxc_attach_not_found(mock_ssh, connection):
+    """Test command execution when lxc-attach is not found"""
     mock_client = MagicMock()
     mock_ssh.return_value = mock_client
     mock_channel = MagicMock()
@@ -275,12 +275,34 @@ def test_exec_command_pct_not_found(mock_ssh, connection):
     mock_transport.open_session.return_value = mock_channel
     mock_channel.recv_exit_status.return_value = 1
     mock_channel.makefile.return_value = [to_bytes("")]
-    mock_channel.makefile_stderr.return_value = [to_bytes("pct: not found")]
+    mock_channel.makefile_stderr.return_value = [to_bytes("lxc-attach: not found")]
 
     connection._connected = True
     connection.ssh = mock_client
 
-    with pytest.raises(AnsibleError, match="pct not found in path of host"):
+    with pytest.raises(AnsibleError, match="lxc-attach not found on host"):
+        connection.exec_command("ls -la")
+
+
+@patch("paramiko.SSHClient")
+def test_exec_command_container_not_running(mock_ssh, connection):
+    """Test command execution when the container is stopped"""
+    mock_client = MagicMock()
+    mock_ssh.return_value = mock_client
+    mock_channel = MagicMock()
+    mock_transport = MagicMock()
+
+    mock_client.get_transport.return_value = mock_transport
+    mock_transport.open_session.return_value = mock_channel
+    mock_channel.recv_exit_status.return_value = 1
+    mock_channel.makefile.return_value = [to_bytes("")]
+    mock_channel.makefile_stderr.return_value = [to_bytes("lxc-attach: Failed to get init pid")]
+
+    connection.set_option("vmid", "100")
+    connection._connected = True
+    connection.ssh = mock_client
+
+    with pytest.raises(AnsibleError, match="container 100 is not running"):
         connection.exec_command("ls -la")
 
 
