@@ -295,7 +295,7 @@ class ProxmoxNodeAnsible(ProxmoxAnsible):
                 result = f"Node '{node}' is already online."
             else:
                 if not self.module.check_mode:
-                    self.proxmox_api.nodes(node).wakeonlan.post(node_name=node)
+                    self.proxmox_api.nodes(node).wakeonlan.post()
                 changed = True
                 result = f"Node '{node}' has been powered on."
 
